@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
+import BannerRotator from "./components/BannerRotator";
 
 export default function Home() {
   const heroImages = [
@@ -9,54 +10,140 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
+  const bannerImages = [
+    "/banners/anuncio-01.png",
+    "/banners/anuncio-02.png",
+    "/banners/anuncio-03.png",
+    "/banners/anuncio-04.png",
+    "/banners/anuncio-05.png",
+  ];
+
   return (
     <main>
-      {/* Carrossel topo */}
-      <HeroCarousel images={heroImages} />
 
-      {/* Banner principal (abaixo do carrossel) */}
+      {/* BANNER NO TOPO */}
       <section className="bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="relative w-full h-[120px] md:h-[160px] lg:h-[180px] rounded-2xl overflow-hidden border border-slate-200">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Banner principal"
-              fill
-              sizes="100vw"
-              className="object-cover"
-              priority
-            />
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <BannerRotator images={bannerImages} interval={6000} />
+        </div>
+      </section>
+
+      {/* CARROSSEL COM LOGO + MENU EM CIMA */}
+      <section>
+        <HeroCarousel images={heroImages} interval={6000}>
+          {/* Overlay do menu + logo */}
+          <div className="absolute inset-0 z-10 flex flex-col">
+            <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
+              
+              {/* LOGO DENTRO DA FOTO */}
+              <Link href="/" className="flex items-center gap-3">
+                <Image 
+                  src="/logo-classilagos.png"
+                  alt="Classilagos"
+                  width={150}
+                  height={150}
+                  priority
+                />
+              </Link>
+
+              {/* MENU SOBRE A IMAGEM */}
+              <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-white drop-shadow">
+                <Link href="/imoveis" className="hover:underline">Imóveis</Link>
+                <Link href="/veiculos" className="hover:underline">Veículos</Link>
+                <Link href="/nautica" className="hover:underline">Náutica</Link>
+                <Link href="/servicos" className="hover:underline">Serviços</Link>
+                <Link href="/turismo" className="hover:underline">Turismo</Link>
+                <Link href="/lagolistas" className="hover:underline">LagoListas</Link>
+                <Link href="/login" className="hover:underline">Login</Link>
+
+                <Link
+                  href="/anunciar"
+                  className="rounded-full bg-blue-600/90 px-4 py-2 text-white hover:bg-blue-600"
+                >
+                  Anuncie
+                </Link>
+              </nav>
+            </div>
+            <div className="flex-1" />
+          </div>
+        </HeroCarousel>
+      </section>
+
+      {/* ANÚNCIOS EM DESTAQUE */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">
+            Anúncios em destaque
+          </h2>
+          <div className="rounded-2xl border border-slate-200 p-8 text-slate-600">
+            Em breve, os destaques aparecerão aqui.
           </div>
         </div>
       </section>
 
-      {/* Bloco de boas-vindas (mantive simples; depois trocamos pelos 8 botões) */}
+      {/* CATEGORIAS (8 BOTÕES) */}
       <section className="bg-slate-50">
-        <div className="max-w-5xl mx-auto px-4 py-10 rounded-2xl">
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
-            Bem-vindo ao novo Classilagos
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">
+            Explore por categoria
           </h2>
-          <p className="text-sm text-slate-700 mb-3">
-            Em breve você poderá divulgar seu negócio e explorar anúncios de
-            Imóveis, Veículos, Náutica, Serviços, Turismo, Empregos, Pets e LagoListas.
-          </p>
-          <div className="flex gap-3">
-            <Link
-              href="/anunciar"
-              className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100"
-            >
-              Anunciar grátis
-            </Link>
-            <Link
-              href="/cadastro"
-              className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-            >
-              Criar conta
-            </Link>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[
+              ["Imóveis", "/imoveis"],
+              ["Veículos", "/veiculos"],
+              ["Náutica", "/nautica"],
+              ["Pets", "/pets"],
+              ["Empregos", "/empregos"],
+              ["Serviços", "/servicos"],
+              ["Turismo", "/turismo"],
+              ["LagoListas", "/lagolistas"],
+            ].map(([label, href]) => (
+              <Link 
+                key={href} 
+                href={href}
+                className="rounded-2xl border border-slate-200 bg-white p-4 text-center hover:shadow-sm"
+              >
+                <div className="text-sm font-semibold text-slate-900">
+                  {label}
+                </div>
+                <div className="text-xs text-slate-500 mt-1">Abrir</div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* TRÊS CHAMADAS: TV, TURISMO, NOTÍCIAS */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-4">
+
+          <Link href="#" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
+            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
+            <p className="text-sm text-slate-600">
+              Vídeos, pautas locais e histórias da nossa região.
+            </p>
+          </Link>
+
+          <Link href="/turismo" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
+            <h3 className="font-semibold text-slate-900 mb-2">Turismo</h3>
+            <p className="text-sm text-slate-600">
+              Pousadas, passeios, bares e restaurantes.
+            </p>
+          </Link>
+
+          <Link href="#" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
+            <h3 className="font-semibold text-slate-900 mb-2">Notícias</h3>
+            <p className="text-sm text-slate-600">
+              Acompanhe novidades e oportunidades.
+            </p>
+          </Link>
+
+        </div>
+      </section>
+
     </main>
   );
 }
+
 
