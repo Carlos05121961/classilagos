@@ -1,4 +1,5 @@
 import "./globals.css";
+import Header from "./components/Header";
 
 export const metadata = {
   title: "Classilagos",
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
-      <body className="bg-white text-slate-900">{children}</body>
+      <body className="bg-white text-slate-900">
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
+
