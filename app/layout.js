@@ -1,5 +1,5 @@
 import "./globals.css";
-import Header from "./components/Header";
+import SiteHeader from "./components/SiteHeader";
 
 export const metadata = {
   title: "Classilagos",
@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body className="bg-white text-slate-900">
-        <Header />
+        <SiteHeader />
         {children}
       </body>
     </html>
