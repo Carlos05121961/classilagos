@@ -21,9 +21,9 @@ export default function BannerRotator({
     <div
       className={`relative w-full overflow-hidden border border-slate-200 rounded-2xl ${className}`}
       style={{
-        height: "250px",       // altura fixa ideal
-        maxHeight: "250px",
-        minHeight: "250px",
+        height: "150px",       // altura fixa ideal
+        maxHeight: "150px",
+        minHeight: "150px",
       }}
     >
       <Image
