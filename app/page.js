@@ -13,19 +13,32 @@ export default function Home() {
     <main>
 
       {/* FAIXA TOPO: CLIMATEMPO + BANNER FIXO */}
-      <section className="bg-slate-100 border-b">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col gap-2 md:flex-row md:items-center">
-          
-          {/* BLOCO CLIMATEMPO */}
-          <div className="flex-1 h-16 md:h-20 rounded-2xl bg-[#e4d4ff] flex items-center justify-center">
-            <span className="text-xs md:text-sm font-semibold text-slate-800">
-              CLIMATEMPO • widget entra aqui depois
-            </span>
-          </div>
+      {/* TOPO — CLIMATEMPO + BANNER */}
+<section className="bg-slate-100 border-b">
+  <div className="max-w-7xl mx-auto px-4 py-2 flex flex-row gap-3 items-center">
 
-          {/* BANNER PRINCIPAL */}
-          <div className="flex-[2] h-16 md:h-20 lg:h-24 rounded-2xl overflow-hidden bg-black">
-            <Image
+    {/* BLOCO DO CLIMATEMPO – 50% */}
+    <div className="w-1/2 h-16 md:h-20 rounded-2xl bg-[#E4D4FF] flex items-center justify-center">
+      <span className="text-xs md:text-sm font-semibold text-slate-800">
+        CLIMATEMPO • widget entra aqui depois
+      </span>
+    </div>
+
+    {/* BANNER ESTÁTICO — 50% */}
+    <div className="w-1/2 h-16 md:h-20 rounded-2xl overflow-hidden bg-black">
+      <Image
+        src="/banners/anuncie-01.png"
+        alt="Anuncie agora no Classilagos"
+        width={600}
+        height={150}
+        className="w-full h-full object-cover"
+        priority
+      />
+    </div>
+
+  </div>
+</section>
+
               src="/banners/anuncie-01.png"
               alt="Anuncie Grátis aqui agora!"
               width={900}
