@@ -22,11 +22,20 @@ export default function Home() {
     <main>
 
       {/* BANNER NO TOPO */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <BannerRotator images={bannerImages} interval={6000} />
-        </div>
-      </section>
+     <section className="bg-white">
+  <div 
+    className="max-w-7xl mx-auto px-4"
+    style={{
+      height: "250px",
+      maxHeight: "250px",
+      minHeight: "250px",
+      overflow: "hidden"
+    }}
+  >
+    <BannerRotator images={bannerImages} interval={6000} />
+  </div>
+</section>
+
 
       {/* CARROSSEL COM LOGO + MENU EM CIMA */}
       <section>
