@@ -35,30 +35,30 @@ export default function Home() {
           <div className="absolute inset-0 z-10 flex flex-col">
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
               
-              {/* LOGO DENTRO DA FOTO */}
+              {/* LOGO DENTRO DA FOTO – um pouco maior */}
               <Link href="/" className="flex items-center gap-3">
                 <Image 
                   src="/logo-classilagos.png"
                   alt="Classilagos"
-                  width={150}
-                  height={150}
+                  width={170}   // antes era 150
+                  height={170}
                   priority
                 />
               </Link>
 
-              {/* MENU SOBRE A IMAGEM */}
-              <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-white drop-shadow">
-                <Link href="/imoveis" className="hover:underline">Imóveis</Link>
-                <Link href="/veiculos" className="hover:underline">Veículos</Link>
-                <Link href="/nautica" className="hover:underline">Náutica</Link>
-                <Link href="/servicos" className="hover:underline">Serviços</Link>
-                <Link href="/turismo" className="hover:underline">Turismo</Link>
-                <Link href="/lagolistas" className="hover:underline">LagoListas</Link>
-                <Link href="/login" className="hover:underline">Login</Link>
+              {/* MENU SOBRE A IMAGEM – agora com texto escuro */}
+              <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-900">
+                <Link href="/imoveis" className="hover:text-blue-700">Imóveis</Link>
+                <Link href="/veiculos" className="hover:text-blue-700">Veículos</Link>
+                <Link href="/nautica" className="hover:text-blue-700">Náutica</Link>
+                <Link href="/servicos" className="hover:text-blue-700">Serviços</Link>
+                <Link href="/turismo" className="hover:text-blue-700">Turismo</Link>
+                <Link href="/lagolistas" className="hover:text-blue-700">LagoListas</Link>
+                <Link href="/login" className="hover:text-blue-700">Login</Link>
 
                 <Link
                   href="/anunciar"
-                  className="rounded-full bg-blue-600/90 px-4 py-2 text-white hover:bg-blue-600"
+                  className="rounded-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   Anuncie
                 </Link>
@@ -145,5 +145,6 @@ export default function Home() {
     </main>
   );
 }
+
 
 
