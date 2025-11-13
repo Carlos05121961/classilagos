@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
-import BannerRotator from "./components/BannerRotator";
+
 
 export default function Home() {
   const heroImages = [
@@ -18,21 +18,32 @@ export default function Home() {
     "/banners/anuncio-05.png",
   ];
 
-  return (
-    <main>
+      {/* FAIXA TOPO: CLIMATEMPO + BANNER FIXO */}
+    <section className="bg-slate-100 border-b">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col gap-2 md:flex-row md:items-center">
+        
+        {/* BLOCO CLIMATEMPO (placeholder por enquanto) */}
+        <div className="flex-1 h-16 md:h-20 rounded-2xl bg-[#e4d4ff] flex items-center justify-center">
+          <span className="text-xs md:text-sm font-semibold text-slate-800">
+            CLIMATEMPO • widget entra aqui depois
+          </span>
+        </div>
 
-      {/* BANNER NO TOPO */}
-     <section className="bg-white">
-  <div 
-    className="max-w-7xl mx-auto px-4"
-    style={{
-      height: "250px",
-      maxHeight: "250px",
-      minHeight: "250px",
-      overflow: "hidden"
-    }}
-  >
-    <BannerRotator images={bannerImages} interval={6000} />
+        {/* BANNER PRINCIPAL DO TOPO */}
+        <div className="flex-[2] h-16 md:h-20 lg:h-24 rounded-2xl overflow-hidden bg-black">
+          <Image
+            src="/banners/anuncie-01.png"
+            alt="Anuncie Grátis aqui agora!"
+            width={900}
+            height={150}
+            className="w-full h-full object-cover"
+            priority
+          />
+        </div>
+
+      </div>
+    </section>
+
   </div>
 </section>
 
