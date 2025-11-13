@@ -18,7 +18,8 @@ export default function BannerRotator({
   const current = images[idx] ?? images[0];
 
   return (
-    <div className={`relative w-full h-[120px] md:h-[160px] lg:h-[180px] rounded-2xl overflow-hidden border border-slate-200 ${className}`}>
+   <div className={`relative w-full h-[150px] md:h-[190px] lg:h-[220px] rounded-2xl overflow-hidden border border-slate-200 ${className}`}>
+
       <Image
         key={current}
         src={current}
