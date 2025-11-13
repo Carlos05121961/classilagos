@@ -19,12 +19,17 @@ export default function BannerRotator({
 
   return (
     <div
-      className={`relative w-full h-[100px] md:h-[130px] lg:h-[160px] rounded-2xl overflow-hidden border border-slate-200 ${className}`}
+      className={`relative w-full overflow-hidden border border-slate-200 rounded-2xl ${className}`}
+      style={{
+        height: "250px",       // altura fixa ideal
+        maxHeight: "250px",
+        minHeight: "250px",
+      }}
     >
       <Image
         key={current}
         src={current}
-        alt="Banner"
+        alt="Banner rotativo"
         fill
         sizes="100vw"
         className="object-cover"
@@ -33,5 +38,6 @@ export default function BannerRotator({
     </div>
   );
 }
+
 
 
