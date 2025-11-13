@@ -19,11 +19,7 @@ export default function BannerRotator({
 
   return (
     <div
-      className={`relative w-full 
-        h-[120px]    /* mobile */
-        md:h-[160px] /* tablet */
-        lg:h-[190px] /* desktop */
-        rounded-2xl overflow-hidden border border-slate-200 ${className}`}
+      className={`relative w-full h-[100px] md:h-[130px] lg:h-[160px] rounded-2xl overflow-hidden border border-slate-200 ${className}`}
     >
       <Image
         key={current}
@@ -37,4 +33,5 @@ export default function BannerRotator({
     </div>
   );
 }
+
 
