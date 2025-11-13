@@ -12,7 +12,16 @@ export default function HeroCarousel({ images = [], interval = 5000, children })
   }, [images, interval]);
 
   return (
-    <div className="relative w-full h-[300px] md:h-[380px] lg:h-[440px] overflow-hidden">
+    <div
+  className="
+    relative w-full
+    h-[200px]    /* mobile */
+    sm:h-[220px]
+    md:h-[260px]
+    lg:h-[300px] /* desktop */
+    overflow-hidden
+  "
+>
       {images.map((src, i) => (
         <div key={src} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === idx ? 1 : 0 }}>
           <Image src={src} alt="" fill sizes="100vw" priority={i === 0} className="object-cover" />
