@@ -44,9 +44,6 @@ export default function Home() {
       </div>
     </section>
 
-  </div>
-</section>
-
 
       {/* CARROSSEL COM LOGO + MENU EM CIMA */}
       <section>
