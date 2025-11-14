@@ -21,7 +21,10 @@ export default function SiteHeader() {
           <Link href="/turismo" className="hover:text-blue-600">Turismo</Link>
           <Link href="/lagolistas" className="hover:text-blue-600">LagoListas</Link>
           <Link href="/login" className="hover:text-blue-600">Login</Link>
-          <Link href="/anunciar" className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-600 hover:text-white">Anuncie</Link>
+       <Link href="/anunciar" className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-600 hover:text-white">
+  Anuncie grátis
+</Link>
+
         </nav>
       </div>
     </header>
