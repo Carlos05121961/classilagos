@@ -12,29 +12,19 @@ export default function Home() {
   return (
     <main>
 
-      {/* TOPO — CLIMATEMPO + BANNER ESTÁTICO */}
+      {/* BANNER FIXO CENTRALIZADO NO TOPO */}
       <section className="bg-slate-100 border-b">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-row gap-3 items-center">
-
-          {/* BLOCO CLIMATEMPO */}
-          <div className="w-1/2 h-16 md:h-20 rounded-2xl bg-[#E4D4FF] flex items-center justify-center">
-            <span className="text-xs md:text-sm font-semibold text-slate-800">
-              CLIMATEMPO • widget entra aqui depois
-            </span>
-          </div>
-
-          {/* BANNER FIXO TOPO */}
-          <div className="w-1/2 h-16 md:h-20 rounded-2xl overflow-hidden bg-black">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center">
+          <div className="w-full md:w-[650px] h-16 md:h-20 lg:h-24 rounded-2xl overflow-hidden bg-black">
             <Image
               src="/banners/anuncie-01.png"
               alt="Anuncie no Classilagos"
-              width={600}
+              width={900}
               height={150}
               className="w-full h-full object-cover"
               priority
             />
           </div>
-
         </div>
       </section>
 
@@ -142,6 +132,7 @@ export default function Home() {
     </main>
   );
 }
+
 
 
 
