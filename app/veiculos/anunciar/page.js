@@ -20,9 +20,9 @@ export default function AnunciarVeiculoPage() {
 
         <p className="text-sm text-slate-600 mb-6">
           Preencha os dados do seu veículo para criar um anúncio no Classilagos.
-          Por enquanto é uma simulação — estamos definindo o modelo de
-          formulário; depois vamos salvar tudo em banco de dados e exibir na
-          lista de Veículos e nos destaques.
+          Por enquanto é uma simulação — estamos definindo o modelo de formulário;
+          depois vamos salvar tudo em banco de dados e exibir na lista de Veículos
+          e nos destaques.
         </p>
 
         {enviado && (
@@ -100,7 +100,7 @@ export default function AnunciarVeiculoPage() {
             </div>
           </section>
 
-          {/* DETALHES */}
+          {/* DETALHES DO VEÍCULO */}
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-slate-900">
               Detalhes do veículo
@@ -223,3 +223,4 @@ export default function AnunciarVeiculoPage() {
     </main>
   );
 }
+
