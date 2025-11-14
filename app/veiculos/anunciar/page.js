@@ -20,14 +20,15 @@ export default function AnunciarVeiculoPage() {
 
         <p className="text-sm text-slate-600 mb-6">
           Preencha os dados do seu veículo para criar um anúncio no Classilagos.
-          Por enquanto é uma simulação — estamos definindo o modelo de formulário,
-          depois vamos salvar tudo em banco de dados e mostrar nas listas e destaques.
+          Por enquanto é uma simulação — estamos definindo o modelo de
+          formulário; depois vamos salvar tudo em banco de dados e exibir na
+          lista de Veículos e nos destaques.
         </p>
 
         {enviado && (
           <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             ✅ Anúncio enviado (simulação). Em breve vamos salvar esses dados de
-            verdade e exibir o anúncio na lista de Veículos e na página inicial.
+            verdade e mostrar o anúncio para os usuários.
           </div>
         )}
 
@@ -37,10 +38,17 @@ export default function AnunciarVeiculoPage() {
         >
           {/* TIPO DE ANÚNCIO */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Tipo de anúncio
+            </h2>
             <div className="grid gap-3 md:grid-cols-3 text-xs text-slate-700">
               <label className="flex items-center gap-2">
-                <input type="radio" name="tipoAnuncio" value="venda" defaultChecked />
+                <input
+                  type="radio"
+                  name="tipoAnuncio"
+                  value="venda"
+                  defaultChecked
+                />
                 Venda
               </label>
               <label className="flex items-center gap-2">
@@ -54,9 +62,11 @@ export default function AnunciarVeiculoPage() {
             </div>
           </section>
 
-          {/* TIPO DE VEÍCULO + TÍTULO + VALOR */}
+          {/* DADOS PRINCIPAIS */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Dados principais</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Dados principais
+            </h2>
             <div className="grid gap-3 md:grid-cols-3">
               <select
                 name="tipoVeiculo"
@@ -90,9 +100,11 @@ export default function AnunciarVeiculoPage() {
             </div>
           </section>
 
-          {/* DETALHES DO VEÍCULO */}
+          {/* DETALHES */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Detalhes do veículo</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Detalhes do veículo
+            </h2>
             <div className="grid gap-3 md:grid-cols-4">
               <input
                 name="marca"
@@ -122,49 +134,13 @@ export default function AnunciarVeiculoPage() {
                 placeholder="KM (ex: 65.000)"
               />
             </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <select
-                name="cambio"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Câmbio
-                </option>
-                <option>Manual</option>
-                <option>Automático</option>
-                <option>Automatizado</option>
-              </select>
-
-              <select
-                name="combustivel"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Combustível
-                </option>
-                <option>Gasolina</option>
-                <option>Álcool / Flex</option>
-                <option>Diesel</option>
-                <option>GNV</option>
-                <option>Elétrico</option>
-                <option>Híbrido</option>
-              </select>
-
-              <input
-                name="placa"
-                type="text"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800"
-                placeholder="Placa (opcional)"
-              />
-            </div>
           </section>
 
           {/* LOCALIZAÇÃO */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Localização
+            </h2>
             <div className="grid gap-3 md:grid-cols-2">
               <select
                 name="cidade"
@@ -196,50 +172,22 @@ export default function AnunciarVeiculoPage() {
 
           {/* DESCRIÇÃO */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Descrição do anúncio</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Descrição do anúncio
+            </h2>
             <textarea
               name="descricao"
-              rows={5}
+              rows={4}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800"
-              placeholder="Descreva o estado do veículo, histórico, opcionais (ar, direção, vidro, som, etc.) e condições de negócio."
+              placeholder="Descreva o estado do veículo, opcionais e condições de negócio."
             />
-          </section>
-
-          {/* MÍDIA */}
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Fotos e vídeo
-            </h2>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-700">
-                  Fotos do veículo
-                </label>
-                <input type="file" multiple className="w-full text-xs text-slate-700" />
-                <p className="text-[11px] text-slate-500">
-                  Envie de 3 a 10 fotos em boa resolução (apenas simulação, ainda
-                  não salvamos).
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-700">
-                  Link de vídeo (YouTube, etc.)
-                </label>
-                <input
-                  name="video"
-                  type="text"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800"
-                  placeholder="https://youtube.com/..."
-                />
-              </div>
-            </div>
           </section>
 
           {/* CONTATO */}
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Dados de contato
+            </h2>
             <div className="grid gap-3 md:grid-cols-3">
               <input
                 name="nomeAnunciante"
