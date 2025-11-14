@@ -16,14 +16,15 @@ export default function Home() {
       <section className="bg-slate-100 border-b">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center">
           <div className="w-full md:w-[650px] h-16 md:h-20 lg:h-24 rounded-2xl overflow-hidden bg-black">
-            <Image
-              src="/banners/anuncie-01.png"
-              alt="Anuncie no Classilagos"
-              width={900}
-              height={150}
-              className="w-full h-full object-cover"
-              priority
-            />
+           <Image
+  src="/banners/anuncio-05.png"
+  alt="Anuncie no Classilagos"
+  width={900}
+  height={150}
+  className="w-full h-full object-cover"
+  priority
+/>
+
           </div>
         </div>
       </section>
