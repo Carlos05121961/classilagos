@@ -56,11 +56,12 @@ export default function Home() {
                 <Link href="/lagolistas" className="hover:text-blue-700">LagoListas</Link>
                 <Link href="/login" className="hover:text-blue-700">Login</Link>
                 <Link
-                  href="/anunciar"
-                  className="rounded-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                  Anuncie
-                </Link>
+  href="/anunciar"
+  className="rounded-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+>
+  Anuncie grátis
+</Link>
+
               </nav>
 
             </div>
