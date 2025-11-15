@@ -24,21 +24,20 @@ export default function BannerRotator({ interval = 6000 }) {
 
   return (
     <div className="w-full flex justify-center bg-slate-100 py-3">
-      <div className="w-full max-w-5xl px-4">
-        
-        {/* Banner rotativo – altura fixa 120px */}
-        <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden">
+      {/* Largura máxima ~900px para não ficar enorme */}
+      <div className="w-full max-w-[900px] px-4">
+        <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
           <Image
             src={images[index]}
             alt="Banner Classilagos"
             fill
-            sizes="100vw"
-            className="object-cover"   // mantém nitidez e preenche sem deformar
+            sizes="900px"
+            className="object-contain"  // não corta, encaixa o banner inteiro
             priority
           />
         </div>
 
-        {/* Bolinhas de navegação */}
+        {/* bolinhas de navegação */}
         <div className="mt-2 flex justify-center gap-2">
           {images.map((_, i) => (
             <button
@@ -51,11 +50,11 @@ export default function BannerRotator({ interval = 6000 }) {
             />
           ))}
         </div>
-
       </div>
     </div>
   );
 }
+
 
 
 
