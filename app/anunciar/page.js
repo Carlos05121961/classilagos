@@ -1,91 +1,84 @@
-"use client";
+import Link from "next/link";
+
+const categorias = [
+  {
+    slug: "/imoveis",
+    titulo: "Imóveis",
+    descricao: "Casas, apartamentos, terrenos e muito mais.",
+  },
+  {
+    slug: "/veiculos",
+    titulo: "Veículos",
+    descricao: "Carros, motos e outros veículos.",
+  },
+  {
+    slug: "/nautica",
+    titulo: "Náutica",
+    descricao: "Lanchas, barcos, passeios e serviços náuticos.",
+  },
+  {
+    slug: "/pets",
+    titulo: "Pets",
+    descricao: "Animais, adoção, venda e serviços.",
+  },
+  {
+    slug: "/empregos",
+    titulo: "Empregos",
+    descricao: "Anuncie vagas ou procure trabalho.",
+  },
+  {
+    slug: "/servicos",
+    titulo: "Serviços e Profissionais",
+    descricao: "Autônomos, liberais e prestadores de serviço.",
+  },
+  {
+    slug: "/turismo",
+    titulo: "Turismo",
+    descricao: "Pousadas, hotéis, passeios e lazer.",
+  },
+  {
+    slug: "/lagolistas",
+    titulo: "Lagolistas",
+    descricao: "Guia comercial da Região dos Lagos.",
+  },
+];
 
 export default function AnunciarPage() {
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <section className="max-w-3xl mx-auto px-6 py-16">
-        <h1 className="text-3xl font-bold text-blue-700 mb-4">
-          Anuncie GRÁTIS no Classilagos
-        </h1>
+    <main className="min-h-screen w-full flex flex-col items-center justify-start px-4 py-8 bg-slate-50">
+      <div className="w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-md p-6">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+            Anuncie grátis no Classilagos
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Escolha a seção abaixo para cadastrar o seu anúncio gratuito.
+          </p>
+        </div>
 
-        <p className="mb-6 text-gray-700">
-          Divulgue o seu produto, serviço ou negócio gratuitamente e
-          alcance clientes de toda a Região dos Lagos. É rápido, fácil e
-          sem custo!
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {categorias.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={cat.slug}
+              className="flex flex-col justify-between rounded-xl border border-slate-200 px-4 py-3 text-left hover:border-slate-400 hover:bg-slate-50 transition"
+            >
+              <span className="font-semibold text-slate-900">
+                {cat.titulo}
+              </span>
+              <span className="mt-1 text-xs leading-snug text-slate-500">
+                {cat.descricao}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-6 text-[11px] text-center text-slate-500">
+          Classilagos – anúncios grátis para toda a Região dos Lagos.
         </p>
-
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nome / Nome da Empresa
-            </label>
-            <input
-              type="text"
-              placeholder="Ex: Maria da Silva / Pousada Sol Nascente"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                WhatsApp
-              </label>
-              <input
-                type="tel"
-                placeholder="(22) 99999-9999"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cidade
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Maricá, Cabo Frio..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Categoria
-            </label>
-            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Selecione...</option>
-              <option>Imóveis</option>
-              <option>Veículos</option>
-              <option>Serviços</option>
-              <option>Profissionais Liberais</option>
-              <option>Turismo</option>
-              <option>Comércio</option>
-              <option>Outros</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição do Anúncio
-            </label>
-            <textarea
-              rows={4}
-              placeholder="Descreva seu produto ou serviço..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <button
-            type="button"
-            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Enviar Anúncio (demo)
-          </button>
-        </form>
-      </section>
+      </div>
     </main>
   );
 }
+
 
