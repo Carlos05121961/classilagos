@@ -49,9 +49,9 @@ export default function AnunciarPage() {
       <div className="w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-md p-6">
     {/* Banner Fixo no Cupom */}
 <div className="w-full mb-6">
-  <img 
-    src="/banners/banner-cupom.jpg" 
-    alt="Banner Classilagos" 
+  <img
+    src="/banners/anuncio-10.png"
+    alt="Banner Classilagos"
     className="w-full rounded-xl border border-slate-200 shadow"
   />
 </div>
