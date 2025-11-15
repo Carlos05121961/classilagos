@@ -18,14 +18,15 @@ export default function CategoryBannerCarousel({ images = [] }) {
 
   return (
     <div className="w-full bg-slate-100 border-b">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="w-full rounded-2xl overflow-hidden border border-slate-200 shadow bg-white h-[120px] relative">
-
+      {/* Largura máxima ~900px, igual à home */}
+      <div className="max-w-[900px] mx-auto px-4 py-4">
+        <div className="w-full h-[120px] rounded-2xl overflow-hidden border border-slate-200 shadow bg-white flex items-center justify-center relative">
           <Image
             src={images[index]}
             alt="Banner Categoria"
             fill
-            className="object-cover"
+            sizes="900px"
+            className="object-contain"   // mostra o banner inteiro sem cortar
             priority
           />
         </div>
@@ -48,3 +49,4 @@ export default function CategoryBannerCarousel({ images = [] }) {
     </div>
   );
 }
+
