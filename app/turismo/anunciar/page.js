@@ -53,7 +53,6 @@ export default function AnunciarTurismoPage() {
                 <option>Pousada</option>
                 <option>Hotel</option>
                 <option>Hostel</option>
-                <option>Casa / apartamento de temporada</option>
                 <option>Bar</option>
                 <option>Restaurante</option>
                 <option>Quiosque de praia</option>
