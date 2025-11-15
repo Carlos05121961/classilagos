@@ -1,43 +1,60 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export default function BannerRotator({
-  images = [],
-  interval = 6000,
-  className = "",
-}) {
-  const [idx, setIdx] = useState(0);
+const images = [
+  "/banners/anuncio-01.png",
+  "/banners/anuncio-02.png",
+  "/banners/anuncio-03.png",
+];
+
+export default function BannerRotator({ interval = 6000 }) {
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     if (images.length <= 1) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % images.length), interval);
-    return () => clearInterval(t);
-  }, [images, interval]);
 
-  const current = images[idx] ?? images[0];
+    const t = setInterval(
+      () => setIndex((i) => (i + 1) % images.length),
+      interval
+    );
+
+    return () => clearInterval(t);
+  }, [interval]);
 
   return (
-    <div
-      className={`relative w-full overflow-hidden border border-slate-200 rounded-2xl ${className}`}
-      style={{
-        height: "150px",       // altura fixa ideal
-        maxHeight: "150px",
-        minHeight: "150px",
-      }}
-    >
-      <Image
-        key={current}
-        src={current}
-        alt="Banner rotativo"
-        fill
-        sizes="100vw"
-        className="object-cover"
-        priority
-      />
+    <div className="w-full flex justify-center bg-slate-100 py-3">
+      <div className="w-full max-w-5xl px-4">
+        <div className="relative w-full h-[120px] md:h-[140px] lg:h-[160px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+          <Image
+            src={images[index]}
+            alt="Banner Classilagos"
+            fill
+            sizes="100vw"
+            className="object-contain"
+          />
+        </div>
+
+        {/* bolinhas do carrossel */}
+        <div className="mt-2 flex justify-center gap-2">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIndex(i)}
+              className={`h-2 w-2 rounded-full ${
+                i === index ? "bg-slate-800" : "bg-slate-300"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
+
+
 
 
 
