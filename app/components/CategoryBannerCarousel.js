@@ -19,7 +19,8 @@ export default function CategoryBannerCarousel({ images = [] }) {
   return (
     <div className="w-full bg-slate-100 border-b">
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="w-full rounded-2xl overflow-hidden border border-slate-200 shadow bg-white h-[200px] relative">
+        <div className="w-full rounded-2xl overflow-hidden border border-slate-200 shadow bg-white h-[120px] relative">
+
           <Image
             src={images[index]}
             alt="Banner Categoria"
