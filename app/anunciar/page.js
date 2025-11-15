@@ -47,6 +47,14 @@ export default function AnunciarPage() {
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-start px-4 py-8 bg-slate-50">
       <div className="w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-md p-6">
+    {/* Banner Fixo no Cupom */}
+<div className="w-full mb-6">
+  <img 
+    src="/banners/banner-cupom.jpg" 
+    alt="Banner Classilagos" 
+    className="w-full rounded-xl border border-slate-200 shadow"
+  />
+</div>
         <div className="text-center mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
             Anuncie grátis no Classilagos
