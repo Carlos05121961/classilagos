@@ -15,10 +15,9 @@ export default function BannerRotator({ interval = 6000 }) {
   useEffect(() => {
     if (images.length <= 1) return;
 
-    const t = setInterval(
-      () => setIndex((i) => (i + 1) % images.length),
-      interval
-    );
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length);
+    }, interval);
 
     return () => clearInterval(t);
   }, [interval]);
@@ -26,17 +25,20 @@ export default function BannerRotator({ interval = 6000 }) {
   return (
     <div className="w-full flex justify-center bg-slate-100 py-3">
       <div className="w-full max-w-5xl px-4">
-        <div className="relative w-full h-[120px] md:h-[140px] lg:h-[160px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+        
+        {/* Banner rotativo – altura fixa 120px */}
+        <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden">
           <Image
             src={images[index]}
             alt="Banner Classilagos"
             fill
             sizes="100vw"
-            className="object-contain"
+            className="object-cover"   // mantém nitidez e preenche sem deformar
+            priority
           />
         </div>
 
-        {/* bolinhas do carrossel */}
+        {/* Bolinhas de navegação */}
         <div className="mt-2 flex justify-center gap-2">
           {images.map((_, i) => (
             <button
@@ -49,10 +51,12 @@ export default function BannerRotator({ interval = 6000 }) {
             />
           ))}
         </div>
+
       </div>
     </div>
   );
 }
+
 
 
 
