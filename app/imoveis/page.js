@@ -23,81 +23,86 @@ export default function ImoveisPage() {
       {/* BANNER ROTATIVO DA CATEGORIA IMÓVEIS */}
       <CategoryBannerCarousel images={imoveisBanners} />
 
-      {/* HERO COM TÍTULO + FRASE + BUSCA SOBRE AS FOTOS DA REGIÃO */}
-      <section className="bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 pt-4 pb-8">
-          <HeroCarousel images={heroImages} interval={7000}>
-            <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-              {/* Frase no topo */}
-              <p className="text-xs sm:text-sm md:text-base text-slate-100 mb-2 text-center max-w-3xl">
-                Encontre casas, apartamentos, terrenos e oportunidades em toda a
-                Região dos Lagos.
-              </p>
+     {/* HERO COM TÍTULO + FRASE + BUSCA SOBRE AS FOTOS */}
+<section className="bg-slate-900">
+  <div className="max-w-7xl mx-auto px-4 pb-8">
+    <HeroCarousel images={heroImages} interval={7000}>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
 
-              {/* Título principal */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center drop-shadow">
-                Classilagos – Imóveis
-              </h1>
+        {/* FRASE NO TOPO DA IMAGEM – COMO NO SEU LAYOUT */}
+        <p className="text-[10px] sm:text-xs md:text-sm text-white mb-6 mt-4 text-center drop-shadow-md">
+          Encontre casas, apartamentos, terrenos e oportunidades em toda a Região dos Lagos.
+        </p>
 
-              {/* Barra de busca */}
-              <div className="mt-6 w-full max-w-3xl bg-white/95 backdrop-blur rounded-full shadow-lg border border-slate-200 px-4 py-3 flex flex-col sm:flex-row gap-3 sm:items-center">
-                <div className="flex-1">
-                  <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
-                    Busca
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex.: casa 2 quartos com quintal"
-                    className="w-full bg-transparent text-xs sm:text-sm outline-none"
-                  />
-                </div>
+        {/* TITULO “CLASSILAGOS – IMÓVEIS” – ACIMA DA BARRA DE BUSCA */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center mb-4 drop-shadow-md">
+          Classilagos – Imóveis
+        </h1>
 
-                <div className="hidden sm:block h-10 w-px bg-slate-200" />
+        {/* BARRA DE BUSCA MAIS FINA – COMO NO SEU LAYOUT */}
+        <div className="w-full max-w-3xl bg-white/95 rounded-xl shadow-lg border border-slate-200 px-4 py-2 flex flex-col sm:flex-row gap-3 sm:items-center">
 
-                <div className="flex-1">
-                  <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
-                    Imóvel
-                  </label>
-                  <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
-                    <option>Casa</option>
-                    <option>Apartamento</option>
-                    <option>Kitnet / Studio</option>
-                    <option>Terreno / Lote</option>
-                    <option>Sala comercial</option>
-                    <option>Outro</option>
-                  </select>
-                </div>
+          {/* BUSCA */}
+          <div className="flex-1">
+            <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+              Busca
+            </label>
+            <input
+              type="text"
+              placeholder="Ex.: casa 2 quartos com quintal"
+              className="w-full bg-transparent text-xs sm:text-sm outline-none"
+            />
+          </div>
 
-                <div className="hidden sm:block h-10 w-px bg-slate-200" />
+          <div className="hidden sm:block h-8 w-px bg-slate-300" />
 
-                <div className="flex-1">
-                  <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
-                    Cidade
-                  </label>
-                  <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
-                    <option>Maricá</option>
-                    <option>Saquarema</option>
-                    <option>Araruama</option>
-                    <option>Iguaba Grande</option>
-                    <option>São Pedro d&apos;Aldeia</option>
-                    <option>Arraial do Cabo</option>
-                    <option>Cabo Frio</option>
-                    <option>Búzios</option>
-                    <option>Rio das Ostras</option>
-                  </select>
-                </div>
+          {/* TIPO */}
+          <div className="flex-1">
+            <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+              Imóvel
+            </label>
+            <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
+              <option>Casa</option>
+              <option>Apartamento</option>
+              <option>Kitnet</option>
+              <option>Terreno</option>
+              <option>Comercial</option>
+            </select>
+          </div>
 
-                <button
-                  type="button"
-                  className="mt-1 sm:mt-5 sm:ml-2 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 hover:bg-blue-700"
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
-          </HeroCarousel>
+          <div className="hidden sm:block h-8 w-px bg-slate-300" />
+
+          {/* CIDADE */}
+          <div className="flex-1">
+            <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+              Cidade
+            </label>
+            <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
+              <option>Maricá</option>
+              <option>Saquarema</option>
+              <option>Araruama</option>
+              <option>Iguaba Grande</option>
+              <option>São Pedro d'Aldeia</option>
+              <option>Arraial do Cabo</option>
+              <option>Cabo Frio</option>
+              <option>Búzios</option>
+              <option>Rio das Ostras</option>
+            </select>
+          </div>
+
+          {/* BOTÃO */}
+          <button
+            type="button"
+            className="sm:ml-2 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 hover:bg-blue-700"
+          >
+            Buscar
+          </button>
         </div>
-      </section>
+      </div>
+    </HeroCarousel>
+  </div>
+</section>
+
 
       {/* CATEGORIAS PRINCIPAIS (com imagem) */}
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-4">
