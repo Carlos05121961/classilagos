@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -8,6 +11,26 @@ const images = [
 ];
 
 export default function CasaTestePage() {
+  const [lightboxIndex, setLightboxIndex] = useState(null); // null = fechado
+
+  const openLightbox = (index) => {
+    setLightboxIndex(index);
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+  };
+
+  const showPrev = () => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const showNext = () => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((prev) => (prev + 1) % images.length);
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-4 py-6">
@@ -26,12 +49,14 @@ export default function CasaTestePage() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Casa em Maricá – 2 quartos, quintal e garagem
+                Casa para aluguel anual em Maricá – 2 quartos, quintal e
+                garagem
               </h1>
               <p className="text-sm text-slate-700 mb-3">
                 Anúncio de teste para visualização do layout de imóveis no
                 Classilagos. Em breve, este modelo será usado para anúncios
-                reais.
+                reais (casas, apartamentos e imóveis de imobiliárias ou
+                proprietários).
               </p>
 
               <div className="flex flex-wrap gap-2 text-xs text-slate-700">
@@ -50,17 +75,52 @@ export default function CasaTestePage() {
               </div>
             </div>
 
-            {/* Preço fictício */}
-            <div className="text-right">
-              <div className="text-xs uppercase text-slate-500">
-                Valor de exemplo
+            {/* Bloco de valores (aluguel + detalhamento) */}
+            <div className="w-full md:w-64 bg-slate-50 rounded-2xl border border-slate-200 p-3 text-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs uppercase text-slate-500">
+                  Aluguel (exemplo)
+                </span>
+                <span className="text-base font-bold text-emerald-600">
+                  R$ 1.070
+                </span>
               </div>
-              <div className="text-2xl font-bold text-emerald-600">
-                R$ 450.000
+
+              <div className="border-t border-slate-200 my-2" />
+
+              <div className="space-y-1 text-xs text-slate-700">
+                <div className="flex justify-between">
+                  <span>Condomínio</span>
+                  <span>R$ 1.100</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>IPTU</span>
+                  <span>R$ 10</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Seguro incêndio</span>
+                  <span>R$ 18</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Taxa de serviço</span>
+                  <span>R$ 27</span>
+                </div>
               </div>
-              <div className="text-[11px] text-slate-500">
-                (Somente para fins de teste)
+
+              <div className="border-t border-slate-200 my-2" />
+
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-800">
+                  Total estimado mensal
+                </span>
+                <span className="text-base font-bold text-emerald-700">
+                  R$ 2.225
+                </span>
               </div>
+
+              <p className="mt-2 text-[10px] text-slate-500">
+                Valores meramente ilustrativos para demonstração de layout.
+              </p>
             </div>
           </div>
 
@@ -75,13 +135,20 @@ export default function CasaTestePage() {
             <button className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-50">
               🖨️ Imprimir
             </button>
+            <button className="inline-flex items-center gap-1 rounded-full border border-red-300 text-red-600 px-3 py-1 hover:bg-red-50 ml-auto">
+              ⚠️ Denunciar este anúncio
+            </button>
           </div>
         </section>
 
         {/* Galeria de fotos */}
         <section className="grid md:grid-cols-3 gap-4 mb-6">
+          {/* Foto principal */}
           <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
-            <div className="relative w-full h-[260px] md:h-[320px] rounded-xl overflow-hidden bg-slate-100">
+            <div
+              className="relative w-full h-[260px] md:h-[320px] rounded-xl overflow-hidden bg-slate-100 cursor-pointer"
+              onClick={() => openLightbox(0)}
+            >
               <Image
                 src={images[0]}
                 alt="Foto principal da casa"
@@ -89,29 +156,53 @@ export default function CasaTestePage() {
                 className="object-cover"
               />
             </div>
+            <p className="mt-2 text-[11px] text-slate-500">
+              Clique na foto para ampliar e navegar entre as imagens.
+            </p>
           </div>
 
+          {/* Miniaturas */}
           <div className="space-y-3">
-            {images.slice(1).map((src) => (
-              <div
-                key={src}
-                className="relative w-full h-[120px] rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm"
-              >
-                <Image
-                  src={src}
-                  alt="Foto da casa"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
+            {images.slice(1).map((src, idx) => {
+              const realIndex = idx + 1;
+              return (
+                <div
+                  key={src}
+                  className="relative w-full h-[120px] rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm cursor-pointer"
+                  onClick={() => openLightbox(realIndex)}
+                >
+                  <Image
+                    src={src}
+                    alt="Foto da casa"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              );
+            })}
           </div>
         </section>
 
-        {/* Detalhes + contato + mapa + mensagem */}
+        {/* Vídeo do imóvel (modelo) */}
+        <section className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">
+            Vídeo do imóvel (opcional)
+          </h2>
+          <p className="text-xs text-slate-600 mb-3">
+            Neste espaço o anunciante poderá inserir um vídeo curto gravado pelo
+            celular (por exemplo, até 15–30 segundos) mostrando um tour rápido
+            pela casa.
+          </p>
+          <div className="relative w-full h-[220px] rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs text-slate-500">
+            Área reservada para player de vídeo (em breve)
+          </div>
+        </section>
+
+        {/* Detalhes + mapa + contato/mensagem */}
         <section className="grid md:grid-cols-3 gap-6 mb-10">
-          {/* Detalhes do imóvel */}
+          {/* Coluna esquerda: detalhes + mapa */}
           <div className="md:col-span-2 space-y-6">
+            {/* Detalhes do imóvel */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900 mb-3">
                 Detalhes do imóvel
@@ -131,31 +222,38 @@ export default function CasaTestePage() {
               </ul>
             </div>
 
-            {/* Localização / mapa (placeholder) */}
+            {/* Localização / mapa */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900 mb-3">
-                Localização aproximada
+                Localização e entorno
               </h2>
               <p className="text-xs text-slate-600 mb-3">
-                Neste espaço, futuramente, podemos embutir um mapa interativo
-                com a localização aproximada do imóvel (Google Maps ou outro
-                serviço).
+                O mapa ajuda o interessado a ver não só a localização aproximada
+                do imóvel, mas também o que existe ao redor: comércios,
+                escolas, transporte, praias, etc. Em breve podemos integrar um
+                mapa interativo.
               </p>
               <div className="relative w-full h-[220px] rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs text-slate-500">
-                Mapa da localização (em breve)
+                Mapa interativo da região (em breve)
               </div>
             </div>
           </div>
 
-          {/* Coluna direita: contato + mensagem */}
+          {/* Coluna direita: contato + mensagem em um bloco só */}
           <div className="space-y-6">
-            {/* Bloco de contato */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900 mb-3">
-                Contato do anunciante
+                Fale com o anunciante
               </h2>
 
-              <div className="space-y-2 text-sm text-slate-800 mb-4">
+              <p className="text-xs text-slate-600 mb-3">
+                Neste exemplo, o anunciante pode ser tanto um proprietário
+                quanto uma imobiliária. No futuro, corretores e lojas poderão
+                ter áreas especiais, mas aqui o tratamento é de usuário comum.
+              </p>
+
+              {/* Dados de referência (fixos por enquanto) */}
+              <div className="space-y-1 text-sm text-slate-800 mb-4">
                 <p>
                   <strong>Nome:</strong> Seu nome aqui
                 </p>
@@ -167,25 +265,7 @@ export default function CasaTestePage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                className="w-full rounded-full bg-blue-600 text-white text-sm font-semibold py-2 hover:bg-blue-700"
-              >
-                Falar com o anunciante (modelo)
-              </button>
-
-              <p className="text-[11px] text-slate-500 mt-3">
-                No futuro, esses dados serão preenchidos automaticamente a
-                partir do cadastro do anunciante.
-              </p>
-            </div>
-
-            {/* Formulário de mensagem */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">
-                Enviar mensagem ao vendedor
-              </h2>
-
+              {/* Formulário de mensagem */}
               <form className="space-y-3 text-sm">
                 <div>
                   <label className="block text-xs text-slate-600 mb-1">
@@ -240,8 +320,8 @@ export default function CasaTestePage() {
                 </button>
 
                 <p className="text-[11px] text-slate-500 mt-2">
-                  Este formulário é apenas ilustrativo. Depois vamos conectá-lo
-                  a um envio real (e-mail, WhatsApp ou painel interno).
+                  Este formulário é ilustrativo. Depois vamos conectar a um
+                  envio real (e-mail, WhatsApp ou painel interno).
                 </p>
               </form>
             </div>
@@ -249,13 +329,13 @@ export default function CasaTestePage() {
         </section>
 
         {/* Ofertas similares (modelo) */}
-        <section className="mb-10">
+        <section className="mb-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-3">
             Ofertas similares (exemplo)
           </h2>
           <p className="text-xs text-slate-600 mb-4">
             Quando houver mais anúncios cadastrados, poderemos mostrar imóveis
-            semelhantes nesta área.
+            semelhantes nesta área, ajudando o usuário a comparar opções.
           </p>
 
           <div className="grid md:grid-cols-3 gap-4">
@@ -279,14 +359,68 @@ export default function CasaTestePage() {
           </div>
         </section>
 
+        {/* Aviso de segurança / responsabilidade */}
+        <section className="mb-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-[11px] text-amber-900">
+            <strong>Atenção:</strong> o Classilagos é uma plataforma de
+            classificados. As informações, valores e condições são de inteira
+            responsabilidade de quem anuncia. Recomendamos sempre verificar
+            documentos, visitar o imóvel pessoalmente e nunca realizar
+            pagamentos adiantados sem garantia.
+          </div>
+        </section>
+
         {/* Rodapé do anúncio */}
         <p className="text-[11px] text-slate-500 mb-4">
-          Este anúncio é apenas um modelo para testes do layout de imóveis no
-          Classilagos. Em breve, os dados serão preenchidos a partir dos
+          Este anúncio é um modelo de teste para definição do layout de imóveis
+          no Classilagos. Em breve, os dados serão preenchidos a partir dos
           anúncios reais cadastrados pelos usuários.
         </p>
       </div>
+
+      {/* LIGHTBOX das fotos */}
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          <div
+            className="relative w-full max-w-3xl h-[70vh] px-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-4 text-white text-2xl"
+              onClick={closeLightbox}
+            >
+              ✕
+            </button>
+
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 text-white text-2xl px-3"
+              onClick={showPrev}
+            >
+              ‹
+            </button>
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-white text-2xl px-3"
+              onClick={showNext}
+            >
+              ›
+            </button>
+
+            <div className="relative w-full h-full rounded-xl overflow-hidden bg-black">
+              <Image
+                src={images[lightboxIndex]}
+                alt="Foto ampliada do imóvel"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
+
 
