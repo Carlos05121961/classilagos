@@ -10,22 +10,22 @@ export default function ImoveisPage() {
 
   return (
     <main className="bg-white">
-
-      {/* BANNERS ROTATIVOS 1200x200 */}
+      {/* BANNER ROTATIVO DA CATEGORIA IMÓVEIS */}
       <CategoryBannerCarousel images={imoveisBanners} />
 
-      {/* TÍTULO */}
+      {/* TÍTULO E INTRODUÇÃO */}
       <section className="max-w-7xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
           Imóveis em Maricá
         </h1>
         <p className="text-slate-600 text-sm">
-          Casas, apartamentos, lançamentos, terrenos, oportunidades e muito mais
-          em Maricá e Região dos Lagos.
+          Casas, apartamentos, terrenos e oportunidades em Maricá e Região dos
+          Lagos. Aqui você encontra imóveis de proprietários e imobiliárias,
+          tratados como usuários comuns.
         </p>
       </section>
 
-      {/* LINKS INTERNOS DO PORTAL */}
+      {/* MINI PORTAL - CATEGORIAS INTERNAS */}
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <h2 className="text-xl font-semibold text-slate-900 mb-4">
           Explore por categoria
@@ -100,6 +100,40 @@ export default function ImoveisPage() {
         </div>
       </section>
 
+      {/* ÚLTIMOS ANÚNCIOS */}
+      <section className="max-w-7xl mx-auto px-4 pb-10">
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">
+          Últimos anúncios
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* CARD DO ANÚNCIO DA CASA TESTE */}
+          <Link
+            href="/imoveis/casa-teste"
+            className="rounded-2xl border bg-white p-4 hover:shadow flex flex-col"
+          >
+            <div className="h-32 rounded-xl bg-slate-200 mb-3 overflow-hidden">
+              {/* Aqui futuramente podemos usar uma imagem de capa do imóvel */}
+              <div className="w-full h-full bg-gradient-to-r from-slate-300 to-slate-200" />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Casa para aluguel anual em Maricá – 2 quartos
+            </h3>
+            <p className="text-xs text-slate-600 mt-1">
+              Imóvel de teste para validar o layout da página de anúncios.
+            </p>
+            <span className="mt-3 text-xs font-medium text-blue-600">
+              Ver detalhes do anúncio
+            </span>
+          </Link>
+
+          {/* Espaço para futuros anúncios */}
+          <div className="rounded-2xl border border-dashed border-slate-300 p-4 text-xs text-slate-500 flex items-center justify-center text-center">
+            Em breve, novos anúncios cadastrados aparecerão aqui.
+          </div>
+        </div>
+      </section>
+
       {/* LINKS ÚTEIS */}
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <h2 className="text-xl font-semibold text-slate-900 mb-4">
@@ -166,6 +200,8 @@ export default function ImoveisPage() {
     </main>
   );
 }
+
+
 
 
 
