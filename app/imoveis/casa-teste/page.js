@@ -1,165 +1,196 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function ImovelCasaTeste() {
-  // Simulação de dados enviados pelo formulário
-  const anuncio = {
-    titulo: "Casa 2 quartos com quintal em Itaipuaçu",
-    tipo: "Venda",
-    preco: "R$ 450.000",
-    cidade: "Maricá",
-    bairro: "Itaipuaçu",
-    descricao:
-      "Casa linear com 2 quartos, sala ampla, cozinha americana, banheiro social, área de serviço, quintal grande e garagem. Próxima ao comércio e condução.",
-    quartos: 2,
-    banheiros: 1,
-    vagas: 2,
-    area: 75,
-    fotos: [
-      "/imoveis/casa-teste-01.jpg",
-      "/imoveis/casa-teste-02.jpg",
-      "/imoveis/casa-teste-03.jpg",
-    ],
-    video: "https://www.youtube.com/embed/dQw4w9WgXcQ", // exemplo
-    mapa: "https://maps.google.com", // exemplo
-    anunciante: {
-      nome: "Carlos Imóveis",
-      telefone: "(21) 9 9999-9999",
-      email: "contato@classilagos.com",
-    },
-  };
+export default function CasaTestePage() {
+  const fotos = [
+    "/imoveis/casa-teste-01.jpg",
+    "/imoveis/casa-teste-02.jpg",
+    "/imoveis/casa-teste-03.jpg",
+  ];
+
+  const [fotoSelecionada, setFotoSelecionada] = useState(null);
+
+  function abrirLightbox(index) {
+    setFotoSelecionada(index);
+  }
+
+  function fecharLightbox() {
+    setFotoSelecionada(null);
+  }
+
+  function proximaFoto() {
+    setFotoSelecionada((prev) => (prev + 1) % fotos.length);
+  }
+
+  function fotoAnterior() {
+    setFotoSelecionada((prev) =>
+      prev === 0 ? fotos.length - 1 : prev - 1
+    );
+  }
 
   return (
-    <main className="bg-white pb-12">
-      {/* Banner interno */}
-      <div className="w-full bg-slate-100 border-b py-3 flex justify-center">
-        <div className="max-w-4xl w-full px-4">
-          <Image
-            src="/banners/anuncio-02.png"
-            alt="Classilagos Imóveis"
-            width={900}
-            height={120}
-            className="w-full h-[120px] object-contain rounded-2xl border bg-white shadow"
-          />
+    <main className="bg-white min-h-screen pb-20">
+      
+      {/* Banner topo */}
+      <div className="w-full flex justify-center bg-slate-100 border-b py-3">
+        <div className="w-full max-w-[900px] px-4">
+          <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-02.png"
+              alt="Classilagos Imóveis"
+              fill
+              className="object-contain"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Conteúdo */}
-      <div className="max-w-5xl mx-auto px-4 pt-8 space-y-10">
+      <div className="max-w-5xl mx-auto px-4 mt-6">
 
         {/* Voltar */}
-        <Link href="/imoveis" className="text-blue-600 text-sm underline">
+        <Link
+          href="/imoveis"
+          className="text-sm text-blue-600 hover:underline"
+        >
           ← Voltar para Imóveis
         </Link>
 
-        {/* Título + preço */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">
-            {anuncio.titulo}
-          </h1>
-          <p className="text-lg font-semibold text-emerald-600">
-            {anuncio.preco}{" "}
-            <span className="text-sm text-slate-600 ml-2">
-              • {anuncio.tipo}
-            </span>
-          </p>
-          <p className="text-sm text-slate-500 mt-1">
-            {anuncio.cidade} • {anuncio.bairro}
-          </p>
-        </div>
+        {/* Título */}
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mt-3">
+          Casa 2 qts em Itaipuaçu
+        </h1>
 
-        {/* Carrossel simples de fotos */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {anuncio.fotos.map((foto, index) => (
+        {/* Cidade + bairro + tipo */}
+        <p className="text-slate-600 mt-1">
+          <span className="font-semibold">Maricá</span> — Itaipuaçu • Venda
+        </p>
+
+        {/* Preço */}
+        <p className="text-3xl font-bold text-emerald-600 mt-4">
+          R$ 500.000
+        </p>
+
+        {/* GALERIA DE FOTOS */}
+        <div className="mt-6 grid grid-cols-3 gap-2">
+          {fotos.map((foto, index) => (
             <div
               key={index}
-              className="relative h-56 rounded-xl overflow-hidden border shadow-sm"
+              className="relative w-full h-28 md:h-40 cursor-pointer"
+              onClick={() => abrirLightbox(index)}
             >
-              <Image src={foto} alt="Foto do imóvel" fill className="object-cover" />
+              <Image
+                src={foto}
+                alt="Foto do imóvel"
+                fill
+                className="object-cover rounded-lg"
+              />
             </div>
           ))}
         </div>
 
-        {/* Detalhes rápidos */}
-        <div className="grid sm:grid-cols-4 gap-4 text-center bg-slate-50 p-4 rounded-xl border">
-          <div>
-            <p className="text-xs text-slate-500">Quartos</p>
-            <p className="text-lg font-semibold">{anuncio.quartos}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Banheiros</p>
-            <p className="text-lg font-semibold">{anuncio.banheiros}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Vagas</p>
-            <p className="text-lg font-semibold">{anuncio.vagas}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Área</p>
-            <p className="text-lg font-semibold">{anuncio.area} m²</p>
-          </div>
-        </div>
+        {/* LIGHTBOX */}
+        {fotoSelecionada !== null && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <button
+              className="absolute top-6 right-6 text-white text-3xl"
+              onClick={fecharLightbox}
+            >
+              ✕
+            </button>
 
-        {/* Descrição */}
-        <section>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
-            Sobre o imóvel
+            {/* Setas */}
+            <button
+              onClick={fotoAnterior}
+              className="absolute left-4 md:left-20 text-4xl text-white"
+            >
+              ‹
+            </button>
+            <button
+              onClick={proximaFoto}
+              className="absolute right-4 md:right-20 text-4xl text-white"
+            >
+              ›
+            </button>
+
+            <div className="relative w-[90%] max-w-2xl h-[70vh]">
+              <Image
+                src={fotos[fotoSelecionada]}
+                alt="Foto ampliada"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* DESCRIÇÃO */}
+        <section className="mt-10">
+          <h2 className="text-xl font-bold text-slate-900">
+            Descrição do imóvel
           </h2>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            {anuncio.descricao}
+          <p className="text-slate-700 mt-2 leading-relaxed">
+            Casa 2 qts em Itaipuaçu, garagem, piscina, sala, cozinha,
+            2 banheiros, etc.
           </p>
         </section>
 
-        {/* Vídeo */}
-        {anuncio.video && (
-          <section className="space-y-2">
-            <h2 className="text-xl font-semibold text-slate-900">
-              Vídeo do imóvel
-            </h2>
-            <iframe
-              className="w-full h-64 rounded-xl border"
-              src={anuncio.video}
-              allowFullScreen
-            ></iframe>
-          </section>
-        )}
+        {/* FICHA TÉCNICA */}
+        <section className="mt-8 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">
+            Informações gerais
+          </h2>
 
-        {/* Mapa */}
-        {anuncio.mapa && (
-          <section className="space-y-2">
-            <h2 className="text-xl font-semibold text-slate-900">
-              Localização aproximada
-            </h2>
-            <iframe
-              className="w-full h-64 rounded-xl border"
-              src={anuncio.mapa}
-            ></iframe>
-          </section>
-        )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="p-3 bg-white rounded-lg border">
+              <p className="text-xs text-slate-500">Quartos</p>
+              <p className="text-slate-900 font-bold">2</p>
+            </div>
+            <div className="p-3 bg-white rounded-lg border">
+              <p className="text-xs text-slate-500">Banheiros</p>
+              <p className="text-slate-900 font-bold">2</p>
+            </div>
+            <div className="p-3 bg-white rounded-lg border">
+              <p className="text-xs text-slate-500">Área</p>
+              <p className="text-slate-900 font-bold">120 m²</p>
+            </div>
+            <div className="p-3 bg-white rounded-lg border">
+              <p className="text-xs text-slate-500">Vagas</p>
+              <p className="text-slate-900 font-bold">2</p>
+            </div>
+          </div>
+        </section>
 
-        {/* Contato */}
-        <section className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 space-y-2">
-          <h2 className="text-lg font-semibold text-slate-900">
+        {/* CONTATO */}
+        <section className="mt-8">
+          <h2 className="text-lg font-bold text-slate-900 mb-2">
             Contato do anunciante
           </h2>
-          <p className="text-sm text-slate-700">{anuncio.anunciante.nome}</p>
-          <p className="text-sm text-slate-700">
-            WhatsApp: {anuncio.anunciante.telefone}
-          </p>
-          <p className="text-sm text-slate-700">{anuncio.anunciante.email}</p>
 
-          <a
-            href={`https://wa.me/55${anuncio.anunciante.telefone.replace(/\D/g, "")}`}
-            target="_blank"
-            className="inline-block mt-2 bg-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow hover:bg-emerald-500"
-          >
-            Falar no WhatsApp
-          </a>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p className="text-slate-800 text-sm">
+              <strong>Charles</strong>
+            </p>
+
+            <p className="text-slate-700 mt-1 text-sm">
+              WhatsApp: <a 
+                href="https://wa.me/5522987643216"
+                target="_blank"
+                className="text-blue-600 underline"
+              >
+                22 9876-43216
+              </a>
+            </p>
+          </div>
         </section>
+
       </div>
     </main>
   );
 }
+
 
 
 
