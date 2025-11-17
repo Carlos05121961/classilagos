@@ -37,20 +37,21 @@ export default function ImoveisPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b">
-        <div className="w-full max-w-6xl px-4 py-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie sua casa por temporada - classilagos.shop"
-              fill
-              sizes="(max-width: 768px) 100vw, 900px"
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
+{/* BANNER FIXO NO TOPO (PADRÃO IGUAL OUTRAS PÁGINAS) */}
+<section className="w-full flex justify-center bg-slate-100 border-b py-3">
+  <div className="w-full max-w-[1000px] px-4">
+    <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+      <Image
+        src="/banners/anuncio-01.png"
+        alt="Anuncie seu imóvel totalmente GRÁTIS - Classilagos"
+        fill
+        sizes="900px"
+        className="object-contain"
+      />
+    </div>
+  </div>
+</section>
+
 
       {/* HERO IMÓVEIS COM FOTO + BUSCA */}
       <section className="relative w-full">
