@@ -1,15 +1,25 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function AnunciarImovelPage() {
+  const [enviado, setEnviado] = useState(false);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setEnviado(true);
+  }
+
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* BANNER FIXO NO TOPO (IMÓVEIS) */}
-      <div className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[900px] px-4">
-          <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+      {/* BANNER FIXO NO TOPO */}
+      <div className="w-full flex justify-center bg-slate-100 border-b">
+        <div className="w-full max-w-4xl px-4 py-3">
+          <div className="relative w-full h-[110px] sm:h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
             <Image
-              src="/banners/anuncio-02.png" // se quiser outro, trocamos depois
+              src="/banners/anuncio-02.png"
               alt="Anuncie seu imóvel no Classilagos"
               fill
               sizes="900px"
@@ -31,7 +41,7 @@ export default function AnunciarImovelPage() {
           </Link>
         </div>
 
-        {/* Título e intro */}
+        {/* Título e introdução */}
         <section className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-sm mb-6">
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
             Anuncie seu imóvel em Maricá e Região dos Lagos
@@ -43,14 +53,22 @@ export default function AnunciarImovelPage() {
           </p>
           <p className="text-[11px] text-slate-500">
             Neste momento, este formulário é apenas um modelo de layout. Em
-            breve, os dados poderão ser enviados e publicados automaticamente
-            no site.
+            breve, os dados poderão ser enviados e publicados automaticamente no
+            site.
           </p>
         </section>
 
-        {/* FORMULÁRIO DE ANÚNCIO (LAYOUT) */}
+        {/* Mensagem de envio (simulação) */}
+        {enviado && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            ✅ Anúncio enviado (simulação). Em breve, os dados serão salvos e o
+            imóvel aparecerá nas listas e nos destaques do Classilagos.
+          </div>
+        )}
+
+        {/* FORMULÁRIO */}
         <section className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-sm mb-8">
-          <form className="space-y-6 text-sm">
+          <form className="space-y-6 text-sm" onSubmit={handleSubmit}>
             {/* Tipo de anúncio + tipo de imóvel */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -58,9 +76,9 @@ export default function AnunciarImovelPage() {
                   Tipo de anúncio
                 </label>
                 <select className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Aluguel</option>
                   <option>Venda</option>
-                  <option>Aluguel por temporada</option>
+                  <option>Aluguel fixo</option>
+                  <option>Temporada</option>
                 </select>
               </div>
 
@@ -73,8 +91,8 @@ export default function AnunciarImovelPage() {
                   <option>Apartamento</option>
                   <option>Kitnet / Studio</option>
                   <option>Terreno / Lote</option>
-                  <option>Sala comercial</option>
-                  <option>Outro</option>
+                  <option>Sítio / Chácara</option>
+                  <option>Imóvel comercial</option>
                 </select>
               </div>
             </div>
@@ -97,7 +115,6 @@ export default function AnunciarImovelPage() {
                   <option>Rio das Ostras</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-xs text-slate-600 mb-1">
                   Bairro
@@ -105,178 +122,182 @@ export default function AnunciarImovelPage() {
                 <input
                   type="text"
                   className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Digite o bairro"
+                  placeholder="Ex.: Itaipuaçu, Centro, Ponta Negra..."
                 />
               </div>
             </div>
 
-            {/* Título e descrição */}
+            {/* Título e descrição curta */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Título do anúncio
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex.: Casa 2 quartos com quintal em Maricá"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Descrição detalhada
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Descreva cômodos, estado do imóvel, reformas, pontos fortes, proximidade de praia/comércio, etc."
+                />
+              </div>
+            </div>
+
+            {/* Detalhes do imóvel */}
             <div>
-              <label className="block text-xs text-slate-600 mb-1">
-                Título do anúncio
-              </label>
-              <input
-                type="text"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Ex.: Casa 2 quartos com quintal e garagem em Maricá"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">
-                Descrição detalhada
-              </label>
-              <textarea
-                rows={4}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Descreva o imóvel: cômodos, metragem, reformas, pontos fortes, proximidades, etc."
-              />
-            </div>
-
-            {/* Dados principais do imóvel */}
-            <div className="grid md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Quartos
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Banheiros
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="1"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Vagas de garagem
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="1"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Área (m²)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="90"
-                />
+              <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                Detalhes do imóvel
+              </h2>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Quartos
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Banheiros
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Vagas de garagem
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Área (m²)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="90"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Valores */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Valor principal (aluguel ou venda)
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex.: 1.500,00 ou 450.000,00"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Condomínio (se houver)
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex.: 1.100,00"
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  IPTU (mensal aprox.)
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex.: 50,00"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Seguro incêndio (mensal)
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex.: 18,00"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Outras taxas / observações
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Taxa de serviço, caução, etc."
-                />
-              </div>
-            </div>
-
-            {/* Fotos e vídeo - informativo por enquanto */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Fotos do imóvel
-                </label>
-                <p className="text-[11px] text-slate-500 mb-1">
-                  Em breve você poderá enviar fotos diretamente pelo site. Por
-                  enquanto, este campo é apenas ilustrativo.
-                </p>
-                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-[11px] text-slate-500">
-                  Sugestão: até 8 fotos em boa qualidade, mostrando frente,
-                  sala, quartos, cozinha, banheiro e quintal.
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                Valores
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4 mb-3">
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Valor principal (venda ou aluguel)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex.: 450.000,00 ou 1.800,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Condomínio (se houver)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex.: 550,00"
+                  />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-xs text-slate-600 mb-1">
-                  Vídeo curto (opcional)
-                </label>
-                <p className="text-[11px] text-slate-500 mb-1">
-                  No futuro será possível enviar um vídeo curto, gravado pelo
-                  celular (por exemplo, até 15–30 segundos), com um tour pelo
-                  imóvel.
-                </p>
-                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-[11px] text-slate-500">
-                  Por enquanto, você pode mencionar no texto do anúncio que
-                  possui vídeo e combinar o envio diretamente com o interessado.
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    IPTU (mensal aprox.)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex.: 50,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Outras taxas
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Taxa de serviço, caução, seguro, etc."
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">
+                    Observações sobre valores
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex.: aceita financiamento, estuda proposta..."
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Dados do anunciante */}
+            {/* Mídia (informativo) */}
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                Fotos, vídeo e mapa
+              </h2>
+              <p className="text-[11px] text-slate-500 mb-2">
+                Em breve você poderá enviar fotos, vídeo e localização
+                diretamente pelo site. Por enquanto, considere estes campos como
+                orientações:
+              </p>
+              <ul className="list-disc pl-5 text-[11px] text-slate-500 space-y-1">
+                <li>
+                  Prepare de 6 a 10 fotos em boa qualidade (frente, sala,
+                  quartos, cozinha, banheiro, quintal).
+                </li>
+                <li>
+                  Se tiver um vídeo curto (tour do imóvel), você poderá informar
+                  o link (YouTube, etc.) quando o sistema estiver ativo.
+                </li>
+                <li>
+                  Use o Google Maps para gerar um link aproximado da localização
+                  (sem expor o endereço exato, se não quiser).
+                </li>
+              </ul>
+            </div>
+
+            {/* Dados de contato */}
             <div className="border-t border-slate-200 pt-4">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
                 Dados do anunciante
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-4 mb-3">
                 <div>
                   <label className="block text-xs text-slate-600 mb-1">
                     Seu nome ou nome da imobiliária
@@ -299,7 +320,7 @@ export default function AnunciarImovelPage() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4 mt-3">
+              <div className="grid md:grid-cols-3 gap-4 mb-3">
                 <div>
                   <label className="block text-xs text-slate-600 mb-1">
                     WhatsApp
@@ -331,21 +352,21 @@ export default function AnunciarImovelPage() {
                   </select>
                 </div>
               </div>
-            </div>
 
-            {/* Aviso + botão (modelo) */}
-            <div className="space-y-3 pt-2">
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 mb-3">
                 Ao enviar seus dados, você declara que as informações do imóvel
                 são verdadeiras e que está autorizado a anunciá-lo. O
                 Classilagos atua apenas como plataforma de classificados.
               </p>
+            </div>
 
+            {/* Botão enviar (simulação) */}
+            <div className="flex justify-end">
               <button
-                type="button"
-                className="w-full rounded-full bg-blue-600 text-white text-sm font-semibold py-2 hover:bg-blue-700"
+                type="submit"
+                className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
               >
-                Enviar anúncio (modelo)
+                Enviar anúncio (simulação)
               </button>
             </div>
           </form>
