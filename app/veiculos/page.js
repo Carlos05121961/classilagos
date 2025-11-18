@@ -3,7 +3,7 @@ import HeroCarousel from "../components/HeroCarousel";
 import CategoryBannerCarousel from "../components/CategoryBannerCarousel";
 
 export default function VeiculosPage() {
-  // Banners do topo (categoria Veículos) – pode trocar os arquivos depois se quiser
+  // Banners do topo (categoria Veículos)
   const veiculosBanners = [
     "/banners/anuncio-01.png",
     "/banners/anuncio-02.png",
@@ -27,9 +27,10 @@ export default function VeiculosPage() {
         <HeroCarousel images={heroImages} interval={7000}>
           <div className="absolute inset-0 flex flex-col items-center">
             <div className="w-full max-w-5xl mx-auto px-4 pt-6 sm:pt-10 md:pt-12 flex flex-col items-center">
-              {/* FRASE TOPO */}
+              {/* FRASE TOPO – OPÇÃO A */}
               <p className="text-[10px] sm:text-xs md:text-sm text-white mb-4 text-center drop-shadow-md">
-                Encontre carros, motos e utilitários em toda a Região dos Lagos.
+                Encontre carros, motos, utilitários e oportunidades em toda a
+                Região dos Lagos.
               </p>
 
               {/* TÍTULO */}
@@ -163,7 +164,8 @@ export default function VeiculosPage() {
                 Veículo destaque {i}
               </h3>
               <p className="text-xs text-slate-600 mt-1">
-                Anúncio fictício para demonstrar a área de destaques de veículos.
+                Anúncio fictício para demonstrar a área de destaques de
+                veículos.
               </p>
               <p className="mt-2 text-sm font-bold text-emerald-600">
                 R$ {60 + i * 10}.900
