@@ -2,61 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryBannerCarousel from "../components/CategoryBannerCarousel";
 
+const topoBanners = [
+  "/banners/anuncio-01.png",
+  "/banners/anuncio-02.png",
+  "/banners/anuncio-03.png",
+];
+
 export default function EmpregosPage() {
-  // banners do topo (pode trocar pelos específicos de empregos depois)
-  const empregosBanners = [
-    "/banners/anuncio-01.png",
-    "/banners/anuncio-02.png",
-    "/banners/anuncio-03.png",
-  ];
-
-  const principaisAreas = [
-    "Administração",
-    "Comércio & Vendas",
-    "Turismo & Hotelaria",
-    "Construção Civil",
-    "Serviços Gerais",
-    "Saúde",
-    "Educação",
-    "Tecnologia",
-  ];
-
-  const vagasFicticias = [
-    {
-      titulo: "Atendente de Loja",
-      empresa: "Comércio Local",
-      cidade: "Maricá",
-      salario: "R$ 1.800",
-    },
-    {
-      titulo: "Auxiliar de Serviços Gerais",
-      empresa: "Condomínio Residencial",
-      cidade: "Saquarema",
-      salario: "R$ 1.700",
-    },
-    {
-      titulo: "Recepcionista",
-      empresa: "Pousada Charmosa",
-      cidade: "Búzios",
-      salario: "R$ 2.000",
-    },
-    {
-      titulo: "Auxiliar Administrativo",
-      empresa: "Escritório Contábil",
-      cidade: "Cabo Frio",
-      salario: "R$ 2.200",
-    },
-  ];
-
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER ROTATIVO DO TOPO */}
-      <CategoryBannerCarousel images={empregosBanners} />
+      {/* BANNER ROTATIVO DA CATEGORIA */}
+      <CategoryBannerCarousel images={topoBanners} />
 
-      {/* HERO EMPREGOS – IMAGEM ÚNICA + TÍTULO + BUSCA */}
-      <section className="relative w-full bg-slate-900">
-        {/* fundo com a sua arte de empregos */}
-        <div className="relative w-full h-[260px] sm:h-[320px] md:h-[380px] overflow-hidden">
+      {/* HERO EMPREGOS – FUNDO ÚNICO + TÍTULO + BUSCA */}
+      <section className="relative w-full">
+        {/* fundo com a sua imagem */}
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] overflow-hidden">
           <Image
             src="/empregos/hero-empregos.jpg"
             alt="Classilagos - Empregos"
@@ -65,171 +26,188 @@ export default function EmpregosPage() {
             sizes="100vw"
             className="object-cover"
           />
-          {/* leve escurecida pra destacar os textos */}
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-black/25" />
         </div>
 
         {/* textos + busca sobrepostos */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-          <div className="max-w-3xl w-full flex flex-col items-center gap-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white text-center drop-shadow-md">
-              Classilagos – Empregos
-            </h1>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white text-center drop-shadow-md mb-2">
+            Classilagos - Empregos
+          </h1>
 
-            <p className="text-sm sm:text-base text-white text-center drop-shadow">
-              É aqui que você será encontrado!
-            </p>
+          <p className="text-xs sm:text-sm md:text-base text-white/95 text-center max-w-2xl drop-shadow mb-4">
+            É aqui que você será encontrado! Vagas e oportunidades em toda a
+            Região dos Lagos.
+          </p>
 
-            {/* BARRA DE BUSCA (mais baixa e leve, pra não tampar toda a foto) */}
-            <div className="mt-2 w-full flex justify-center">
-              <div className="w-full max-w-xl bg-white/95 rounded-2xl shadow-lg border border-slate-200 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                {/* BUSCA */}
-                <div className="flex-1">
-                  <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
-                    Busca
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex.: vendedor, motorista, recepcionista"
-                    className="w-full bg-transparent text-xs sm:text-sm outline-none"
-                  />
-                </div>
-
-                {/* separador vertical no desktop */}
-                <div className="hidden sm:block h-8 w-px bg-slate-300" />
-
-                {/* CIDADE */}
-                <div className="flex-1">
-                  <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
-                    Cidade
-                  </label>
-                  <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
-                    <option>Maricá</option>
-                    <option>Saquarema</option>
-                    <option>Araruama</option>
-                    <option>Iguaba Grande</option>
-                    <option>São Pedro d&apos;Aldeia</option>
-                    <option>Arraial do Cabo</option>
-                    <option>Cabo Frio</option>
-                    <option>Búzios</option>
-                    <option>Rio das Ostras</option>
-                  </select>
-                </div>
-
-                {/* BOTÃO */}
-                <button
-                  type="button"
-                  className="sm:ml-2 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 hover:bg-blue-700"
-                >
-                  Buscar
-                </button>
-              </div>
+          {/* barra de busca mais compacta */}
+          <div className="pointer-events-auto w-full max-w-2xl bg-white/95 rounded-full shadow-lg border border-slate-200 px-4 py-2 flex flex-col sm:flex-row gap-2 sm:items-center">
+            {/* busca livre */}
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                Busca
+              </label>
+              <input
+                type="text"
+                placeholder="Ex.: vendedor, recepcionista, garçom..."
+                className="w-full bg-transparent text-xs sm:text-sm outline-none"
+              />
             </div>
 
-            <p className="mt-1 text-[11px] text-center text-slate-100 drop-shadow">
-              Em breve, essa busca estará ligada às vagas reais publicadas na
-              plataforma.
-            </p>
+            {/* separador vertical somente no desktop */}
+            <div className="hidden sm:block h-8 w-px bg-slate-300" />
+
+            {/* cidade */}
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
+                Cidade
+              </label>
+              <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
+                <option>Maricá</option>
+                <option>Saquarema</option>
+                <option>Araruama</option>
+                <option>Iguaba Grande</option>
+                <option>São Pedro d&apos;Aldeia</option>
+                <option>Arraial do Cabo</option>
+                <option>Cabo Frio</option>
+                <option>Búzios</option>
+                <option>Rio das Ostras</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className="sm:ml-2 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 hover:bg-blue-700"
+            >
+              Buscar vagas
+            </button>
           </div>
+
+          <p className="mt-2 text-[11px] text-white/85 text-center drop-shadow">
+            Em breve, essa busca estará ligada às vagas reais da plataforma.
+          </p>
         </div>
       </section>
 
-      {/* ESPAÇO DE RESPIRO DEPOIS DO HERO */}
+      {/* espaçamento depois do hero */}
       <div className="h-6 md:h-10" />
 
-      {/* PRINCIPAIS ÁREAS */}
+      {/* VAGAS EM DESTAQUE */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">
-          Principais áreas
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {principaisAreas.map((area) => (
-            <div
-              key={area}
-              className="rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors px-4 py-3 text-xs sm:text-sm font-semibold text-slate-800"
-            >
-              {area}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* VAGAS EM DESTAQUE – FICTÍCIAS POR ENQUANTO */}
-      <section className="max-w-6xl mx-auto px-4 pb-8">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">
+        <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4">
           Vagas em destaque
         </h2>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {vagasFicticias.map((vaga, i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow px-4 py-3 text-xs sm:text-sm"
+              className="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow p-3 flex flex-col"
             >
-              <p className="font-semibold text-slate-900">{vaga.titulo}</p>
-              <p className="text-slate-700 mt-1">{vaga.empresa}</p>
-              <p className="text-slate-500 text-[11px] mt-1">
-                {vaga.cidade} • {vaga.salario}
+              <div className="text-xs font-semibold text-blue-600 mb-1">
+                Vaga exemplo {i}
+              </div>
+              <p className="text-xs text-slate-700">
+                Descrição resumida da vaga (cargo, área e principais
+                responsabilidades).
               </p>
               <p className="mt-2 text-[11px] text-slate-500">
-                Vaga fictícia apenas para ilustrar a área de destaques.
+                Cidade . Empresa . Salário a combinar
               </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* DICAS PARA CANDIDATOS */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">
-          Dicas rápidas para candidatos
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
-            <p className="font-semibold text-slate-900 mb-1">
-              Atualize sempre seu currículo
-            </p>
-            <p className="text-xs text-slate-600">
-              Mantenha experiências recentes, contatos e cursos em dia. Isso
-              aumenta suas chances de ser chamado.
-            </p>
-          </div>
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
-            <p className="font-semibold text-slate-900 mb-1">
-              Seja claro na área de interesse
-            </p>
-            <p className="text-xs text-slate-600">
-              Informe a área em que deseja atuar e a cidade de preferência para
-              facilitar o contato das empresas.
-            </p>
-          </div>
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
-            <p className="font-semibold text-slate-900 mb-1">
-              Atenção a golpes e promessas fáceis
-            </p>
-            <p className="text-xs text-slate-600">
-              Nunca pague para participar de processos seletivos. Em caso de
-              suspeita, denuncie o anúncio.
-            </p>
-          </div>
+      {/* BLOCOS PARA CANDIDATOS E EMPRESAS */}
+      <section className="max-w-6xl mx-auto px-4 pb-10 grid gap-4 md:grid-cols-2">
+        {/* candidatos */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 mb-2">
+            Para quem procura emprego
+          </h3>
+          <p className="text-xs text-slate-700 mb-3">
+            Crie seu perfil e deixe seu currículo visível para empresas de toda
+            a região.
+          </p>
+          <ul className="text-xs text-slate-700 space-y-1 mb-4">
+            <li>• Cadastre seus dados e experiências.</li>
+            <li>• Salve vagas favoritas.</li>
+            <li>• Em breve: alerta de vagas por e-mail.</li>
+          </ul>
+
+          <Link
+            href="#"
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            Cadastrar meu currículo (em breve)
+          </Link>
+        </div>
+
+        {/* empresas */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 mb-2">
+            Para empresas e lojistas
+          </h3>
+          <p className="text-xs text-slate-700 mb-3">
+            Anuncie suas vagas e encontre profissionais da Região dos Lagos.
+          </p>
+          <ul className="text-xs text-slate-700 space-y-1 mb-4">
+            <li>• Divulgação gratuita na fase de lançamento.</li>
+            <li>• Banco de currículos por área e cidade.</li>
+            <li>• Canal direto com candidatos.</li>
+          </ul>
+
+          <Link
+            href="#"
+            className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            Quero anunciar vagas
+          </Link>
         </div>
       </section>
 
-      {/* CHAMADA FINAL – ANUNCIE SUA VAGA */}
-      <section className="bg-blue-50 border-t border-blue-100 py-10">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
-            Quer anunciar uma vaga?
+      {/* LINKS ÚTEIS (SINE, prefeituras etc.) */}
+      <section className="bg-slate-50 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4">
+            Links úteis
           </h2>
-          <p className="text-sm text-slate-700 mb-6">
-            Divulgue oportunidades de trabalho para toda a Região dos Lagos.
-            Em breve: área exclusiva para empresas e RH.
-          </p>
-          <Link
-            href="/empregos/anunciar"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
-          >
-            Anunciar vaga gratuitamente
-          </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <Link
+              href="#"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-4 hover:bg-slate-50"
+            >
+              <p className="font-semibold text-slate-900">
+                SINE / Agência de Trabalho
+              </p>
+              <p className="mt-1 text-slate-600">
+                Vagas oficiais e programas de emprego (em breve).
+              </p>
+            </Link>
+            <Link
+              href="#"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-4 hover:bg-slate-50"
+            >
+              <p className="font-semibold text-slate-900">
+                Prefeituras e concursos
+              </p>
+              <p className="mt-1 text-slate-600">
+                Editais e oportunidades no setor público local.
+              </p>
+            </Link>
+            <Link
+              href="#"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-4 hover:bg-slate-50"
+            >
+              <p className="font-semibold text-slate-900">
+                Dicas para entrevistas
+              </p>
+              <p className="mt-1 text-slate-600">
+                Conteúdo educativo para mandar bem nos processos seletivos.
+              </p>
+            </Link>
+          </div>
         </div>
       </section>
     </main>
