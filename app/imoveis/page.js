@@ -37,26 +37,25 @@ export default function ImoveisPage() {
 
   return (
     <main className="bg-white min-h-screen">
-{/* BANNER FIXO NO TOPO (PADRÃO IGUAL OUTRAS PÁGINAS) */}
-<section className="w-full flex justify-center bg-slate-100 border-b py-3">
-  <div className="w-full max-w-[1000px] px-4">
-    <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-      <Image
-        src="/banners/anuncio-01.png"
-        alt="Anuncie seu imóvel totalmente GRÁTIS - Classilagos"
-        fill
-        sizes="900px"
-        className="object-contain"
-      />
-    </div>
-  </div>
-</section>
+      {/* BANNER FIXO NO TOPO (PADRÃO IGUAL OUTRAS PÁGINAS) */}
+      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Anuncie seu imóvel totalmente GRÁTIS - Classilagos"
+              fill
+              sizes="900px"
+              className="object-contain"
+            />
+          </div>
+        </div>
+      </section>
 
-
-      {/* HERO IMÓVEIS COM FOTO + BUSCA */}
+      {/* HERO IMÓVEIS COM FOTO + BUSCA (OPÇÃO A MOBILE) */}
       <section className="relative w-full">
         {/* Imagem de fundo (carrossel simples) */}
-        <div className="relative w-full h-[340px] md:h-[420px] overflow-hidden">
+        <div className="relative w-full h-[380px] md:h-[460px] overflow-hidden">
           <Image
             key={heroImages[currentHero]}
             src={heroImages[currentHero]}
@@ -67,77 +66,86 @@ export default function ImoveisPage() {
             className="object-cover transition-opacity duration-700"
           />
           {/* camada leve escura pra dar contraste no texto */}
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/25" />
         </div>
 
         {/* Conteúdo sobreposto (texto + busca) */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-10 pb-8">
-          <div className="text-center text-white px-4">
-            <p className="text-sm md:text-base font-medium drop-shadow">
+        <div className="absolute inset-0 flex flex-col items-center">
+          <div className="w-full max-w-5xl mx-auto px-4 pt-6 sm:pt-10 md:pt-12 flex flex-col items-center">
+            {/* FRASE NO TOPO – COMO NO LAYOUT */}
+            <p className="text-[10px] sm:text-xs md:text-sm text-white mb-3 text-center drop-shadow-md">
               Encontre casas, apartamentos, terrenos e oportunidades em toda a
               Região dos Lagos.
             </p>
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+
+            {/* TÍTULO – UM POUCO ACIMA DA CAIXA */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center mb-3 drop-shadow-md">
               Classilagos – Imóveis
             </h1>
-          </div>
 
-          {/* Barra de busca */}
-          <div className="flex justify-center px-4">
-            <div className="pointer-events-auto w-full max-w-4xl">
-              <div className="bg-white/95 rounded-full shadow-lg border border-slate-200 px-4 py-2 md:py-2.5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 items-center text-xs md:text-sm">
-                  {/* Busca livre */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-                    <span className="font-medium text-slate-600 mb-0.5 md:mb-0">
-                      Busca:
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Ex.: casa 2 quartos com quintal"
-                      className="flex-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Tipo de imóvel */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-                    <span className="font-medium text-slate-600 mb-0.5 md:mb-0">
-                      Imóvel:
-                    </span>
-                    <select className="flex-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option>Casa</option>
-                      <option>Apartamento</option>
-                      <option>Kitnet / Studio</option>
-                      <option>Terreno</option>
-                      <option>Sítio / Chácara</option>
-                      <option>Comercial</option>
-                    </select>
-                  </div>
-
-                  {/* Cidade */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-                    <span className="font-medium text-slate-600 mb-0.5 md:mb-0">
-                      Cidade:
-                    </span>
-                    <select className="flex-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option>Maricá</option>
-                      <option>Saquarema</option>
-                      <option>Araruama</option>
-                      <option>Iguaba Grande</option>
-                      <option>São Pedro da Aldeia</option>
-                      <option>Arraial do Cabo</option>
-                      <option>Cabo Frio</option>
-                      <option>Búzios</option>
-                      <option>Rio das Ostras</option>
-                    </select>
-                  </div>
-                </div>
+            {/* CAIXA DE BUSCA – CAMPOS EMPILHADOS, MAIS COMPACTA */}
+            <div className="w-full max-w-lg sm:max-w-3xl bg-white/95 rounded-2xl shadow-lg border border-slate-200 px-3 py-2 sm:px-4 sm:py-3 flex flex-col gap-2">
+              {/* Busca livre */}
+              <div className="flex-1">
+                <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+                  Busca
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: casa 2 quartos com quintal"
+                  className="w-full bg-transparent text-xs sm:text-sm outline-none"
+                />
               </div>
-              <p className="mt-1 text-[11px] text-center text-slate-200 drop-shadow">
-                Em breve, essa busca estará ligada aos anúncios reais da
-                plataforma.
-              </p>
+
+              {/* Tipo de imóvel */}
+              <div className="flex-1">
+                <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+                  Imóvel
+                </label>
+                <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
+                  <option>Casa</option>
+                  <option>Apartamento</option>
+                  <option>Kitnet / Studio</option>
+                  <option>Terreno</option>
+                  <option>Sítio / Chácara</option>
+                  <option>Comercial</option>
+                </select>
+              </div>
+
+              {/* Cidade */}
+              <div className="flex-1">
+                <label className="block text-[9px] uppercase tracking-wide text-slate-500 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full bg-transparent text-xs sm:text-sm outline-none">
+                  <option>Maricá</option>
+                  <option>Saquarema</option>
+                  <option>Araruama</option>
+                  <option>Iguaba Grande</option>
+                  <option>São Pedro da Aldeia</option>
+                  <option>Arraial do Cabo</option>
+                  <option>Cabo Frio</option>
+                  <option>Búzios</option>
+                  <option>Rio das Ostras</option>
+                </select>
+              </div>
+
+              {/* Botão */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="mt-1 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 hover:bg-blue-700"
+                >
+                  Buscar
+                </button>
+              </div>
             </div>
+
+            {/* Aviso da busca */}
+            <p className="mt-2 text-[11px] text-center text-slate-100 drop-shadow">
+              Em breve, essa busca estará ligada aos anúncios reais da
+              plataforma.
+            </p>
           </div>
         </div>
       </section>
