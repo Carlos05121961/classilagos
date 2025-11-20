@@ -1,51 +1,57 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+
+  function handleLogin(e) {
+    e.preventDefault();
+    alert("Login temporário — salvamento real será ativado após criarmos o banco.");
+  }
+
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <section className="max-w-md mx-auto px-6 py-16">
-        <h1 className="text-3xl font-bold text-blue-700 mb-6 text-center">
-          Entrar no Classilagos
-        </h1>
+    <main className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+      <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-md border border-slate-200">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Entrar</h1>
+        <p className="text-sm text-slate-600 mb-6">
+          Acesse sua conta para anunciar no Classilagos.
+        </p>
 
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              E-mail
-            </label>
-            <input
-              type="email"
-              placeholder="seuemail@gmail.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <input
+            type="email"
+            className="w-full border rounded-full px-4 py-2 text-sm"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Senha
-            </label>
-            <input
-              type="password"
-              placeholder="Digite sua senha"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <input
+            type="password"
+            className="w-full border rounded-full px-4 py-2 text-sm"
+            placeholder="Sua senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
 
           <button
-            type="button"
-            className="w-full rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            type="submit"
+            className="w-full bg-blue-600 text-white rounded-full py-2 hover:bg-blue-700"
           >
-            Entrar (demo)
+            Entrar
           </button>
         </form>
 
-        <p className="text-sm text-gray-500 mt-6 text-center">
+        <p className="text-sm mt-4 text-center">
           Não tem conta?{" "}
-          <a href="/cadastro" className="text-blue-600 hover:underline">
+          <Link href="/cadastro" className="text-blue-600 hover:underline">
             Cadastre-se
-          </a>
+          </Link>
         </p>
-      </section>
+      </div>
     </main>
   );
 }
