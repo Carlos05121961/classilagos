@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function EmpregosPage() {
-  /* HERO – rotacionando 2 imagens */
+  /* HERO – alternando 2 imagens */
   const heroImages = [
     "/empregos/hero-empregos.png",
     "/empregos/hero-vagas.jpg",
@@ -16,7 +16,7 @@ export default function EmpregosPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 6000); // 6 segundos
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -38,7 +38,7 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* HERO PRINCIPAL – ROTACIONANDO IMAGENS */}
+      {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
 
@@ -52,16 +52,19 @@ export default function EmpregosPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          {/* Sombra escura suave */}
-          <div className="absolute inset-0 bg-black/25" />
+          {/* SOMBRA SUAVE — agora mais clara, para não escurecer seu fundo branco */}
+          <div className="absolute inset-0 bg-black/10" />
 
-          {/* Textos do Hero */}
-          <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center text-white">
-            <p className="text-sm md:text-base font-medium drop-shadow">
+          {/* TEXTOS EM PRETO PURO (#000) */}
+          <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center text-black">
+            <p className="text-sm md:text-base font-medium drop-shadow-none" style={{ color: "#000" }}>
               Encontre oportunidades e seja encontrado pelas empresas da Região dos Lagos.
             </p>
 
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+            <h1
+              className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-none"
+              style={{ color: "#000" }}
+            >
               Classilagos – Empregos
             </h1>
           </div>
@@ -103,7 +106,7 @@ export default function EmpregosPage() {
                 </select>
               </div>
 
-              {/* Botão Buscar */}
+              {/* Botão */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -123,10 +126,8 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* RESPIRO */}
       <div className="h-10 sm:h-14" />
 
     </main>
   );
 }
-
