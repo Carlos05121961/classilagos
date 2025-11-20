@@ -4,6 +4,21 @@ import Image from "next/image";
 export default function ServicosPage() {
   return (
     <main className="bg-white min-h-screen">
+      {/* BANNER FIXO NO TOPO */}
+      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Anuncie seus serviços no Classilagos"
+              fill
+              sizes="900px"
+              className="object-contain"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
@@ -17,7 +32,8 @@ export default function ServicosPage() {
           />
           <div className="absolute inset-0 bg-black/25" />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+          {/* TEXTOS MAIS PARA CIMA */}
+          <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center text-white">
             <p className="text-sm md:text-base font-medium drop-shadow">
               Encontre profissionais e empresas para tudo o que você precisar.
             </p>
