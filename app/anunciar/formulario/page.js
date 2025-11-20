@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 const mapaRotuloCategoria = {
   imoveis: "Imóveis",
@@ -15,7 +15,7 @@ const mapaRotuloCategoria = {
   lagolistas: "LagoListas (Guia Comercial)",
 };
 
-export default function FormularioAnuncioPage() {
+function FormularioInner() {
   const searchParams = useSearchParams();
   const tipo = searchParams.get("tipo") || "imoveis";
   const categoriaLabel = mapaRotuloCategoria[tipo] || "Imóveis";
@@ -31,7 +31,7 @@ export default function FormularioAnuncioPage() {
   function handleSubmit(e) {
     e.preventDefault();
 
-    // AQUI futuramente vamos salvar no banco (Supabase / PostgreSQL)
+    // FUTURO: salvar no banco (Supabase/PostgreSQL)
     console.log("Novo anúncio (DEMO):", {
       categoria: tipo,
       titulo,
@@ -209,3 +209,16 @@ export default function FormularioAnuncioPage() {
   );
 }
 
+export default function FormularioAnuncioPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <p className="text-sm text-slate-500">Carregando formulário...</p>
+        </main>
+      }
+    >
+      <FormularioInner />
+    </Suspense>
+  );
+}
