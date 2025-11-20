@@ -1,31 +1,20 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
   return (
     <main className="bg-white min-h-screen">
-      {/* HERO INDEX */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[320px] md:h-[380px] lg:h-[430px] overflow-hidden">
-          <Image
-            src="/banners/hero-index.jpg"
-            alt="Classilagos Hero"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-
-          <div className="absolute inset-x-0 top-[22%] text-center px-4">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">
-              Classilagos – Seu Guia Completo da Região dos Lagos
-            </h1>
-            <p className="mt-2 text-sm md:text-base text-white/90 drop-shadow">
-              Anúncios, imóveis, empregos, turismo e muito mais!
-            </p>
-          </div>
+      {/* HERO INDEX – sem imagem, só degradê */}
+      <section className="relative w-full bg-gradient-to-b from-sky-500 via-cyan-500 to-blue-700">
+        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 md:py-24 text-center text-white">
+          <h1 className="text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+            Classilagos – Seu Guia Completo da Região dos Lagos
+          </h1>
+          <p className="mt-3 text-sm md:text-base text-white/90 max-w-2xl mx-auto drop-shadow">
+            Anúncios, imóveis, empregos, turismo, serviços e muito mais em
+            todas as cidades da região.
+          </p>
         </div>
       </section>
 
@@ -72,11 +61,11 @@ export default function HomePage() {
                 "
               />
 
-              {/* Borda interna de preenchimento escuro */}
+              {/* Fundo interno escuro */}
               <div
                 className="
                   absolute inset-[1px] rounded-2xl
-                  bg-gradient-to-r from-slate-950 via-slate-950 to-slate-950
+                  bg-slate-950
                 "
               />
 
@@ -96,7 +85,8 @@ export default function HomePage() {
         </div>
 
         <p className="mt-5 text-[11px] sm:text-xs text-center text-slate-400">
-          Em breve, cada área terá busca completa e anúncios em destaque em toda a Região dos Lagos.
+          Em breve, cada área terá busca completa e anúncios em destaque em toda
+          a Região dos Lagos.
         </p>
       </section>
 
