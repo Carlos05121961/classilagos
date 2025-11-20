@@ -6,7 +6,6 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <main className="bg-white min-h-screen">
-
       {/* HERO INDEX */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[320px] md:h-[380px] lg:h-[430px] overflow-hidden">
@@ -30,15 +29,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* BOTÕES NEON – OPÇÃO A */}
+      {/* BOTÕES NEON – OPÇÃO B (contorno e texto em gradiente) */}
       <section className="max-w-6xl mx-auto px-4 mt-10 mb-10">
         <h2 className="text-xl font-semibold mb-4 text-slate-700">
           Explore por categoria
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-          {/* BOTÃO COMPONENTE */}
           {[
             { name: "Imóveis", href: "/imoveis" },
             { name: "Veículos", href: "/veiculos" },
@@ -52,23 +49,55 @@ export default function HomePage() {
             <Link
               key={index}
               href={item.href}
-              className="
-                group relative flex items-center justify-center 
-                h-20 rounded-2xl font-semibold text-white 
-                text-lg shadow-lg shadow-pink-500/20
-                bg-gradient-to-br from-pink-500 to-cyan-400
+              className={`
+                group relative flex items-center justify-center
+                h-20 rounded-2xl 
+                border border-pink-400/60
+                bg-slate-950
+                shadow-[0_0_18px_rgba(236,72,153,0.35)]
+                hover:shadow-[0_0_28px_rgba(34,211,238,0.75)]
                 transition-all duration-300
-                hover:scale-105 hover:shadow-pink-500/40 hover:shadow-xl
-                border border-white/20 backdrop-blur-sm
-              "
+                hover:-translate-y-1
+                overflow-hidden
+              `}
             >
-              <span className="drop-shadow">{item.name}</span>
+              {/* Glow de fundo sutil */}
+              <div
+                className="
+                  pointer-events-none
+                  absolute inset-0 opacity-0 group-hover:opacity-40
+                  bg-gradient-to-r from-pink-500/40 via-fuchsia-500/30 to-cyan-400/40
+                  blur-2xl
+                  transition-opacity duration-300
+                "
+              />
 
-              {/* Glow neon externo */}
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-60 blur-xl transition duration-300 bg-gradient-to-br from-pink-400 to-cyan-300"></div>
+              {/* Borda interna em gradiente */}
+              <div
+                className="
+                  absolute inset-[1px] rounded-2xl
+                  bg-gradient-to-r from-slate-950 via-slate-950 to-slate-950
+                "
+              />
+
+              {/* Texto em gradiente neon */}
+              <span
+                className="
+                  relative z-10
+                  text-sm sm:text-base font-extrabold tracking-wide
+                  bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-300
+                  bg-clip-text text-transparent
+                "
+              >
+                {item.name}
+              </span>
             </Link>
           ))}
         </div>
+
+        <p className="mt-5 text-[11px] sm:text-xs text-center text-slate-400">
+          Em breve, cada área terá busca completa e anúncios em destaque em toda a Região dos Lagos.
+        </p>
       </section>
 
       {/* ANÚNCIOS EM DESTAQUE */}
