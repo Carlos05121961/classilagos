@@ -6,7 +6,6 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <main className="bg-white min-h-screen">
-
       {/* HERO INDEX */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[320px] md:h-[380px] lg:h-[430px] overflow-hidden">
@@ -30,7 +29,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* BOTÕES – OPÇÃO C (Praia / Verão / Premium) */}
+      {/* BOTÕES NEON – OPÇÃO B (contorno e texto em gradiente) */}
       <section className="max-w-6xl mx-auto px-4 mt-10 mb-10">
         <h2 className="text-xl font-semibold mb-4 text-slate-700">
           Explore por categoria
@@ -50,36 +49,48 @@ export default function HomePage() {
             <Link
               key={index}
               href={item.href}
-              className="
+              className={`
                 group relative flex items-center justify-center
-                h-20 rounded-2xl
-                bg-gradient-to-br from-yellow-200 via-yellow-100 to-cyan-100
-                shadow-md
-                hover:shadow-xl
+                h-20 rounded-2xl 
+                border border-pink-400/60
+                bg-slate-950
+                shadow-[0_0_18px_rgba(236,72,153,0.35)]
+                hover:shadow-[0_0_28px_rgba(34,211,238,0.75)]
                 transition-all duration-300
                 hover:-translate-y-1
-                border border-slate-200
-              "
+                overflow-hidden
+              `}
             >
+              {/* Glow de fundo sutil */}
+              <div
+                className="
+                  pointer-events-none
+                  absolute inset-0 opacity-0 group-hover:opacity-40
+                  bg-gradient-to-r from-pink-500/40 via-fuchsia-500/30 to-cyan-400/40
+                  blur-2xl
+                  transition-opacity duration-300
+                "
+              />
+
+              {/* Borda interna de preenchimento escuro */}
+              <div
+                className="
+                  absolute inset-[1px] rounded-2xl
+                  bg-gradient-to-r from-slate-950 via-slate-950 to-slate-950
+                "
+              />
+
+              {/* Texto em gradiente neon */}
               <span
                 className="
-                  text-slate-900
-                  font-semibold text-base sm:text-lg
-                  tracking-wide
+                  relative z-10
+                  text-sm sm:text-base font-extrabold tracking-wide
+                  bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-300
+                  bg-clip-text text-transparent
                 "
               >
                 {item.name}
               </span>
-
-              {/* brilho suave no hover */}
-              <div
-                className="
-                  pointer-events-none absolute inset-0 rounded-2xl
-                  opacity-0 group-hover:opacity-30
-                  bg-gradient-to-r from-yellow-300 via-yellow-200 to-cyan-200
-                  blur-xl transition-all duration-300
-                "
-              />
             </Link>
           ))}
         </div>
