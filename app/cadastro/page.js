@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
@@ -9,157 +8,150 @@ export default function CadastroPage() {
   const router = useRouter();
 
   const [nome, setNome] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [mensagem, setMensagem] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cidade, setCidade] = useState("");
   const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
 
-  async function handleCadastro(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setErro("");
     setLoading(true);
-    setMensagem("");
 
-    // 1) Criar usuário no Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: senha,
+        options: {
+          // depois que a pessoa clicar no e-mail, vai cair em /login
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: {
+            name: nome,
+            phone: telefone || null,
+            city: cidade || null,
+          },
+        },
+      });
 
-    if (error) {
-      setMensagem("Erro ao criar conta: " + error.message);
+      if (error) {
+        console.error(error);
+        setErro(error.message || "Erro ao criar conta. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      // Conta criada com sucesso: manda para a página de "verifique seu e-mail"
+      router.push("/auth/check-email");
+    } catch (err) {
+      console.error(err);
+      setErro("Ocorreu um erro inesperado. Tente novamente.");
       setLoading(false);
-      return;
     }
-
-    const user = data.user;
-
-    if (!user) {
-      setMensagem("Conta criada, mas não foi possível obter o usuário.");
-      setLoading(false);
-      return;
-    }
-
-    // 2) Criar perfil na tabela profiles
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: user.id, // precisa ser igual ao UID do Supabase
-      name: nome,
-      phone: telefone || null,
-      city: cidade || null,
-    });
-
-    if (profileError) {
-      console.error(profileError);
-      setMensagem(
-        "Conta criada, mas houve erro ao salvar o perfil. " +
-          "Você ainda pode confirmar o e-mail e depois entrar normalmente."
-      );
-      setLoading(false);
-      return;
-    }
-
-    setMensagem(
-      "Conta criada! Verifique seu e-mail para confirmar antes de entrar."
-    );
-    setLoading(false);
-
-    // Opcional: depois de alguns segundos, mandar pro login
-    setTimeout(() => {
-      router.push("/login");
-    }, 2000);
   }
 
   return (
-    <main className="max-w-md mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-2">Criar conta</h1>
-      <p className="text-sm text-gray-600 mb-6">
-        Cadastre-se gratuitamente para anunciar no Classilagos.
-      </p>
-
-      <form
-        onSubmit={handleCadastro}
-        className="space-y-4 border rounded-lg p-4 bg-white shadow-sm"
-      >
-        <div>
-          <label className="block text-sm font-medium mb-1">Nome</label>
-          <input
-            type="text"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Seu nome completo"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Cidade</label>
-          <input
-            type="text"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            placeholder="Cidade onde você atua"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Telefone</label>
-          <input
-            type="text"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
-            placeholder="(DDD) 99999-9999"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">E-mail</label>
-          <input
-            type="email"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="seuemail@exemplo.com"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Senha</label>
-          <input
-            type="password"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 rounded-full bg-green-600 text-white text-sm font-semibold disabled:opacity-60"
-        >
-          {loading ? "Criando conta..." : "Criar conta"}
-        </button>
-      </form>
-
-      {mensagem && (
-        <p className="mt-4 text-sm text-gray-800 whitespace-pre-line">
-          {mensagem}
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4 py-10">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-6">
+        <h1 className="text-2xl font-bold text-slate-800 text-center">
+          Criar conta no Classilagos
+        </h1>
+        <p className="text-sm text-slate-600 text-center">
+          Preencha os dados abaixo para criar sua conta. Depois é só confirmar
+          o e-mail e fazer login para anunciar gratuitamente.
         </p>
-      )}
 
-      <p className="mt-4 text-sm">
-        Já tem conta?{" "}
-        <Link href="/login" className="text-blue-600 hover:underline">
-          Entrar
-        </Link>
-      </p>
-    </main>
+        {erro && (
+          <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {erro}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Nome completo
+            </label>
+            <input
+              type="text"
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              E-mail
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Senha
+            </label>
+            <input
+              type="password"
+              required
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Telefone (opcional)
+              </label>
+              <input
+                type="text"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Cidade (opcional)
+              </label>
+              <input
+                type="text"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition"
+          >
+            {loading ? "Criando conta..." : "Criar conta"}
+          </button>
+        </form>
+
+        <p className="text-xs text-slate-500 text-center">
+          Já tem conta?{" "}
+          <a
+            href="/login"
+            className="font-medium text-blue-600 hover:underline"
+          >
+            Entrar
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }
