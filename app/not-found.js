@@ -1,20 +1,16 @@
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center px-4">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          Página não encontrada
-        </h1>
-        <p className="text-sm text-slate-600 mb-4">
-          O endereço que você tentou acessar não existe no momento.
-        </p>
-        <a
-          href="/"
-          className="inline-block rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
-          Voltar para a página inicial
-        </a>
-      </div>
+    <main className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+      <h1 className="text-3xl font-bold mb-2">Página não encontrada</h1>
+      <p className="text-gray-600 mb-4 text-center max-w-md">
+        O conteúdo que você tentou acessar não existe ou foi movido.
+      </p>
+      <a
+        href="/"
+        className="px-4 py-2 rounded-full border text-sm font-medium hover:bg-gray-100"
+      >
+        Voltar para a página inicial
+      </a>
     </main>
   );
 }
