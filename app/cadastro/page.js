@@ -9,17 +9,19 @@ export default function CadastroPage() {
   const router = useRouter();
 
   const [nome, setNome] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleCadastro(e) {
     e.preventDefault();
     setLoading(true);
     setMensagem("");
 
-    // 1) Criar usuário no Auth do Supabase
+    // 1) Criar usuário no Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
@@ -33,51 +35,83 @@ export default function CadastroPage() {
 
     const user = data.user;
 
-    // 2) Criar registro na tabela profiles
-    if (user) {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: user.id,
-          name: nome,
-        });
-
-      if (profileError) {
-        setMensagem(
-          "Conta criada, mas houve erro ao salvar o perfil. Você ainda pode tentar entrar com seu e-mail e senha."
-        );
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setMensagem("Conta criada, mas não foi possível obter o usuário.");
+      setLoading(false);
+      return;
     }
 
-    setMensagem("Conta criada com sucesso! Redirecionando para o login...");
+    // 2) Criar perfil na tabela profiles
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: user.id, // precisa ser igual ao UID do Supabase
+      name: nome,
+      phone: telefone || null,
+      city: cidade || null,
+    });
+
+    if (profileError) {
+      console.error(profileError);
+      setMensagem(
+        "Conta criada, mas houve erro ao salvar o perfil. " +
+          "Você ainda pode confirmar o e-mail e depois entrar normalmente."
+      );
+      setLoading(false);
+      return;
+    }
+
+    setMensagem(
+      "Conta criada! Verifique seu e-mail para confirmar antes de entrar."
+    );
     setLoading(false);
 
-    // 3) Redirecionar para /login depois de 1,5s
+    // Opcional: depois de alguns segundos, mandar pro login
     setTimeout(() => {
       router.push("/login");
-    }, 1500);
+    }, 2000);
   }
 
   return (
     <main className="max-w-md mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-2">Criar conta</h1>
       <p className="text-sm text-gray-600 mb-6">
-        Crie sua conta gratuita para anunciar seus imóveis, veículos,
-        serviços, turismo e muito mais na Região dos Lagos.
+        Cadastre-se gratuitamente para anunciar no Classilagos.
       </p>
 
-      <form onSubmit={handleCadastro} className="space-y-4 border rounded-lg p-4 bg-white shadow-sm">
+      <form
+        onSubmit={handleCadastro}
+        className="space-y-4 border rounded-lg p-4 bg-white shadow-sm"
+      >
         <div>
-          <label className="block text-sm font-medium mb-1">Nome completo</label>
+          <label className="block text-sm font-medium mb-1">Nome</label>
           <input
             type="text"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="Ex: Carlos José Moreira"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
+            placeholder="Seu nome completo"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Cidade</label>
+          <input
+            type="text"
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            placeholder="Cidade onde você atua"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Telefone</label>
+          <input
+            type="text"
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            placeholder="(DDD) 99999-9999"
           />
         </div>
 
@@ -86,9 +120,9 @@ export default function CadastroPage() {
           <input
             type="email"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="seuemail@exemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="seuemail@exemplo.com"
             required
           />
         </div>
@@ -98,9 +132,9 @@ export default function CadastroPage() {
           <input
             type="password"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="Mínimo 6 caracteres"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            placeholder="Mínimo 6 caracteres"
             required
           />
         </div>
@@ -108,7 +142,7 @@ export default function CadastroPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2 rounded-full bg-blue-600 text-white text-sm font-semibold disabled:opacity-60"
+          className="w-full py-2 rounded-full bg-green-600 text-white text-sm font-semibold disabled:opacity-60"
         >
           {loading ? "Criando conta..." : "Criar conta"}
         </button>
