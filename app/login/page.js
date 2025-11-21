@@ -29,7 +29,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Login OK
     setMensagem("Login realizado com sucesso! Redirecionando para o painel...");
     setLoading(false);
 
@@ -97,4 +96,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
