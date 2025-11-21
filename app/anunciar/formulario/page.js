@@ -1,6 +1,4 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const mapTipos = {
   imoveis: "Imóveis",
@@ -13,10 +11,8 @@ const mapTipos = {
   lagolistas: "LagoListas",
 };
 
-export default function AnunciarFormularioPage() {
-  const searchParams = useSearchParams();
-
-  const tipo = searchParams.get("tipo") || "imoveis";
+export default function AnunciarFormularioPage({ searchParams }) {
+  const tipo = searchParams?.tipo || "imoveis";
   const nomeCategoria = mapTipos[tipo] || "Anúncio";
 
   return (
@@ -35,11 +31,8 @@ export default function AnunciarFormularioPage() {
         </p>
       </header>
 
-      {/* Formulário DEMO */}
-      <form
-        className="space-y-4 border rounded-lg p-4 bg-white shadow-sm"
-        onSubmit={(e) => e.preventDefault()} // ainda é DEMO
-      >
+      {/* Formulário DEMO (sem lógica ainda) */}
+      <form className="space-y-4 border rounded-lg p-4 bg-white shadow-sm">
         <div>
           <label className="block text-sm font-medium mb-1">
             Título do anúncio
@@ -47,7 +40,9 @@ export default function AnunciarFormularioPage() {
           <input
             type="text"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder={`Ex: Casa 2 quartos em ${nomeCategoria === "Imóveis" ? "Maricá" : "Cabo Frio"}`}
+            placeholder={`Ex: Casa 2 quartos em ${
+              nomeCategoria === "Imóveis" ? "Maricá" : "Cabo Frio"
+            }`}
           />
         </div>
 
@@ -128,16 +123,16 @@ export default function AnunciarFormularioPage() {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <a
+          <Link
             href="/anunciar"
             className="text-sm text-gray-600 hover:underline"
           >
             ← Voltar para escolher outra categoria
-          </a>
+          </Link>
 
           <button
-            type="submit"
-            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold disabled:opacity-60"
+            type="button"
+            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold opacity-60 cursor-not-allowed"
             disabled
           >
             Avançar para resumo (em breve)
