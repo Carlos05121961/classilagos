@@ -1,114 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
+import AuthGuard from "../components/AuthGuard";
 
 export default function PainelPage() {
-  const router = useRouter();
-  const [carregando, setCarregando] = useState(true);
-  const [usuario, setUsuario] = useState(null);
-  const [perfil, setPerfil] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    async function carregarUsuario() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
 
-      if (!user) {
-        // Não logado → mandar pro login
-        router.push("/login");
-        return;
-      }
-
-      setUsuario(user);
-
-      // Buscar perfil na tabela profiles
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      setPerfil(profileData || null);
-      setCarregando(false);
-    }
-
-    carregarUsuario();
-  }, [router]);
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
-  if (carregando) {
-    return (
-      <main className="max-w-xl mx-auto px-4 py-10">
-        <p>Carregando seu painel...</p>
-      </main>
-    );
-  }
+    loadUser();
+  }, []);
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Bem-vindo,{" "}
-            {perfil?.name || usuario?.email?.split("@")[0] || "Anunciante"}!
-          </h1>
-          {perfil?.city && (
-            <p className="text-sm text-gray-600">
-              Cidade: {perfil.city}
+    <AuthGuard>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-4">Meu painel</h1>
+
+        {user && (
+          <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Usuário logado
             </p>
-          )}
-        </div>
+            <p className="text-sm font-medium text-slate-900">{user.email}</p>
+          </div>
+        )}
 
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm rounded-full border border-gray-300 hover:bg-gray-100"
-        >
-          Sair
-        </button>
-      </div>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="border rounded-lg p-4 shadow-sm bg-white">
-          <h2 className="font-semibold mb-2">Criar novo anúncio</h2>
-          <p className="text-xs text-gray-600 mb-3">
-            Imóveis, veículos, serviços, turismo, empregos etc.
-          </p>
+        <div className="grid gap-4 sm:grid-cols-2">
           <Link
             href="/anunciar"
-            className="inline-block text-sm text-blue-600 hover:underline"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50"
           >
-            Começar agora →
+            <h2 className="mb-1 text-base font-semibold">
+              Criar novo anúncio
+            </h2>
+            <p className="text-sm text-slate-600">
+              Publique um novo anúncio grátis em qualquer categoria.
+            </p>
+          </Link>
+
+          <Link
+            href="/painel/meus-anuncios"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50"
+          >
+            <h2 className="mb-1 text-base font-semibold">Meus anúncios</h2>
+            <p className="text-sm text-slate-600">
+              Veja e gerencie todos os anúncios cadastrados na sua conta.
+            </p>
           </Link>
         </div>
-
-        <div className="border rounded-lg p-4 shadow-sm bg-white">
-          <h2 className="font-semibold mb-2">Meus anúncios</h2>
-          <p className="text-xs text-gray-600 mb-3">
-            Em breve você verá aqui a lista dos seus anúncios publicados
-            no Classilagos.
-          </p>
-        </div>
-
-        <div className="border rounded-lg p-4 shadow-sm bg-white">
-          <h2 className="font-semibold mb-2">Dados da conta</h2>
-          <p className="text-xs text-gray-600 mb-3">
-            E-mail: {usuario?.email}
-          </p>
-          {perfil?.phone && (
-            <p className="text-xs text-gray-600 mb-1">
-              Telefone: {perfil.phone}
-            </p>
-          )}
-        </div>
-      </section>
-    </main>
+      </div>
+    </AuthGuard>
   );
 }
