@@ -93,7 +93,7 @@ export default function ImoveisPage() {
                 className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
               >
                 <div className="mb-2 flex items-start justify-between gap-3">
-                  <h3 className="text-base font-semibold text-gray-900">
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
                     {anuncio.titulo}
                   </h3>
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
@@ -115,7 +115,6 @@ export default function ImoveisPage() {
                     {anuncio.contato}
                   </p>
 
-                  {/* Link do vídeo (YouTube) se existir */}
                   {anuncio.video_url && (
                     <a
                       href={anuncio.video_url}
@@ -123,9 +122,16 @@ export default function ImoveisPage() {
                       rel="noopener noreferrer"
                       className="inline-flex text-xs font-semibold text-red-600 hover:text-red-700"
                     >
-                      ▶ Ver vídeo do imóvel no YouTube
+                      ▶ Ver vídeo no YouTube
                     </a>
                   )}
+
+                  <Link
+                    href={`/anuncio/${anuncio.id}`}
+                    className="inline-flex text-xs font-semibold text-blue-600 hover:text-blue-800"
+                  >
+                    🔎 Ver anúncio completo
+                  </Link>
 
                   <p className="text-[11px] text-gray-400">
                     Publicado em{" "}
