@@ -2,22 +2,34 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
 export default function AnunciarFormularioPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // categoria vem da URL: ?tipo=imoveis / veiculos / nautica...
-  const tipoDaUrl = searchParams.get("tipo") || "imoveis";
+  // categoria vinda da URL (?tipo=imoveis...), mas lida no browser
+  const [tipoDaUrl, setTipoDaUrl] = useState("imoveis");
+
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("Maricá");
   const [contato, setContato] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
+
+  // Lê o ?tipo= da URL apenas no lado do cliente
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const tipo = params.get("tipo");
+
+    if (tipo) {
+      setTipoDaUrl(tipo);
+    }
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,7 +52,7 @@ export default function AnunciarFormularioPage() {
       // grava no Supabase
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
-        categoria: tipoDaUrl, // exemplo: "imoveis"
+        categoria: tipoDaUrl, // ex: "imoveis"
         titulo,
         descricao,
         cidade,
@@ -63,7 +75,7 @@ export default function AnunciarFormularioPage() {
     }
   }
 
-  // Texto bonitinho da categoria para mostrar no título
+  // Nome bonitinho da categoria para mostrar no título
   const nomeCategoria =
     tipoDaUrl === "imoveis"
       ? "Imóveis"
