@@ -140,7 +140,6 @@ export default function MeusAnunciosPage() {
                   {anuncio.contato}
                 </p>
 
-                {/* Em breve: link para página de detalhes / edição */}
                 <div className="flex gap-2">
                   <button
                     type="button"
