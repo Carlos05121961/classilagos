@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-export default function FormularioAnuncio() {
+// Componente que realmente usa useSearchParams e faz o formulário
+function FormularioAnuncioInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tipo = searchParams.get("tipo") || "imoveis";
+  const tipo = searchParams.get("tipo") || "imoveis"; // imoveis, veiculos, etc.
 
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -15,260 +16,314 @@ export default function FormularioAnuncio() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("");
+  const [bairro, setBairro] = useState("");
   const [contato, setContato] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
-  // novo: arquivos de imagem selecionados
-  const [imagens, setImagens] = useState([]);
-
-  const [salvando, setSalvando] = useState(false);
+  const [arquivos, setArquivos] = useState([]); // Files para upload
+  const [submitting, setSubmitting] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // 1) Verifica usuário logado
+  // Carrega usuário logado
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.user) {
-        router.push("/login?from=/anunciar/formulario");
-        return;
+    async function loadUser() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error(error);
       }
-
-      setUser(session.user);
+      setUser(data?.user ?? null);
       setLoadingUser(false);
-    };
+    }
+    loadUser();
+  }, []);
 
-    checkUser();
-  }, [router]);
-
-  // Enquanto verifica login
-  if (loadingUser) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <p className="text-lg">Verificando seu login…</p>
-      </div>
-    );
+  function handleFilesChange(e) {
+    const files = Array.from(e.target.files || []);
+    setArquivos(files);
   }
 
-  // 2) Função de upload das imagens para o bucket "anuncios"
-  const uploadImagens = async () => {
-    if (!imagens.length) return [];
-
-    const urls = [];
-
-    for (let i = 0; i < imagens.length; i++) {
-      const file = imagens[i];
-      const ext = file.name.split(".").pop();
-      const filePath = `${user.id}/${Date.now()}-${i}.${ext}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("anuncios")
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error(uploadError);
-        throw new Error("Erro ao enviar imagem. Tente novamente.");
-      }
-
-      // pega URL pública
-      const { data: publicData } = supabase.storage
-        .from("anuncios")
-        .getPublicUrl(uploadData.path);
-
-      urls.push(publicData.publicUrl);
-    }
-
-    return urls;
-  };
-
-  // 3) Submit do formulário
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    if (!titulo || !descricao || !cidade || !contato) {
-      setErro("Preencha todos os campos obrigatórios.");
-      return;
-    }
-
     if (!user) {
-      setErro("Você precisa estar logado para publicar.");
+      setErro("Você precisa estar logado para publicar um anúncio.");
       return;
     }
 
-    setSalvando(true);
+    if (!titulo || !descricao || !cidade || !contato) {
+      setErro(
+        "Preencha os campos obrigatórios: título, descrição, cidade e contato."
+      );
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
-      // primeiro faz upload das imagens (se tiver)
-      const imagensUrls = await uploadImagens();
+      // 1) Upload das imagens (se tiver)
+      let imagensUrls = [];
 
-      // depois salva o anúncio na tabela
+      if (arquivos.length > 0) {
+        const uploads = await Promise.all(
+          arquivos.map(async (file) => {
+            const ext = file.name.split(".").pop();
+            const fileName = `${Date.now()}-${Math.random()
+              .toString(36)
+              .slice(2)}.${ext}`;
+            const filePath = `${user.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from("anuncios")
+              .upload(filePath, file, {
+                cacheControl: "3600",
+                upsert: false,
+              });
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicData } = supabase.storage
+              .from("anuncios")
+              .getPublicUrl(filePath);
+
+            return publicData.publicUrl;
+          })
+        );
+
+        imagensUrls = uploads;
+      }
+
+      // 2) Salvar registro na tabela anuncios
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
-        categoria: tipo, // "imoveis", "veiculos", etc, vindo da URL
+        categoria: tipo,
         titulo,
         descricao,
         cidade,
         contato,
         video_url: videoUrl || null,
-        imagens: imagensUrls.length ? imagensUrls : null,
+        imagens: imagensUrls, // text[]
+        // bairro ainda não está na tabela, por isso não mando
       });
 
-      if (insertError) {
-        console.error(insertError);
-        throw new Error("Erro ao salvar o anúncio. Tente novamente.");
-      }
+      if (insertError) throw insertError;
 
       setSucesso("Anúncio publicado com sucesso!");
-      // limpa campos
       setTitulo("");
       setDescricao("");
       setCidade("");
+      setBairro("");
       setContato("");
       setVideoUrl("");
-      setImagens([]);
+      setArquivos([]);
 
-      // manda para o painel de anúncios do usuário
-      setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1200);
+      // leva pro painel
+      router.push("/painel/meus-anuncios");
     } catch (err) {
-      setErro(err.message || "Erro inesperado ao salvar anúncio.");
+      console.error(err);
+      setErro("Ocorreu um erro ao salvar seu anúncio. Tente novamente.");
     } finally {
-      setSalvando(false);
+      setSubmitting(false);
     }
-  };
+  }
 
-  // 4) Render
+  // Estado de carregando usuário
+  if (loadingUser) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-lg">Carregando dados do usuário...</p>
+      </div>
+    );
+  }
+
+  // Se não tiver usuário logado
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <h1 className="text-2xl font-semibold">Você precisa estar logado</h1>
+        <button
+          onClick={() => router.push("/login")}
+          className="px-6 py-3 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+        >
+          Ir para a página de login
+        </button>
+      </div>
+    );
+  }
+
+  const tituloPagina =
+    tipo === "imoveis" ? "Novo anúncio de imóvel" : "Novo anúncio";
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">
-        Anunciar em {tipo === "imoveis" ? "Imóveis" : tipo}
-      </h1>
+    <main className="max-w-3xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-6">{tituloPagina}</h1>
+      <p className="text-gray-600 mb-6">
+        Preencha os dados do seu anúncio. Em seguida ele aparecerá em{" "}
+        <strong>Imóveis</strong> e também no seu painel em{" "}
+        <strong>Meus anúncios</strong>.
+      </p>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl shadow-sm border">
+      {erro && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+          {erro}
+        </div>
+      )}
+
+      {sucesso && (
+        <div className="mb-4 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-700">
+          {sucesso}
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 rounded-2xl bg-white p-6 shadow"
+      >
         {/* Título */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="mb-1 block text-sm font-medium">
             Título do anúncio *
           </label>
           <input
             type="text"
-            className="w-full border rounded-xl px-3 py-2"
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            placeholder="Ex.: Casa 2 quartos com varanda em Maricá"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            placeholder="Ex.: Casa 2 quartos com varanda em Maricá"
           />
         </div>
 
         {/* Descrição */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="mb-1 block text-sm font-medium">
             Descrição detalhada *
           </label>
           <textarea
-            className="w-full border rounded-xl px-3 py-2 min-h-[120px]"
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            rows={4}
+            placeholder="Descreva o imóvel, número de quartos, vagas, proximidades, etc."
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
-            placeholder="Descreva o imóvel, bairro, estado de conservação, benefícios, etc."
           />
         </div>
 
-        {/* Cidade */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Cidade / Região *
-          </label>
-          <input
-            type="text"
-            className="w-full border rounded-xl px-3 py-2"
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            placeholder="Ex.: Maricá - Jacaroá"
-          />
+        {/* Cidade e bairro (bairro ainda não vai pro banco) */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Cidade *</label>
+            <input
+              type="text"
+              className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Maricá, Cabo Frio, etc."
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Bairro</label>
+            <input
+              type="text"
+              className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Jacaroá, Itaipuaçu, Centro..."
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Contato */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Telefone / WhatsApp *
+          <label className="mb-1 block text-sm font-medium">
+            Telefone / WhatsApp para contato *
           </label>
           <input
             type="text"
-            className="w-full border rounded-xl px-3 py-2"
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            placeholder="(21) 9xxxx-xxxx"
             value={contato}
             onChange={(e) => setContato(e.target.value)}
-            placeholder="(21) 9xxxx-xxxx"
           />
         </div>
 
-        {/* Imagens */}
+        {/* Link de vídeo (YouTube) */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Fotos do anúncio
+          <label className="mb-1 block text-sm font-medium">
+            Vídeo do imóvel (YouTube – opcional)
+          </label>
+          <input
+            type="url"
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            placeholder="Cole aqui o link do vídeo no YouTube"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            O vídeo será aberto em uma nova aba, fora do site, para não pesar o
+            servidor.
+          </p>
+        </div>
+
+        {/* Upload de fotos */}
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Fotos do imóvel (até algumas imagens)
           </label>
           <input
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) =>
-              setImagens(e.target.files ? Array.from(e.target.files) : [])
-            }
+            onChange={handleFilesChange}
+            className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Você pode selecionar várias imagens. Tamanho máximo por arquivo: ~5MB
-            (recomendado).
+          <p className="mt-1 text-xs text-gray-500">
+            As imagens serão enviadas para o Storage do Supabase no bucket{" "}
+            <strong>anuncios</strong>.
           </p>
-          {imagens.length > 0 && (
-            <p className="text-xs text-green-600 mt-1">
-              {imagens.length} arquivo(s) selecionado(s).
-            </p>
+
+          {arquivos.length > 0 && (
+            <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
+              {arquivos.map((file, idx) => (
+                <li key={idx}>{file.name}</li>
+              ))}
+            </ul>
           )}
         </div>
 
-        {/* Vídeo (YouTube) */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Vídeo (link do YouTube) – opcional
-          </label>
-          <input
-            type="url"
-            className="w-full border rounded-xl px-3 py-2"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..."
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Ex.: cole aqui o link do vídeo do imóvel no YouTube, se tiver.
-          </p>
+        <div className="pt-2 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => router.push("/painel")}
+            className="rounded-full border px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {submitting ? "Publicando..." : "Confirmar e publicar"}
+          </button>
         </div>
-
-        {/* Mensagens */}
-        {erro && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {erro}
-          </div>
-        )}
-
-        {sucesso && (
-          <div className="rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
-            {sucesso}
-          </div>
-        )}
-
-        {/* Botão */}
-        <button
-          type="submit"
-          disabled={salvando}
-          className="inline-flex items-center justify-center rounded-full px-6 py-2.5 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
-        >
-          {salvando ? "Publicando..." : "Publicar anúncio"}
-        </button>
       </form>
-    </div>
+    </main>
+  );
+}
+
+// Componente exportado da página, com Suspense envolvendo o formulário
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <p className="text-lg">Carregando formulário...</p>
+        </div>
+      }
+    >
+      <FormularioAnuncioInner />
+    </Suspense>
   );
 }
