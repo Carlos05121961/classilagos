@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-// Componente que realmente usa useSearchParams e faz o formulário
+// Componente interno que usa useSearchParams e faz todo o formulário
 function FormularioAnuncioInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,7 +20,7 @@ function FormularioAnuncioInner() {
   const [contato, setContato] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
-  const [arquivos, setArquivos] = useState([]); // Files para upload
+  const [arquivos, setArquivos] = useState([]); // arquivos para upload
   const [submitting, setSubmitting] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -105,7 +105,7 @@ function FormularioAnuncioInner() {
         contato,
         video_url: videoUrl || null,
         imagens: imagensUrls, // text[]
-        // bairro ainda não está na tabela, por isso não mando
+        // bairro ainda não está na tabela, então ainda não envio
       });
 
       if (insertError) throw insertError;
@@ -313,7 +313,7 @@ function FormularioAnuncioInner() {
   );
 }
 
-// Componente exportado da página, com Suspense envolvendo o formulário
+// Página exportada com Suspense envolvendo o formulário
 export default function Page() {
   return (
     <Suspense
