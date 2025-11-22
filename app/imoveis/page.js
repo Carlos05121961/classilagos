@@ -126,12 +126,12 @@ export default function ImoveisPage() {
                     </a>
                   )}
 
-                  <Link
-                    href={`/anuncio/${anuncio.id}`}
-                    className="inline-flex text-xs font-semibold text-blue-600 hover:text-blue-800"
-                  >
-                    🔎 Ver anúncio completo
-                  </Link>
+                <Link
+  href={`/anuncios/${anuncio.id}`}
+  className="text-sm font-medium text-blue-600 hover:underline"
+>
+  Ver anúncio completo
+</Link>
 
                   <p className="text-[11px] text-gray-400">
                     Publicado em{" "}
