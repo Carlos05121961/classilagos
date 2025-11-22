@@ -142,7 +142,6 @@ export default function MeusAnunciosPage() {
             >
               + Serviços
             </Link>
-            {/* Você pode adicionar mais categorias aqui depois */}
           </div>
         </div>
 
@@ -241,13 +240,19 @@ export default function MeusAnunciosPage() {
 
                     <div className="flex flex-col items-start gap-2 md:items-end">
                       <Link
+                        href={`/anuncio/${anuncio.id}`}
+                        className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                      >
+                        🔎 Ver anúncio completo
+                      </Link>
+
+                      <Link
                         href={rotaCategoria}
                         className="rounded-full border border-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                       >
                         Ver na página de {categoriaLabel}
                       </Link>
 
-                      {/* Aqui no futuro podemos colocar botões de editar / excluir */}
                       <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600">
                         Em breve: editar e remover anúncio
                       </span>
