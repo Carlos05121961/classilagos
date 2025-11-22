@@ -2,283 +2,145 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-
-const heroImages = [
-  "/imoveis/maricaimoveis.jpg",
-  "/imoveis/saquaremaimoveis.jpg",
-  "/imoveis/buziosimoveis.jpg",
-];
+import { supabase } from "../supabaseClient";
 
 export default function ImoveisPage() {
-  const [currentHero, setCurrentHero] = useState(0);
+  const [anuncios, setAnuncios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
-  // carrossel simples de 3 fotos
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    async function carregarImoveis() {
+      setLoading(true);
+      setErro("");
+
+      // Busca todos os anúncios da categoria "Imóveis"
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .eq("categoria", "Imóveis")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        setErro("Erro ao carregar os imóveis. Tente novamente mais tarde.");
+      } else {
+        setAnuncios(data || []);
+      }
+
+      setLoading(false);
+    }
+
+    carregarImoveis();
   }, []);
 
-  const categoriasLinha1 = [
-    { nome: "Venda", img: "/imoveis/card-venda.jpg" },
-    { nome: "Aluguel", img: "/imoveis/card-aluguel.jpg" },
-    { nome: "Lançamentos", img: "/imoveis/card-lancamentos.jpg" },
-    { nome: "Oportunidade", img: "/imoveis/card-oportunidade.jpg" },
-  ];
-
-  const categoriasLinha2 = [
-    { nome: "Temporada" },
-    { nome: "Terrenos" },
-    { nome: "Sítios" },
-    { nome: "Comercial" },
-  ];
-
   return (
-    <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie seu imóvel totalmente GRÁTIS - Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Cabeçalho da seção */}
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Imóveis</h1>
+        <p className="text-slate-600 text-sm md:text-base">
+          Encontre casas, apartamentos, sítios e outros imóveis anunciados
+          gratuitamente no Classilagos. Em breve você poderá filtrar por cidade,
+          tipo de imóvel e faixa de preço.
+        </p>
+      </header>
+
+      {/* Link para anunciar */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-600">
+          Quer anunciar o seu imóvel? Publique grátis em poucos minutos.
+        </p>
+        <Link
+          href="/anunciar"
+          className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+        >
+          + Anunciar meu imóvel
+        </Link>
+      </div>
+
+      {/* Estados de carregamento / erro / vazio / lista */}
+      {loading && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <p className="text-slate-700">Carregando imóveis...</p>
         </div>
-      </section>
+      )}
 
-      {/* HERO: SÓ FOTO + TEXTOS (SEM CAIXA DE BUSCA) */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Imóveis"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
-          />
-          {/* leve escurecida p/ dar contraste */}
-          <div className="absolute inset-0 bg-black/25" />
-
-          {/* textos centralizados na imagem */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-sm md:text-base font-medium drop-shadow">
-              Encontre casas, apartamentos, terrenos e oportunidades em toda a
-              Região dos Lagos.
-            </p>
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-              Classilagos – Imóveis
-            </h1>
-          </div>
+      {!loading && erro && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-red-700 text-sm">{erro}</p>
         </div>
-      </section>
+      )}
 
-      {/* CAIXA DE BUSCA FORA DA FOTO (OPÇÃO B) */}
-      <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
-          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              {/* busca livre */}
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Busca
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex.: casa 2 quartos com quintal"
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+      {!loading && !erro && anuncios.length === 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center">
+          <p className="text-slate-700 mb-2">
+            Ainda não temos imóveis cadastrados no sistema.
+          </p>
+          <p className="text-sm text-slate-500 mb-4">
+            Assim que os primeiros anúncios forem publicados, eles aparecerão
+            aqui automaticamente.
+          </p>
+          <Link
+            href="/anunciar"
+            className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+          >
+            Quero ser o primeiro a anunciar
+          </Link>
+        </div>
+      )}
+
+      {!loading && !erro && anuncios.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {anuncios.map((anuncio) => (
+            <article
+              key={anuncio.id}
+              className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+            >
+              {/* Categoria + data */}
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                  {anuncio.categoria || "Imóveis"}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                </span>
               </div>
 
-              {/* tipo de imóvel */}
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Imóvel
-                </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Casa</option>
-                  <option>Apartamento</option>
-                  <option>Kitnet / Studio</option>
-                  <option>Terreno</option>
-                  <option>Sítio / Chácara</option>
-                  <option>Comercial</option>
-                </select>
-              </div>
+              {/* Título */}
+              <h2 className="text-base font-semibold mb-1 line-clamp-2">
+                {anuncio.titulo}
+              </h2>
 
-              {/* cidade */}
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Cidade
-                </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Maricá</option>
-                  <option>Saquarema</option>
-                  <option>Araruama</option>
-                  <option>Iguaba Grande</option>
-                  <option>São Pedro da Aldeia</option>
-                  <option>Arraial do Cabo</option>
-                  <option>Cabo Frio</option>
-                  <option>Búzios</option>
-                  <option>Rio das Ostras</option>
-                </select>
-              </div>
+              {/* Descrição resumida */}
+              <p className="text-sm text-slate-600 line-clamp-3 mb-3">
+                {anuncio.descricao}
+              </p>
 
-              {/* botão */}
-              <div className="flex justify-end">
+              {/* Cidade e contato */}
+              <p className="text-xs text-slate-500 mb-1">
+                <span className="font-medium">Cidade:</span>{" "}
+                {anuncio.cidade || "-"}
+              </p>
+              <p className="text-xs text-slate-500 mb-4">
+                <span className="font-medium">Contato:</span>{" "}
+                {anuncio.contato || "-"}
+              </p>
+
+              {/* Rodapé do card */}
+              <div className="mt-auto pt-2 border-t border-slate-100 flex justify-end">
                 <button
                   type="button"
-                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                  disabled
+                  className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 transition"
                 >
-                  Buscar
+                  Ver detalhes (em breve)
                 </button>
               </div>
-            </div>
-          </div>
-
-          <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
-          </p>
-        </div>
-      </section>
-
-      {/* pequeno respiro */}
-      <div className="h-4 sm:h-6" />
-
-      {/* CATEGORIAS – LINHA 1 E 2 */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
-        {/* LINHA 1 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          {categoriasLinha1.map((cat) => (
-            <div
-              key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100"
-            >
-              <div className="relative h-32 md:h-36 w-full bg-slate-200">
-                {cat.img && (
-                  <Image
-                    src={cat.img}
-                    alt={cat.nome}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 300px"
-                    className="object-cover"
-                  />
-                )}
-              </div>
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
-              </div>
-            </div>
+            </article>
           ))}
         </div>
-
-        {/* LINHA 2 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {categoriasLinha2.map((cat) => (
-            <div
-              key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200"
-            >
-              <div className="h-32 md:h-36 w-full bg-indigo-700" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* DESTAQUES RESERVADOS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200"
-            >
-              <div className="h-28 md:h-32 w-full bg-indigo-800" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                Destaque
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* NOTÍCIAS – FAIXAS AMARELAS */}
-      <section className="bg-white pb-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-16 flex items-center justify-center bg-yellow-300 text-slate-900 text-xl font-bold rounded-md"
-              >
-                Notícias
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* LINKS ÚTEIS */}
-      <section className="bg-slate-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 space-y-4">
-          <h2 className="text-sm font-semibold text-slate-800">Links úteis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Consulta IPTU
-              </p>
-              <p className="text-[12px] text-slate-600">
-                Prefeitura de Maricá (em breve).
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Plantas &amp; Projetos
-              </p>
-              <p className="text-[12px] text-slate-600">
-                Regularização e documentação.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Secretaria de Urbanismo
-              </p>
-              <p className="text-[12px] text-slate-600">
-                Informações oficiais (em breve).
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CHAMADA FINAL – ANUNCIE SEU IMÓVEL */}
-      <section className="bg-slate-50 pb-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="rounded-3xl bg-slate-100 border border-slate-200 px-6 py-7 text-center">
-            <p className="text-sm font-semibold text-slate-900 mb-1">
-              Quer anunciar seu imóvel?
-            </p>
-            <p className="text-xs text-slate-700 mb-4">
-              Venda ou alugue seu imóvel rapidamente no Classilagos.
-            </p>
-
-            <Link
-              href="/imoveis/anunciar"
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Anuncie seu imóvel grátis
-            </Link>
-          </div>
-        </div>
-      </section>
-    </main>
+      )}
+    </div>
   );
 }
-
