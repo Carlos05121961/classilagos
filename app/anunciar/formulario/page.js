@@ -1,144 +1,148 @@
-import Link from "next/link";
+"use client";
 
-const mapTipos = {
-  imoveis: "Imóveis",
-  veiculos: "Veículos",
-  nautica: "Náutica",
-  pets: "Pets",
-  empregos: "Empregos",
-  servicos: "Serviços",
-  turismo: "Turismo",
-  lagolistas: "LagoListas",
-};
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "../../supabaseClient";
+import AuthGuard from "../../components/AuthGuard";
 
-export default function AnunciarFormularioPage({ searchParams }) {
-  const tipo = searchParams?.tipo || "imoveis";
-  const nomeCategoria = mapTipos[tipo] || "Anúncio";
+export default function FormularioAnuncioPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoriaFromUrl = searchParams.get("tipo") || "geral";
+
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [contato, setContato] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+
+    // Garante que o usuário está logado
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      setLoading(false);
+      router.push("/login");
+      return;
+    }
+
+    const user = session.user;
+
+    // Tenta salvar no Supabase (quando o serviço estiver online)
+    const { error: insertError } = await supabase.from("anuncios").insert({
+      user_id: user.id,
+      categoria: categoriaFromUrl,
+      titulo,
+      descricao,
+      cidade,
+      contato,
+    });
+
+    if (insertError) {
+      console.error(insertError);
+      setErro(
+        "Não foi possível salvar seu anúncio agora. Tente novamente em alguns minutos."
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Se deu tudo certo: limpa o formulário e manda para a página de resumo
+    setTitulo("");
+    setDescricao("");
+    setCidade("");
+    setContato("");
+    setLoading(false);
+
+    router.push("/anunciar/resumo");
+  }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      {/* Título dinâmico */}
-      <header className="mb-6">
-        <p className="text-sm text-gray-500 mb-1">
-          Passo 2 de 3 · Preencha os dados do seu anúncio
+    <AuthGuard>
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-2">Criar anúncio</h1>
+        <p className="text-sm text-slate-600 mb-6">
+          Você está criando um anúncio na categoria{" "}
+          <span className="font-semibold">{categoriaFromUrl}</span>. Preencha os
+          dados abaixo e publique seu anúncio grátis no Classilagos.
         </p>
-        <h1 className="text-2xl font-bold">
-          Novo anúncio – {nomeCategoria}
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Preencha as informações abaixo. Em breve, estes dados serão
-          salvos no banco de dados e aparecerão na busca do Classilagos.
-        </p>
-      </header>
 
-      {/* Formulário DEMO (sem lógica ainda) */}
-      <form className="space-y-4 border rounded-lg p-4 bg-white shadow-sm">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Título do anúncio
-          </label>
-          <input
-            type="text"
-            className="w-full border rounded px-3 py-2 text-sm"
-            placeholder={`Ex: Casa 2 quartos em ${
-              nomeCategoria === "Imóveis" ? "Maricá" : "Cabo Frio"
-            }`}
-          />
-        </div>
+        {erro && (
+          <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {erro}
+          </div>
+        )}
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Descrição
-          </label>
-          <textarea
-            className="w-full border rounded px-3 py-2 text-sm min-h-[120px]"
-            placeholder="Descreva seu imóvel, veículo, serviço ou oportunidade..."
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Cidade
-            </label>
+            <label className="block text-sm font-medium mb-1">Título</label>
             <input
               type="text"
-              className="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Ex: Maricá, Cabo Frio, Búzios..."
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+              className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ex: Casa 2 quartos em Ponta Negra"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Bairro / Região
-            </label>
-            <input
-              type="text"
-              className="w-full border rounded px-3 py-2 text-sm"
-              placeholder="Ex: Centro, Itaipuaçu, Jacaroá..."
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Telefone / Contato
-            </label>
-            <input
-              type="tel"
-              className="w-full border rounded px-3 py-2 text-sm"
-              placeholder="(21) 0000-0000"
+            <label className="block text-sm font-medium mb-1">Descrição</label>
+            <textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              required
+              rows={5}
+              className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Descreva os detalhes do imóvel, veículo, serviço ou produto..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              WhatsApp
-            </label>
-            <input
-              type="tel"
-              className="w-full border rounded px-3 py-2 text-sm"
-              placeholder="(21) 9 0000-0000"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Cidade</label>
+              <input
+                type="text"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                required
+                className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: Maricá, Cabo Frio..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Contato (WhatsApp/Telefone)
+              </label>
+              <input
+                type="text"
+                value={contato}
+                onChange={(e) => setContato(e.target.value)}
+                required
+                className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="(21) 9 9999-9999"
+              />
+            </div>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Valor / Preço (opcional)
-          </label>
-          <input
-            type="text"
-            className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="Ex: 450.000,00 · 150,00 a diária · A combinar..."
-          />
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
-          <strong>Modo DEMO:</strong> neste momento o formulário ainda
-          não salva os dados em nenhum banco. Na próxima fase vamos
-          conectar este formulário a um backend (Supabase ou similar) e
-          enviar você para uma tela de resumo com os dados reais.
-        </div>
-
-        <div className="flex items-center justify-between pt-2">
-          <Link
-            href="/anunciar"
-            className="text-sm text-gray-600 hover:underline"
-          >
-            ← Voltar para escolher outra categoria
-          </Link>
 
           <button
-            type="button"
-            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold opacity-60 cursor-not-allowed"
-            disabled
+            type="submit"
+            disabled={loading}
+            className="mt-4 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            Avançar para resumo (em breve)
+            {loading ? "Enviando anúncio..." : "Publicar anúncio grátis"}
           </button>
-        </div>
-      </form>
-    </main>
+        </form>
+      </div>
+    </AuthGuard>
   );
 }
