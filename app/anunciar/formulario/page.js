@@ -1,169 +1,177 @@
 "use client";
 
-import { useState, Suspense } from "react";
+export const dynamic = "force-dynamic";
+
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
-import AuthGuard from "../../components/AuthGuard";
 
-// Componente principal: cuida do AuthGuard + Suspense
-export default function FormularioPage() {
-  return (
-    <AuthGuard>
-      <Suspense
-        fallback={
-          <div className="max-w-2xl mx-auto px-4 py-8">
-            <p className="text-sm text-slate-600">
-              Carregando formulário de anúncio...
-            </p>
-          </div>
-        }
-      >
-        <FormularioAnuncio />
-      </Suspense>
-    </AuthGuard>
-  );
-}
-
-// Componente interno que usa useSearchParams e os outros hooks
-function FormularioAnuncio() {
+export default function AnunciarFormularioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categoriaFromUrl = searchParams.get("tipo") || "geral";
 
+  // categoria vem da URL: ?tipo=imoveis / veiculos / nautica...
+  const tipoDaUrl = searchParams.get("tipo") || "imoveis";
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [cidade, setCidade] = useState("");
+  const [cidade, setCidade] = useState("Maricá");
   const [contato, setContato] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
-    setLoading(true);
+    setCarregando(true);
 
-    // Garante que o usuário está logado
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
+    try {
+      // pega usuário logado
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (sessionError || !session) {
-      setLoading(false);
-      router.push("/login");
-      return;
-    }
+      if (userError || !user) {
+        setErro("Você precisa estar logado para anunciar.");
+        setCarregando(false);
+        return;
+      }
 
-    const user = session.user;
-
-    // Salva no Supabase (tabela anuncios)
-    const { error: insertError } = await supabase
-      .from("anuncios")
-      .insert({
+      // grava no Supabase
+      const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
-        categoria: categoriaFromUrl,
+        categoria: tipoDaUrl, // exemplo: "imoveis"
         titulo,
         descricao,
         cidade,
         contato,
       });
 
-    if (insertError) {
-      console.error(insertError);
-      setErro(
-        "Não foi possível salvar seu anúncio agora. Tente novamente em alguns minutos."
-      );
-      setLoading(false);
-      return;
+      if (insertError) {
+        console.error(insertError);
+        setErro("Não foi possível salvar o anúncio. Tente novamente.");
+        setCarregando(false);
+        return;
+      }
+
+      // deu tudo certo: manda para o painel
+      router.push("/painel/meus-anuncios");
+    } catch (err) {
+      console.error(err);
+      setErro("Ocorreu um erro inesperado.");
+      setCarregando(false);
     }
-
-    // Se deu tudo certo
-    setTitulo("");
-    setDescricao("");
-    setCidade("");
-    setContato("");
-    setLoading(false);
-
-    router.push("/anunciar/resumo");
   }
 
+  // Texto bonitinho da categoria para mostrar no título
+  const nomeCategoria =
+    tipoDaUrl === "imoveis"
+      ? "Imóveis"
+      : tipoDaUrl === "veiculos"
+      ? "Veículos"
+      : tipoDaUrl === "nautica"
+      ? "Náutica"
+      : tipoDaUrl === "pets"
+      ? "Pets"
+      : "Classilagos";
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-2">Criar anúncio</h1>
-      <p className="text-sm text-slate-600 mb-6">
-        Você está criando um anúncio na categoria{" "}
-        <span className="font-semibold">{categoriaFromUrl}</span>. Preencha os
-        dados abaixo e publique seu anúncio grátis no Classilagos.
+    <main className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-2">
+        Criar anúncio – {nomeCategoria}
+      </h1>
+      <p className="text-slate-600 mb-8">
+        Preencha os dados do seu anúncio. Em poucos minutos ele estará visível
+        no Classilagos.
       </p>
 
-      {erro && (
-        <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-          {erro}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl shadow p-6 space-y-6 border border-slate-100"
+      >
         <div>
-          <label className="block text-sm font-medium mb-1">Título</label>
+          <label className="block text-sm font-medium mb-1">
+            Título do anúncio
+          </label>
           <input
             type="text"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
+            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: Casa 2 qts com varanda em Maricá"
             required
-            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Ex: Casa 2 quartos em Ponta Negra"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Descrição</label>
+          <label className="block text-sm font-medium mb-1">
+            Descrição
+          </label>
           <textarea
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
+            className="w-full rounded-xl border px-3 py-2 h-32 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Descreva o imóvel, bairro, características, valor, condições..."
             required
-            rows={5}
-            className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Descreva os detalhes do imóvel, veículo, serviço ou produto..."
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium mb-1">Cidade</label>
             <input
               type="text"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ex: Maricá"
               required
-              className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ex: Maricá, Cabo Frio..."
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Contato (WhatsApp/Telefone)
+              Telefone / WhatsApp
             </label>
             <input
               type="text"
               value={contato}
               onChange={(e) => setContato(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ex: (21) 9 9999-9999"
               required
-              className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="(21) 9 9999-9999"
             />
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-4 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {loading ? "Enviando anúncio..." : "Publicar anúncio grátis"}
-        </button>
+        {erro && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+            {erro}
+          </p>
+        )}
+
+        <div className="flex gap-3 justify-end">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium"
+          >
+            Voltar
+          </button>
+          <button
+            type="submit"
+            disabled={carregando}
+            className="px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+          >
+            {carregando ? "Publicando..." : "Confirmar e publicar"}
+          </button>
+        </div>
       </form>
-    </div>
+
+      <p className="text-xs text-slate-400 mt-4">
+        Em breve vamos adicionar envio de fotos e mais detalhes específicos para
+        cada tipo de anúncio (imóveis, veículos, náutica, etc.).
+      </p>
+    </main>
   );
 }
-
