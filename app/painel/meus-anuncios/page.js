@@ -24,10 +24,11 @@ export default function MeusAnunciosPage() {
     <AuthGuard>
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Meus anúncios</h1>
+
         <p className="mb-6 text-sm text-slate-600">
           Aqui você verá todos os anúncios cadastrados com a sua conta.
-          Por enquanto estamos usando dados de exemplo; em breve isso virá
-          direto do banco (Supabase).
+          Por enquanto estamos usando dados de exemplo; assim que o Supabase
+          voltar, essa listagem será real.
         </p>
 
         {FAKE_ADS.length === 0 ? (
@@ -44,12 +45,15 @@ export default function MeusAnunciosPage() {
                 <h2 className="text-base font-semibold text-slate-900">
                   {anuncio.titulo}
                 </h2>
+
                 <p className="text-xs uppercase tracking-wide text-slate-500 mt-1">
                   {anuncio.categoria} • {anuncio.cidade}
                 </p>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Contato: {anuncio.contato}
                 </p>
+
                 <div className="mt-3 flex gap-2">
                   <button className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
                     Editar
