@@ -10,6 +10,7 @@ export default function AnuncioDetalhePage() {
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+  const [fotoIndex, setFotoIndex] = useState(0); // qual foto está ativa
 
   useEffect(() => {
     if (!id) return;
@@ -26,6 +27,7 @@ export default function AnuncioDetalhePage() {
         setErro("Não foi possível carregar este anúncio.");
       } else {
         setAnuncio(data);
+        setFotoIndex(0); // sempre começa na primeira foto
       }
       setLoading(false);
     };
@@ -57,9 +59,10 @@ export default function AnuncioDetalhePage() {
     );
   }
 
-  // --- NOVO: trata o array de imagens ---
+  // Trata o array de imagens
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
-  const capa = imagens.length > 0 ? imagens[0] : null;
+  const temImagens = imagens.length > 0;
+  const fotoAtiva = temImagens ? imagens[Math.min(fotoIndex, imagens.length - 1)] : null;
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
@@ -87,16 +90,40 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* --- NOVO: FOTO PRINCIPAL --- */}
-        {capa && (
+        {/* FOTO PRINCIPAL */}
+        {fotoAtiva && (
           <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
             <div className="w-full h-[260px] sm:h-[320px] md:h-[360px]">
               <img
-                src={capa}
+                src={fotoAtiva}
                 alt={anuncio.titulo}
                 className="w-full h-full object-cover"
               />
             </div>
+          </div>
+        )}
+
+        {/* MINIATURAS */}
+        {imagens.length > 1 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+            {imagens.map((url, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setFotoIndex(index)}
+                className={`relative h-16 rounded-xl overflow-hidden border ${
+                  index === fotoIndex
+                    ? "border-blue-500 ring-2 ring-blue-300"
+                    : "border-slate-200"
+                } bg-slate-100`}
+              >
+                <img
+                  src={url}
+                  alt={`${anuncio.titulo} - foto ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
           </div>
         )}
 
