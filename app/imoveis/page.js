@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client"; // ajuste se o caminho for outro
 
-// Ajuste os nomes dos arquivos conforme estiverem em /public/imoveis
+// Hero com 3 imagens padrão (já renomeadas na /public/imoveis)
 const heroImages = [
   "/imoveis/imovel-01.jpg",
   "/imoveis/imovel-02.jpg",
@@ -13,12 +14,35 @@ const heroImages = [
 
 export default function ImoveisPage() {
   const [currentHero, setCurrentHero] = useState(0);
+  const [destaques, setDestaques] = useState([]);
 
+  // Rotação do hero
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
     }, 6000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Buscar anúncios reais de imóveis no Supabase
+  useEffect(() => {
+    const fetchDestaques = async () => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .eq("categoria", "imoveis")
+        .limit(4);
+
+      if (!error && data) {
+        setDestaques(data);
+      } else {
+        console.error("Erro ao buscar anúncios de imóveis:", error);
+      }
+    };
+
+    fetchDestaques();
   }, []);
 
   const categoriasLinha1 = [
@@ -179,19 +203,32 @@ export default function ImoveisPage() {
           ))}
         </div>
 
-        {/* DESTAQUES RESERVADOS */}
+        {/* DESTAQUES – com anúncios reais se existirem */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200"
-            >
-              <div className="h-28 md:h-32 w-full bg-emerald-800" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                Imóvel destaque
-              </div>
-            </div>
-          ))}
+          {(destaques.length > 0 ? destaques : [1, 2, 3, 4]).map(
+            (item, idx) => {
+              const anuncio = typeof item === "number" ? null : item;
+              const href = anuncio ? `/anuncio/${anuncio.id}` : "/anunciar";
+
+              return (
+                <Link
+                  key={anuncio ? anuncio.id : idx}
+                  href={href}
+                  className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
+                >
+                  <div className="h-28 md:h-32 w-full bg-emerald-800" />
+                  <div className="bg-slate-900 text-white px-3 py-2">
+                    <p className="text-xs md:text-sm font-semibold">
+                      {anuncio?.titulo || "Imóvel destaque"}
+                    </p>
+                    <p className="text-[11px] text-slate-300">
+                      {anuncio?.cidade || "Região dos Lagos"}
+                    </p>
+                  </div>
+                </Link>
+              );
+            }
+          )}
         </div>
       </section>
 
@@ -211,7 +248,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS */}
+      {/* LINKS ÚTEIS – IPTU, legalização etc. */}
       <section className="bg-slate-50 py-8">
         <div className="max-w-6xl mx-auto px-4 space-y-4">
           <h2 className="text-sm font-semibold text-slate-800">Links úteis</h2>
@@ -238,6 +275,69 @@ export default function ImoveisPage() {
                 Informações sobre escritura, registro de imóveis e cartórios.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* OFERTAS MERCADO LIVRE */}
+      <section className="bg-white py-8 border-t">
+        <div className="max-w-6xl mx-auto px-4 space-y-4">
+          <h2 className="text-sm font-semibold text-slate-800">
+            Ofertas para sua casa no Mercado Livre
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <a
+              href="https://www.mercadolivre.com.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 hover:bg-slate-100 hover:border-slate-300 transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm">
+                Kit ferramentas
+              </p>
+              <p className="text-[12px] text-slate-600">
+                Ferramentas para reparos e melhorias no imóvel.
+              </p>
+            </a>
+            <a
+              href="https://www.mercadolivre.com.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 hover:bg-slate-100 hover:border-slate-300 transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm">
+                Materiais de construção
+              </p>
+              <p className="text-[12px] text-slate-600">
+                Tintas, pisos, iluminação e muito mais.
+              </p>
+            </a>
+            <a
+              href="https://www.mercadolivre.com.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 hover:bg-slate-100 hover:border-slate-300 transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm">
+                Móveis &amp; decoração
+              </p>
+              <p className="text-[12px] text-slate-600">
+                Deixe seu novo imóvel com a sua cara.
+              </p>
+            </a>
+            <a
+              href="https://www.mercadolivre.com.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 hover:bg-slate-100 hover:border-slate-300 transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm">
+                Eletrodomésticos
+              </p>
+              <p className="text-[12px] text-slate-600">
+                Geladeira, fogão, máquina de lavar e muito mais.
+              </p>
+            </a>
           </div>
         </div>
       </section>
