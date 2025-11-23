@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
-import BannerRotator from "./components/BannerRotator";
 
 export default function Home() {
   const heroImages = [
@@ -25,15 +24,11 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER ROTATIVO */}
-      <BannerRotator />
-
-      {/* HERO PRINCIPAL */}
+      {/* HERO PRINCIPAL COM MENU SOBRE A FOTO */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 flex flex-col">
-
-            {/* LOGO + MENU */}
+            {/* LOGO + MENU (TRANSPARENTE) */}
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
               <Link href="/" className="flex items-center gap-3">
                 <Image
@@ -49,14 +44,15 @@ export default function Home() {
                 <Link href="/imoveis">Imóveis</Link>
                 <Link href="/veiculos">Veículos</Link>
                 <Link href="/nautica">Náutica</Link>
+                <Link href="/pets">Pets</Link>
+                <Link href="/empregos">Empregos</Link>
                 <Link href="/servicos">Serviços</Link>
                 <Link href="/turismo">Turismo</Link>
                 <Link href="/lagolistas">LagoListas</Link>
                 <Link href="/login">Login</Link>
-
                 <Link
                   href="/anunciar"
-                  className="rounded-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  className="rounded-full bg-cyan-500 px-4 py-2 text-white font-semibold hover:bg-cyan-600"
                 >
                   Anuncie grátis
                 </Link>
@@ -83,9 +79,7 @@ export default function Home() {
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   O que você procura?
@@ -137,10 +131,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BOTÕES NEON (opção B) – ACIMA DOS DESTAQUES */}
+      {/* BOTÕES NEON – EXPLORAR POR CATEGORIA */}
       <section className="bg-slate-950 py-10">
         <div className="max-w-7xl mx-auto px-4">
-
           <h2 className="text-xl font-semibold text-slate-50 mb-2">
             Explore por categoria
           </h2>
@@ -150,7 +143,6 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-
             {categorias.map(([label, href]) => (
               <Link
                 key={href}
@@ -163,7 +155,6 @@ export default function Home() {
                 <div className="text-[11px] text-slate-400 mt-1">Abrir</div>
               </Link>
             ))}
-
           </div>
         </div>
       </section>
@@ -188,7 +179,9 @@ export default function Home() {
             href="#"
             className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
           >
-            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
+            <h3 className="font-semibold text-slate-900 mb-2">
+              Classilagos TV
+            </h3>
             <p className="text-sm text-slate-600">
               Vídeos, pautas locais e histórias da nossa região.
             </p>
@@ -218,4 +211,3 @@ export default function Home() {
     </main>
   );
 }
-
