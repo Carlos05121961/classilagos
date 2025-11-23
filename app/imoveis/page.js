@@ -206,7 +206,7 @@ export default function ImoveisPage() {
           {(destaques.length > 0 ? destaques : [1, 2, 3, 4]).map(
             (item, idx) => {
               const anuncio = typeof item === "number" ? null : item;
-              const href = anuncio ? `/anuncio/${anuncio.id}` : "/anunciar";
+              const href = anuncio ? `/anuncios/${anuncio.id}` : "/anunciar";
 
               return (
                 <Link
