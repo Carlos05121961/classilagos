@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
+import BannerRotator from "./components/BannerRotator";
 
 export default function Home() {
   const heroImages = [
@@ -24,11 +25,14 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* HERO PRINCIPAL COM MENU SOBRE A FOTO */}
+      {/* 1) BANNER COMERCIAL NO TOPO */}
+      <BannerRotator />
+
+      {/* 2) HERO PRINCIPAL */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 flex flex-col">
-            {/* LOGO + MENU (TRANSPARENTE) */}
+            {/* LOGO + MENU DENTRO DO HERO */}
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
               <Link href="/" className="flex items-center gap-3">
                 <Image
@@ -50,9 +54,10 @@ export default function Home() {
                 <Link href="/turismo">Turismo</Link>
                 <Link href="/lagolistas">LagoListas</Link>
                 <Link href="/login">Login</Link>
+
                 <Link
                   href="/anunciar"
-                  className="rounded-full bg-cyan-500 px-4 py-2 text-white font-semibold hover:bg-cyan-600"
+                  className="rounded-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   Anuncie grátis
                 </Link>
@@ -179,9 +184,7 @@ export default function Home() {
             href="#"
             className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
           >
-            <h3 className="font-semibold text-slate-900 mb-2">
-              Classilagos TV
-            </h3>
+            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
             <p className="text-sm text-slate-600">
               Vídeos, pautas locais e histórias da nossa região.
             </p>
