@@ -125,7 +125,7 @@ export default function ImoveisPage() {
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option>Casa</option>
                   <option>Apartamento</option>
-                  <option>Terreno</</option>
+                  <option>Terreno</option>
                   <option>Comercial</option>
                   <option>Sítio / Chácara</option>
                 </select>
