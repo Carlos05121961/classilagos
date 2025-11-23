@@ -16,7 +16,7 @@ const cidades = [
   "Rio das Ostras",
 ];
 
-export default function AnunciarPage() {
+export default function AnunciarImovelPage() {
   const router = useRouter();
 
   // CAMPOS DO FORMULÁRIO
@@ -26,6 +26,7 @@ export default function AnunciarPage() {
   const [preco, setPreco] = useState("");
   const [cidade, setCidade] = useState("Maricá");
   const [endereco, setEndereco] = useState("");
+  const [bairro, setBairro] = useState("");
   const [area, setArea] = useState("");
   const [quartos, setQuartos] = useState("");
   const [banheiros, setBanheiros] = useState("");
@@ -64,7 +65,7 @@ export default function AnunciarPage() {
         return;
       }
 
-      // 2) UPLOAD DAS FOTOS (SE HOUVER)
+      // 2) FAZER UPLOAD DAS FOTOS (SE TIVER)
       let imageUrls = [];
 
       if (files && files.length > 0) {
@@ -108,6 +109,7 @@ export default function AnunciarPage() {
         iptu,
         aceita_financiamento: aceitaFinanciamento,
         endereco,
+        bairro,
         imagens: imageUrls,
         video_url: videoUrl || null,
       };
@@ -137,29 +139,36 @@ export default function AnunciarPage() {
   }
 
   return (
-    <main className="min-h-screen py-8 bg-[#F5FBFF]">
+    <main className="min-h-screen bg-[#F5FBFF] py-8">
       <div className="max-w-5xl mx-auto px-4">
-        {/* TÍTULO */}
-        <h1 className="text-2xl md:text-3xl font-bold text-[#1F2933] mb-2">
-          Anunciar imóvel
-        </h1>
-        <p className="text-sm text-slate-600 mb-6">
-          Preencha as informações abaixo. Na fase de lançamento, todos os anúncios
-          são{" "}
-          <span className="font-semibold text-[#21D4FD]">
-            totalmente grátis
-          </span>.
-        </p>
+        {/* CABEÇALHO */}
+        <div className="mb-6">
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-wide uppercase text-[#1F2933]">
+            <span className="inline-block h-[3px] w-8 rounded-full bg-[#21D4FD]" />
+            Anúncio de imóveis
+          </span>
+          <h1 className="mt-2 text-2xl md:text-3xl font-bold text-[#1F2933]">
+            Anunciar imóvel
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Preencha as informações abaixo. Na fase de lançamento, todos os
+            anúncios são{" "}
+            <span className="font-semibold text-[#21D4FD]">
+              totalmente grátis
+            </span>
+            .
+          </p>
+        </div>
 
-        {/* CARD PRINCIPAL */}
+        {/* FORMULÁRIO */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl shadow-lg border border-slate-200 px-4 sm:px-8 py-6 space-y-8"
+          className="bg-white rounded-3xl shadow-md border border-slate-200 px-4 sm:px-8 py-6 space-y-8"
         >
           {/* CAMPOS BÁSICOS */}
           <section>
             <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-4 rounded-full bg-[#21D4FD]" />
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
               Campos básicos
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
@@ -184,4 +193,294 @@ export default function AnunciarPage() {
                 <select
                   className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={tipoImovel}
-                  onChange={(e) => setTipoImovel(e.target.value
+                  onChange={(e) => setTipoImovel(e.target.value)}
+                >
+                  <option>Casa</option>
+                  <option>Apartamento</option>
+                  <option>Terreno</option>
+                  <option>Sítio / Chácara</option>
+                  <option>Cobertura</option>
+                  <option>Kitnet / Studio</option>
+                  <option>Sala / Loja comercial</option>
+                  <option>Galpão / Depósito</option>
+                  <option>Fazenda</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Finalidade
+                </label>
+                <select
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  value={finalidade}
+                  onChange={(e) => setFinalidade(e.target.value)}
+                >
+                  <option value="venda">Venda</option>
+                  <option value="aluguel_fixo">Aluguel fixo</option>
+                  <option value="temporada">Aluguel por temporada</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Valor (R$)
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  placeholder="Ex.: 450.000,00"
+                  value={preco}
+                  onChange={(e) => setPreco(e.target.value)}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* LOCALIZAÇÃO */}
+          <section>
+            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+              Localização
+            </h2>
+            <div className="grid md:grid-cols-[1fr,2fr] gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Cidade
+                </label>
+                <select
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                >
+                  {cidades.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Endereço / referência (para mapa)
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  placeholder="Rua, número, bairro, ponto de referência..."
+                  value={endereco}
+                  onChange={(e) => setEndereco(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Bairro
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  placeholder="Ex.: Centro, Itaipuaçu, Ponta Negra..."
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* DETALHES DO IMÓVEL */}
+          <section>
+            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+              Detalhes do imóvel
+            </h2>
+            <div className="grid md:grid-cols-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Área (m²)
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Quartos
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={quartos}
+                  onChange={(e) => setQuartos(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Banheiros
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={banheiros}
+                  onChange={(e) => setBanheiros(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Vagas de garagem
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={vagas}
+                  onChange={(e) => setVagas(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mt-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Valor do condomínio (R$)
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={condominio}
+                  onChange={(e) => setCondominio(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Valor do IPTU (R$ / ano)
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={iptu}
+                  onChange={(e) => setIptu(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Aceita financiamento?
+                </label>
+                <select
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  value={aceitaFinanciamento}
+                  onChange={(e) => setAceitaFinanciamento(e.target.value)}
+                >
+                  <option>Sim</option>
+                  <option>Não</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          {/* DESCRIÇÃO E CONTATO */}
+          <section>
+            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+              Descrição e contato
+            </h2>
+            <div className="flex flex-col gap-1 mb-4">
+              <label className="text-xs font-semibold text-slate-600">
+                Descrição detalhada
+              </label>
+              <textarea
+                className="rounded-3xl border border-slate-200 px-3 py-3 text-sm min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                placeholder="Conte os detalhes do imóvel, pontos fortes, proximidades, vista, mobiliado, etc."
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-600">
+                Telefone / WhatsApp de contato
+              </label>
+              <input
+                type="text"
+                className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                placeholder="Ex.: (21) 99999-0000"
+                value={contato}
+                onChange={(e) => setContato(e.target.value)}
+              />
+            </div>
+          </section>
+
+          {/* VÍDEO (YOUTUBE) */}
+          <section>
+            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+              Vídeo do imóvel (opcional)
+            </h2>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-slate-600">
+                Cole o link do vídeo no YouTube
+              </label>
+              <input
+                type="text"
+                className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Ex.: tour pelo imóvel, vista da varanda, área externa, etc.
+              </p>
+            </div>
+          </section>
+
+          {/* FOTOS */}
+          <section>
+            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
+              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+              Fotos do imóvel
+            </h2>
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setFiles(e.target.files)}
+              />
+              <p className="text-[11px] text-slate-500">
+                Você pode selecionar várias fotos de uma vez. Dê preferência para
+                imagens em modo paisagem (deitadas).
+              </p>
+            </div>
+          </section>
+
+          {/* ERRO */}
+          {erro && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3 py-2">
+              {erro}
+            </div>
+          )}
+
+          {/* BOTÃO */}
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full bg-[#21D4FD] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#3EC9C3] disabled:opacity-60"
+            >
+              {loading ? "Publicando anúncio..." : "Publicar anúncio"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
+}
