@@ -112,25 +112,27 @@ export default function AnunciarPage() {
       };
 
       // 4) SALVAR NO SUPABASE
-      const { data, error: insertError } = await supabase
+          const { data, error: insertError } = await supabase
         .from("anuncios")
         .insert(payload)
         .select("id")
         .single();
 
       if (insertError) {
-        console.error(insertError);
-        setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+        console.error("ERRO AO INSERIR:", insertError);
+        setErro(insertError.message || "Ocorreu um erro ao salvar o anúncio. Tente novamente.");
         setLoading(false);
         return;
       }
 
+
       // 5) REDIRECIONAR PARA A PÁGINA DO ANÚNCIO
-      router.push(`/anuncios/${data.id}`);
-    } catch (err) {
-      console.error(err);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+     } catch (err) {
+      console.error("ERRO GERAL:", err);
+      setErro(err.message || "Ocorreu um erro ao salvar o anúncio. Tente novamente.");
     } finally {
+     router.push(`/anuncios/${data.id}`);
+  
       setLoading(false);
     }
   }
