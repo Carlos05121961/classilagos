@@ -57,6 +57,10 @@ export default function AnuncioDetalhePage() {
     );
   }
 
+  // --- NOVO: trata o array de imagens ---
+  const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
+  const capa = imagens.length > 0 ? imagens[0] : null;
+
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
       {/* CABEÇALHO */}
@@ -82,9 +86,22 @@ export default function AnuncioDetalhePage() {
       </section>
 
       {/* CONTEÚDO */}
-      <section className="max-w-5xl mx-auto px-4 pt-6">
+      <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+        {/* --- NOVO: FOTO PRINCIPAL --- */}
+        {capa && (
+          <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+            <div className="w-full h-[260px] sm:h-[320px] md:h-[360px]">
+              <img
+                src={capa}
+                alt={anuncio.titulo}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Descrição + informações */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
-          {/* Descrição */}
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-2">
               Descrição do imóvel
@@ -94,18 +111,13 @@ export default function AnuncioDetalhePage() {
             </p>
           </div>
 
-          {/* Informações rápidas */}
           <div className="bg-slate-50 rounded-3xl border border-slate-200 px-5 py-4 text-xs text-slate-700 space-y-2">
             <p>
-              <span className="font-semibold text-slate-900">
-                Cidade:{" "}
-              </span>
+              <span className="font-semibold text-slate-900">Cidade: </span>
               {anuncio.cidade}
             </p>
             <p>
-              <span className="font-semibold text-slate-900">
-                Contato:{" "}
-              </span>
+              <span className="font-semibold text-slate-900">Contato: </span>
               {anuncio.contato}
             </p>
             {anuncio.categoria && (
@@ -124,7 +136,7 @@ export default function AnuncioDetalhePage() {
         </div>
 
         {/* Botão voltar (mobile) */}
-        <div className="mt-8 flex justify-center sm:hidden">
+        <div className="mt-4 flex justify-center sm:hidden">
           <Link
             href="/imoveis"
             className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
