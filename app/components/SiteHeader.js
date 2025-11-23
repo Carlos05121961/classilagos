@@ -1,65 +1,81 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
-      <div className="max-w-6xl mx-auto flex justify-between items-center px-4 py-3 gap-4">
+const mainLinks = [
+  { href: "/imoveis", label: "Imóveis" },
+  { href: "/veiculos", label: "Veículos" },
+  { href: "/nautica", label: "Náutica" },
+  { href: "/pets", label: "Pets" },
+  { href: "/empregos", label: "Empregos" },
+  { href: "/servicos", label: "Serviços" },
+  { href: "/turismo", label: "Turismo" },
+  { href: "/lagolistas", label: "LagoListas" },
+  { href: "/noticias", label: "Notícias" },
+];
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
+function NavLink({ href, label }) {
+  return (
+    <Link
+      href={href}
+      className="text-sm font-medium text-slate-700 hover:text-cyan-700"
+    >
+      {label}
+    </Link>
+  );
+}
+
+export default function SiteHeader() {
+  const pathname = usePathname();
+
+  // NA HOME NÃO MOSTRA ESTE HEADER (quem manda é o hero)
+  if (pathname === "/") return null;
+
+  return (
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3 gap-4">
+        {/* LOGO SIMPLES, SEM FRASE EMBAIXO */}
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/logo-classilagos.png"
             alt="Classilagos"
-            width={45}
-            height={45}
+            width={44}
+            height={44}
+            priority
           />
-          <div className="leading-tight">
-            <div className="text-lg font-bold text-slate-900">Classilagos</div>
-            <div className="text-[11px] text-slate-600">
-              O seu guia de compras e serviços na Região dos Lagos
-            </div>
-          </div>
+          <span className="text-base font-bold text-slate-900 leading-none">
+            Classilagos
+          </span>
         </Link>
 
-        {/* MENU */}
-        <nav className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-700">
-          <Link href="/imoveis" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Imóveis</Link>
-          <Link href="/veiculos" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Veículos</Link>
-          <Link href="/nautica" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Náutica</Link>
-          <Link href="/pets" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Pets</Link>
-          <Link href="/empregos" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Empregos</Link>
-          <Link href="/servicos" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Serviços</Link>
-          <Link href="/turismo" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Turismo</Link>
-          <Link href="/lagolistas" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">LagoListas</Link>
-          <Link href="/noticias" className="rounded-full px-3 py-1 hover:bg-cyan-50 hover:text-slate-900">Notícias</Link>
-        </nav>
+        {/* MENU DESKTOP */}
+        <nav className="hidden md:flex items-center gap-4">
+          {mainLinks.map((link) => (
+            <NavLink key={link.href} {...link} />
+          ))}
 
-        {/* Ações */}
-        <div className="flex items-center gap-2 text-sm">
           <Link
             href="/login"
-            className="hidden sm:flex rounded-full px-3 py-1 text-slate-700 hover:bg-slate-100"
+            className="text-sm font-medium text-slate-700 hover:text-cyan-700"
           >
             Login
           </Link>
-
           <Link
             href="/cadastro"
-            className="hidden sm:flex rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-cyan-400 hover:bg-cyan-50"
+            className="text-sm font-medium text-slate-700 hover:text-cyan-700"
           >
             Cadastro
           </Link>
 
           <Link
             href="/anunciar"
-            className="rounded-full bg-gradient-to-r from-[#21D4FD] to-[#3EC9C3] px-4 py-2 text-xs md:text-sm font-semibold text-slate-900 shadow-sm hover:brightness-105"
+            className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
           >
             Anuncie grátis
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
   );
