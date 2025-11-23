@@ -40,13 +40,13 @@ export default function AnunciarPage() {
   const [videoUrl, setVideoUrl] = useState("");
 
   // FOTOS
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [files, setFiles] = useState(null);
 
   // ESTADO DE TELA
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setErro(null);
     setLoading(true);
@@ -65,7 +65,7 @@ export default function AnunciarPage() {
       }
 
       // 2) FAZER UPLOAD DAS FOTOS (SE TIVER)
-      let imageUrls: string[] = [];
+      let imageUrls = [];
 
       if (files && files.length > 0) {
         const uploads = Array.from(files).map(async (file) => {
@@ -97,7 +97,7 @@ export default function AnunciarPage() {
         cidade,
         contato,
         tipo_imovel: tipoImovel,
-        finalidade, // "venda" | "aluguel_fixo" | "temporada"
+        finalidade,
         preco,
         area,
         quartos,
@@ -197,7 +197,7 @@ export default function AnunciarPage() {
                   Finalidade
                 </label>
                 <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                   value={finalidade}
                   onChange={(e) => setFinalidade(e.target.value)}
                 >
@@ -213,7 +213,7 @@ export default function AnunciarPage() {
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                   placeholder="Ex.: 450.000,00"
                   value={preco}
                   onChange={(e) => setPreco(e.target.value)}
@@ -233,7 +233,7 @@ export default function AnunciarPage() {
                   Cidade
                 </label>
                 <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                   value={cidade}
                   onChange={(e) => setCidade(e.target.value)}
                 >
@@ -249,7 +249,7 @@ export default function AnunciarPage() {
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                   placeholder="Rua, número, bairro, ponto de referência..."
                   value={endereco}
                   onChange={(e) => setEndereco(e.target.value)}
@@ -302,7 +302,7 @@ export default function AnunciarPage() {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-slate-600">
-                  Vagas de garagem
+                  Vagas
                 </label>
                 <input
                   type="text"
@@ -316,7 +316,7 @@ export default function AnunciarPage() {
             <div className="grid md:grid-cols-3 gap-4 mt-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-slate-600">
-                  Valor do condomínio (R$)
+                  Condomínio (R$)
                 </label>
                 <input
                   type="text"
@@ -328,7 +328,7 @@ export default function AnunciarPage() {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-slate-600">
-                  Valor do IPTU (R$ / ano)
+                  IPTU (R$ / ano)
                 </label>
                 <input
                   type="text"
@@ -354,7 +354,7 @@ export default function AnunciarPage() {
             </div>
           </section>
 
-          {/* DESCRIÇÃO E CONTATO */}
+          {/* DESCRIÇÃO */}
           <section>
             <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Descrição e contato
@@ -364,8 +364,8 @@ export default function AnunciarPage() {
                 Descrição detalhada
               </label>
               <textarea
-                className="rounded-3xl border border-slate-200 px-3 py-3 text-sm min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Conte os detalhes do imóvel, pontos fortes, proximidades, vista, mobiliado, etc."
+                className="rounded-3xls border border-slate-200 px-3 py-3 text-sm min-h-[120px] resize-y"
+                placeholder="Conte os detalhes do imóvel, proximidades, vista, mobiliado..."
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
               />
@@ -385,14 +385,14 @@ export default function AnunciarPage() {
             </div>
           </section>
 
-          {/* VÍDEO (YOUTUBE) */}
+          {/* VÍDEO */}
           <section>
             <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Vídeo do imóvel (opcional)
             </h2>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-600">
-                Cole o link do vídeo no YouTube
+                Link do vídeo no YouTube
               </label>
               <input
                 type="text"
@@ -402,7 +402,7 @@ export default function AnunciarPage() {
                 onChange={(e) => setVideoUrl(e.target.value)}
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                Ex.: tour pelo imóvel, vista da varanda, área externa, etc.
+                Ex.: tour pelo imóvel, vista, área externa, etc.
               </p>
             </div>
           </section>
@@ -419,10 +419,6 @@ export default function AnunciarPage() {
                 multiple
                 onChange={(e) => setFiles(e.target.files)}
               />
-              <p className="text-[11px] text-slate-500">
-                Você pode selecionar várias fotos de uma vez. Dê preferência para
-                imagens em modo paisagem (deitadas).
-              </p>
             </div>
           </section>
 
