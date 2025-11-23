@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/client"; // ajuste se o caminho for outro
+import { supabase } from "../supabaseClient"; // 👈 usa o client que já existe
 
 // Hero com 3 imagens padrão (já renomeadas na /public/imoveis)
 const heroImages = [
@@ -27,8 +27,6 @@ export default function ImoveisPage() {
   // Buscar anúncios reais de imóveis no Supabase
   useEffect(() => {
     const fetchDestaques = async () => {
-      const supabase = createClient();
-
       const { data, error } = await supabase
         .from("anuncios")
         .select("*")
@@ -127,7 +125,7 @@ export default function ImoveisPage() {
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option>Casa</option>
                   <option>Apartamento</option>
-                  <option>Terreno</option>
+                  <option>Terreno</</option>
                   <option>Comercial</option>
                   <option>Sítio / Chácara</option>
                 </select>
@@ -248,7 +246,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS – IPTU, legalização etc. */}
+      {/* LINKS ÚTEIS */}
       <section className="bg-slate-50 py-8">
         <div className="max-w-6xl mx-auto px-4 space-y-4">
           <h2 className="text-sm font-semibold text-slate-800">Links úteis</h2>
