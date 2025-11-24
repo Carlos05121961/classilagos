@@ -7,14 +7,19 @@ export default function ContatoAnuncio({
   imobiliaria,
   corretor,
   creci,
+  anuncioId,
 }) {
   // Limpa o número de WhatsApp (deixa só dígitos)
   const cleanWhatsapp = whatsapp ? whatsapp.replace(/\D/g, "") : "";
   const hasWhatsapp = !!cleanWhatsapp;
 
+  const denunciaHref = anuncioId
+    ? `/denunciar?anuncio=${anuncioId}`
+    : "/denunciar";
+
   return (
-    <section className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-6 shadow-sm">
-      <h2 className="mb-4 text-base font-semibold text-slate-900">
+    <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5 shadow-sm">
+      <h2 className="mb-3 text-base font-semibold text-slate-900">
         Fale com o anunciante
       </h2>
 
@@ -24,7 +29,7 @@ export default function ContatoAnuncio({
           href={`https://wa.me/55${cleanWhatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex w-full items-center justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
+          className="mx-auto flex w-full max-w-xs items-center justify-center rounded-full bg-green-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
         >
           📱 Falar pelo WhatsApp
         </a>
@@ -66,13 +71,22 @@ export default function ContatoAnuncio({
         </div>
       )}
 
+      {/* Botão de denúncia discreto */}
+      <div className="mt-4">
+        <a
+          href={denunciaHref}
+          className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100"
+        >
+          🚩 Denunciar este anúncio
+        </a>
+      </div>
+
       {/* Aviso legal */}
       <p className="mt-4 text-[10px] leading-tight text-slate-400">
-        A Classilagos apenas divulga anúncios e não intermedeia pagamentos,
+        O Classilagos apenas divulga anúncios e não intermedeia pagamentos,
         visitas ou negociações. Verifique a identidade do anunciante e a
         documentação antes de fechar negócio.
       </p>
     </section>
   );
 }
-
