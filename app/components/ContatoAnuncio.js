@@ -14,7 +14,6 @@ export default function ContatoAnuncio({
     "Olá, vi seu anúncio na Classilagos e gostaria de mais informações."
   );
 
-  // Remove tudo que não for número
   const cleanWhatsapp = whatsapp ? whatsapp.replace(/\D/g, "") : "";
   const hasWhatsapp = !!cleanWhatsapp;
 
@@ -35,7 +34,6 @@ export default function ContatoAnuncio({
         Fale com o anunciante
       </h2>
 
-      {/* Bloco de imobiliária / corretor (quando tiver) */}
       {(imobiliaria || corretor || creci) && (
         <div className="mt-2 text-xs text-slate-700 space-y-1">
           {imobiliaria && (
@@ -57,7 +55,6 @@ export default function ContatoAnuncio({
         </div>
       )}
 
-      {/* Caixa de mensagem (só aparece se tiver WhatsApp cadastrado) */}
       {hasWhatsapp && (
         <div className="mt-4">
           <label className="block text-xs font-semibold text-slate-800 mb-1">
@@ -72,7 +69,6 @@ export default function ContatoAnuncio({
         </div>
       )}
 
-      {/* Botão principal: WhatsApp */}
       {hasWhatsapp && (
         <a
           href={whatsappUrl}
@@ -85,7 +81,6 @@ export default function ContatoAnuncio({
         </a>
       )}
 
-      {/* Telefone e e-mail apenas em texto */}
       <div className="mt-3 space-y-1 text-xs text-slate-700">
         {telefone && (
           <p>
@@ -99,7 +94,6 @@ export default function ContatoAnuncio({
         )}
       </div>
 
-      {/* Aviso legal pequenininho (provisório) */}
       <p className="mt-4 text-[10px] leading-tight text-slate-400">
         A Classilagos apenas divulga anúncios e não intermedeia pagamentos,
         visitas ou negociações. Verifique sempre a identidade do anunciante e a
