@@ -110,7 +110,7 @@ export default function AnunciarImovelPage() {
       }
 
       // 3) Montar payload para salvar na tabela "anuncios"
-      const payload = {
+         const payload = {
         user_id: user.id,
         categoria: "imoveis",
 
@@ -141,10 +141,15 @@ export default function AnunciarImovelPage() {
         corretor,
         creci,
 
+        // Campo legado para compatibilidade com a tabela antiga
+        // (usa primeiro o WhatsApp, depois telefone, depois e-mail)
+        contato: whatsapp || telefone || email || "",
+
         // Mídias
         imagens: imageUrls,
         video_url: videoUrl || null,
       };
+
 
       // 4) Inserir no Supabase
       const { data, error: insertError } = await supabase
