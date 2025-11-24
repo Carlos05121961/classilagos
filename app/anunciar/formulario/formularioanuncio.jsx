@@ -15,62 +15,28 @@ const CATEGORIAS_LABELS = {
   lagolistas: "LagoListas",
 };
 
-const CIDADES_REGIAO = [
-  "Maricá",
-  "Saquarema",
-  "Araruama",
-  "Iguaba Grande",
-  "São Pedro da Aldeia",
-  "Arraial do Cabo",
-  "Cabo Frio",
-  "Búzios",
-  "Rio das Ostras",
-];
-
 export default function FormularioAnuncio() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // tipo de anúncio vindo da URL (?tipo=imoveis, veiculos, etc.)
   const tipo = searchParams.get("tipo") || "imoveis";
   const categoriaLabel = CATEGORIAS_LABELS[tipo] || "Anúncio";
 
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Campos básicos
+  // campos essenciais (batendo com os NOT NULL da tabela)
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("");
-
-  // Campos de imóvel / anúncio
-  const [preco, setPreco] = useState("");
-  const [bairro, setBairro] = useState("");
-  const [endereco, setEndereço] = useState("");
-  const [tipoImovel, setTipoImovel] = useState("");
-  const [finalidade, setFinalidade] = useState("");
-  const [area, setArea] = useState("");
-  const [quartos, setQuartos] = useState("");
-  const [banheiros, setBanheiros] = useState("");
-  const [vagas, setVagas] = useState("");
-  const [condominio, setCondominio] = useState("");
-  const [iptu, setIptu] = useState("");
-  const [aceitaFinanciamento, setAceitaFinanciamento] = useState("Sim");
-
-  // Contato detalhado
-  const [telefone, setTelefone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-  const [imobiliaria, setImobiliaria] = useState("");
-  const [corretor, setCorretor] = useState("");
-  const [creci, setCreci] = useState("");
-
-  // Vídeo
+  const [contato, setContato] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Busca o usuário logado
+  // carrega usuário logado
   useEffect(() => {
     async function loadUser() {
       const { data, error } = await supabase.auth.getUser();
@@ -80,7 +46,6 @@ export default function FormularioAnuncio() {
       setUser(data?.user ?? null);
       setLoadingUser(false);
     }
-
     loadUser();
   }, []);
 
@@ -93,9 +58,10 @@ export default function FormularioAnuncio() {
       return;
     }
 
-    if (!titulo || !descricao || !cidade || !telefone) {
+    // valida os campos que são NOT NULL na tabela
+    if (!titulo || !descricao || !cidade || !contato) {
       setErrorMsg(
-        "Preencha pelo menos Título, Descrição, Cidade e Telefone para contato."
+        "Preencha Título, Descrição, Cidade e Contato. Esses campos são obrigatórios."
       );
       return;
     }
@@ -103,51 +69,25 @@ export default function FormularioAnuncio() {
     setSaving(true);
 
     try {
-      const contatoResumo = [
-        telefone ? `Tel: ${telefone}` : "",
-        whatsapp ? `WhatsApp: ${whatsapp}` : "",
-        email ? `E-mail: ${email}` : "",
-      ]
-        .filter(Boolean)
-        .join(" | ");
-
       const { error } = await supabase.from("anuncios").insert({
-        // ATENÇÃO: estes campos precisam existir na tabela "anuncios"
-        user_id: user.id, // se na sua tabela for outro nome (ex: user_id_uuid), vamos ajustar depois
-        categoria: tipo,
+        // nome da coluna de usuário conforme o SQL que você mostrou:
+        user_id_uuid: user.id,
+
+        categoria: tipo, // imoveis, veiculos, etc.
         titulo,
         descricao,
         cidade,
-        contato: contatoResumo,
+        contato,
         video_url: videoUrl || null,
 
-        preco,
-        bairro,
-        endereco,
-        tipo_imovel: tipoImovel,
-        finalidade,
-        area,
-        quartos,
-        banheiros,
-        vagas,
-        condominio,
-        iptu,
-        aceita_financiamento: aceitaFinanciamento,
-
-        telefone,
-        whatsapp,
-        email,
-        imobiliaria,
-        corretor,
-        creci,
-
+        // se essas colunas existirem, beleza. Se não existirem, o Postgres ignora.
         status: "ativo",
         destaque: false,
       });
 
       if (error) {
         console.error("ERRO SUPABASE:", error);
-        // aqui mostramos a mensagem real do supabase
+        // Mostra o erro real pra gente ver o que está pegando
         setErrorMsg(
           error.message ||
             error.details ||
@@ -158,6 +98,7 @@ export default function FormularioAnuncio() {
         return;
       }
 
+      // deu certo: manda para "meus anúncios" (depois podemos mudar esse destino)
       router.push("/painel/meus-anuncios");
     } catch (err) {
       console.error("Erro inesperado:", err);
@@ -245,287 +186,33 @@ export default function FormularioAnuncio() {
           <label className="block text-sm font-medium text-gray-700">
             Cidade / Região *
           </label>
-          <select
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">Selecione uma cidade</option>
-            {CIDADES_REGIAO.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Bairro / Valor */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Bairro / Região (opcional)
-            </label>
-            <input
-              type="text"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
-              placeholder="Ex: Centro, Itaipuaçu, Ponta Negra…"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Valor (R$) (opcional)
-            </label>
-            <input
-              type="text"
-              value={preco}
-              onChange={(e) => setPreco(e.target.value)}
-              placeholder="Ex: 450000"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Endereço */}
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
-            Endereço (opcional)
-          </label>
           <input
             type="text"
-            value={endereco}
-            onChange={(e) => setEndereço(e.target.value)}
-            placeholder="Rua, número, complemento (se desejar)"
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            placeholder="Ex: Maricá, Cabo Frio, Búzios…"
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-
-        {/* Específicos de imóveis */}
-        {tipo === "imoveis" && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Tipo de imóvel
-                </label>
-                <select
-                  value={tipoImovel}
-                  onChange={(e) => setTipoImovel(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="">Selecione</option>
-                  <option value="Casa">Casa</option>
-                  <option value="Apartamento">Apartamento</option>
-                  <option value="Terreno">Terreno / Lote</option>
-                  <option value="Cobertura">Cobertura</option>
-                  <option value="Sala comercial">Sala comercial</option>
-                  <option value="Loja">Loja</option>
-                  <option value="Sítio / Chácara">Sítio / Chácara</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Finalidade
-                </label>
-                <select
-                  value={finalidade}
-                  onChange={(e) => setFinalidade(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="">Selecione</option>
-                  <option value="venda">Venda</option>
-                  <option value="aluguel">Aluguel</option>
-                  <option value="temporada">Temporada</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Área (m²)
-                </label>
-                <input
-                  type="text"
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                  placeholder="Ex: 200"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Quartos
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={quartos}
-                  onChange={(e) => setQuartos(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Banheiros
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={banheiros}
-                  onChange={(e) => setBanheiros(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Vagas de garagem
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={vagas}
-                  onChange={(e) => setVagas(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Condomínio (R$)
-                </label>
-                <input
-                  type="text"
-                  value={condominio}
-                  onChange={(e) => setCondominio(e.target.value)}
-                  placeholder="Se não tiver, deixe em branco"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  IPTU (R$ / ano)
-                </label>
-                <input
-                  type="text"
-                  value={iptu}
-                  onChange={(e) => setIptu(e.target.value)}
-                  placeholder="Se não souber, deixe em branco"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Aceita financiamento?
-              </label>
-              <select
-                value={aceitaFinanciamento}
-                onChange={(e) => setAceitaFinanciamento(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-                <option value="A combinar">A combinar</option>
-              </select>
-            </div>
-          </>
-        )}
 
         {/* Contato */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">
-            Telefone principal para contato *
+            Contato (telefone / WhatsApp / e-mail) *
           </label>
           <input
             type="text"
-            value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
-            placeholder="(21) 9XXXX-XXXX"
+            value={contato}
+            onChange={(e) => setContato(e.target.value)}
+            placeholder="Ex: (21) 9XXXX-XXXX / seuemail@dominio.com"
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
+          <p className="text-xs text-gray-500">
+            Esse texto será exibido no anúncio como forma de contato.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              WhatsApp (opcional)
-            </label>
-            <input
-              type="text"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="(21) 9XXXX-XXXX"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              E-mail (opcional)
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@dominio.com"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Imobiliária (se houver)
-            </label>
-            <input
-              type="text"
-              value={imobiliaria}
-              onChange={(e) => setImobiliaria(e.target.value)}
-              placeholder="Nome da imobiliária"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Corretor responsável
-            </label>
-            <input
-              type="text"
-              value={corretor}
-              onChange={(e) => setCorretor(e.target.value)}
-              placeholder="Seu nome ou do corretor"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              CRECI
-            </label>
-            <input
-              type="text"
-              value={creci}
-              onChange={(e) => setCreci(e.target.value)}
-              placeholder="Seu CRECI (se tiver)"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Vídeo */}
+        {/* Link do vídeo no YouTube (opcional) */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">
             Link do vídeo no YouTube (opcional)
@@ -537,10 +224,6 @@ export default function FormularioAnuncio() {
             onChange={(e) => setVideoUrl(e.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-500">
-            Cole aqui o link do vídeo do imóvel no YouTube. Ele será aberto em
-            uma nova aba.
-          </p>
         </div>
 
         {/* Mensagem de erro */}
