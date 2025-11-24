@@ -292,38 +292,40 @@ export default function PaginaDetalhesImovel({ params }) {
               <h2 className="mb-3 text-sm font-semibold text-slate-900">
                 Imóveis similares
               </h2>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {similares.map((item) => (
-                  <a
-                    key={item.id}
-                    href={`/imoveis/${item.id}`}
-                    className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div className="relative h-24 w-full bg-slate-100 overflow-hidden">
-                      {Array.isArray(item.imagens) &&
-                      item.imagens.length > 0 ? (
-                        <img
-                          src={item.imagens[0]}
-                          alt={item.titulo}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-500">
-                          Sem foto
-                        </div>
-                      )}
-                    </div>
-                    <div className="bg-slate-900 px-3 py-2 text-white">
-                      <p className="line-clamp-2 text-[11px] font-semibold">
-                        {item.titulo}
-                      </p>
-                      <p className="text-[11px] text-slate-300">
-                        {item.cidade}
-                      </p>
-                    </div>
-                  </a>
-                ))}
-              </div>
+<div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+  {similares.map((item) => (
+    <a
+      key={item.id}
+      href={`/imoveis/${item.id}`}
+      className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div className="relative h-24 w-full bg-slate-100 overflow-hidden">
+        {Array.isArray(item.imagens) && item.imagens.length > 0 ? (
+          <img
+            src={item.imagens[0]}
+            alt={item.titulo}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-500">
+            Sem foto
+          </div>
+        )}
+      </div>
+
+      {/* CAIXA DO TITULO COM ALTURA FIXA */}
+      <div className="bg-slate-900 px-3 py-2 text-white h-[58px] flex flex-col justify-center">
+        <p className="line-clamp-1 text-[11px] font-semibold leading-tight">
+          {item.titulo}
+        </p>
+        <p className="text-[11px] text-slate-300 leading-tight">
+          {item.cidade}
+        </p>
+      </div>
+    </a>
+  ))}
+</div>
+
             </section>
           )}
         </div>
