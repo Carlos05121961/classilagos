@@ -45,7 +45,7 @@ export default function FormularioAnuncio() {
   // Campos de imóvel / anúncio
   const [preco, setPreco] = useState("");
   const [bairro, setBairro] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [endereco, setEndereço] = useState("");
   const [tipoImovel, setTipoImovel] = useState("");
   const [finalidade, setFinalidade] = useState("");
   const [area, setArea] = useState("");
@@ -93,7 +93,6 @@ export default function FormularioAnuncio() {
       return;
     }
 
-    // Validações mínimas
     if (!titulo || !descricao || !cidade || !telefone) {
       setErrorMsg(
         "Preencha pelo menos Título, Descrição, Cidade e Telefone para contato."
@@ -104,7 +103,6 @@ export default function FormularioAnuncio() {
     setSaving(true);
 
     try {
-      // Campo "contato" antigo (NOT NULL na tabela) – montamos automaticamente
       const contatoResumo = [
         telefone ? `Tel: ${telefone}` : "",
         whatsapp ? `WhatsApp: ${whatsapp}` : "",
@@ -114,15 +112,15 @@ export default function FormularioAnuncio() {
         .join(" | ");
 
       const { error } = await supabase.from("anuncios").insert({
-        user_id: user.id,
-        categoria: tipo, // imoveis, veiculos, etc.
+        // ATENÇÃO: estes campos precisam existir na tabela "anuncios"
+        user_id: user.id, // se na sua tabela for outro nome (ex: user_id_uuid), vamos ajustar depois
+        categoria: tipo,
         titulo,
         descricao,
         cidade,
-        contato: contatoResumo, // mantém compatibilidade com a coluna antiga
+        contato: contatoResumo,
         video_url: videoUrl || null,
 
-        // Campos extras para imóveis (e servem também para outras categorias se quiser)
         preco,
         bairro,
         endereco,
@@ -148,15 +146,18 @@ export default function FormularioAnuncio() {
       });
 
       if (error) {
-        console.error("Erro Supabase:", error);
+        console.error("ERRO SUPABASE:", error);
+        // aqui mostramos a mensagem real do supabase
         setErrorMsg(
-          "Não foi possível salvar seu anúncio. Tente novamente em alguns instantes."
+          error.message ||
+            error.details ||
+            error.hint ||
+            "Não foi possível salvar seu anúncio. Tente novamente."
         );
         setSaving(false);
         return;
       }
 
-      // Sucesso
       router.push("/painel/meus-anuncios");
     } catch (err) {
       console.error("Erro inesperado:", err);
@@ -258,7 +259,7 @@ export default function FormularioAnuncio() {
           </select>
         </div>
 
-        {/* Bairro / Endereço */}
+        {/* Bairro / Valor */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">
@@ -287,6 +288,7 @@ export default function FormularioAnuncio() {
           </div>
         </div>
 
+        {/* Endereço */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">
             Endereço (opcional)
@@ -294,13 +296,13 @@ export default function FormularioAnuncio() {
           <input
             type="text"
             value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
+            onChange={(e) => setEndereço(e.target.value)}
             placeholder="Rua, número, complemento (se desejar)"
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 
-        {/* Campos mais específicos para imóveis – opcionais, mas já deixam preparado */}
+        {/* Específicos de imóveis */}
         {tipo === "imoveis" && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
