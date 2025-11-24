@@ -1,9 +1,8 @@
 import Image from "next/image";
-import ContatoAnuncio from "@/app/components/ContatoAnuncio";
-import { createClient } from "@/utils/supabase/server";
+import ContatoAnuncio from "../../components/ContatoAnuncio";
+import { supabase } from "../../supabaseClient";
 
 export default async function PaginaDetalhesImovel({ params }) {
-  const supabase = createClient();
   const { id } = params;
 
   // Buscar dados do anúncio pelo ID
@@ -52,7 +51,10 @@ export default async function PaginaDetalhesImovel({ params }) {
             {/* Miniaturas */}
             <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {fotos.map((foto, index) => (
-                <div key={index} className="relative h-20 w-full overflow-hidden rounded-lg cursor-pointer">
+                <div
+                  key={index}
+                  className="relative h-20 w-full overflow-hidden rounded-lg"
+                >
                   <Image
                     src={foto}
                     alt={`Foto ${index + 1}`}
@@ -73,12 +75,25 @@ export default async function PaginaDetalhesImovel({ params }) {
         </h2>
 
         <div className="grid grid-cols-2 gap-2 text-sm text-slate-700 sm:grid-cols-3">
-          <p><span className="font-semibold">Preço:</span> R$ {anuncio.preco}</p>
-          <p><span className="font-semibold">Quartos:</span> {anuncio.quartos}</p>
-          <p><span className="font-semibold">Banheiros:</span> {anuncio.banheiros}</p>
-          <p><span className="font-semibold">Vagas:</span> {anuncio.vagas}</p>
-          <p><span className="font-semibold">Área:</span> {anuncio.area} m²</p>
-          <p><span className="font-semibold">Tipo:</span> {anuncio.tipo}</p>
+          <p>
+            <span className="font-semibold">Preço:</span> R$ {anuncio.preco}
+          </p>
+          <p>
+            <span className="font-semibold">Quartos:</span> {anuncio.quartos}
+          </p>
+          <p>
+            <span className="font-semibold">Banheiros:</span>{" "}
+            {anuncio.banheiros}
+          </p>
+          <p>
+            <span className="font-semibold">Vagas:</span> {anuncio.vagas}
+          </p>
+          <p>
+            <span className="font-semibold">Área:</span> {anuncio.area} m²
+          </p>
+          <p>
+            <span className="font-semibold">Tipo:</span> {anuncio.tipo}
+          </p>
         </div>
       </section>
 
@@ -92,7 +107,7 @@ export default async function PaginaDetalhesImovel({ params }) {
         </p>
       </section>
 
-      {/* Contato — novo componente padrão */}
+      {/* Contato — componente padrão */}
       <ContatoAnuncio
         telefone={anuncio.telefone}
         whatsapp={anuncio.whatsapp}
