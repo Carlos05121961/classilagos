@@ -101,12 +101,11 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (ainda estática) */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              {/* Busca livre */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Busca
@@ -118,7 +117,6 @@ export default function ImoveisPage() {
                 />
               </div>
 
-              {/* Tipo */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Tipo
@@ -132,7 +130,6 @@ export default function ImoveisPage() {
                 </select>
               </div>
 
-              {/* Cidade */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Cidade
@@ -150,7 +147,6 @@ export default function ImoveisPage() {
                 </select>
               </div>
 
-              {/* Botão */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -172,7 +168,6 @@ export default function ImoveisPage() {
 
       {/* CATEGORIAS + DESTAQUES */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
-        {/* CATEGORIAS LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => (
             <div
@@ -187,7 +182,6 @@ export default function ImoveisPage() {
           ))}
         </div>
 
-        {/* CATEGORIAS LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => (
             <div
@@ -202,7 +196,7 @@ export default function ImoveisPage() {
           ))}
         </div>
 
-        {/* IMÓVEIS EM DESTAQUE – anúncios reais do Supabase */}
+        {/* LISTA DE DESTAQUES */}
         <div className="mt-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">
             Imóveis em destaque
@@ -215,7 +209,8 @@ export default function ImoveisPage() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
               {destaques.map((anuncio) => {
-                const href = `/anuncios/${anuncio.id}`;
+                const href = `/imoveis/${anuncio.id}`; // ✔ CORRIGIDO AQUI
+
                 const imagens = Array.isArray(anuncio.imagens)
                   ? anuncio.imagens
                   : [];
@@ -227,7 +222,6 @@ export default function ImoveisPage() {
                     href={href}
                     className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
                   >
-                    {/* Capa com foto, se existir */}
                     <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
                       {capa ? (
                         <img
@@ -242,7 +236,6 @@ export default function ImoveisPage() {
                       )}
                     </div>
 
-                    {/* Título + cidade */}
                     <div className="bg-slate-900 text-white px-3 py-2">
                       <p className="text-[11px] md:text-xs font-semibold line-clamp-2">
                         {anuncio.titulo}
@@ -258,9 +251,6 @@ export default function ImoveisPage() {
           )}
         </div>
       </section>
-
-      {/* Aqui você pode manter/voltar a ter Notícias, Links úteis e chamada final,
-          como já existia antes, se quiser. */}
     </main>
   );
 }
