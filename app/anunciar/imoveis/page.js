@@ -35,7 +35,14 @@ export default function AnunciarImovelPage() {
   const [iptu, setIptu] = useState("");
   const [aceitaFinanciamento, setAceitaFinanciamento] = useState("Sim");
   const [descricao, setDescricao] = useState("");
-  const [contato, setContato] = useState("");
+
+  // CONTATO / IMOBILIÁRIA
+  const [telefone, setTelefone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
+  const [imobiliaria, setImobiliaria] = useState("");
+  const [corretor, setCorretor] = useState("");
+  const [creci, setCreci] = useState("");
 
   // VÍDEO (YOUTUBE)
   const [videoUrl, setVideoUrl] = useState("");
@@ -65,13 +72,12 @@ export default function AnunciarImovelPage() {
         return;
       }
 
-      // 2) FAZER UPLOAD DAS FOTOS (SE TIVER)
+      // 2) UPLOAD DAS FOTOS (SE TIVER)
       let imageUrls = [];
 
       if (files && files.length > 0) {
         const uploads = Array.from(files).map(async (file) => {
           const path = `${user.id}/${Date.now()}-${file.name}`;
-
           const { error: uploadError } = await supabase
             .storage
             .from("anuncios")
@@ -94,13 +100,18 @@ export default function AnunciarImovelPage() {
       const payload = {
         user_id: user.id,
         categoria: "imoveis",
+
+        // Básico
         titulo,
         descricao,
         cidade,
-        contato,
+        endereco,
+        bairro,
+        preco,
         tipo_imovel: tipoImovel,
         finalidade, // "venda" | "aluguel_fixo" | "temporada"
-        preco,
+
+        // Detalhes
         area,
         quartos,
         banheiros,
@@ -108,8 +119,16 @@ export default function AnunciarImovelPage() {
         condominio,
         iptu,
         aceita_financiamento: aceitaFinanciamento,
-        endereco,
-        bairro,
+
+        // Contato / imobiliária
+        telefone,
+        whatsapp,
+        email,
+        imobiliaria,
+        corretor,
+        creci,
+
+        // Mídias
         imagens: imageUrls,
         video_url: videoUrl || null,
       };
@@ -139,36 +158,27 @@ export default function AnunciarImovelPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5FBFF] py-8">
+    <main className="bg-[#F5FBFF] min-h-screen py-8">
       <div className="max-w-5xl mx-auto px-4">
-        {/* CABEÇALHO */}
-        <div className="mb-6">
-          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-wide uppercase text-[#1F2933]">
-            <span className="inline-block h-[3px] w-8 rounded-full bg-[#21D4FD]" />
-            Anúncio de imóveis
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          Anunciar imóvel
+        </h1>
+        <p className="text-sm text-slate-600 mb-6">
+          Preencha as informações abaixo. Na fase de lançamento, todos os anúncios
+          são{" "}
+          <span className="font-semibold text-[#21D4FD]">
+            totalmente grátis
           </span>
-          <h1 className="mt-2 text-2xl md:text-3xl font-bold text-[#1F2933]">
-            Anunciar imóvel
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Preencha as informações abaixo. Na fase de lançamento, todos os
-            anúncios são{" "}
-            <span className="font-semibold text-[#21D4FD]">
-              totalmente grátis
-            </span>
-            .
-          </p>
-        </div>
+          .
+        </p>
 
-        {/* FORMULÁRIO */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl shadow-md border border-slate-200 px-4 sm:px-8 py-6 space-y-8"
+          className="bg-white rounded-3xl shadow border border-slate-200 px-4 sm:px-8 py-6 space-y-8"
         >
           {/* CAMPOS BÁSICOS */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Campos básicos
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
@@ -240,8 +250,7 @@ export default function AnunciarImovelPage() {
 
           {/* LOCALIZAÇÃO */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Localização
             </h2>
             <div className="grid md:grid-cols-[1fr,2fr] gap-4">
@@ -282,7 +291,6 @@ export default function AnunciarImovelPage() {
                 <input
                   type="text"
                   className="rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Ex.: Centro, Itaipuaçu, Ponta Negra..."
                   value={bairro}
                   onChange={(e) => setBairro(e.target.value)}
                 />
@@ -292,8 +300,7 @@ export default function AnunciarImovelPage() {
 
           {/* DETALHES DO IMÓVEL */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Detalhes do imóvel
             </h2>
             <div className="grid md:grid-cols-4 gap-4">
@@ -387,16 +394,12 @@ export default function AnunciarImovelPage() {
             </div>
           </section>
 
-          {/* DESCRIÇÃO E CONTATO */}
+          {/* DESCRIÇÃO */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
-              Descrição e contato
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
+              Descrição do imóvel
             </h2>
             <div className="flex flex-col gap-1 mb-4">
-              <label className="text-xs font-semibold text-slate-600">
-                Descrição detalhada
-              </label>
               <textarea
                 className="rounded-3xl border border-slate-200 px-3 py-3 text-sm min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                 placeholder="Conte os detalhes do imóvel, pontos fortes, proximidades, vista, mobiliado, etc."
@@ -404,25 +407,100 @@ export default function AnunciarImovelPage() {
                 onChange={(e) => setDescricao(e.target.value)}
               />
             </div>
+          </section>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-600">
-                Telefone / WhatsApp de contato
-              </label>
-              <input
-                type="text"
-                className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Ex.: (21) 99999-0000"
-                value={contato}
-                onChange={(e) => setContato(e.target.value)}
-              />
+          {/* CONTATO / IMOBILIÁRIA */}
+          <section>
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
+              Contato e imobiliária
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Telefone
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="(21) 2645-0000"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  WhatsApp
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="(21) 99999-0000"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="contato@imobiliaria.com.br"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mt-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Imobiliária
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="Nome da imobiliária (opcional)"
+                  value={imobiliaria}
+                  onChange={(e) => setImobiliaria(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  Corretor responsável
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="Nome do corretor (opcional)"
+                  value={corretor}
+                  onChange={(e) => setCorretor(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-slate-600">
+                  CRECI
+                </label>
+                <input
+                  type="text"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="CRECI (opcional)"
+                  value={creci}
+                  onChange={(e) => setCreci(e.target.value)}
+                />
+              </div>
             </div>
           </section>
 
           {/* VÍDEO (YOUTUBE) */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Vídeo do imóvel (opcional)
             </h2>
             <div className="flex flex-col gap-1">
@@ -444,8 +522,7 @@ export default function AnunciarImovelPage() {
 
           {/* FOTOS */}
           <section>
-            <h2 className="text-sm font-semibold text-[#1F2933] mb-3 flex items-center gap-2">
-              <span className="inline-block h-[3px] w-5 rounded-full bg-[#21D4FD]" />
+            <h2 className="text-sm font-semibold text-slate-800 mb-3">
               Fotos do imóvel
             </h2>
             <div className="flex flex-col gap-2">
