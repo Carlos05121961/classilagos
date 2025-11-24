@@ -1,41 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "../../supabaseClient";
 
-// Lista fixa de cidades atendidas pelo Classilagos
-const cidades = [
-  "Maricá",
-  "Saquarema",
-  "Araruama",
-  "Iguaba Grande",
-  "São Pedro da Aldeia",
-  "Arraial do Cabo",
-  "Cabo Frio",
-  "Búzios",
-  "Rio das Ostras",
-];
-
 export default function AnunciarImovelPage() {
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [mensagem, setMensagem] = useState("");
+  const [erro, setErro] = useState("");
 
-  // ==========================
-  // ESTADO DO FORMULÁRIO
-  // ==========================
-
-  // Campos básicos
+  // Campos principais
   const [titulo, setTitulo] = useState("");
-  const [tipoImovel, setTipoImovel] = useState("Casa");
-  const [finalidade, setFinalidade] = useState("venda");
-  const [preco, setPreco] = useState("");
-
-  // Localização
-  const [cidade, setCidade] = useState("Maricá");
-  const [endereco, setEndereco] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
-
-  // Detalhes do imóvel
+  const [endereco, setEndereco] = useState("");
+  const [preco, setPreco] = useState("");
+  const [tipoImovel, setTipoImovel] = useState("");
+  const [finalidade, setFinalidade] = useState("");
   const [area, setArea] = useState("");
   const [quartos, setQuartos] = useState("");
   const [banheiros, setBanheiros] = useState("");
@@ -44,10 +26,7 @@ export default function AnunciarImovelPage() {
   const [iptu, setIptu] = useState("");
   const [aceitaFinanciamento, setAceitaFinanciamento] = useState("Sim");
 
-  // Descrição
-  const [descricao, setDescricao] = useState("");
-
-  // Contato / Imobiliária
+  // Contato
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
@@ -55,583 +34,518 @@ export default function AnunciarImovelPage() {
   const [corretor, setCorretor] = useState("");
   const [creci, setCreci] = useState("");
 
-  // Mídia
-  const [videoUrl, setVideoUrl] = useState(""); // link do YouTube
-  const [files, setFiles] = useState(null); // FileList | null
+  // Imagens (até 4 URLs)
+  const [imagem1, setImagem1] = useState("");
+  const [imagem2, setImagem2] = useState("");
+  const [imagem3, setImagem3] = useState("");
+  const [imagem4, setImagem4] = useState("");
 
-  // Estado geral da tela
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState(null);
-
-  // ==========================
-  // HANDLE SUBMIT
-  // ==========================
   async function handleSubmit(e) {
     e.preventDefault();
-    setErro(null);
+    setErro("");
+    setMensagem("");
+
+    if (!titulo || !cidade || !telefone) {
+      setErro("Por favor, preencha pelo menos Título, Cidade e Telefone.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // 1) Verificar usuário logado
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const imagensArray = [imagem1, imagem2, imagem3, imagem4].filter(
+        (url) => url && url.trim() !== ""
+      );
 
-      if (userError || !user) {
-        setErro("Você precisa estar logado para anunciar.");
-        setLoading(false);
-        return;
-      }
+      const { error } = await supabase.from("anuncios").insert([
+        {
+          categoria: "imoveis",
+          titulo,
+          descricao,
+          cidade,
+          bairro,
+          endereco,
+          preco,
+          tipo_imovel: tipoImovel,
+          finalidade,
+          area,
+          quartos,
+          banheiros,
+          vagas,
+          condominio,
+          iptu,
+          aceita_financiamento: aceitaFinanciamento,
+          telefone,
+          whatsapp,
+          email,
+          imobiliaria,
+          corretor,
+          creci,
+          imagens: imagensArray,
+          status: "ativo",
+          destaque: false,
+        },
+      ]);
 
-      // 2) Upload das fotos (se houver arquivos selecionados)
-      let imageUrls = [];
-
-      if (files && files.length > 0) {
-        const uploads = Array.from(files).map(async (file) => {
-          const path = `${user.id}/${Date.now()}-${file.name}`;
-
-          const { error: uploadError } = await supabase
-            .storage
-            .from("anuncios")
-            .upload(path, file);
-
-          if (uploadError) throw uploadError;
-
-          const { data: publicData } = supabase
-            .storage
-            .from("anuncios")
-            .getPublicUrl(path);
-
-          return publicData.publicUrl;
-        });
-
-        imageUrls = await Promise.all(uploads);
-      }
-
-      // 3) Montar payload para salvar na tabela "anuncios"
-         const payload = {
-        user_id: user.id,
-        categoria: "imoveis",
-
-        // Básico
-        titulo,
-        descricao,
-        cidade,
-        endereco,
-        bairro,
-        preco,
-        tipo_imovel: tipoImovel,
-        finalidade, // "venda" | "aluguel_fixo" | "temporada"
-
-        // Detalhes
-        area,
-        quartos,
-        banheiros,
-        vagas,
-        condominio,
-        iptu,
-        aceita_financiamento: aceitaFinanciamento,
-
-        // Contato / imobiliária
-        telefone,
-        whatsapp,
-        email,
-        imobiliaria,
-        corretor,
-        creci,
-
-        // Campo legado para compatibilidade com a tabela antiga
-        // (usa primeiro o WhatsApp, depois telefone, depois e-mail)
-        contato: whatsapp || telefone || email || "",
-
-        // Mídias
-        imagens: imageUrls,
-        video_url: videoUrl || null,
-      };
-
-
-      // 4) Inserir no Supabase
-      const { data, error: insertError } = await supabase
-        .from("anuncios")
-        .insert(payload)
-        .select("id")
-        .single();
-
-      if (insertError) {
-        console.error(insertError);
+      if (error) {
+        console.error("Erro ao salvar anúncio:", error);
         setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
-        setLoading(false);
-        return;
-      }
+      } else {
+        setMensagem("Anúncio cadastrado com sucesso! Em breve estará no ar.");
 
-      // 5) Redirecionar para a página do anúncio recém-criado
-      router.push(`/anuncios/${data.id}`);
+        // Limpa formulário
+        setTitulo("");
+        setDescricao("");
+        setCidade("");
+        setBairro("");
+        setEndereco("");
+        setPreco("");
+        setTipoImovel("");
+        setFinalidade("");
+        setArea("");
+        setQuartos("");
+        setBanheiros("");
+        setVagas("");
+        setCondominio("");
+        setIptu("");
+        setAceitaFinanciamento("Sim");
+        setTelefone("");
+        setWhatsapp("");
+        setEmail("");
+        setImobiliaria("");
+        setCorretor("");
+        setCreci("");
+        setImagem1("");
+        setImagem2("");
+        setImagem3("");
+        setImagem4("");
+      }
     } catch (err) {
-      console.error(err);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+      console.error("Erro inesperado:", err);
+      setErro("Erro inesperado ao salvar o anúncio.");
     } finally {
       setLoading(false);
     }
   }
 
-  // ==========================
-  // JSX
-  // ==========================
-
-  // Classe reutilizável para cada bloco (card) do formulário
-  const cardClass =
-    "bg-white rounded-3xl border border-[#D6F7FA] " +
-    "shadow-[0_4px_14px_rgba(0,0,0,0.08),0_2px_8px_rgba(33,212,253,0.10)] " +
-    "px-4 sm:px-6 py-4 sm:py-5 space-y-4";
-
   return (
-    <main
-      className="min-h-screen py-8"
-      style={{ backgroundColor: "#F2F9FC" }} // azul-gelo profissional
-    >
-      {/* Container central fixo em ~820px, estilo QuintoAndar */}
-      <div className="max-w-[820px] mx-auto px-4">
-        {/* Cabeçalho da página */}
-        <header className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#1F2933] mb-1">
-            Anunciar imóvel
-          </h1>
-          <p className="text-sm text-slate-600">
-            Preencha as informações abaixo. Na fase de lançamento, todos os
-            anúncios são{" "}
-            <span className="font-semibold text-[#21D4FD]">
-              totalmente grátis
-            </span>
-            .
-          </p>
-        </header>
+    <main className="bg-slate-50 min-h-screen">
+      {/* BANNER TOPO */}
+      <section className="w-full flex justify-center bg-slate-100 border-b py-4">
+        <div className="w-full max-w-5xl px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Anuncie seu IMÓVEL totalmente GRÁTIS - Classilagos"
+              fill
+              sizes="900px"
+              className="object-contain"
+            />
+          </div>
+        </div>
+      </section>
 
-        {/* FORMULÁRIO PRINCIPAL */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ==========================
-              CAMPOS BÁSICOS
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Campos básicos
+      {/* FORMULÁRIO */}
+      <section className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          Anuncie seu imóvel grátis
+        </h1>
+        <p className="text-sm text-slate-600 mb-6">
+          Preencha os dados do imóvel com carinho. Quanto mais completo, mais
+          chances você tem de encontrar o comprador certo.
+        </p>
+
+        {erro && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {erro}
+          </div>
+        )}
+
+        {mensagem && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+            {mensagem}
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-8 rounded-3xl bg-white p-4 sm:p-6 shadow-lg border border-slate-200"
+        >
+          {/* DADOS DO IMÓVEL */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Dados do imóvel
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Título do anúncio */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Título do anúncio
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Título do anúncio *
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Ex.: Casa linda em Cabo Frio com vista para o mar"
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
-                  required
+                  placeholder="Ex.: Linda casa em condomínio fechado em Cabo Frio"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Tipo de imóvel */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Tipo de imóvel
                 </label>
                 <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={tipoImovel}
                   onChange={(e) => setTipoImovel(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option>Casa</option>
-                  <option>Apartamento</option>
-                  <option>Terreno</option>
-                  <option>Sítio / Chácara</option>
-                  <option>Cobertura</option>
-                  <option>Kitnet / Studio</option>
-                  <option>Sala / Loja comercial</option>
-                  <option>Galpão / Depósito</option>
-                  <option>Fazenda</option>
-                  <option>Outro</option>
+                  <option value="">Selecione</option>
+                  <option value="Casa">Casa</option>
+                  <option value="Apartamento">Apartamento</option>
+                  <option value="Terreno">Terreno / Lote</option>
+                  <option value="Cobertura">Cobertura</option>
+                  <option value="Sala comercial">Sala comercial</option>
+                  <option value="Loja">Loja</option>
+                  <option value="Sítio / Chácara">Sítio / Chácara</option>
                 </select>
               </div>
 
-              {/* Finalidade */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Finalidade
                 </label>
                 <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={finalidade}
                   onChange={(e) => setFinalidade(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
+                  <option value="">Selecione</option>
                   <option value="venda">Venda</option>
-                  <option value="aluguel_fixo">Aluguel fixo</option>
-                  <option value="temporada">Aluguel por temporada</option>
+                  <option value="aluguel">Aluguel</option>
+                  <option value="temporada">Temporada</option>
                 </select>
               </div>
 
-              {/* Valor */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Valor (R$)
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Ex.: 450.000,00"
                   value={preco}
                   onChange={(e) => setPreco(e.target.value)}
+                  placeholder="Ex.: 450000"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            </div>
-          </section>
 
-          {/* ==========================
-              LOCALIZAÇÃO
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Localização
-            </h2>
-
-            <div className="grid md:grid-cols-[1fr,2fr] gap-4">
-              {/* Cidade */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Cidade
-                </label>
-                <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  value={cidade}
-                  onChange={(e) => setCidade(e.target.value)}
-                >
-                  {cidades.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Endereço / referência */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Endereço / referência (para mapa)
-                </label>
-                <input
-                  type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Rua, número, bairro, ponto de referência..."
-                  value={endereco}
-                  onChange={(e) => setEndereco(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4 mt-2">
-              {/* Bairro */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Bairro
-                </label>
-                <input
-                  type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  value={bairro}
-                  onChange={(e) => setBairro(e.target.value)}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* ==========================
-              DETALHES DO IMÓVEL
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Detalhes do imóvel
-            </h2>
-
-            <div className="grid md:grid-cols-4 gap-4">
-              {/* Área */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Área (m²)
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
+                  placeholder="Ex.: 200"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Quartos */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Quartos
                 </label>
                 <input
-                  type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  type="number"
+                  min="0"
                   value={quartos}
                   onChange={(e) => setQuartos(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Banheiros */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Banheiros
                 </label>
                 <input
-                  type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  type="number"
+                  min="0"
                   value={banheiros}
                   onChange={(e) => setBanheiros(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Vagas */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Vagas de garagem
                 </label>
                 <input
-                  type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
+                  type="number"
+                  min="0"
                   value={vagas}
                   onChange={(e) => setVagas(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            </div>
 
-            <div className="grid md:grid-cols-3 gap-4 mt-3">
-              {/* Condomínio */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Valor do condomínio (R$)
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Condomínio (R$)
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={condominio}
                   onChange={(e) => setCondominio(e.target.value)}
+                  placeholder="Se não tiver, deixe em branco"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* IPTU */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Valor do IPTU (R$ / ano)
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  IPTU (R$ por ano)
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={iptu}
                   onChange={(e) => setIptu(e.target.value)}
+                  placeholder="Se não souber, deixe em branco"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Aceita financiamento */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Aceita financiamento?
                 </label>
                 <select
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
                   value={aceitaFinanciamento}
                   onChange={(e) => setAceitaFinanciamento(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option>Sim</option>
-                  <option>Não</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                  <option value="A combinar">A combinar</option>
                 </select>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* ==========================
-              DESCRIÇÃO
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Descrição do imóvel
+          {/* LOCALIZAÇÃO */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Localização
             </h2>
-            <div className="flex flex-col gap-1">
-              <textarea
-                className="rounded-3xl border border-slate-200 px-3 py-3 text-sm text-slate-800 placeholder:text-slate-400 min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                placeholder="Conte os detalhes do imóvel, pontos fortes, proximidades, vista, mobiliado, etc."
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-              />
-            </div>
-          </section>
-
-          {/* ==========================
-              CONTATO / IMOBILIÁRIA
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Contato e imobiliária
-            </h2>
-
-            {/* Linha 1: telefone / whatsapp / email */}
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Telefone */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Telefone
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Cidade *
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="(21) 2645-0000"
-                  value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  placeholder="Ex.: Maricá, Cabo Frio, Búzios..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* WhatsApp */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bairro / Região
+                </label>
+                <input
+                  type="text"
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                  placeholder="Ex.: Centro, Itaipuaçu, Ponta Negra..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Endereço (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={endereco}
+                  onChange={(e) => setEndereco(e.target.value)}
+                  placeholder="Rua, número, complemento (se desejar)"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* DESCRIÇÃO */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Descrição do imóvel
+            </h2>
+            <textarea
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Descreva os principais diferenciais do imóvel, vista, estado de conservação, proximidade da praia, lagoa, comércio, escolas etc."
+              rows={4}
+              className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Dica: um bom texto com detalhes honestos aumenta muito as chances
+              de contato.
+            </p>
+          </div>
+
+          {/* FOTOS */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Fotos do imóvel
+            </h2>
+            <p className="text-[11px] text-slate-500 mb-2">
+              Nesta primeira versão, informe os links (URLs) das fotos
+              hospedadas em algum serviço (Supabase Storage, Google Fotos etc.).
+              Em breve teremos envio direto de imagens pelo site.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={imagem1}
+                onChange={(e) => setImagem1(e.target.value)}
+                placeholder="URL da foto 1"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={imagem2}
+                onChange={(e) => setImagem2(e.target.value)}
+                placeholder="URL da foto 2"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={imagem3}
+                onChange={(e) => setImagem3(e.target.value)}
+                placeholder="URL da foto 3"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={imagem4}
+                onChange={(e) => setImagem4(e.target.value)}
+                placeholder="URL da foto 4"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* CONTATO */}
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              Dados de contato
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Telefone *
+                </label>
+                <input
+                  type="text"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  placeholder="(22) 99999-0000"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   WhatsApp
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="(21) 99999-0000"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="(22) 99999-0000"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* E-mail */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   E-mail
                 </label>
                 <input
                   type="email"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="contato@imobiliaria.com.br"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seuemail@dominio.com"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            </div>
 
-            {/* Linha 2: imobiliária / corretor / CRECI */}
-            <div className="grid md:grid-cols-3 gap-4 mt-3">
-              {/* Imobiliária */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
-                  Imobiliária
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Imobiliária (se houver)
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Nome da imobiliária (opcional)"
                   value={imobiliaria}
                   onChange={(e) => setImobiliaria(e.target.value)}
+                  placeholder="Nome da imobiliária"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* Corretor */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Corretor responsável
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="Nome do corretor (opcional)"
                   value={corretor}
                   onChange={(e) => setCorretor(e.target.value)}
+                  placeholder="Seu nome ou do corretor"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {/* CRECI */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   CRECI
                 </label>
                 <input
                   type="text"
-                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                  placeholder="CRECI (opcional)"
                   value={creci}
                   onChange={(e) => setCreci(e.target.value)}
+                  placeholder="Seu CRECI (se tiver)"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-          </section>
 
-          {/* ==========================
-              VÍDEO (YOUTUBE)
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Vídeo do imóvel (opcional)
-            </h2>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-slate-600">
-                Cole o link do vídeo no YouTube
-              </label>
-              <input
-                type="text"
-                className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#21D4FD]"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-              />
-              <p className="text-[11px] text-slate-500 mt-1">
-                Ex.: tour pelo imóvel, vista da varanda, área externa, etc.
-              </p>
-            </div>
-          </section>
+            <p className="mt-3 text-[11px] text-slate-500">
+              O Classilagos apenas divulga anúncios e não intermedia pagamentos,
+              visitas ou negociações. Verifique sempre a identidade do
+              anunciante e a documentação do imóvel antes de fechar negócio.
+            </p>
+          </div>
 
-          {/* ==========================
-              FOTOS
-          =========================== */}
-          <section className={cardClass}>
-            <h2 className="text-sm font-semibold text-[#1F2933]">
-              Fotos do imóvel
-            </h2>
-            <div className="flex flex-col gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => setFiles(e.target.files)}
-              />
-              <p className="text-[11px] text-slate-500">
-                Você pode selecionar várias fotos de uma vez. Dê preferência
-                para imagens em modo paisagem (deitadas).
-              </p>
-            </div>
-          </section>
-
-          {/* ==========================
-              ERRO (se houver)
-          =========================== */}
-          {erro && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3 py-2">
-              {erro}
-            </div>
-          )}
-
-          {/* BOTÃO DE ENVIO */}
-          <div className="flex justify-end pt-2">
+          <div className="pt-2 border-t border-slate-100 flex justify-end">
             <button
               type="submit"
               disabled={loading}
-              className="rounded-full bg-[#21D4FD] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#3EC9C3] disabled:opacity-60"
+              className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              {loading ? "Publicando anúncio..." : "Publicar anúncio"}
+              {loading ? "Enviando..." : "Publicar anúncio"}
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </main>
   );
 }
