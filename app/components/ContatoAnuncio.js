@@ -8,17 +8,17 @@ export default function ContatoAnuncio({
   corretor,
   creci,
 }) {
-  // Limpa o número de WhatsApp
+  // Limpa o número de WhatsApp (deixa só dígitos)
   const cleanWhatsapp = whatsapp ? whatsapp.replace(/\D/g, "") : "";
   const hasWhatsapp = !!cleanWhatsapp;
 
   return (
     <section className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900 mb-4">
+      <h2 className="mb-4 text-base font-semibold text-slate-900">
         Fale com o anunciante
       </h2>
 
-      {/* Botão WhatsApp */}
+      {/* Botão WhatsApp (se tiver número) */}
       {hasWhatsapp && (
         <a
           href={`https://wa.me/55${cleanWhatsapp}`}
@@ -30,7 +30,7 @@ export default function ContatoAnuncio({
         </a>
       )}
 
-      {/* Informações de contato em texto */}
+      {/* Contatos em texto */}
       <div className="mt-4 space-y-1 text-xs text-slate-700">
         {telefone && (
           <p>
@@ -46,7 +46,7 @@ export default function ContatoAnuncio({
 
       {/* Dados da imobiliária / corretor */}
       {(imobiliaria || corretor || creci) && (
-        <div className="mt-4 pt-3 border-t border-slate-300 text-xs text-slate-700 space-y-1">
+        <div className="mt-4 space-y-1 border-t border-slate-200 pt-3 text-xs text-slate-700">
           {imobiliaria && (
             <p>
               <span className="font-semibold">Imobiliária:</span>{" "}
@@ -66,4 +66,13 @@ export default function ContatoAnuncio({
         </div>
       )}
 
-      {/* Avis*
+      {/* Aviso legal */}
+      <p className="mt-4 text-[10px] leading-tight text-slate-400">
+        A Classilagos apenas divulga anúncios e não intermedeia pagamentos,
+        visitas ou negociações. Verifique a identidade do anunciante e a
+        documentação antes de fechar negócio.
+      </p>
+    </section>
+  );
+}
+
