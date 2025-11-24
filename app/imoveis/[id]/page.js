@@ -52,7 +52,7 @@ export default async function PaginaDetalhesImovel({ params }) {
             {/* Miniaturas */}
             <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {fotos.map((foto, index) => (
-                <div key={index} className="relative h-20 w-full overflow-hidden rounded-lg">
+                <div key={index} className="relative h-20 w-full overflow-hidden rounded-lg cursor-pointer">
                   <Image
                     src={foto}
                     alt={`Foto ${index + 1}`}
