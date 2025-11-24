@@ -1,26 +1,67 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import ContatoAnuncio from "../../components/ContatoAnuncio";
 import { supabase } from "../../supabaseClient";
+import ContatoAnuncio from "../../components/ContatoAnuncio";
 
-export default async function PaginaDetalhesImovel({ params }) {
+export default function PaginaDetalhesImovel({ params }) {
   const { id } = params;
+  const [anuncio, setAnuncio] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(null);
 
-  // Buscar dados do anúncio pelo ID
-  const { data: anuncio, error } = await supabase
-    .from("anuncios")
-    .select("*")
-    .eq("id", id)
-    .single();
+  useEffect(() => {
+    const fetchAnuncio = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("anuncios")
+          .select("*")
+          .eq("id", id)
+          .single();
 
-  if (error || !anuncio) {
+        if (error) {
+          console.error("Erro ao carregar anúncio:", error);
+          setErro("Erro ao carregar o anúncio.");
+        } else {
+          setAnuncio(data);
+        }
+      } catch (e) {
+        console.error("Erro inesperado:", e);
+        setErro("Erro inesperado ao carregar o anúncio.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnuncio();
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="p-8 text-center text-red-500">
-        Erro ao carregar o anúncio.
+      <div className="mx-auto max-w-5xl p-6 text-center text-sm text-slate-600">
+        Carregando anúncio...
       </div>
     );
   }
 
-  const fotos = anuncio.fotos || [];
+  if (erro || !anuncio) {
+    return (
+      <div className="mx-auto max-w-5xl p-6 text-center text-red-500">
+        {erro || "Anúncio não encontrado."}
+      </div>
+    );
+  }
+
+  // Tenta usar anuncio.imagens (como nos cards). Se não tiver, usa anuncio.fotos.
+  const fotosRaw =
+    Array.isArray(anuncio.imagens) && anuncio.imagens.length > 0
+      ? anuncio.imagens
+      : Array.isArray(anuncio.fotos)
+      ? anuncio.fotos
+      : [];
+
+  const fotos = fotosRaw || [];
 
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
@@ -31,7 +72,7 @@ export default async function PaginaDetalhesImovel({ params }) {
 
       {/* Localização */}
       <p className="mt-1 text-sm text-slate-600">
-        {anuncio.cidade} • {anuncio.bairro}
+        {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
       </p>
 
       {/* Galeria de fotos */}
@@ -70,41 +111,71 @@ export default async function PaginaDetalhesImovel({ params }) {
 
       {/* Resumo do imóvel */}
       <section className="mt-8 rounded-xl bg-slate-50 p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+        <h2 className="mb-2 text-lg font-semibold text-slate-900">
           Resumo do imóvel
         </h2>
 
         <div className="grid grid-cols-2 gap-2 text-sm text-slate-700 sm:grid-cols-3">
           <p>
-            <span className="font-semibold">Preço:</span> R$ {anuncio.preco}
+            <span className="font-semibold">Valor:</span>{" "}
+            {anuncio.preco ? `R$ ${anuncio.preco}` : "A consultar"}
           </p>
           <p>
-            <span className="font-semibold">Quartos:</span> {anuncio.quartos}
+            <span className="font-semibold">Tipo:</span>{" "}
+            {anuncio.tipo || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Finalidade:</span>{" "}
+            {anuncio.finalidade || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Área:</span>{" "}
+            {anuncio.area ? `${anuncio.area} m²` : "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Quartos:</span>{" "}
+            {anuncio.quartos || "-"}
           </p>
           <p>
             <span className="font-semibold">Banheiros:</span>{" "}
-            {anuncio.banheiros}
+            {anuncio.banheiros || "-"}
           </p>
           <p>
-            <span className="font-semibold">Vagas:</span> {anuncio.vagas}
-          </p>
-          <p>
-            <span className="font-semibold">Área:</span> {anuncio.area} m²
-          </p>
-          <p>
-            <span className="font-semibold">Tipo:</span> {anuncio.tipo}
+            <span className="font-semibold">Vagas:</span>{" "}
+            {anuncio.vagas || "-"}
           </p>
         </div>
       </section>
 
       {/* Descrição */}
       <section className="mt-8 rounded-xl bg-white p-4 shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
-          Descrição
+        <h2 className="mb-2 text-lg font-semibold text-slate-900">
+          Descrição do imóvel
         </h2>
         <p className="text-sm text-slate-700 whitespace-pre-line">
           {anuncio.descricao || "Sem descrição detalhada."}
         </p>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+          {anuncio.condominio && (
+            <p>
+              <span className="font-semibold">Condomínio:</span> R${" "}
+              {anuncio.condominio}
+            </p>
+          )}
+          {anuncio.iptu && (
+            <p>
+              <span className="font-semibold">IPTU (ano):</span> R${" "}
+              {anuncio.iptu}
+            </p>
+          )}
+          {anuncio.aceita_financiamento && (
+            <p>
+              <span className="font-semibold">Aceita financiamento:</span>{" "}
+              {anuncio.aceita_financiamento}
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Contato — componente padrão */}
