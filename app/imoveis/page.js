@@ -168,6 +168,7 @@ export default function ImoveisPage() {
 
       {/* CATEGORIAS + DESTAQUES */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
+        {/* CATEGORIAS LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => (
             <div
@@ -182,6 +183,7 @@ export default function ImoveisPage() {
           ))}
         </div>
 
+        {/* CATEGORIAS LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => (
             <div
@@ -196,7 +198,7 @@ export default function ImoveisPage() {
           ))}
         </div>
 
-        {/* LISTA DE DESTAQUES */}
+        {/* IMÓVEIS EM DESTAQUE – anúncios reais do Supabase */}
         <div className="mt-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">
             Imóveis em destaque
@@ -209,7 +211,7 @@ export default function ImoveisPage() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
               {destaques.map((anuncio) => {
-                const href = `/imoveis/${anuncio.id}`; // ✔ CORRIGIDO AQUI
+                const href = `/imoveis/${anuncio.id}`;
 
                 const imagens = Array.isArray(anuncio.imagens)
                   ? anuncio.imagens
@@ -222,6 +224,7 @@ export default function ImoveisPage() {
                     href={href}
                     className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
                   >
+                    {/* Capa com foto, se existir */}
                     <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
                       {capa ? (
                         <img
@@ -236,11 +239,12 @@ export default function ImoveisPage() {
                       )}
                     </div>
 
-                    <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">
+                    {/* Título + cidade */}
+                    <div className="bg-slate-900 text-white px-3 py-2 h-[58px] flex flex-col justify-center">
+                      <p className="text-[11px] md:text-xs font-semibold line-clamp-1 leading-tight">
                         {anuncio.titulo}
                       </p>
-                      <p className="text-[11px] text-slate-300">
+                      <p className="text-[11px] text-slate-300 leading-tight">
                         {anuncio.cidade}
                       </p>
                     </div>
@@ -250,6 +254,53 @@ export default function ImoveisPage() {
             </div>
           )}
         </div>
+
+        {/* OFERTAS / MERCADO LIVRE */}
+        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <h3 className="text-xs font-semibold text-slate-900">
+            Ofertas e promoções
+          </h3>
+          <a
+            href="https://www.mercadolivre.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 block overflow-hidden rounded-lg bg-slate-100"
+          >
+            <img
+              src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.19.11/mercadolibre/logo__large_plus.png"
+              alt="Ofertas no Mercado Livre"
+              className="mx-auto w-full max-w-[260px] py-4 object-contain"
+            />
+          </a>
+          <p className="mt-1 text-[10px] text-slate-500">
+            Espaço reservado para banners de parceiros, afiliados e promoções
+            da região.
+          </p>
+        </div>
+
+        {/* RODAPÉ PEQUENO COM LINKS */}
+        <footer className="mt-10 border-t border-slate-200 pt-4">
+          <div className="flex flex-wrap justify-center gap-4 text-[11px] text-slate-500">
+            <a href="/quem-somos" className="hover:underline">
+              Quem somos
+            </a>
+            <a href="/fale-conosco" className="hover:underline">
+              Fale conosco
+            </a>
+            <a href="/como-funciona" className="hover:underline">
+              Como funciona
+            </a>
+            <a href="/avisos-de-seguranca" className="hover:underline">
+              Avisos de segurança
+            </a>
+            <a href="/termos-de-uso" className="hover:underline">
+              Termos de uso
+            </a>
+            <a href="/politica-de-privacidade" className="hover:underline">
+              Política de privacidade
+            </a>
+          </div>
+        </footer>
       </section>
     </main>
   );
