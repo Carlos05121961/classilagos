@@ -13,6 +13,10 @@ export default function PaginaDetalhesImovel({ params }) {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
 
+  // Galeria
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
+
   useEffect(() => {
     const fetchAnuncio = async () => {
       try {
@@ -83,6 +87,24 @@ export default function PaginaDetalhesImovel({ params }) {
       : [];
 
   const fotos = fotosRaw || [];
+  const hasFotos = fotos.length > 0;
+
+  // Garante que o índice selecionado sempre é válido
+  const safeIndex =
+    selectedIndex >= 0 && selectedIndex < fotos.length ? selectedIndex : 0;
+  const fotoPrincipal = hasFotos ? fotos[safeIndex] : null;
+
+  const handleNext = () => {
+    if (!hasFotos) return;
+    setSelectedIndex((prev) => (prev + 1) % fotos.length);
+  };
+
+  const handlePrev = () => {
+    if (!hasFotos) return;
+    setSelectedIndex((prev) =>
+      prev - 1 < 0 ? fotos.length - 1 : prev - 1
+    );
+  };
 
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
@@ -98,22 +120,33 @@ export default function PaginaDetalhesImovel({ params }) {
 
       {/* Galeria de fotos */}
       <div className="mt-6">
-        {fotos.length > 0 && (
+        {hasFotos && (
           <>
-            <div className="relative h-72 w-full overflow-hidden rounded-xl sm:h-96">
+            {/* Foto principal */}
+            <div
+              className="relative h-72 w-full overflow-hidden rounded-xl sm:h-96 cursor-pointer"
+              onClick={() => setShowLightbox(true)}
+            >
               <Image
-                src={fotos[0]}
+                src={fotoPrincipal}
                 alt="Foto do imóvel"
                 fill
                 className="object-cover"
               />
             </div>
 
+            {/* Miniaturas */}
             <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {fotos.map((foto, index) => (
-                <div
+                <button
                   key={index}
-                  className="relative h-20 w-full overflow-hidden rounded-lg"
+                  type="button"
+                  onClick={() => setSelectedIndex(index)}
+                  className={`relative h-20 w-full overflow-hidden rounded-lg border ${
+                    index === safeIndex
+                      ? "border-blue-500 ring-2 ring-blue-300"
+                      : "border-transparent"
+                  }`}
                 >
                   <Image
                     src={foto}
@@ -121,12 +154,64 @@ export default function PaginaDetalhesImovel({ params }) {
                     fill
                     className="object-cover"
                   />
-                </div>
+                </button>
               ))}
             </div>
           </>
         )}
       </div>
+
+      {/* LIGHTBOX / MODAL DE FOTOS */}
+      {showLightbox && hasFotos && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/80"
+          onClick={() => setShowLightbox(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl px-4"
+            onClick={(e) => e.stopPropagation()} // não fecha ao clicar na imagem
+          >
+            {/* Botão fechar */}
+            <button
+              type="button"
+              onClick={() => setShowLightbox(false)}
+              className="absolute -top-8 right-0 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-800 hover:bg-white"
+            >
+              ✕ Fechar
+            </button>
+
+            {/* Imagem grande */}
+            <div className="relative h-[60vh] w-full overflow-hidden rounded-xl bg-black">
+              <Image
+                src={fotoPrincipal}
+                alt="Foto ampliada do imóvel"
+                fill
+                className="object-contain"
+              />
+            </div>
+
+            {/* Setas navegação */}
+            {fotos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-3 py-2 text-lg font-bold text-slate-800 hover:bg-white"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-3 py-2 text-lg font-bold text-slate-800 hover:bg-white"
+                >
+                  ›
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* GRID PRINCIPAL: infos à esquerda / contato + banner à direita */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[2fr,1fr]">
@@ -212,10 +297,11 @@ export default function PaginaDetalhesImovel({ params }) {
                   <a
                     key={item.id}
                     href={`/imoveis/${item.id}`}
-                    className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg transition"
+                    className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                   >
                     <div className="relative h-24 w-full bg-slate-100 overflow-hidden">
-                      {Array.isArray(item.imagens) && item.imagens.length > 0 ? (
+                      {Array.isArray(item.imagens) &&
+                      item.imagens.length > 0 ? (
                         <img
                           src={item.imagens[0]}
                           alt={item.titulo}
