@@ -158,7 +158,8 @@ export default function AnunciarImovelPage() {
   }
 
   return (
-    <main className="bg-[#F5FBFF] min-h-screen py-8">
+    <main className="min-h-screen py-8" style={{ background: "#F0FBFD" }}>
+
       <div className="max-w-5xl mx-auto px-4">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
           Anunciar imóvel
