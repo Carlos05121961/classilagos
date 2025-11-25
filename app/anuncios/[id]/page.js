@@ -15,12 +15,14 @@ export default function AnuncioDetalhePage() {
   const [shareUrl, setShareUrl] = useState("");
   const [similares, setSimilares] = useState([]);
 
+  // URL atual (para compartilhar)
   useEffect(() => {
     if (typeof window !== "undefined") {
       setShareUrl(window.location.href);
     }
   }, []);
 
+  // Busca anúncio e similares
   useEffect(() => {
     if (!id) return;
 
@@ -41,7 +43,7 @@ export default function AnuncioDetalhePage() {
       setAnuncio(data);
       setFotoIndex(0);
 
-      // Busca imóveis similares: mesma categoria, mesma cidade, outros IDs
+      // Imóveis similares (mesma categoria + cidade, IDs diferentes)
       const { data: similaresData } = await supabase
         .from("anuncios")
         .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens")
@@ -58,6 +60,7 @@ export default function AnuncioDetalhePage() {
     fetchAnuncio();
   }, [id]);
 
+  // Estados de carregamento / erro
   if (loading) {
     return (
       <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center">
@@ -185,16 +188,14 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* FOTO PRINCIPAL */}
+        {/* FOTO PRINCIPAL (sem gambiarra, com altura máxima) */}
         {fotoAtiva && (
           <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-            <div className="w-full h-[200px] sm:h-[220px] md:h-[260px] lg:h-[280px]">
-              <img
-                src={fotoAtiva}
-                alt={anuncio.titulo}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <img
+              src={fotoAtiva}
+              alt={anuncio.titulo}
+              className="w-full max-h-[420px] object-cover object-center"
+            />
           </div>
         )}
 
@@ -533,6 +534,7 @@ export default function AnuncioDetalhePage() {
                     Array.isArray(item.imagens) && item.imagens.length > 0
                       ? item.imagens[0]
                       : null;
+
                   return (
                     <Link
                       key={item.id}
@@ -599,7 +601,9 @@ export default function AnuncioDetalhePage() {
               Política de privacidade
             </Link>
           </div>
-          <p>Classilagos • O seu guia de compras e serviços na Região dos Lagos</p>
+          <p>
+            Classilagos • O seu guia de compras e serviços na Região dos Lagos
+          </p>
         </footer>
       </section>
     </main>
