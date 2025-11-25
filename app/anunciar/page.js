@@ -46,7 +46,7 @@ function CategoriaCard({ categoria }) {
       </div>
       <div className="mt-4">
         <Link
-          href={`/anunciar/formulario?tipo=${categoria.slug}`}
+          href={`/anunciar/${categoria.slug}`}
           className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           Anunciar em {categoria.titulo}
