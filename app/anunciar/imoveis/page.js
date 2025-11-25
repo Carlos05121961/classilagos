@@ -1,6 +1,6 @@
 // app/anunciar/imoveis/page.jsx
 
-import FormularioImoveis from "@/components/forms/FormularioImoveis";
+import FormularioImoveis from "../../components/forms/FormularioImoveis";
 
 export default function AnunciarImoveisPage() {
   return (
