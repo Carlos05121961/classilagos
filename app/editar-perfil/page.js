@@ -10,16 +10,20 @@ export default function EditarPerfilPage() {
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
-  // campos
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [cep, setCep] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [uf, setUf] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
   const [email, setEmail] = useState("");
 
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
-  // busca usuário
   useEffect(() => {
     async function carregar() {
       const { data, error } = await supabase.auth.getUser();
@@ -30,10 +34,17 @@ export default function EditarPerfilPage() {
       }
 
       const u = data.user;
+      const meta = u.user_metadata || {};
 
-      setNome(u.user_metadata?.nome || "");
-      setCidade(u.user_metadata?.cidade || "");
-      setWhatsapp(u.user_metadata?.whatsapp || "");
+      setNome(meta.nome || "");
+      setCidade(meta.cidade || "");
+      setWhatsapp(meta.whatsapp || "");
+      setCep(meta.cep || "");
+      setEndereco(meta.endereco || "");
+      setNumero(meta.numero || "");
+      setBairro(meta.bairro || "");
+      setUf(meta.uf || "");
+      setDataNascimento(meta.data_nascimento || "");
       setEmail(u.email || "");
 
       setLoading(false);
@@ -42,26 +53,88 @@ export default function EditarPerfilPage() {
     carregar();
   }, [router]);
 
+  function calcularIdade(dateStr) {
+    if (!dateStr) return null;
+    const hoje = new Date();
+    const nasc = new Date(dateStr);
+    let idade = hoje.getFullYear() - nasc.getFullYear();
+    const m = hoje.getMonth() - nasc.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+      idade--;
+    }
+    return idade;
+  }
+
   async function salvarDados(e) {
     e.preventDefault();
     setErro("");
     setMensagem("");
+
+    if (!nome.trim()) {
+      setErro("Informe seu nome completo.");
+      return;
+    }
+    if (!cidade.trim()) {
+      setErro("Informe sua cidade.");
+      return;
+    }
+    if (!whatsapp.trim()) {
+      setErro("Informe um telefone/WhatsApp válido.");
+      return;
+    }
+    if (!cep.trim()) {
+      setErro("Informe o CEP.");
+      return;
+    }
+    if (!endereco.trim()) {
+      setErro("Informe o endereço (rua, avenida...).");
+      return;
+    }
+    if (!numero.trim()) {
+      setErro("Informe o número do imóvel.");
+      return;
+    }
+    if (!bairro.trim()) {
+      setErro("Informe o bairro.");
+      return;
+    }
+    if (!uf.trim()) {
+      setErro("Informe a UF (estado).");
+      return;
+    }
+    if (!dataNascimento) {
+      setErro("Informe sua data de nascimento.");
+      return;
+    }
+
+    const idade = calcularIdade(dataNascimento);
+    if (idade !== null && idade < 18) {
+      setErro("Para usar o Classilagos é necessário ter 18 anos ou mais.");
+      return;
+    }
+
     setSalvando(true);
 
-    // atualizar metadados
     const { error } = await supabase.auth.updateUser({
-      email,
+      // e-mail não será alterado aqui, apenas metadados
       data: {
         nome,
         cidade,
-        whatsapp
-      }
+        whatsapp,
+        cep,
+        endereco,
+        numero,
+        bairro,
+        uf,
+        data_nascimento: dataNascimento,
+      },
     });
 
     setSalvando(false);
 
     if (error) {
-      setErro("Não foi possível salvar as alterações.");
+      console.error(error);
+      setErro("Não foi possível salvar as alterações. Tente novamente.");
       return;
     }
 
@@ -80,10 +153,10 @@ export default function EditarPerfilPage() {
     <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-sm px-6 py-7">
         <h1 className="text-xl font-bold text-slate-900 mb-1">
-          Editar meu cadastro
+          Editar cadastro
         </h1>
         <p className="text-xs text-slate-600 mb-5">
-          Atualize suas informações abaixo.
+          Atualize suas informações pessoais e de contato.
         </p>
 
         {erro && (
@@ -99,9 +172,10 @@ export default function EditarPerfilPage() {
         )}
 
         <form onSubmit={salvarDados} className="space-y-3 text-xs">
+          {/* NOME */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
-              Nome
+              Nome completo *
             </label>
             <input
               type="text"
@@ -111,9 +185,10 @@ export default function EditarPerfilPage() {
             />
           </div>
 
+          {/* CIDADE */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
-              Cidade
+              Cidade *
             </label>
             <input
               type="text"
@@ -123,31 +198,114 @@ export default function EditarPerfilPage() {
             />
           </div>
 
+          {/* WHATSAPP */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
-              WhatsApp
+              WhatsApp / Telefone *
             </label>
             <input
               type="text"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              placeholder="(21) 99999-9999"
             />
           </div>
 
+          {/* EMAIL (SOMENTE LEITURA) */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
-              E-mail
+              E-mail (não editável)
             </label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              disabled
+              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed"
+            />
+          </div>
+
+          {/* CEP */}
+          <div>
+            <label className="block text-slate-700 font-semibold mb-1">
+              CEP *
+            </label>
+            <input
+              type="text"
+              value={cep}
+              onChange={(e) => setCep(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Ex.: 28900-000"
+            />
+          </div>
+
+          {/* ENDEREÇO + NÚMERO */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <label className="block text-slate-700 font-semibold mb-1">
+                Endereço (rua, avenida...) *
+              </label>
+              <input
+                type="text"
+                value={endereco}
+                onChange={(e) => setEndereco(e.target.value)}
+                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">
+                Número *
+              </label>
+              <input
+                type="text"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* BAIRRO + UF */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <label className="block text-slate-700 font-semibold mb-1">
+                Bairro *
+              </label>
+              <input
+                type="text"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">
+                UF *
+              </label>
+              <input
+                type="text"
+                value={uf}
+                onChange={(e) => setUf(e.target.value.toUpperCase())}
+                maxLength={2}
+                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm uppercase"
+                placeholder="RJ"
+              />
+            </div>
+          </div>
+
+          {/* DATA DE NASCIMENTO */}
+          <div>
+            <label className="block text-slate-700 font-semibold mb-1">
+              Data de nascimento *
+            </label>
+            <input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
             />
           </div>
 
+          {/* BOTÃO SALVAR */}
           <button
             type="submit"
             disabled={salvando}
