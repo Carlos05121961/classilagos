@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../supabaseClient"; // AJUSTADO PARA O SEU PROJETO
+import { supabase } from "../../supabaseClient"; 
 
 export default function FormularioImoveis() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function FormularioImoveis() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // Lista fixa das cidades da Região dos Lagos
+  // Lista fixa das cidades
   const cidades = [
     "Maricá",
     "Saquarema",
@@ -76,29 +76,28 @@ export default function FormularioImoveis() {
       return;
     }
 
-    // Montar array de imagens
+    // Imagens
     const imagens = [foto1, foto2, foto3, foto4].filter((f) => f !== "");
 
     // INSERIR NO SUPABASE
-const { error } = await supabase.from("anuncios").insert({
-  user_id: user.id,
-  categoria: "imoveis",
-  titulo,
-  descricao,
-  cidade,
-  bairro,
-  endereco,
-  preco,
-  imagens,
-  telefone,
-  whatsapp,
-  email,
-  contato: contatoPrincipal,
-  tipo_imovel: "não informado",   // 👈 ESTE É O QUE FALTAVA
-  status: "ativo",
-  destaque: false,
-});
-
+    const { error } = await supabase.from("anuncios").insert({
+      user_id: user.id,
+      categoria: "imoveis",
+      titulo,
+      descricao,
+      cidade,
+      bairro,
+      endereco,
+      preco,
+      imagens,
+      telefone,
+      whatsapp,
+      email,
+      contato: contatoPrincipal,
+      tipo_imovel: "não informado", 
+      status: "ativo",
+      destaque: false,
+    });
 
     if (error) {
       console.log(error);
@@ -106,10 +105,23 @@ const { error } = await supabase.from("anuncios").insert({
       return;
     }
 
-    setSucesso("Anúncio enviado com sucesso!");
-    setTimeout(() => {
-      router.push("/imoveis");
-    }, 1500);
+    // SUCESSO
+    setSucesso("Anúncio enviado com sucesso! Seu imóvel aparecerá em breve na listagem.");
+
+    // Limpa o formulário
+    setTitulo("");
+    setDescricao("");
+    setCidade("");
+    setBairro("");
+    setEndereco("");
+    setPreco("");
+    setFoto1("");
+    setFoto2("");
+    setFoto3("");
+    setFoto4("");
+    setTelefone("");
+    setWhatsapp("");
+    setEmail("");
   };
 
   return (
@@ -153,9 +165,7 @@ const { error } = await supabase.from("anuncios").insert({
         >
           <option value="">Selecione...</option>
           {cidades.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       </div>
