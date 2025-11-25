@@ -8,150 +8,150 @@ export default function CadastroPage() {
   const router = useRouter();
 
   const [nome, setNome] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState("");
+  const [confirmar, setConfirmar] = useState("");
 
-  async function handleSubmit(e) {
+  const [erro, setErro] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function cadastrar(e) {
     e.preventDefault();
     setErro("");
+    setMensagem("");
+
+    if (senha !== confirmar) {
+      setErro("As senhas não coincidem.");
+      return;
+    }
+
     setLoading(true);
 
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: senha,
-        options: {
-          // depois que a pessoa clicar no e-mail, vai cair em /login
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: {
-            name: nome,
-            phone: telefone || null,
-            city: cidade || null,
-          },
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: senha,
+      options: {
+        data: {
+          nome,
+          cidade,
+          whatsapp,
         },
-      });
+      },
+    });
 
-      if (error) {
-        console.error(error);
-        setErro(error.message || "Erro ao criar conta. Tente novamente.");
-        setLoading(false);
-        return;
-      }
+    setLoading(false);
 
-      // Conta criada com sucesso: manda para a página de "verifique seu e-mail"
-      router.push("/auth/check-email");
-    } catch (err) {
-      console.error(err);
-      setErro("Ocorreu um erro inesperado. Tente novamente.");
-      setLoading(false);
+    if (error) {
+      console.error(error);
+      setErro("Erro ao criar conta. Verifique os dados.");
+      return;
     }
+
+    setMensagem(
+      "Conta criada com sucesso! Confirme seu e-mail e depois faça login."
+    );
+
+    setTimeout(() => router.push("/login"), 2000);
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4 py-10">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-slate-800 text-center">
-          Criar conta no Classilagos
-        </h1>
-        <p className="text-sm text-slate-600 text-center">
-          Preencha os dados abaixo para criar sua conta. Depois é só confirmar
-          o e-mail e fazer login para anunciar gratuitamente.
+    <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 px-6 py-8 shadow-sm">
+        <h1 className="text-xl font-bold text-slate-900 mb-1">Criar conta</h1>
+        <p className="text-xs text-slate-600 mb-5">
+          Preencha seus dados para começar a anunciar no Classilagos.
         </p>
 
         {erro && (
-          <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+          <div className="mb-3 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-[11px] text-red-700">
             {erro}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {mensagem && (
+          <div className="mb-3 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-[11px] text-emerald-700">
+            {mensagem}
+          </div>
+        )}
+
+        <form onSubmit={cadastrar} className="space-y-3 text-xs">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="font-semibold text-slate-700 mb-1 block">
               Nome completo
             </label>
             <input
               type="text"
-              required
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="font-semibold text-slate-700 mb-1 block">
+              Cidade
+            </label>
+            <input
+              type="text"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 mb-1 block">
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              placeholder="(21) 99999-9999"
+            />
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 mb-1 block">
               E-mail
             </label>
             <input
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="font-semibold text-slate-700 mb-1 block">
               Senha
             </label>
             <input
               type="password"
-              required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              required
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Telefone (opcional)
-              </label>
-              <input
-                type="text"
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Cidade (opcional)
-              </label>
-              <input
-                type="text"
-                value={cidade}
-                onChange={(e) => setCidade(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+          <div>
+            <label className="font-semibold text-slate-700 mb-1 block">
+              Confirmar senha
+            </label>
+            <input
+              type="password"
+              value={confirmar}
+              onChange={(e) => setConfirmar(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-2"
+              required
+            />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition"
-          >
-            {loading ? "Criando conta..." : "Criar conta"}
-          </button>
-        </form>
-
-        <p className="text-xs text-slate-500 text-center">
-          Já tem conta?{" "}
-          <a
-            href="/login"
-            className="font-medium text-blue-600 hover:underline"
-          >
-            Entrar
-          </a>
-        </p>
-      </div>
-    </div>
-  );
-}
