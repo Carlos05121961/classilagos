@@ -10,10 +10,7 @@ export default function AnuncioDetalhePage() {
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-
   const [fotoIndex, setFotoIndex] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [shareUrl, setShareUrl] = useState("");
 
   useEffect(() => {
@@ -84,7 +81,6 @@ export default function AnuncioDetalhePage() {
   const corretor = anuncio.corretor || "";
   const creci = anuncio.creci || "";
 
-  const telefoneDigits = telefoneRaw.replace(/\D/g, "");
   const whatsappDigits = whatsappRaw.replace(/\D/g, "");
 
   const whatsappLink =
@@ -94,7 +90,7 @@ export default function AnuncioDetalhePage() {
         )}`
       : null;
 
-  // Links de compartilhamento
+  // Links de compartilhamento (discretos)
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(
     `Olha este imóvel no Classilagos: ${anuncio.titulo}`
@@ -103,66 +99,44 @@ export default function AnuncioDetalhePage() {
   const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
-  // Handlers modal
-  const abrirModalNaFoto = (index) => {
-    setFotoIndex(index);
-    setIsModalOpen(true);
-  };
+  // Endereço para mapa
+  const enderecoCompleto = [
+    anuncio.endereco || "",
+    anuncio.bairro || "",
+    anuncio.cidade || "",
+  ]
+    .join(" ")
+    .trim();
 
-  const fecharModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const fotoAnterior = () => {
-    setFotoIndex((prev) =>
-      prev === 0 ? imagens.length - 1 : Math.max(prev - 1, 0)
-    );
-  };
-
-  const proximaFoto = () => {
-    setFotoIndex((prev) =>
-      prev === imagens.length - 1 ? 0 : Math.min(prev + 1, imagens.length - 1)
-    );
-  };
+  const mapaQuery = encodeURIComponent(
+    enderecoCompleto || anuncio.cidade || "Região dos Lagos RJ"
+  );
+  const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* CABEÇALHO SUPERIOR */}
+      {/* BANNER TOPO (AGORA PRIMEIRO) */}
       <section className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs text-slate-500">Classilagos – Imóveis</p>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-900">
-              {anuncio.titulo}
-            </h1>
-            <p className="text-xs md:text-sm text-slate-600">
-              {anuncio.cidade}
-              {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-            </p>
+        <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
+          <div className="w-full h-24 rounded-2xl bg-slate-200/70 border border-slate-300/60 flex items-center justify-center text-[11px] text-slate-600">
+            Espaço reservado para banner 1200x150 (Imóveis – Classilagos)
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-col items-end gap-2">
-            {/* Botões de compartilhar */}
-            <div className="flex gap-2">
-              <a
-                href={whatsappShareUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-[#25D366] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
-              >
-                {/* Ícone WhatsApp simples */}
-                <span className="mr-1 text-sm">🟢</span>
-                WhatsApp
-              </a>
-              <a
-                href={facebookShareUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-[#1877F2] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
-              >
-                <span className="mr-1 text-sm">📘</span>
-                Facebook
-              </a>
+      {/* CABEÇALHO DO ANÚNCIO */}
+      <section className="bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] text-slate-500">Classilagos – Imóveis</p>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+                {anuncio.titulo}
+              </h1>
+              <p className="text-xs md:text-sm text-slate-600">
+                {anuncio.cidade}
+                {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+              </p>
             </div>
 
             <Link
@@ -172,13 +146,27 @@ export default function AnuncioDetalhePage() {
               Voltar para Imóveis
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* BANNER TOPO (ESPAÇO) */}
-      <section className="max-w-5xl mx-auto px-4 mt-4">
-        <div className="w-full h-24 rounded-2xl bg-slate-200/70 border border-slate-300/60 flex items-center justify-center text-[11px] text-slate-600">
-          Espaço reservado para banner 1200x150 (Imóveis – Classilagos)
+          {/* Ícones de compartilhar – discretos, embaixo do título */}
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-slate-500">Compartilhar:</span>
+            <a
+              href={whatsappShareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
+            >
+              🟢 WhatsApp
+            </a>
+            <a
+              href={facebookShareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
+            >
+              📘 Facebook
+            </a>
+          </div>
         </div>
       </section>
 
@@ -186,11 +174,8 @@ export default function AnuncioDetalhePage() {
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         {/* FOTO PRINCIPAL */}
         {fotoAtiva && (
-          <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer">
-            <div
-              className="w-full h-[220px] sm:h-[260px] md:h-[320px]"
-              onClick={() => abrirModalNaFoto(fotoIndex)}
-            >
+          <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+            <div className="w-full h-[220px] sm:h-[260px] md:h-[320px]">
               <img
                 src={fotoAtiva}
                 alt={anuncio.titulo}
@@ -207,7 +192,7 @@ export default function AnuncioDetalhePage() {
               <button
                 key={index}
                 type="button"
-                onClick={() => abrirModalNaFoto(index)}
+                onClick={() => setFotoIndex(index)}
                 className={`relative h-16 rounded-xl overflow-hidden border ${
                   index === fotoIndex
                     ? "border-[#21D4FD] ring-2 ring-[#21D4FD]/40"
@@ -297,46 +282,69 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
 
-            {/* Descrição detalhada */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Descrição do imóvel
-              </h2>
-              <p className="text-xs text-slate-700 whitespace-pre-line">
-                {anuncio.descricao}
-              </p>
+            {/* Descrição + MAPA */}
+            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                  Descrição do imóvel
+                </h2>
+                <p className="text-xs text-slate-700 whitespace-pre-line">
+                  {anuncio.descricao}
+                </p>
 
-              {/* Dados financeiros extras */}
-              {(anuncio.condominio ||
-                anuncio.iptu ||
-                anuncio.aceita_financiamento) && (
-                <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
-                  {anuncio.condominio && (
-                    <div>
-                      <span className="font-semibold text-slate-900">
-                        Condomínio:{" "}
-                      </span>
-                      R$ {anuncio.condominio}
-                    </div>
-                  )}
-                  {anuncio.iptu && (
-                    <div>
-                      <span className="font-semibold text-slate-900">
-                        IPTU (ano):{" "}
-                      </span>
-                      R$ {anuncio.iptu}
-                    </div>
-                  )}
-                  {anuncio.aceita_financiamento && (
-                    <div className="col-span-full">
-                      <span className="font-semibold text-slate-900">
-                        Aceita financiamento:{" "}
-                      </span>
-                      {anuncio.aceita_financiamento}
-                    </div>
-                  )}
+                {/* Dados financeiros extras */}
+                {(anuncio.condominio ||
+                  anuncio.iptu ||
+                  anuncio.aceita_financiamento) && (
+                  <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
+                    {anuncio.condominio && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Condomínio:{" "}
+                        </span>
+                        R$ {anuncio.condominio}
+                      </div>
+                    )}
+                    {anuncio.iptu && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          IPTU (ano):{" "}
+                        </span>
+                        R$ {anuncio.iptu}
+                      </div>
+                    )}
+                    {anuncio.aceita_financiamento && (
+                      <div className="col-span-full">
+                        <span className="font-semibold text-slate-900">
+                          Aceita financiamento:{" "}
+                        </span>
+                        {anuncio.aceita_financiamento}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* MAPA DO IMÓVEL */}
+              <div className="mt-2">
+                <h3 className="text-xs font-semibold text-slate-900 mb-2">
+                  Localização aproximada
+                </h3>
+                <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <iframe
+                    title="Mapa do imóvel"
+                    src={mapaUrl}
+                    width="100%"
+                    height="100%"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
                 </div>
-              )}
+                <p className="mt-1 text-[10px] text-slate-500">
+                  O mapa é aproximado e pode não indicar o número exato do
+                  imóvel. Confirme sempre com o anunciante.
+                </p>
+              </div>
             </div>
 
             {/* Vídeo (se tiver) */}
@@ -378,14 +386,7 @@ export default function AnuncioDetalhePage() {
                     className="inline-flex items-center rounded-full bg-[#25D366] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1EBE57]"
                   >
                     {/* Íconezinho simples */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="w-4 h-4 mr-2"
-                      fill="currentColor"
-                    >
-                      <path d="M12.04 2C6.58 2 2.2 6.37 2.2 11.84c0 2.09.61 4.03 1.78 5.72L2 22l4.58-1.94a9.83 9.83 0 0 0 5.46 1.6h.01c5.46 0 9.84-4.37 9.84-9.84C21.9 6.37 17.5 2 12.04 2Zm0 17.8h-.01a8 8 0 0 1-4.1-1.13l-.29-.17-2.72 1.15.58-2.88-.19-.3a7.83 7.83 0 0 1-1.2-4.2c0-4.33 3.53-7.86 7.88-7.86 4.34 0 7.87 3.53 7.87 7.87 0 4.34-3.53 7.86-7.88 7.86Zm4.3-5.87c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.55.12-.16.24-.63.78-.78.94-.14.16-.29.18-.54.06-.24-.12-1.02-.38-1.94-1.21-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.37.11-.49.12-.12.24-.29.36-.43.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.76-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.33.98 2.49c.12.16 1.69 2.59 4.1 3.63.57.25 1.02.4 1.37.51.57.18 1.08.16 1.49.1.46-.07 1.43-.58 1.63-1.15.2-.57.2-1.06.14-1.15-.06-.1-.22-.16-.46-.28Z" />
-                    </svg>
+                    <span className="mr-2 text-sm">🟢</span>
                     Conversar no WhatsApp
                   </a>
                 </div>
@@ -567,54 +568,6 @@ export default function AnuncioDetalhePage() {
           <p>Classilagos • O seu guia de compras e serviços na Região dos Lagos</p>
         </footer>
       </section>
-
-      {/* MODAL DE FOTOS */}
-      {isModalOpen && temImagens && (
-        <div
-          className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4"
-          onClick={fecharModal}
-        >
-          <div
-            className="relative max-w-4xl w-full max-h-[90vh] bg-black/80 rounded-2xl overflow-hidden flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Botão fechar */}
-            <button
-              type="button"
-              onClick={fecharModal}
-              className="absolute top-3 right-3 text-white/80 hover:text-white text-xl"
-            >
-              ×
-            </button>
-
-            {/* Setas navegação */}
-            {imagens.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={fotoAnterior}
-                  className="absolute left-3 md:left-4 text-white/80 hover:text-white text-3xl"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  onClick={proximaFoto}
-                  className="absolute right-3 md:right-4 text-white/80 hover:text-white text-3xl"
-                >
-                  ›
-                </button>
-              </>
-            )}
-
-            <img
-              src={imagens[fotoIndex]}
-              alt={`${anuncio.titulo} - foto ampliada`}
-              className="max-h-[80vh] w-auto object-contain"
-            />
-          </div>
-        </div>
-      )}
     </main>
   );
 }
