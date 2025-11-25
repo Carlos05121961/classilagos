@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
+import UserMenu from "./components/UserMenu";
 
 export default function Home() {
   const heroImages = [
