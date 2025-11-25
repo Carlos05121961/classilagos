@@ -188,7 +188,7 @@ export default function AnuncioDetalhePage() {
         {/* FOTO PRINCIPAL */}
         {fotoAtiva && (
           <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-            <div className="w-full h-[220px] sm:h-[260px] md:h-[320px]">
+            <div className="w-full h-[200px] sm:h-[220px] md:h-[260px] lg:h-[280px]">
               <img
                 src={fotoAtiva}
                 alt={anuncio.titulo}
