@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 
 export default function FormularioImoveis() {
@@ -46,6 +47,9 @@ export default function FormularioImoveis() {
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
+
+  // Termos de responsabilidade
+  const [aceitoTermos, setAceitoTermos] = useState(false);
 
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -121,13 +125,21 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // ✅ validação dos termos de responsabilidade
+    if (!aceitoTermos) {
+      setErro(
+        "Você precisa aceitar os termos de responsabilidade para publicar o anúncio."
+      );
+      return;
+    }
+
     let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
         setUploading(true);
 
-        // Bucket do Supabase (como no seu print)
+        // Bucket do Supabase
         const bucketName = "anuncios";
 
         const uploads = await Promise.all(
@@ -236,6 +248,7 @@ export default function FormularioImoveis() {
     setTelefone("");
     setWhatsapp("");
     setEmail("");
+    setAceitoTermos(false);
   };
 
   return (
@@ -671,6 +684,39 @@ export default function FormularioImoveis() {
           Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
           exibido para as pessoas entrarem em contato com você.
         </p>
+      </div>
+
+      {/* BLOCO: TERMOS DE RESPONSABILIDADE */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Termos de responsabilidade
+        </h2>
+
+        <div className="flex items-start gap-2 text-xs text-slate-700">
+          <input
+            id="aceito-termos"
+            type="checkbox"
+            className="mt-1"
+            checked={aceitoTermos}
+            onChange={(e) => setAceitoTermos(e.target.checked)}
+          />
+          <label htmlFor="aceito-termos">
+            Declaro que sou responsável por todas as informações e imagens deste
+            anúncio e que estou ciente de que anúncios falsos, enganosos ou
+            ilegais poderão ser removidos. Também confirmo que li e aceito os{" "}
+            <Link href="/termos-de-uso" className="text-cyan-600 underline">
+              Termos de Uso
+            </Link>{" "}
+            e a{" "}
+            <Link
+              href="/politica-de-privacidade"
+              className="text-cyan-600 underline"
+            >
+              Política de Privacidade
+            </Link>{" "}
+            do Classilagos.
+          </label>
+        </div>
       </div>
 
       <button
