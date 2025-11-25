@@ -23,6 +23,22 @@ export default function CadastroPage() {
     setErro("");
     setMensagem("");
 
+    // VALIDAÇÕES
+    if (!nome.trim()) {
+      setErro("Por favor, informe seu nome completo.");
+      return;
+    }
+
+    if (!cidade.trim()) {
+      setErro("Informe a sua cidade para prosseguir.");
+      return;
+    }
+
+    if (!whatsapp.trim()) {
+      setErro("Informe um número de WhatsApp válido.");
+      return;
+    }
+
     if (senha !== confirmar) {
       setErro("As senhas não coincidem.");
       return;
@@ -46,7 +62,7 @@ export default function CadastroPage() {
 
     if (error) {
       console.error(error);
-      setErro("Erro ao criar conta. Verifique os dados.");
+      setErro("Erro ao criar conta. Verifique os dados informados.");
       return;
     }
 
@@ -78,9 +94,11 @@ export default function CadastroPage() {
         )}
 
         <form onSubmit={cadastrar} className="space-y-3 text-xs">
+
+          {/* NOME */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              Nome completo
+              Nome completo *
             </label>
             <input
               type="text"
@@ -91,9 +109,10 @@ export default function CadastroPage() {
             />
           </div>
 
+          {/* CIDADE */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              Cidade
+              Cidade *
             </label>
             <input
               type="text"
@@ -104,9 +123,10 @@ export default function CadastroPage() {
             />
           </div>
 
+          {/* WHATSAPP */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              WhatsApp
+              WhatsApp *
             </label>
             <input
               type="text"
@@ -114,12 +134,14 @@ export default function CadastroPage() {
               onChange={(e) => setWhatsapp(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2"
               placeholder="(21) 99999-9999"
+              required
             />
           </div>
 
+          {/* EMAIL */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              E-mail
+              E-mail *
             </label>
             <input
               type="email"
@@ -130,9 +152,10 @@ export default function CadastroPage() {
             />
           </div>
 
+          {/* SENHA */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              Senha
+              Senha *
             </label>
             <input
               type="password"
@@ -143,9 +166,10 @@ export default function CadastroPage() {
             />
           </div>
 
+          {/* CONFIRMAR SENHA */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
-              Confirmar senha
+              Confirmar senha *
             </label>
             <input
               type="password"
@@ -154,4 +178,19 @@ export default function CadastroPage() {
               className="w-full rounded-full border border-slate-200 px-3 py-2"
               required
             />
+          </div>
+
+          {/* BOTÃO */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-cyan-500 text-white py-2 text-sm font-semibold hover:bg-cyan-600"
+          >
+            {loading ? "Criando conta..." : "Criar conta"}
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+}
 
