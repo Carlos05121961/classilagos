@@ -22,7 +22,7 @@ export default function AnuncioDetalhePage() {
     }
   }, []);
 
-  // Busca anúncio e similares
+  // Buscar anúncio + similares
   useEffect(() => {
     if (!id) return;
 
@@ -43,7 +43,6 @@ export default function AnuncioDetalhePage() {
       setAnuncio(data);
       setFotoIndex(0);
 
-      // Imóveis similares (mesma categoria + cidade, IDs diferentes)
       const { data: similaresData } = await supabase
         .from("anuncios")
         .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens")
@@ -88,9 +87,6 @@ export default function AnuncioDetalhePage() {
   // Imagens
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
-  const fotoAtiva = temImagens
-    ? imagens[Math.min(fotoIndex, imagens.length - 1)]
-    : null;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
@@ -133,7 +129,7 @@ export default function AnuncioDetalhePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* BANNER TOPO (padrão Classilagos) */}
+      {/* BANNER TOPO */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
           <BannerRotator />
@@ -163,7 +159,7 @@ export default function AnuncioDetalhePage() {
             </Link>
           </div>
 
-          {/* Ícones de compartilhar – discretos */}
+          {/* COMPARTILHAR */}
           <div className="flex items-center gap-2 text-[11px]">
             <span className="text-slate-500">Compartilhar:</span>
             <a
@@ -188,56 +184,51 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-      {/* FOTO PRINCIPAL – card centralizado, altura fixa */}
-{fotoAtiva && (
-  <div className="w-full flex justify-center">
-    <div className="w-full max-w-3xl rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-      <img
-        src={fotoAtiva}
-        alt={anuncio.titulo}
-        className="
-          w-full
-          h-[200px]
-          sm:h-[230px]
-          md:h-[260px]
-          lg:h-[280px]
-          object-cover
-          object-center
-        "
-      />
-    </div>
-  </div>
-)}
-
-        {/* MINIATURAS */}
-        {imagens.length > 1 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {imagens.map((url, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setFotoIndex(index)}
-                className={`relative h-16 rounded-xl overflow-hidden border ${
-                  index === fotoIndex
-                    ? "border-[#21D4FD] ring-2 ring-[#21D4FD]/40"
-                    : "border-slate-200"
-                } bg-slate-100`}
-              >
+        {/* CARD DE FOTOS NOVO */}
+        {temImagens && (
+          <section className="w-full flex flex-col gap-3">
+            {/* Foto principal */}
+            <div className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+              <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px]">
                 <img
-                  src={url}
-                  alt={`${anuncio.titulo} - foto ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  src={imagens[fotoIndex]}
+                  alt={anuncio.titulo}
+                  className="w-full h-full object-cover object-center"
                 />
-              </button>
-            ))}
-          </div>
+              </div>
+            </div>
+
+            {/* Miniaturas */}
+            {imagens.length > 1 && (
+              <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                {imagens.map((url, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setFotoIndex(index)}
+                    className={`rounded-lg overflow-hidden border ${
+                      fotoIndex === index
+                        ? "border-cyan-500 ring-2 ring-cyan-400/40"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-16 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
         )}
 
         {/* GRID PRINCIPAL: ESQUERDA (imóvel) / DIREITA (contato + ML) */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* Resumo do imóvel */}
+            {/* Resumo */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Resumo do imóvel
@@ -306,7 +297,7 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
 
-            {/* Descrição + MAPA */}
+            {/* Descrição + mapa */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -325,7 +316,7 @@ export default function AnuncioDetalhePage() {
                         <span className="font-semibold text-slate-900">
                           Condomínio:{" "}
                         </span>
-                        R$ {anuncio.condominio}
+                          R$ {anuncio.condominio}
                       </div>
                     )}
                     {anuncio.iptu && (
@@ -348,7 +339,7 @@ export default function AnuncioDetalhePage() {
                 )}
               </div>
 
-              {/* MAPA */}
+              {/* Mapa */}
               <div className="mt-2">
                 <h3 className="text-xs font-semibold text-slate-900 mb-2">
                   Localização aproximada
@@ -370,7 +361,7 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
 
-            {/* Vídeo (se tiver) */}
+            {/* Vídeo */}
             {anuncio.video_url && (
               <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -393,7 +384,7 @@ export default function AnuncioDetalhePage() {
 
           {/* COLUNA DIREITA: CONTATO + MERCADO LIVRE */}
           <div className="space-y-4">
-            {/* CONTATO */}
+            {/* Contato */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
                 Fale com o anunciante
@@ -475,14 +466,14 @@ export default function AnuncioDetalhePage() {
               </p>
             </div>
 
-            {/* BLOCO OFERTAS MERCADO LIVRE */}
+            {/* Mercado Livre */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Ofertas para sua casa (Mercado Livre)
               </h2>
               <p className="text-[11px] text-slate-600 mb-3">
-                Itens que combinam com este imóvel. Clique para ver mais
-                detalhes no Mercado Livre.
+                Itens que combinam com este imóvel. Clique para ver mais detalhes
+                no Mercado Livre.
               </p>
               <ul className="space-y-2 text-xs text-slate-700">
                 <li>
@@ -524,7 +515,7 @@ export default function AnuncioDetalhePage() {
           </div>
         </div>
 
-        {/* Imóveis similares (reais, por cidade) */}
+        {/* Imóveis similares */}
         <section className="mt-6">
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
