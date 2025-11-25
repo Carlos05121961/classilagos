@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
+import BannerRotator from "../../components/BannerRotator";
 
 export default function AnuncioDetalhePage() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function AnuncioDetalhePage() {
   const [erro, setErro] = useState(null);
   const [fotoIndex, setFotoIndex] = useState(0);
   const [shareUrl, setShareUrl] = useState("");
+  const [similares, setSimilares] = useState([]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -29,13 +31,27 @@ export default function AnuncioDetalhePage() {
         .eq("id", id)
         .single();
 
-      if (error) {
+      if (error || !data) {
         console.error("Erro ao buscar anúncio:", error);
         setErro("Não foi possível carregar este anúncio.");
-      } else {
-        setAnuncio(data);
-        setFotoIndex(0);
+        setLoading(false);
+        return;
       }
+
+      setAnuncio(data);
+      setFotoIndex(0);
+
+      // Busca imóveis similares: mesma categoria, mesma cidade, outros IDs
+      const { data: similaresData } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens")
+        .eq("categoria", data.categoria || "imoveis")
+        .eq("cidade", data.cidade)
+        .neq("id", data.id)
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      setSimilares(similaresData || []);
       setLoading(false);
     };
 
@@ -66,7 +82,7 @@ export default function AnuncioDetalhePage() {
     );
   }
 
-  // Trata array de imagens
+  // Imagens
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
   const fotoAtiva = temImagens
@@ -90,12 +106,11 @@ export default function AnuncioDetalhePage() {
         )}`
       : null;
 
-  // Links de compartilhamento (discretos)
+  // Compartilhamento
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(
     `Olha este imóvel no Classilagos: ${anuncio.titulo}`
   );
-
   const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
@@ -115,12 +130,10 @@ export default function AnuncioDetalhePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* BANNER TOPO (AGORA PRIMEIRO) */}
+      {/* BANNER TOPO (padrão Classilagos) */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
-          <div className="w-full h-24 rounded-2xl bg-slate-200/70 border border-slate-300/60 flex items-center justify-center text-[11px] text-slate-600">
-            Espaço reservado para banner 1200x150 (Imóveis – Classilagos)
-          </div>
+          <BannerRotator />
         </div>
       </section>
 
@@ -147,7 +160,7 @@ export default function AnuncioDetalhePage() {
             </Link>
           </div>
 
-          {/* Ícones de compartilhar – discretos, embaixo do título */}
+          {/* Ícones de compartilhar – discretos */}
           <div className="flex items-center gap-2 text-[11px]">
             <span className="text-slate-500">Compartilhar:</span>
             <a
@@ -209,7 +222,7 @@ export default function AnuncioDetalhePage() {
           </div>
         )}
 
-        {/* GRID PRINCIPAL: DESCRIÇÃO + CONTATO + ML */}
+        {/* GRID PRINCIPAL: ESQUERDA (imóvel) / DIREITA (contato + ML) */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
@@ -292,7 +305,6 @@ export default function AnuncioDetalhePage() {
                   {anuncio.descricao}
                 </p>
 
-                {/* Dados financeiros extras */}
                 {(anuncio.condominio ||
                   anuncio.iptu ||
                   anuncio.aceita_financiamento) && (
@@ -325,7 +337,7 @@ export default function AnuncioDetalhePage() {
                 )}
               </div>
 
-              {/* MAPA DO IMÓVEL */}
+              {/* MAPA */}
               <div className="mt-2">
                 <h3 className="text-xs font-semibold text-slate-900 mb-2">
                   Localização aproximada
@@ -376,7 +388,6 @@ export default function AnuncioDetalhePage() {
                 Fale com o anunciante
               </h2>
 
-              {/* Botão discreto WhatsApp */}
               {whatsappLink && (
                 <div className="mb-4">
                   <a
@@ -385,14 +396,12 @@ export default function AnuncioDetalhePage() {
                     rel="noreferrer"
                     className="inline-flex items-center rounded-full bg-[#25D366] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1EBE57]"
                   >
-                    {/* Íconezinho simples */}
                     <span className="mr-2 text-sm">🟢</span>
                     Conversar no WhatsApp
                   </a>
                 </div>
               )}
 
-              {/* Dados de contato em texto */}
               <div className="space-y-1 text-xs text-slate-700">
                 {whatsappRaw && (
                   <p>
@@ -420,7 +429,6 @@ export default function AnuncioDetalhePage() {
                 )}
               </div>
 
-              {/* Imobiliária / corretor */}
               {(imobiliaria || corretor || creci) && (
                 <div className="mt-4 pt-3 border-t border-slate-200 space-y-1 text-xs text-slate-700">
                   {imobiliaria && (
@@ -505,34 +513,60 @@ export default function AnuncioDetalhePage() {
           </div>
         </div>
 
-        {/* Imóveis similares – placeholder simples por enquanto */}
+        {/* Imóveis similares (reais, por cidade) */}
         <section className="mt-6">
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
               Imóveis similares na Região dos Lagos
             </h2>
-            <p className="text-[11px] text-slate-600 mb-3">
-              Em breve aqui teremos uma lista automática de imóveis semelhantes
-              (mesma cidade, faixa de preço e tipo).
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <p className="font-semibold mb-1">Casa próxima à praia</p>
-                <p>Cabo Frio • 3 quartos • R$ 650.000</p>
+
+            {similares.length === 0 && (
+              <p className="text-[11px] text-slate-600">
+                Em breve mais imóveis nesta região aparecerão aqui.
+              </p>
+            )}
+
+            {similares.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                {similares.map((item) => {
+                  const img =
+                    Array.isArray(item.imagens) && item.imagens.length > 0
+                      ? item.imagens[0]
+                      : null;
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/anuncios/${item.id}`}
+                      className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
+                    >
+                      {img && (
+                        <div className="w-full h-24 overflow-hidden">
+                          <img
+                            src={img}
+                            alt={item.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                          />
+                        </div>
+                      )}
+                      <div className="px-3 py-2 space-y-1">
+                        <p className="font-semibold line-clamp-2">
+                          {item.titulo}
+                        </p>
+                        <p className="text-[11px] text-slate-600">
+                          {item.cidade}
+                          {item.bairro ? ` • ${item.bairro}` : ""}
+                        </p>
+                        {item.preco && (
+                          <p className="text-[11px] font-semibold text-slate-900">
+                            R$ {item.preco}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <p className="font-semibold mb-1">
-                  Apartamento vista lagoa
-                </p>
-                <p>Araruama • 2 quartos • R$ 420.000</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <p className="font-semibold mb-1">
-                  Casa linear com área gourmet
-                </p>
-                <p>São Pedro da Aldeia • 4 quartos • R$ 720.000</p>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -546,7 +580,7 @@ export default function AnuncioDetalhePage() {
           </Link>
         </div>
 
-        {/* RODAPÉ SIMPLES DA PÁGINA DO ANÚNCIO */}
+        {/* Rodapé simples */}
         <footer className="mt-8 text-center text-[11px] text-slate-500 space-y-1">
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
             <Link href="/quem-somos" className="hover:underline">
