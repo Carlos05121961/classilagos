@@ -188,21 +188,16 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* FOTO PRINCIPAL (sem gambiarra, com altura máxima) */}
+        {/* FOTO PRINCIPAL – card menor, centralizado, tamanho normal */}
         {fotoAtiva && (
-          <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-         <img
-  src={fotoAtiva}
-  alt={anuncio.titulo}
-  className="
-    w-full
-    object-cover object-center
-    max-h-[220px]
-    sm:max-h-[260px]
-    md:max-h-[300px]
-    lg:max-h-[320px]
-  "
-/>
+          <div className="w-full max-w-3xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+            <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64">
+              <img
+                src={fotoAtiva}
+                alt={anuncio.titulo}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
           </div>
         )}
 
