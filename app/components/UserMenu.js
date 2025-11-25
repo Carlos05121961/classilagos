@@ -17,7 +17,8 @@ export default function UserMenu() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    window.location.href = "/"; // volta pra home depois de sair
+    // depois de sair, volta para a home
+    window.location.href = "/";
   }
 
   // 🔹 NÃO LOGADO → mostra Login / Cadastro / Anuncie grátis
@@ -69,7 +70,7 @@ export default function UserMenu() {
             Meu painel
           </Link>
           <Link
-            href="/meus-anuncios"
+            href="/painel/meus-anuncios"
             className="block px-3 py-2 rounded-lg hover:bg-slate-100"
             onClick={() => setOpen(false)}
           >
