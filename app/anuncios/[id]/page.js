@@ -190,16 +190,24 @@ export default function AnuncioDetalhePage() {
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
       {/* FOTO PRINCIPAL – card centralizado, altura fixa */}
 {fotoAtiva && (
-  <div className="w-full max-w-3xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-    <div className="w-full h-48 sm:h-56 md:h-64 lg:h-72">
+  <div className="w-full flex justify-center">
+    <div className="w-full max-w-3xl rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
       <img
         src={fotoAtiva}
         alt={anuncio.titulo}
-        className="w-full h-full object-cover object-center"
+        className="
+          w-full
+          h-[200px]
+          sm:h-[230px]
+          md:h-[260px]
+          lg:h-[280px]
+          object-cover
+          object-center
+        "
       />
     </div>
   </div>
-)} 
+)}
 
         {/* MINIATURAS */}
         {imagens.length > 1 && (
