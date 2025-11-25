@@ -70,7 +70,7 @@ export default function UserMenu() {
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white shadow-lg p-1 text-xs md:text-sm z-50">
+  <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white shadow-lg p-1 text-xs md:text-sm z-50 text-slate-700">
             <Link
               href="/painel"
               className="block px-3 py-2 rounded-lg hover:bg-slate-100"
