@@ -3,267 +3,225 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
-
-const CATEGORIA_LABELS = {
-  imoveis: "Imóveis",
-  veiculos: "Veículos",
-  nautica: "Náutica",
-  pets: "Pets",
-  empregos: "Empregos",
-  servicos: "Serviços",
-  turismo: "Turismo",
-  lagolistas: "LagoListas",
-};
-
-const CATEGORIA_ROTA = {
-  imoveis: "/imoveis",
-  veiculos: "/veiculos",
-  nautica: "/nautica",
-  pets: "/pets",
-  empregos: "/empregos",
-  servicos: "/servicos",
-  turismo: "/turismo",
-  lagolistas: "/lagolistas",
-};
+import AuthGuard from "../../components/AuthGuard";
 
 export default function MeusAnunciosPage() {
   const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-
   const [anuncios, setAnuncios] = useState([]);
-  const [loadingAnuncios, setLoadingAnuncios] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
+  // Carrega usuário + anúncios do usuário
   useEffect(() => {
-    async function loadUserAndAds() {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+    async function carregar() {
+      setLoading(true);
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
       if (userError) {
-        console.error("Erro ao buscar usuário:", userError.message);
-        setUser(null);
-        setLoadingUser(false);
-        setLoadingAnuncios(false);
+        console.error(userError);
+        setErro("Erro ao carregar dados do usuário.");
+        setLoading(false);
         return;
       }
 
-      const currentUser = userData?.user ?? null;
-      setUser(currentUser);
-      setLoadingUser(false);
-
-      if (!currentUser) {
-        setLoadingAnuncios(false);
+      if (!user) {
+        setErro("Você precisa estar logado para ver seus anúncios.");
+        setLoading(false);
         return;
       }
 
-      const { data: adsData, error: adsError } = await supabase
+      setUser(user);
+
+      const { data, error: anunciosError } = await supabase
         .from("anuncios")
-        .select("*")
-        .eq("user_id", currentUser.id)
+        .select(
+          "id, titulo, cidade, bairro, preco, categoria, tipo_imovel, created_at, imagens"
+        )
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (adsError) {
-        console.error("Erro ao buscar anúncios do usuário:", adsError.message);
+      if (anunciosError) {
+        console.error(anunciosError);
+        setErro("Erro ao buscar seus anúncios.");
+      } else {
+        setAnuncios(data || []);
       }
 
-      setAnuncios(adsData || []);
-      setLoadingAnuncios(false);
+      setLoading(false);
     }
 
-    loadUserAndAds();
+    carregar();
   }, []);
 
-  if (loadingUser) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-sm text-gray-600">
-          Carregando informações do seu painel…
-        </p>
-      </div>
-    );
-  }
+  async function handleDelete(id) {
+    if (!user) return;
 
-  if (!user) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="max-w-md rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-          <h1 className="mb-2 text-lg font-semibold text-gray-900">
-            Você não está logado
-          </h1>
-          <p className="mb-4 text-sm text-gray-600">
-            Para acessar seu painel e gerenciar seus anúncios, faça login com seu
-            e-mail.
-          </p>
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Ir para login
-          </Link>
-        </div>
-      </div>
+    const confirmar = window.confirm(
+      "Tem certeza que deseja excluir este anúncio? Essa ação não pode ser desfeita."
     );
+
+    if (!confirmar) return;
+
+    setDeletingId(id);
+
+    const { error } = await supabase
+      .from("anuncios")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id); // segurança: só apaga se for do usuário
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao excluir anúncio: " + error.message);
+    } else {
+      setAnuncios((prev) => prev.filter((a) => a.id !== id));
+    }
+
+    setDeletingId(null);
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Meu painel</h1>
-        <p className="text-sm text-gray-600">
-          Usuário logado:{" "}
-          <span className="font-semibold">{user.email}</span>
-        </p>
-      </header>
+    <AuthGuard>
+      <main className="min-h-screen bg-[#F5FBFF] px-4 py-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <header className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Meus anúncios
+              </h1>
+              <p className="text-sm text-slate-600">
+                Veja, edite ou exclua os anúncios que você publicou no
+                Classilagos.
+              </p>
+            </div>
 
-      {/* Blocos principais */}
-      <div className="mb-8 grid gap-4 md:grid-cols-2">
-        {/* Criar novo anúncio */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-2 text-base font-semibold text-gray-900">
-            Criar novo anúncio
-          </h2>
-          <p className="mb-4 text-sm text-gray-600">
-            Publique um novo anúncio grátis em qualquer categoria do Classilagos.
-          </p>
-          <div className="flex flex-wrap gap-2">
             <Link
-              href="/anunciar/formulario?tipo=imoveis"
-              className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              href="/anunciar"
+              className="rounded-full bg-[#21D4FD] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
             >
-              + Imóveis
+              + Criar novo anúncio
             </Link>
-            <Link
-              href="/anunciar/formulario?tipo=veiculos"
-              className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-            >
-              + Veículos
-            </Link>
-            <Link
-              href="/anunciar/formulario?tipo=servicos"
-              className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-            >
-              + Serviços
-            </Link>
-          </div>
-        </div>
+          </header>
 
-        {/* Resumo dos anúncios */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-2 text-base font-semibold text-gray-900">
-            Meus anúncios
-          </h2>
-          <p className="text-sm text-gray-600">
-            Veja e gerencie todos os anúncios cadastrados na sua conta.
-          </p>
-          <p className="mt-3 text-xs text-gray-500">
-            Quantidade de anúncios cadastrados:{" "}
-            <span className="font-semibold">{anuncios.length}</span>
-          </p>
-        </div>
-      </div>
+          {loading && (
+            <p className="text-sm text-slate-600">Carregando seus anúncios…</p>
+          )}
 
-      {/* Lista dos anúncios do usuário */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-          Anúncios publicados por você
-        </h2>
+          {erro && !loading && (
+            <p className="text-sm text-red-600">{erro}</p>
+          )}
 
-        {loadingAnuncios && (
-          <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">
-            Carregando seus anúncios…
-          </div>
-        )}
+          {!loading && !erro && anuncios.length === 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-6 text-sm text-slate-600">
+              Você ainda não publicou nenhum anúncio.
+              <br />
+              <Link
+                href="/anunciar"
+                className="text-[#21D4FD] font-semibold hover:underline"
+              >
+                Clique aqui para criar o primeiro anúncio.
+              </Link>
+            </div>
+          )}
 
-        {!loadingAnuncios && anuncios.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600">
-            Você ainda não publicou nenhum anúncio. Clique em{" "}
-            <span className="font-semibold">“Criar novo anúncio”</span> para
-            começar.
-          </div>
-        )}
+          {!loading && anuncios.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {anuncios.map((anuncio) => {
+                const img =
+                  Array.isArray(anuncio.imagens) &&
+                  anuncio.imagens.length > 0
+                    ? anuncio.imagens[0]
+                    : null;
 
-        {!loadingAnuncios && anuncios.length > 0 && (
-          <div className="space-y-3">
-            {anuncios.map((anuncio) => {
-              const categoria = anuncio.categoria || "imoveis";
-              const categoriaLabel =
-                CATEGORIA_LABELS[categoria] || "Anúncio";
-              const rotaCategoria =
-                CATEGORIA_ROTA[categoria] || "/";
+                return (
+                  <div
+                    key={anuncio.id}
+                    className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm"
+                  >
+                    {/* Imagem */}
+                    {img && (
+                      <div className="w-full h-40 overflow-hidden bg-slate-100">
+                        <img
+                          src={img}
+                          alt={anuncio.titulo}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
 
-              return (
-                <article
-                  key={anuncio.id}
-                  className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
-                >
-                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-900">
+                    {/* Conteúdo */}
+                    <div className="flex-1 px-4 py-3 space-y-1 text-sm text-slate-700">
+                      <h2 className="font-semibold text-slate-900 line-clamp-2">
                         {anuncio.titulo}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        Categoria: {categoriaLabel} •{" "}
-                        {anuncio.cidade || "Cidade não informada"}
-                      </p>
-                      <p className="mt-2 line-clamp-2 text-sm text-gray-700">
-                        {anuncio.descricao}
+                      </h2>
+
+                      <p className="text-[12px] text-slate-500">
+                        {anuncio.cidade}
+                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
 
-                      <p className="mt-2 text-xs text-gray-600">
-                        Contato:{" "}
-                        <span className="font-semibold">
-                          {anuncio.contato}
-                        </span>
-                      </p>
-
-                      {anuncio.video_url && (
-                        <a
-                          href={anuncio.video_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-flex text-xs font-semibold text-red-600 hover:text-red-700"
-                        >
-                          ▶ Ver vídeo no YouTube
-                        </a>
+                      {anuncio.preco && (
+                        <p className="text-[13px] font-semibold text-emerald-700">
+                          R$ {anuncio.preco}
+                        </p>
                       )}
 
-                      <p className="mt-1 text-[11px] text-gray-400">
+                      {anuncio.tipo_imovel && (
+                        <p className="text-[12px] text-slate-500">
+                          {anuncio.tipo_imovel}
+                        </p>
+                      )}
+
+                      <p className="text-[11px] text-slate-400">
                         Publicado em{" "}
-                        {new Date(anuncio.created_at).toLocaleDateString(
-                          "pt-BR",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }
-                        )}
+                        {new Date(
+                          anuncio.created_at
+                        ).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
 
-                    <div className="flex flex-col items-start gap-2 md:items-end">
-                      <Link
-                        href={`/anuncio/${anuncio.id}`}
-                        className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-                      >
-                        🔎 Ver anúncio completo
-                      </Link>
+                    {/* Ações */}
+                    <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between gap-2 text-xs">
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`/anuncios/${anuncio.id}`}
+                          className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
+                        >
+                          Ver anúncio
+                        </Link>
 
-                      <Link
-                        href={rotaCategoria}
-                        className="rounded-full border border-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                      >
-                        Ver na página de {categoriaLabel}
-                      </Link>
+                        {/* Em breve vamos ligar esse botão ao formulário de edição */}
+                        <button
+                          type="button"
+                          disabled
+                          className="rounded-full border border-slate-300 px-3 py-1 text-slate-400 cursor-not-allowed"
+                          title="Em breve: edição do anúncio pelo formulário"
+                        >
+                          Editar (em breve)
+                        </button>
+                      </div>
 
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600">
-                        Em breve: editar e remover anúncio
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(anuncio.id)}
+                        disabled={deletingId === anuncio.id}
+                        className="rounded-full bg-red-500/90 px-3 py-1 text-white hover:bg-red-600 text-[11px] disabled:opacity-60"
+                      >
+                        {deletingId === anuncio.id ? "Excluindo…" : "Excluir"}
+                      </button>
                     </div>
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-    </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+    </AuthGuard>
   );
 }
