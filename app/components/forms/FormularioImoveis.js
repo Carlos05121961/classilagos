@@ -80,23 +80,25 @@ export default function FormularioImoveis() {
     const imagens = [foto1, foto2, foto3, foto4].filter((f) => f !== "");
 
     // INSERIR NO SUPABASE
-    const { error } = await supabase.from("anuncios").insert({
-      user_id: user.id,
-      categoria: "imoveis",
-      titulo,
-      descricao,
-      cidade,
-      bairro,
-      endereco,
-      preco,
-      imagens,
-      telefone,
-      whatsapp,
-      email,
-      contato: contatoPrincipal,
-      status: "ativo",
-      destaque: false,
-    });
+const { error } = await supabase.from("anuncios").insert({
+  user_id: user.id,
+  categoria: "imoveis",
+  titulo,
+  descricao,
+  cidade,
+  bairro,
+  endereco,
+  preco,
+  imagens,
+  telefone,
+  whatsapp,
+  email,
+  contato: contatoPrincipal,
+  tipo_imovel: "não informado",   // 👈 ESTE É O QUE FALTAVA
+  status: "ativo",
+  destaque: false,
+});
+
 
     if (error) {
       console.log(error);
