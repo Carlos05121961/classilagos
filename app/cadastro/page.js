@@ -14,6 +14,9 @@ export default function CadastroPage() {
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
 
+  const [maiorDeIdade, setMaiorDeIdade] = useState(false);
+  const [aceitaTermos, setAceitaTermos] = useState(false);
+
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +26,7 @@ export default function CadastroPage() {
     setErro("");
     setMensagem("");
 
-    // VALIDAÇÕES
+    // VALIDAÇÕES BÁSICAS
     if (!nome.trim()) {
       setErro("Por favor, informe seu nome completo.");
       return;
@@ -44,6 +47,16 @@ export default function CadastroPage() {
       return;
     }
 
+    if (!maiorDeIdade) {
+      setErro("Para se cadastrar, você precisa confirmar que tem 18 anos ou mais.");
+      return;
+    }
+
+    if (!aceitaTermos) {
+      setErro("Você precisa aceitar os Termos de Uso para continuar.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -54,6 +67,8 @@ export default function CadastroPage() {
           nome,
           cidade,
           whatsapp,
+          maior_de_idade: true,
+          aceitou_termos: true,
         },
       },
     });
@@ -94,7 +109,6 @@ export default function CadastroPage() {
         )}
 
         <form onSubmit={cadastrar} className="space-y-3 text-xs">
-
           {/* NOME */}
           <div>
             <label className="font-semibold text-slate-700 mb-1 block">
@@ -180,11 +194,55 @@ export default function CadastroPage() {
             />
           </div>
 
+          {/* CHECKS: MAIOR DE IDADE + TERMOS */}
+          <div className="space-y-2 pt-2">
+            <label className="flex items-start gap-2 text-[11px] text-slate-700">
+              <input
+                type="checkbox"
+                checked={maiorDeIdade}
+                onChange={(e) => setMaiorDeIdade(e.target.checked)}
+                className="mt-[2px]"
+              />
+              <span>
+                Confirmo que tenho{" "}
+                <span className="font-semibold">18 anos ou mais</span>.
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2 text-[11px] text-slate-700">
+              <input
+                type="checkbox"
+                checked={aceitaTermos}
+                onChange={(e) => setAceitaTermos(e.target.checked)}
+                className="mt-[2px]"
+              />
+              <span>
+                Li e aceito os{" "}
+                <a
+                  href="/termos-de-uso"
+                  className="text-cyan-700 font-semibold hover:underline"
+                  target="_blank"
+                >
+                  Termos de Uso
+                </a>{" "}
+                e a{" "}
+                <a
+                  href="/politica-de-privacidade"
+                  className="text-cyan-700 font-semibold hover:underline"
+                  target="_blank"
+                >
+                  Política de Privacidade
+                </a>
+                .
+              </span>
+            </label>
+          </div>
+
           {/* BOTÃO */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-cyan-500 text-white py-2 text-sm font-semibold hover:bg-cyan-600"
+            className="w-full rounded-full bg-cyan-500 text-white py-2 text-sm font-semibold hover:bg-cyan-600 disabled:opacity-60 mt-2"
           >
             {loading ? "Criando conta..." : "Criar conta"}
           </button>
@@ -193,4 +251,3 @@ export default function CadastroPage() {
     </main>
   );
 }
-
