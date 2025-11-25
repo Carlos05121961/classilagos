@@ -45,10 +45,8 @@ export default function Home() {
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 flex flex-col">
-
             {/* TOPO DO HERO — LOGO + MENU + USERMENU */}
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
-              
               {/* LOGO */}
               <Link href="/" className="flex items-center">
                 <Image
@@ -61,38 +59,28 @@ export default function Home() {
               </Link>
 
               {/* MENU DESKTOP */}
-              <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-white drop-shadow">
-  <Link href="/imoveis">Imóveis</Link>
-  <Link href="/veiculos">Veículos</Link>
-  <Link href="/nautica">Náutica</Link>
-  <Link href="/pets">Pets</Link>
-  <Link href="/empregos">Empregos</Link>
-  <Link href="/servicos">Serviços</Link>
-  <Link href="/turismo">Turismo</Link>
-  <Link href="/lagolistas">LagoListas</Link>
-  <Link href="/noticias">Notícias</Link>
+              <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white drop-shadow">
+                <Link href="/imoveis">Imóveis</Link>
+                <Link href="/veiculos">Veículos</Link>
+                <Link href="/nautica">Náutica</Link>
+                <Link href="/pets">Pets</Link>
+                <Link href="/empregos">Empregos</Link>
+                <Link href="/servicos">Serviços</Link>
+                <Link href="/turismo">Turismo</Link>
+                <Link href="/lagolistas">LagoListas</Link>
+                <Link href="/noticias">Notícias</Link>
 
-  {/* 🔵 BOTÃO ANUNCIE GRÁTIS — igual ao SiteHeader */}
-  <Link
-    href="/anunciar"
-    className="rounded-full bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition"
-  >
-    Anuncie grátis
-  </Link>
-
-  {/* 🟣 MENU DO USUÁRIO — agora igual no site todo */}
-  <div className="ml-3">
-    <UserMenu />
-  </div>
-</nav>
-
+                {/* MENU DO USUÁRIO (Login/Cadastro/Conta) */}
+                <UserMenu />
+              </nav>
             </div>
 
             {/* TEXTO CENTRAL */}
             <div className="flex-1 flex items-center justify-center px-4 pb-10">
               <div className="text-center text-white drop-shadow max-w-2xl">
                 <p className="text-xs sm:text-sm md:text-base mb-2">
-                  O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
+                  O seu guia de compras, serviços, turismo e oportunidades em
+                  toda a Região dos Lagos.
                 </p>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
                   Classilagos – Região dos Lagos em um só lugar
@@ -107,9 +95,7 @@ export default function Home() {
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-6 py-5">
-
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
-              
               {/* CAMPO BUSCA */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
@@ -150,7 +136,6 @@ export default function Home() {
               <button className="rounded-full bg-blue-600 text-white px-5 py-2 font-semibold">
                 Buscar
               </button>
-
             </div>
           </div>
 
@@ -163,7 +148,6 @@ export default function Home() {
       {/* CATEGORIAS */}
       <section className="bg-slate-950 py-10">
         <div className="max-w-7xl mx-auto px-4">
-
           <h2 className="text-xl font-semibold text-white mb-2">
             Explore por categoria
           </h2>
@@ -205,22 +189,37 @@ export default function Home() {
       {/* CHAMADAS */}
       <section className="bg-white pb-16">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-4">
-
-          <Link href="#" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
-            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
-            <p className="text-sm text-slate-600">Pautas locais e vídeos da nossa região.</p>
+          <Link
+            href="#"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">
+              Classilagos TV
+            </h3>
+            <p className="text-sm text-slate-600">
+              Pautas locais e vídeos da nossa região.
+            </p>
           </Link>
 
-          <Link href="/turismo" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
+          <Link
+            href="/turismo"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
+          >
             <h3 className="font-semibold text-slate-900 mb-2">Turismo</h3>
-            <p className="text-sm text-slate-600">Pousadas, passeios, bares e restaurantes.</p>
+            <p className="text-sm text-slate-600">
+              Pousadas, passeios, bares e restaurantes.
+            </p>
           </Link>
 
-          <Link href="/noticias" className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100">
+          <Link
+            href="/noticias"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
+          >
             <h3 className="font-semibold text-slate-900 mb-2">Notícias</h3>
-            <p className="text-sm text-slate-600">Acompanhe novidades e oportunidades.</p>
+            <p className="text-sm text-slate-600">
+              Acompanhe novidades e oportunidades.
+            </p>
           </Link>
-
         </div>
       </section>
     </main>
