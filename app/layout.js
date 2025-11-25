@@ -1,5 +1,6 @@
 import "./globals.css";
 import SiteHeader from "./components/SiteHeader";
+import AuthProvider from "./AuthProvider";
 
 export const metadata = {
   title: "Classilagos",
@@ -10,10 +11,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body className="bg-white text-slate-900">
-        <SiteHeader />
-        {children}
+        <AuthProvider>
+          <SiteHeader />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
 }
-
