@@ -61,20 +61,31 @@ export default function Home() {
               </Link>
 
               {/* MENU DESKTOP */}
-              <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white drop-shadow">
-                <Link href="/imoveis">Imóveis</Link>
-                <Link href="/veiculos">Veículos</Link>
-                <Link href="/nautica">Náutica</Link>
-                <Link href="/pets">Pets</Link>
-                <Link href="/empregos">Empregos</Link>
-                <Link href="/servicos">Serviços</Link>
-                <Link href="/turismo">Turismo</Link>
-                <Link href="/lagolistas">LagoListas</Link>
-                <Link href="/noticias">Notícias</Link>
+              <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-white drop-shadow">
+  <Link href="/imoveis">Imóveis</Link>
+  <Link href="/veiculos">Veículos</Link>
+  <Link href="/nautica">Náutica</Link>
+  <Link href="/pets">Pets</Link>
+  <Link href="/empregos">Empregos</Link>
+  <Link href="/servicos">Serviços</Link>
+  <Link href="/turismo">Turismo</Link>
+  <Link href="/lagolistas">LagoListas</Link>
+  <Link href="/noticias">Notícias</Link>
 
-                {/* AQUI ESTÁ O USERMENU */}
-                <UserMenu />
-              </nav>
+  {/* 🔵 BOTÃO ANUNCIE GRÁTIS — igual ao SiteHeader */}
+  <Link
+    href="/anunciar"
+    className="rounded-full bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 transition"
+  >
+    Anuncie grátis
+  </Link>
+
+  {/* 🟣 MENU DO USUÁRIO — agora igual no site todo */}
+  <div className="ml-3">
+    <UserMenu />
+  </div>
+</nav>
+
             </div>
 
             {/* TEXTO CENTRAL */}
