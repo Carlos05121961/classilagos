@@ -189,16 +189,16 @@ export default function AnuncioDetalhePage() {
   <section className="w-full flex flex-col gap-3">
     {/* Foto principal (ajustada para caber dentro do card) */}
     <div className="w-full flex justify-center">
-      <div className="max-w-3xl w-full bg-slate-100 border border-slate-200 rounded-2xl p-3">
-        <div className="w-full flex justify-center">
-          <img
-            src={imagens[fotoIndex]}
-            alt={anuncio.titulo}
-            className="max-h-[260px] md:max-h-[300px] w-auto object-contain rounded-xl mx-auto"
-          />
-        </div>
-      </div>
+  <div className="max-w-4xl w-full bg-slate-100 border border-slate-200 rounded-2xl p-4">
+    <div className="w-full flex justify-center">
+      <img
+        src={imagens[fotoIndex]}
+        alt={anuncio.titulo}
+        className="max-h-[320px] md:max-h-[380px] w-auto object-contain rounded-xl mx-auto"
+      />
     </div>
+  </div>
+</div>
 
     {/* Miniaturas */}
     {imagens.length > 1 && (
