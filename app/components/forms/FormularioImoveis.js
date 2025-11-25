@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 
 export default function FormularioImoveis() {
@@ -48,7 +47,7 @@ export default function FormularioImoveis() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Termos de responsabilidade
+  // Termos
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
   const [erro, setErro] = useState("");
@@ -111,8 +110,8 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // Pelo menos um meio de contato
     const contatoPrincipal = whatsapp || telefone || email;
-
     if (!contatoPrincipal) {
       setErro(
         "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
@@ -120,15 +119,16 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // Finalidade e tipo
     if (!finalidade || !tipoImovel) {
       setErro("Selecione a finalidade e o tipo de imóvel.");
       return;
     }
 
-    // ✅ validação dos termos de responsabilidade
+    // Termos de responsabilidade
     if (!aceitoTermos) {
       setErro(
-        "Você precisa aceitar os termos de responsabilidade para publicar o anúncio."
+        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
       );
       return;
     }
@@ -139,7 +139,6 @@ export default function FormularioImoveis() {
       if (arquivos.length > 0) {
         setUploading(true);
 
-        // Bucket do Supabase
         const bucketName = "anuncios";
 
         const uploads = await Promise.all(
@@ -196,7 +195,7 @@ export default function FormularioImoveis() {
       contato: contatoPrincipal,
       tipo_imovel: tipoImovel,
       finalidade: finalidade,
-      area: areaConstruida || areaTerreno, // usa principal em "area"
+      area: areaConstruida || areaTerreno,
       quartos,
       banheiros,
       vagas,
@@ -206,7 +205,6 @@ export default function FormularioImoveis() {
       aceita_financiamento: aceitaFinanciamento,
       status: "ativo",
       destaque: false,
-      // extras opcionais
       cep,
       suites,
       area_construida: areaConstruida,
@@ -220,9 +218,10 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // Sucesso
     setSucesso("Anúncio enviado com sucesso! Seu imóvel aparecerá em breve.");
 
-    // limpa formulário
+    // Limpa formulário
     setTitulo("");
     setDescricao("");
     setCidade("");
@@ -249,6 +248,11 @@ export default function FormularioImoveis() {
     setWhatsapp("");
     setEmail("");
     setAceitoTermos(false);
+
+    // Depois de 2 segundos, vai para Meus anúncios
+    setTimeout(() => {
+      router.push("/painel/meus-anuncios");
+    }, 2000);
   };
 
   return (
@@ -686,37 +690,33 @@ export default function FormularioImoveis() {
         </p>
       </div>
 
-      {/* BLOCO: TERMOS DE RESPONSABILIDADE */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
+      {/* BLOCO: TERMOS */}
+      <div className="space-y-2 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Termos de responsabilidade
         </h2>
-
-        <div className="flex items-start gap-2 text-xs text-slate-700">
+        <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
-            id="aceito-termos"
             type="checkbox"
-            className="mt-1"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
             checked={aceitoTermos}
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
-          <label htmlFor="aceito-termos">
-            Declaro que sou responsável por todas as informações e imagens deste
-            anúncio e que estou ciente de que anúncios falsos, enganosos ou
-            ilegais poderão ser removidos. Também confirmo que li e aceito os{" "}
-            <Link href="/termos-de-uso" className="text-cyan-600 underline">
-              Termos de Uso
-            </Link>{" "}
-            e a{" "}
-            <Link
-              href="/politica-de-privacidade"
-              className="text-cyan-600 underline"
+          <span>
+            Declaro que as informações deste anúncio são verdadeiras e que
+            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
+            e de acordo com os{" "}
+            <a
+              href="/termos-de-uso"
+              className="text-cyan-700 underline hover:text-cyan-800"
+              target="_blank"
+              rel="noreferrer"
             >
-              Política de Privacidade
-            </Link>{" "}
-            do Classilagos.
-          </label>
-        </div>
+              Termos de uso do Classilagos
+            </a>
+            .
+          </span>
+        </label>
       </div>
 
       <button
