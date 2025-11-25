@@ -26,9 +26,11 @@ export default function PainelPage() {
   return (
     <AuthGuard>
       <div className="max-w-4xl mx-auto px-4 py-8">
+
+        {/* Título */}
         <h1 className="text-2xl font-bold mb-4">Meu painel</h1>
 
-        {/* Bloco com dados básicos do usuário */}
+        {/* Box com dados básicos */}
         {user && (
           <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -40,21 +42,21 @@ export default function PainelPage() {
           </div>
         )}
 
-        {/* Cards de ações principais */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Cards principais */}
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+
+          {/* Criar anúncio */}
           <Link
             href="/anunciar"
             className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
           >
-            <h2 className="mb-1 text-base font-semibold">
-              Criar novo anúncio
-            </h2>
+            <h2 className="mb-1 text-base font-semibold">Criar novo anúncio</h2>
             <p className="text-sm text-slate-600">
-              Publique um novo anúncio grátis em qualquer categoria do
-              Classilagos.
+              Publique um novo anúncio grátis em qualquer categoria.
             </p>
           </Link>
 
+          {/* Meus anúncios */}
           <Link
             href="/painel/meus-anuncios"
             className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
@@ -64,12 +66,23 @@ export default function PainelPage() {
               Veja e gerencie todos os anúncios cadastrados na sua conta.
             </p>
           </Link>
+
+          {/* Editar cadastro */}
+          <Link
+            href="/editar-perfil"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
+          >
+            <h2 className="mb-1 text-base font-semibold">Editar cadastro</h2>
+            <p className="text-sm text-slate-600">
+              Atualize nome, cidade, telefone e outras informações pessoais.
+            </p>
+          </Link>
+
         </div>
 
-        {/* Espaço futuro para mais módulos do painel */}
+        {/* Rodapé / futuras funções */}
         <div className="mt-8 text-xs text-slate-500">
-          Em breve aqui você verá estatísticas, favoritos, mensagens e outras
-          funções do seu painel.
+          Em breve: favoritos, estatísticas, mensagens, histórico e muito mais.
         </div>
       </div>
     </AuthGuard>
