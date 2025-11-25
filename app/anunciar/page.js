@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import FormularioImoveis from "../../components/forms/FormularioImoveis";
++import FormularioImoveis from "../components/forms/FormularioImoveis";
 
 export default function AnunciarImovelPage() {
   return (
