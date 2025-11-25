@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between gap-6">
         {/* LOGO SOZINHA (SEM TEXTO) */}
         <Link href="/" className="flex items-center">
           <Image
