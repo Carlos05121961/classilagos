@@ -13,16 +13,36 @@ export default function FormularioImoveis() {
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [endereco, setEndereco] = useState("");
+  const [cep, setCep] = useState("");
+
+  // Tipo de anúncio / imóvel
+  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / temporada
+  const [tipoImovel, setTipoImovel] = useState("");
+
+  // Detalhes numéricos
+  const [quartos, setQuartos] = useState("");
+  const [suites, setSuites] = useState("");
+  const [banheiros, setBanheiros] = useState("");
+  const [vagas, setVagas] = useState("");
+  const [areaConstruida, setAreaConstruida] = useState("");
+  const [areaTerreno, setAreaTerreno] = useState("");
+
+  // Valores
   const [preco, setPreco] = useState("");
+  const [condominio, setCondominio] = useState("");
+  const [iptu, setIptu] = useState("");
+  const [mobiliado, setMobiliado] = useState("nao"); // sim / nao
+  const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao"); // sim / nao
 
   // Upload de arquivos (fotos)
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // Vídeo (URL)
+  // Vídeo (URL – apenas YouTube)
   const [videoUrl, setVideoUrl] = useState("");
 
   // Contatos
+  const [nomeContato, setNomeContato] = useState("");
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
@@ -42,6 +62,21 @@ export default function FormularioImoveis() {
     "Rio das Ostras",
   ];
 
+  const tiposImovel = [
+    "Casa",
+    "Apartamento",
+    "Cobertura",
+    "Kitnet / Studio",
+    "Terreno / Lote",
+    "Comercial",
+    "Loja / Sala",
+    "Galpão",
+    "Sítio / Chácara",
+    "Outros",
+  ];
+
+  const finalidades = ["Venda", "Aluguel", "Temporada"];
+
   // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -53,7 +88,8 @@ export default function FormularioImoveis() {
 
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 4)); // máximo 4 fotos
+    // máximo 8 fotos
+    setArquivos(files.slice(0, 8));
   };
 
   const enviarAnuncio = async (e) => {
@@ -80,13 +116,18 @@ export default function FormularioImoveis() {
       return;
     }
 
+    if (!finalidade || !tipoImovel) {
+      setErro("Selecione a finalidade e o tipo de imóvel.");
+      return;
+    }
+
     let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
         setUploading(true);
 
-        // 👉 NOME DO BUCKET: IGUAL AO SEU PRINT ("anuncios")
+        // Bucket do Supabase (como no seu print)
         const bucketName = "anuncios";
 
         const uploads = await Promise.all(
@@ -124,7 +165,6 @@ export default function FormularioImoveis() {
       setUploading(false);
     }
 
-    // Só as fotos enviadas pelo upload
     const imagens = urlsUpload;
 
     const { error } = await supabase.from("anuncios").insert({
@@ -142,9 +182,24 @@ export default function FormularioImoveis() {
       whatsapp,
       email,
       contato: contatoPrincipal,
-      tipo_imovel: "não informado",
+      tipo_imovel: tipoImovel,
+      finalidade: finalidade,
+      area: areaConstruida || areaTerreno, // usa principal em "area"
+      quartos,
+      banheiros,
+      vagas,
+      mobiliado,
+      condominio,
+      iptu,
+      aceita_financiamento: aceitaFinanciamento,
       status: "ativo",
       destaque: false,
+      // extras opcionais
+      cep,
+      suites,
+      area_construida: areaConstruida,
+      area_terreno: areaTerreno,
+      nome_contato: nomeContato,
     });
 
     if (error) {
@@ -161,9 +216,23 @@ export default function FormularioImoveis() {
     setCidade("");
     setBairro("");
     setEndereco("");
+    setCep("");
+    setFinalidade("");
+    setTipoImovel("");
+    setQuartos("");
+    setSuites("");
+    setBanheiros("");
+    setVagas("");
+    setAreaConstruida("");
+    setAreaTerreno("");
     setPreco("");
+    setCondominio("");
+    setIptu("");
+    setMobiliado("nao");
+    setAceitaFinanciamento("nao");
     setArquivos([]);
     setVideoUrl("");
+    setNomeContato("");
     setTelefone("");
     setWhatsapp("");
     setEmail("");
@@ -182,8 +251,55 @@ export default function FormularioImoveis() {
         </p>
       )}
 
-      {/* BLOCO: INFORMAÇÕES DO IMÓVEL */}
+      {/* BLOCO: TIPO DO ANÚNCIO */}
       <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Tipo de anúncio
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Finalidade *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={finalidade}
+              onChange={(e) => setFinalidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {finalidades.map((f) => (
+                <option key={f} value={f.toLowerCase()}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Tipo de imóvel *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={tipoImovel}
+              onChange={(e) => setTipoImovel(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {tiposImovel.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO: INFORMAÇÕES DO IMÓVEL */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Informações do imóvel
         </h2>
@@ -258,30 +374,192 @@ export default function FormularioImoveis() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Endereço (opcional)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Rua, número, complemento..."
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
-          />
+        <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Endereço (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Rua, número, complemento..."
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              CEP (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cep}
+              onChange={(e) => setCep(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO: DETALHES DO IMÓVEL */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Detalhes do imóvel
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Dormitórios
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={quartos}
+              onChange={(e) => setQuartos(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Suítes
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={suites}
+              onChange={(e) => setSuites(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Banheiros
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={banheiros}
+              onChange={(e) => setBanheiros(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Vagas de garagem
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={vagas}
+              onChange={(e) => setVagas(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Área construída (m²)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={areaConstruida}
+              onChange={(e) => setAreaConstruida(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Área total / terreno (m²)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={areaTerreno}
+              onChange={(e) => setAreaTerreno(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Imóvel mobiliado?
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={mobiliado}
+              onChange={(e) => setMobiliado(e.target.value)}
+            >
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO: VALORES */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Valores</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Preço (R$) *
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder={
+                finalidade === "aluguel"
+                  ? "Ex: R$ 2.500 / mês"
+                  : finalidade === "temporada"
+                  ? "Ex: R$ 500 / diária"
+                  : "Ex: R$ 450.000"
+              }
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Condomínio (R$)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={condominio}
+              onChange={(e) => setCondominio(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              IPTU (R$)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={iptu}
+              onChange={(e) => setIptu(e.target.value)}
+            />
+          </div>
         </div>
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
-            Preço (opcional)
+            Aceita financiamento?
           </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex: R$ 350.000 ou R$ 2.500/mês"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-          />
+          <select
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm max-w-xs"
+            value={aceitaFinanciamento}
+            onChange={(e) => setAceitaFinanciamento(e.target.value)}
+          >
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
         </div>
       </div>
 
@@ -291,7 +569,7 @@ export default function FormularioImoveis() {
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
-            Enviar fotos (upload) – até 4 imagens
+            Enviar fotos (upload) – até 8 imagens
           </label>
           <input
             type="file"
@@ -319,12 +597,12 @@ export default function FormularioImoveis() {
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
-            URL do vídeo (YouTube, Vimeo, etc.)
+            URL do vídeo (YouTube)
           </label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Cole aqui o link do vídeo, se tiver"
+            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
           />
@@ -334,6 +612,19 @@ export default function FormularioImoveis() {
       {/* BLOCO: CONTATO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Nome de contato
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Nome do proprietário, corretor ou imobiliária"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
+          />
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
