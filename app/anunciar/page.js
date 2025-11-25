@@ -2,36 +2,77 @@
 
 import Link from "next/link";
 
-export default function AnunciarPage() {
-  const secoes = [
-    { slug: "imoveis", titulo: "Imóveis", descricao: "Casas, apartamentos, terrenos e mais." },
-    { slug: "veiculos", titulo: "Veículos", descricao: "Carros, motos, utilitários." },
-    { slug: "nautica", titulo: "Náutica", descricao: "Barcos, lanchas e jet skis." },
-    { slug: "pets", titulo: "Pets", descricao: "Adoção, venda e serviços." },
-    { slug: "empregos", titulo: "Empregos", descricao: "Vagas na região." },
-    { slug: "servicos", titulo: "Serviços", descricao: "Profissionais e prestadores." },
-    { slug: "turismo", titulo: "Turismo", descricao: "Hotéis, pousadas e passeios." },
-    { slug: "lagolistas", titulo: "LagoListas", descricao: "Guia comercial completo." },
-  ];
+const categorias = [
+  {
+    slug: "imoveis",
+    titulo: "Imóveis",
+    texto: "Casas, apartamentos, terrenos e salas comerciais para venda e aluguel na Região dos Lagos.",
+  },
+  {
+    slug: "veiculos",
+    titulo: "Veículos",
+    texto: "Carros, motos e outros veículos novos e usados.",
+  },
+  {
+    slug: "nautica",
+    titulo: "Náutica",
+    texto: "Barcos, lanchas, jet skis e serviços náuticos.",
+  },
+  {
+    slug: "pets",
+    titulo: "Pets",
+    texto: "Adoção, venda, acessórios e serviços para seu melhor amigo.",
+  },
+  {
+    slug: "empregos",
+    titulo: "Empregos",
+    texto: "Vagas e oportunidades de trabalho em toda a região.",
+  },
+  {
+    slug: "servicos",
+    titulo: "Serviços",
+    texto: "Profissionais liberais, autônomos e empresas de serviços em geral.",
+  },
+];
 
+function CategoriaCard({ categoria }) {
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-extrabold mb-6 text-slate-900">
-        Escolha a categoria do seu anúncio
-      </h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {secoes.map((secao) => (
-          <Link
-            key={secao.slug}
-            href={`/anunciar/${secao.slug}`}
-            className="p-5 rounded-2xl border shadow-sm hover:shadow-md bg-white transition block"
-          >
-            <h2 className="text-lg font-bold text-slate-900">{secao.titulo}</h2>
-            <p className="text-sm text-slate-600">{secao.descricao}</p>
-          </Link>
-        ))}
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col justify-between">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">
+          {categoria.titulo}
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">{categoria.texto}</p>
       </div>
+      <div className="mt-4">
+        <Link
+          href={`/anunciar/formulario?tipo=${categoria.slug}`}
+          className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition"
+        >
+          Anunciar em {categoria.titulo}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function AnunciarPage() {
+  return (
+    <main className="max-w-5xl mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">
+          Anuncie grátis no Classilagos
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Escolha abaixo em qual seção você deseja anunciar. Em poucos minutos o seu anúncio estará cadastrado.
+        </p>
+      </header>
+
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {categorias.map((cat) => (
+          <CategoriaCard key={cat.slug} categoria={cat} />
+        ))}
+      </section>
     </main>
   );
 }
