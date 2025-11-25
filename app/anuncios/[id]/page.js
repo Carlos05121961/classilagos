@@ -191,11 +191,18 @@ export default function AnuncioDetalhePage() {
         {/* FOTO PRINCIPAL (sem gambiarra, com altura máxima) */}
         {fotoAtiva && (
           <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-            <img
-              src={fotoAtiva}
-              alt={anuncio.titulo}
-              className="w-full max-h-[420px] object-cover object-center"
-            />
+         <img
+  src={fotoAtiva}
+  alt={anuncio.titulo}
+  className="
+    w-full
+    object-cover object-center
+    max-h-[220px]
+    sm:max-h-[260px]
+    md:max-h-[300px]
+    lg:max-h-[320px]
+  "
+/>
           </div>
         )}
 
