@@ -185,16 +185,18 @@ export default function AnuncioDetalhePage() {
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         {/* CARD DE FOTOS NOVO */}
-     {temImagens && (
+{temImagens && (
   <section className="w-full flex flex-col gap-3">
-    {/* Foto principal (ajustada) */}
-    <div className="w-full max-w-3xl mx-auto rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-      <div className="relative w-full h-[180px] sm:h-[220px] md:h-[260px] lg:h-[280px]">
-        <img
-          src={imagens[fotoIndex]}
-          alt={anuncio.titulo}
-          className="w-full h-full object-cover object-center"
-        />
+    {/* Foto principal (ajustada para caber dentro do card) */}
+    <div className="w-full flex justify-center">
+      <div className="max-w-3xl w-full bg-slate-100 border border-slate-200 rounded-2xl p-3">
+        <div className="w-full flex justify-center">
+          <img
+            src={imagens[fotoIndex]}
+            alt={anuncio.titulo}
+            className="max-h-[260px] md:max-h-[300px] w-auto object-contain rounded-xl mx-auto"
+          />
+        </div>
       </div>
     </div>
 
@@ -223,6 +225,7 @@ export default function AnuncioDetalhePage() {
     )}
   </section>
 )}
+
 
 
         {/* GRID PRINCIPAL: ESQUERDA (imóvel) / DIREITA (contato + ML) */}
