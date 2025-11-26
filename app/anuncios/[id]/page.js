@@ -185,46 +185,46 @@ export default function AnuncioDetalhePage() {
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         {/* CARD DE FOTOS NOVO */}
-{temImagens && (
-  <section className="w-full flex flex-col gap-3">
-    {/* Foto principal (ajustada para caber dentro do card) */}
-    <div className="w-full flex justify-center">
-  <div className="max-w-4xl w-full bg-slate-100 border border-slate-200 rounded-2xl p-4">
-    <div className="w-full flex justify-center">
-      <img
-        src={imagens[fotoIndex]}
-        alt={anuncio.titulo}
-        className="max-h-[320px] md:max-h-[380px] w-auto object-contain rounded-xl mx-auto"
-      />
-    </div>
-  </div>
-</div>
+      {/* CARD DE FOTOS NOVO */}
+      {temImagens && (
+        <section className="w-full flex flex-col gap-3">
+          {/* Foto principal */}
+          <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+            <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] lg:h-[380px]">
+              <img
+                src={imagens[fotoIndex]}
+                alt={anuncio.titulo}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+          </div>
 
-    {/* Miniaturas */}
-    {imagens.length > 1 && (
-      <div className="w-full max-w-3xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-        {imagens.map((url, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => setFotoIndex(index)}
-            className={`rounded-lg overflow-hidden border ${
-              fotoIndex === index
-                ? "border-cyan-500 ring-2 ring-cyan-400/40"
-                : "border-slate-300"
-            }`}
-          >
-            <img
-              src={url}
-              alt={`Foto ${index + 1}`}
-              className="w-full h-16 object-cover"
-            />
-          </button>
-        ))}
-      </div>
-    )}
-  </section>
-)}
+          {/* Miniaturas */}
+          {imagens.length > 1 && (
+            <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+              {imagens.map((url, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setFotoIndex(index)}
+                  className={`rounded-xl overflow-hidden border transition ${
+                    fotoIndex === index
+                      ? "border-cyan-500 ring-2 ring-cyan-400/40"
+                      : "border-slate-300 hover:border-cyan-400"
+                  }`}
+                >
+                  <img
+                    src={url}
+                    alt={`Foto ${index + 1}`}
+                    className="w-full h-20 object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
 
 
 
