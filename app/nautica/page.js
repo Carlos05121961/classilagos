@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "../supabaseClient";
 
 const heroImages = [
   "/nautica/lancha-01.jpg",
@@ -12,7 +13,10 @@ const heroImages = [
 
 export default function NauticaPage() {
   const [currentHero, setCurrentHero] = useState(0);
+  const [anuncios, setAnuncios] = useState([]);
+  const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
+  // Troca de foto do hero
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
@@ -20,18 +24,43 @@ export default function NauticaPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Buscar anúncios de náutica no Supabase
+  useEffect(() => {
+    const fetchAnuncios = async () => {
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select(
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica"
+        )
+        .eq("categoria", "nautica")
+        .eq("status", "ativo")
+        .order("created_at", { ascending: false })
+        .limit(12);
+
+      if (error) {
+        console.error("Erro ao carregar anúncios de náutica:", error);
+        setAnuncios([]);
+      } else {
+        setAnuncios(data || []);
+      }
+      setLoadingAnuncios(false);
+    };
+
+    fetchAnuncios();
+  }, []);
+
   const categoriasLinha1 = [
-    { nome: "Passeios de lancha" },
-    { nome: "Passeios de barco / escuna" },
-    { nome: "Aluguel de embarcações" },
-    { nome: "Passeios exclusivos" },
+    { nome: "Lanchas e veleiros à venda" },
+    { nome: "Jetski, stand-up & caiaques" },
+    { nome: "Barcos de pesca" },
+    { nome: "Motores & equipamentos" },
   ];
 
   const categoriasLinha2 = [
-    { nome: "Venda de embarcações" },
+    { nome: "Aluguel de embarcações" },
     { nome: "Marinas & guardarias" },
-    { nome: "Manutenção náutica" },
-    { nome: "Passeios de pesca" },
+    { nome: "Serviços náuticos" },
+    { nome: "Peças & acessórios" },
   ];
 
   return (
@@ -51,7 +80,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* HERO – SÓ FOTO + TEXTO */}
+      {/* HERO – FOTO + TEXTO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -63,16 +92,22 @@ export default function NauticaPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-black/25" />
+
+          {/* Degradê azul marinho por cima */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/50 to-slate-900/70" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-sm md:text-base font-medium drop-shadow">
-              Encontre lanchas, barcos, escunas e passeios náuticos em toda a
-              Região dos Lagos.
+            <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow mb-2 max-w-2xl">
+              Encontre lanchas, veleiros, jetski, motores e serviços náuticos
+              em toda a Região dos Lagos.
             </p>
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold drop-shadow-lg tracking-tight">
               Classilagos – Náutica
             </h1>
+            <p className="mt-3 text-[11px] sm:text-xs text-sky-100/90">
+              Compra, venda, aluguel e serviços náuticos em Maricá, Saquarema,
+              Araruama, Cabo Frio, Búzios e muito mais.
+            </p>
           </div>
         </div>
       </section>
@@ -89,22 +124,24 @@ export default function NauticaPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: passeio de lancha, barco de pesca"
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex.: lancha 30 pés, jetski, vaga em marina"
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
               </div>
 
-              {/* Embarcação */}
+              {/* Tipo de embarcação */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Embarcação
+                  Tipo
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <option>Lancha</option>
-                  <option>Barco de pesca</option>
-                  <option>Escuna</option>
                   <option>Veleiro</option>
-                  <option>Jet ski</option>
+                  <option>Jetski</option>
+                  <option>Barco de pesca</option>
+                  <option>Stand-up / Caiaque</option>
+                  <option>Vaga em marina</option>
+                  <option>Serviços náuticos</option>
                 </select>
               </div>
 
@@ -113,7 +150,7 @@ export default function NauticaPage() {
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <option>Maricá</option>
                   <option>Saquarema</option>
                   <option>Araruama</option>
@@ -126,11 +163,11 @@ export default function NauticaPage() {
                 </select>
               </div>
 
-              {/* Botão */}
+              {/* Botão (ainda fake) */}
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                  className="w-full md:w-auto rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
                 >
                   Buscar
                 </button>
@@ -146,81 +183,151 @@ export default function NauticaPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
+      {/* CATEGORIAS FIXAS */}
+      <section className="max-w-6xl mx-auto px-4 pb-8">
         {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => (
             <div
               key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100"
+              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-gradient-to-br from-sky-900 via-sky-800 to-slate-900 text-white"
             >
-              <div className="h-32 md:h-36 w-full bg-sky-300" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
+              <div className="h-24 md:h-28 w-full relative">
+                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#38bdf8,_transparent_60%)]" />
+                <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-900/80 to-transparent" />
+              </div>
+              <div className="px-3 py-2 text-xs md:text-sm font-semibold flex items-center gap-2">
+                <span className="text-base">⚓</span>
+                <span>{cat.nome}</span>
               </div>
             </div>
           ))}
         </div>
 
         {/* LINHA 2 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {categoriasLinha2.map((cat) => (
             <div
               key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100"
+              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-gradient-to-br from-sky-800 via-sky-700 to-slate-900 text-white"
             >
-              <div className="h-32 md:h-36 w-full bg-sky-400" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
+              <div className="h-24 md:h-28 w-full relative">
+                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_bottom,_#0ea5e9,_transparent_60%)]" />
+                <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-900/80 to-transparent" />
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* DESTAQUES RESERVADOS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200"
-            >
-              <div className="h-28 md:h-32 w-full bg-sky-800" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                Destaque náutico
+              <div className="px-3 py-2 text-xs md:text-sm font-semibold flex items-center gap-2">
+                <span className="text-base">🌊</span>
+                <span>{cat.nome}</span>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* NOTÍCIAS */}
-      <section className="bg-white pb-8">
+      {/* ANÚNCIOS REAIS DE NÁUTICA */}
+      <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-16 flex items-center justify-center bg-yellow-300 text-slate-900 text-xl font-bold rounded-md"
-              >
-                Notícias
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900">
+              Embarcações e anúncios náuticos
+            </h2>
+            <span className="text-[11px] text-slate-500">
+              {loadingAnuncios
+                ? "Carregando anúncios..."
+                : anuncios.length === 0
+                ? "Nenhum anúncio cadastrado ainda."
+                : `${anuncios.length} anúncio(s) encontrado(s)`}
+            </span>
           </div>
+
+          {loadingAnuncios && (
+            <div className="text-xs text-slate-500">Buscando anúncios…</div>
+          )}
+
+          {!loadingAnuncios && anuncios.length === 0 && (
+            <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
+              Ainda não há anúncios de náutica cadastrados.
+              <br />
+              <Link
+                href="/anunciar"
+                className="inline-flex mt-3 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700"
+              >
+                Seja o primeiro a anunciar sua embarcação
+              </Link>
+            </div>
+          )}
+
+          {!loadingAnuncios && anuncios.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+              {anuncios.map((item) => {
+                const img =
+                  Array.isArray(item.imagens) && item.imagens.length > 0
+                    ? item.imagens[0]
+                    : null;
+
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/anuncios/${item.id}`}
+                    className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
+                  >
+                    {img ? (
+                      <div className="w-full h-28 md:h-32 overflow-hidden bg-slate-200">
+                        <img
+                          src={img}
+                          alt={item.titulo}
+                          className="w-full h-full object-cover group-hover:scale-105 transition"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-28 md:h-32 bg-gradient-to-br from-sky-900 to-slate-900 flex items-center justify-center text-[11px] text-sky-100">
+                        Sem foto
+                      </div>
+                    )}
+
+                    <div className="px-3 py-2 space-y-1">
+                      <p className="font-semibold leading-snug line-clamp-2 text-slate-900">
+                        {item.titulo}
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        {item.subcategoria_nautica
+                          ? `${item.subcategoria_nautica} · `
+                          : ""}
+                        {item.cidade}
+                        {item.bairro ? ` • ${item.bairro}` : ""}
+                      </p>
+                      {item.preco && (
+                        <p className="text-[11px] font-semibold text-emerald-700">
+                          {item.preco}
+                        </p>
+                      )}
+                      {item.finalidade_nautica && (
+                        <p className="text-[10px] uppercase tracking-wide text-slate-500">
+                          {item.finalidade_nautica}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
       {/* LINKS ÚTEIS */}
       <section className="bg-slate-50 py-8">
         <div className="max-w-6xl mx-auto px-4 space-y-4">
-          <h2 className="text-sm font-semibold text-slate-800">Links úteis</h2>
+          <h2 className="text-sm font-semibold text-slate-800">
+            Links úteis para quem navega
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
               <p className="font-semibold text-slate-900 text-sm">
                 Capitania dos Portos
               </p>
               <p className="text-[12px] text-slate-600">
-                Normas de navegação e segurança.
+                Normas de navegação, segurança e documentação de embarcações.
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
@@ -228,16 +335,22 @@ export default function NauticaPage() {
                 Previsão do tempo &amp; maré
               </p>
               <p className="text-[12px] text-slate-600">
-                Consulte o tempo e condições do mar.
+                Consulte vento, ondas e condições do mar antes de sair.
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
               <p className="font-semibold text-slate-900 text-sm">
-                Regras de passeios
+                Passeios turísticos
               </p>
-              <p className="text-[12px] text-slate-600">
-                Informações sobre turismo náutico regularizado.
+              <p className="text-[12px] text-slate-600 mb-1">
+                Escunas, mergulho e passeios regulares estão na área de Turismo.
               </p>
+              <Link
+                href="/turismo"
+                className="text-[12px] text-sky-700 font-semibold hover:underline"
+              >
+                Ver seção de Turismo &rarr;
+              </Link>
             </div>
           </div>
         </div>
@@ -246,18 +359,19 @@ export default function NauticaPage() {
       {/* CHAMADA FINAL */}
       <section className="bg-slate-50 pb-12">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="rounded-3xl bg-slate-100 border border-slate-200 px-6 py-7 text-center">
-            <p className="text-sm font-semibold text-slate-900 mb-1">
-              Quer anunciar passeios ou embarcações?
+          <div className="rounded-3xl bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 border border-slate-800 px-6 py-7 text-center text-white">
+            <p className="text-sm font-semibold mb-1">
+              Quer anunciar sua embarcação ou serviço náutico?
             </p>
-            <p className="text-xs text-slate-700 mb-4">
-              Divulgue seus passeios de barco, lanchas, pesca ou serviços
-              náuticos no Classilagos. Anúncios gratuitos na fase de lançamento.
+            <p className="text-xs text-sky-100 mb-4">
+              Divulgue sua lancha, veleiro, jetski, motores, vagas em marinas
+              ou serviços especializados no Classilagos. Anúncios gratuitos na
+              fase de lançamento.
             </p>
 
             <Link
               href="/anunciar"
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="inline-flex items-center justify-center rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white hover:bg-sky-400"
             >
               Anuncie na Náutica grátis
             </Link>
@@ -267,3 +381,4 @@ export default function NauticaPage() {
     </main>
   );
 }
+
