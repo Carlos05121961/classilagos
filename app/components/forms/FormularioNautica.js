@@ -10,48 +10,24 @@ export default function FormularioNautica() {
   // Campos básicos
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
+
+  // Localização
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
-  const [endereco, setEndereco] = useState("");
-  const [preco, setPreco] = useState("");
 
-  // Classificação
+  // Tipo / finalidade
   const [subcategoria, setSubcategoria] = useState("");
   const [finalidade, setFinalidade] = useState("");
 
-  // Dados técnicos
-  const [marca, setMarca] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [ano, setAno] = useState("");
-  const [comprimento, setComprimento] = useState("");
-  const [material, setMaterial] = useState("");
+  // Preço
+  const [preco, setPreco] = useState("");
 
-  const [marcaMotor, setMarcaMotor] = useState("");
-  const [potenciaMotor, setPotenciaMotor] = useState("");
-  const [qtdMotores, setQtdMotores] = useState("");
-  const [horasMotor, setHorasMotor] = useState("");
+  // Upload de arquivos (fotos)
+  const [arquivos, setArquivos] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
-  const [capacidadePessoas, setCapacidadePessoas] = useState("");
-  const [combustivel, setCombustivel] = useState("");
-
-  const [qtdCabines, setQtdCabines] = useState("");
-  const [qtdBanheiros, setQtdBanheiros] = useState("");
-
-  const [registro, setRegistro] = useState("");
-  const [documentacao, setDocumentacao] = useState("");
-
-  // Passeio / Aluguel privado
-  const [tipoPasseio, setTipoPasseio] = useState("");
-  const [duracaoPasseio, setDuracaoPasseio] = useState("");
-  const [valorPorPessoa, setValorPorPessoa] = useState("");
-  const [valorFechado, setValorFechado] = useState("");
-  const [pontoEmbarque, setPontoEmbarque] = useState("");
-  const [itensInclusos, setItensInclusos] = useState("");
-
-  // Marina
-  const [tipoVaga, setTipoVaga] = useState("");
-  const [comprimentoMax, setComprimentoMax] = useState("");
-  const [estruturaDisponivel, setEstruturaDisponivel] = useState("");
+  // Vídeo (opcional)
+  const [videoUrl, setVideoUrl] = useState("");
 
   // Contato
   const [nomeContato, setNomeContato] = useState("");
@@ -59,18 +35,14 @@ export default function FormularioNautica() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Fotos
-  const [arquivos, setArquivos] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  // Termos
+  const [aceitoTermos, setAceitoTermos] = useState(false);
 
-  // Vídeo
-  const [videoUrl, setVideoUrl] = useState("");
-
-  // Feedback
+  // Mensagens
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  const cidadesLista = [
+  const cidades = [
     "Maricá",
     "Saquarema",
     "Araruama",
@@ -82,40 +54,33 @@ export default function FormularioNautica() {
     "Rio das Ostras",
   ];
 
-  const subcategoriasLista = [
+  const subcategoriasNautica = [
     "Lancha",
     "Veleiro",
     "Jetski",
-    "Barco a laser",
-    "Stand-up paddle",
-    "Caiaque",
-    "Bote inflável",
-    "Pesca",
-    "Motores",
-    "Equipamentos",
+    "Barco de pesca",
+    "Stand-up / Caiaque",
+    "Vaga em marina",
+    "Serviços náuticos",
     "Outros",
   ];
 
-  const finalidadesLista = [
-    "Venda",
-    "Aluguel",
-    "Serviço",
-    "Vaga de marina",
-  ];
+  const finalidades = ["Venda", "Aluguel", "Passeio / turismo", "Serviço"];
 
-  // Garante login
+  // Garante login (mesma lógica de Imóveis)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
+      if (!data.user) {
+        router.push("/login");
+      }
     });
   }, [router]);
 
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 8));
+    setArquivos(files.slice(0, 8)); // até 8 fotos
   };
 
-  // Enviar
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -127,44 +92,59 @@ export default function FormularioNautica() {
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
+      router.push("/login");
       return;
     }
 
-    const contato = whatsapp || telefone || email;
-
-    if (!contato) {
-      setErro("Informe pelo menos um meio de contato.");
+    // Pelo menos um contato
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      setErro(
+        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
       return;
     }
 
+    // Subcategoria e finalidade
     if (!subcategoria || !finalidade) {
-      setErro("Selecione subcategoria e finalidade.");
+      setErro("Selecione o tipo de anúncio (subcategoria) e a finalidade.");
       return;
     }
 
-    // Upload das fotos
+    if (!aceitoTermos) {
+      setErro(
+        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
+      );
+      return;
+    }
+
     let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
         setUploading(true);
 
+        const bucketName = "anuncios";
+
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const path = `${user.id}/${Date.now()}-${index}.${ext}`;
+            const fileExt = file.name.split(".").pop();
+            const filePath = `${user.id}/${Date.now()}-nautica-${index}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
-              .from("anuncios")
-              .upload(path, file);
+              .from(bucketName)
+              .upload(filePath, file);
 
-            if (uploadError) throw uploadError;
+            if (uploadError) {
+              console.error("Erro ao subir imagem:", uploadError);
+              throw uploadError;
+            }
 
-            const { data } = supabase.storage
-              .from("anuncios")
-              .getPublicUrl(path);
+            const { data: publicData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(filePath);
 
-            return data.publicUrl;
+            return publicData.publicUrl;
           })
         );
 
@@ -172,7 +152,9 @@ export default function FormularioNautica() {
       }
     } catch (err) {
       console.error(err);
-      setErro("Erro ao enviar imagens. Tente novamente.");
+      setErro(
+        "Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes."
+      );
       setUploading(false);
       return;
     } finally {
@@ -181,149 +163,83 @@ export default function FormularioNautica() {
 
     const imagens = urlsUpload;
 
-    // Inserir no Supabase
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "nautica",
-
       titulo,
       descricao,
       cidade,
       bairro,
-      endereco,
       preco,
-
-      // Classificação
-      subcategoria_nautica: subcategoria,
-      finalidade_nautica: finalidade,
-
-      // Dados técnicos
-      marca_embarcacao: marca,
-      modelo_embarcacao: modelo,
-      ano_embarcacao: ano,
-      comprimento_pes: comprimento,
-      material_casco: material,
-
-      marca_motor: marcaMotor,
-      potencia_motor_hp: potenciaMotor,
-      qtd_motores: qtdMotores,
-      horas_motor: horasMotor,
-
-      capacidade_pessoas: capacidadePessoas,
-      combustivel,
-
-      qtd_cabines: qtdCabines,
-      qtd_banheiros: qtdBanheiros,
-
-      registro_capitania: registro,
-      documentacao_em_dia: documentacao,
-
-      // Passeio / aluguel
-      tipo_passeio: tipoPasseio,
-      duracao_passeio: duracaoPasseio,
-      valor_passeio_pessoa: valorPorPessoa,
-      valor_passeio_fechado: valorFechado,
-      ponto_embarque: pontoEmbarque,
-      itens_inclusos: itensInclusos,
-
-      // Marina
-      tipo_vaga: tipoVaga,
-      comprimento_maximo_pes: comprimentoMax,
-      estrutura_disponivel: estruturaDisponivel,
-
-      // Fotos + vídeo
       imagens,
       video_url: videoUrl,
-
-      // Contato
       telefone,
       whatsapp,
       email,
-      nome_contato: nomeContato,
-
+      contato: contatoPrincipal,
+      subcategoria_nautica: subcategoria,
+      finalidade_nautica: finalidade,
       status: "ativo",
       destaque: false,
+      nome_contato: nomeContato,
     });
 
     if (error) {
       console.error(error);
-      setErro("Erro ao salvar o anúncio. Tente novamente.");
+      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
       return;
     }
 
-    setSucesso("Anúncio enviado com sucesso! Ele aparecerá em breve.");
+    // Sucesso
+    setSucesso(
+      "Anúncio de náutica enviado com sucesso! Ele aparecerá em breve na página Náutica."
+    );
 
-    // Resetar formulário
+    // Limpa formulário
     setTitulo("");
     setDescricao("");
     setCidade("");
     setBairro("");
-    setEndereco("");
-    setPreco("");
-
     setSubcategoria("");
     setFinalidade("");
-
-    setMarca("");
-    setModelo("");
-    setAno("");
-    setComprimento("");
-    setMaterial("");
-
-    setMarcaMotor("");
-    setPotenciaMotor("");
-    setQtdMotores("");
-    setHorasMotor("");
-
-    setCapacidadePessoas("");
-    setCombustivel("");
-
-    setQtdCabines("");
-    setQtdBanheiros("");
-
-    setRegistro("");
-    setDocumentacao("");
-
-    setTipoPasseio("");
-    setDuracaoPasseio("");
-    setValorPorPessoa("");
-    setValorFechado("");
-    setPontoEmbarque("");
-    setItensInclusos("");
-
-    setTipoVaga("");
-    setComprimentoMax("");
-    setEstruturaDisponivel("");
-
+    setPreco("");
     setArquivos([]);
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
     setWhatsapp("");
     setEmail("");
+    setAceitoTermos(false);
+
+    // Depois de 2 segundos, vai para Meus anúncios
+    setTimeout(() => {
+      router.push("/painel/meus-anuncios");
+    }, 2000);
   };
 
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-6">
-      {/* MENSAGENS */}
+    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
       {erro && (
-        <p className="text-red-600 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
+        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
           {erro}
         </p>
       )}
-
       {sucesso && (
-        <p className="text-green-600 text-sm bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+        <p className="text-emerald-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
           {sucesso}
         </p>
-      {/* CLASSIFICAÇÃO */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Classificação</h2>
+      )}
+
+      {/* BLOCO: TIPO DO ANÚNCIO */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Tipo de anúncio náutico
+        </h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Subcategoria *
+            <label className="block text-[11px] font-medium text-slate-700">
+              Tipo / Subcategoria *
             </label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -332,7 +248,7 @@ export default function FormularioNautica() {
               required
             >
               <option value="">Selecione...</option>
-              {subcategoriasLista.map((s) => (
+              {subcategoriasNautica.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -341,7 +257,7 @@ export default function FormularioNautica() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-medium text-slate-700">
               Finalidade *
             </label>
             <select
@@ -351,7 +267,7 @@ export default function FormularioNautica() {
               required
             >
               <option value="">Selecione...</option>
-              {finalidadesLista.map((f) => (
+              {finalidades.map((f) => (
                 <option key={f} value={f}>
                   {f}
                 </option>
@@ -361,202 +277,251 @@ export default function FormularioNautica() {
         </div>
       </div>
 
-      {/* DADOS DA EMBARCAÇÃO */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Dados da embarcação</h2>
+      {/* BLOCO: INFORMAÇÕES DA EMBARCAÇÃO */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Informações da embarcação / serviço
+        </h2>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Marca</label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={marca}
-              onChange={(e) => setMarca(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Modelo</label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={modelo}
-              onChange={(e) => setModelo(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Ano</label>
-            <input
-              type="number"
-              min="1900"
-              max="2099"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={ano}
-              onChange={(e) => setAno(e.target.value)}
-            />
-          </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Título do anúncio *
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex: Lancha 30 pés FS com motor 250hp – pronta para passeio"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Comprimento (pés)
-            </label>
-            <input
-              type="number"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={comprimento}
-              onChange={(e) => setComprimento(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Material do casco</label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={material}
-              onChange={(e) => setMaterial(e.target.value)}
-            >
-              <option value="">Selecione...</option>
-              <option value="fibra">Fibra</option>
-              <option value="aluminio">Alumínio</option>
-              <option value="madeira">Madeira</option>
-              <option value="inflavel">Inflável</option>
-              <option value="outro">Outro</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Descrição detalhada *
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
+            placeholder="Descreva a embarcação, ano, motorização, equipamentos, capacidade, estado geral, regras de uso, etc."
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            required
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Dica: quanto mais detalhes (reais), mais segurança para quem está
+            buscando passeios e embarcações.
+          </p>
         </div>
       </div>
 
-      {/* MOTORES */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Motor</h2>
-
-        <div className="grid gap-4 md:grid-cols-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Marca do motor</label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={marcaMotor}
-              onChange={(e) => setMarcaMotor(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Potência (HP)</label>
-            <input
-              type="number"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={potenciaMotor}
-              onChange={(e) => setPotenciaMotor(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Quantidade</label>
-            <input
-              type="number"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={qtdMotores}
-              onChange={(e) => setQtdMotores(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">Horas de uso</label>
-            <input
-              type="number"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={horasMotor}
-              onChange={(e) => setHorasMotor(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* VALORES */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Preço</h2>
-
-        <input
-          type="text"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="Ex.: R$ 150.000"
-          value={preco}
-          onChange={(e) => setPreco(e.target.value)}
-          required
-        />
-      </div>
-
-      {/* FOTOS */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
-
-        <input type="file" accept="image/*" multiple onChange={handleArquivosChange} />
-
-        {arquivos.length > 0 && (
-          <p className="text-xs text-slate-500">{arquivos.length} foto(s) selecionada(s).</p>
-        )}
-      </div>
-
-      {/* VÍDEO */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
-
-        <input
-          type="text"
-          placeholder="URL do YouTube"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-        />
-      </div>
-
-      {/* CONTATO */}
-      <div className="space-y-4 border-t pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Contato</h2>
+      {/* BLOCO: LOCALIZAÇÃO */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Local de saída</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">WhatsApp</label>
-            <input
-              type="text"
-              className="w-full border rounded-lg px-3 py-2 text-sm"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
+            <label className="block text-[11px] font-medium text-slate-700">
+              Cidade *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">Telefone</label>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Bairro / ponto de embarque
+            </label>
             <input
               type="text"
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Ex: Praia do Forte, Canal, Porto Veleiro..."
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO: VALOR */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Preço (R$)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex: R$ 250.000,00 ou R$ 1.200,00 o passeio"
+            value={preco}
+            onChange={(e) => setPreco(e.target.value)}
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Se preferir, pode deixar &quot;a combinar&quot; na descrição.
+          </p>
+        </div>
+      </div>
+
+      {/* BLOCO: FOTOS */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Fotos da embarcação / serviço
+        </h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Enviar fotos (upload) – até 8 imagens
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleArquivosChange}
+            className="mt-1 w-full text-xs"
+          />
+          {arquivos.length > 0 && (
+            <p className="mt-1 text-[11px] text-slate-500">
+              {arquivos.length} arquivo(s) selecionado(s).
+            </p>
+          )}
+          <p className="mt-1 text-[11px] text-slate-500">
+            Formatos recomendados: JPG ou PNG, até 2MB cada.
+          </p>
+        </div>
+      </div>
+
+      {/* BLOCO: VÍDEO (OPCIONAL) */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Vídeo da embarcação (opcional)
+        </h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            URL do vídeo (YouTube)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* BLOCO: CONTATO */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Nome para contato
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Seu nome ou nome da empresa"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Telefone
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Telefone para contato"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
             />
           </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="DDD + número"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
         </div>
 
-        <label className="block text-xs font-medium text-slate-700">E-mail</label>
-        <input
-          type="email"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            E-mail
+          </label>
+          <input
+            type="email"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <p className="text-[11px] text-slate-500">
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
+          exibido para as pessoas entrarem em contato com você.
+        </p>
       </div>
 
-      {/* BOTÃO */}
+      {/* BLOCO: TERMOS */}
+      <div className="space-y-2 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Termos de responsabilidade
+        </h2>
+        <label className="flex items-start gap-2 text-[11px] text-slate-600">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            checked={aceitoTermos}
+            onChange={(e) => setAceitoTermos(e.target.checked)}
+          />
+          <span>
+            Declaro que as informações deste anúncio são verdadeiras e que
+            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
+            e de acordo com os{" "}
+            <a
+              href="/termos-de-uso"
+              className="text-cyan-700 underline hover:text-cyan-800"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Termos de uso do Classilagos
+            </a>
+            .
+          </span>
+        </label>
+      </div>
+
       <button
         type="submit"
+        className="mt-2 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
         disabled={uploading}
-        className="w-full bg-blue-600 text-white font-semibold rounded-full py-3 hover:bg-blue-700"
       >
-        {uploading ? "Enviando..." : "Enviar anúncio"}
+        {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
       </button>
     </form>
   );
