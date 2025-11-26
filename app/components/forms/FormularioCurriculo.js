@@ -7,31 +7,39 @@ import { supabase } from "../../supabaseClient";
 export default function FormularioCurriculo() {
   const router = useRouter();
 
+  // Dados pessoais
   const [nome, setNome] = useState("");
-  const [idade, setIdade] = useState("");
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
-
+  const [idade, setIdade] = useState("");
   const [areaProfissional, setAreaProfissional] = useState("");
-  const [experiencias, setExperiencias] = useState("");
-  const [formacao, setFormacao] = useState("");
-  const [habilidades, setHabilidades] = useState("");
 
+  // Formação / experiência
+  const [escolaridade, setEscolaridade] = useState("");
+  const [formacaoAcademica, setFormacaoAcademica] = useState("");
+  const [experienciasProf, setExperienciasProf] = useState("");
+  const [habilidades, setHabilidades] = useState("");
+  const [idiomas, setIdiomas] = useState("");
+  const [resumo, setResumo] = useState("");
+
+  // Contatos
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  const [foto, setFoto] = useState(null);
-  const [curriculoPDF, setCurriculoPDF] = useState(null);
+  // Arquivos
+  const [fotoFile, setFotoFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
 
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // Verificação de login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
+      if (!data.user) {
+        router.push("/login");
+      }
     });
   }, [router]);
 
@@ -47,7 +55,21 @@ export default function FormularioCurriculo() {
     "Rio das Ostras",
   ];
 
-  const enviarFormulario = async (e) => {
+  const areas = [
+    "Administração",
+    "Atendimento / Caixa",
+    "Comércio / Vendas",
+    "Construção civil",
+    "Serviços gerais",
+    "Educação",
+    "Saúde",
+    "Hotelaria / Turismo",
+    "Motorista / Entregador",
+    "TI / Informática",
+    "Outros",
+  ];
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
@@ -57,294 +79,408 @@ export default function FormularioCurriculo() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setErro("Você precisa estar logado.");
+      setErro("Você precisa estar logado para cadastrar seu currículo.");
       router.push("/login");
       return;
     }
 
+    // Validações básicas
     if (!nome || !cidade || !areaProfissional) {
-      setErro("Preencha pelo menos: nome, cidade e área profissional.");
+      setErro("Preencha pelo menos nome, cidade e área profissional.");
       return;
     }
 
-    let urlFoto = null;
-    let urlPDF = null;
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      setErro(
+        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
+      return;
+    }
+
+    setUploading(true);
+
+    let fotoUrl = null;
+    let pdfUrl = null;
 
     try {
-      setUploading(true);
+      const bucket = "anuncios";
 
       // Upload da foto (opcional)
-      if (foto) {
-        const ext = foto.name.split(".").pop();
-        const path = `${user.id}/curriculo-foto-${Date.now()}.${ext}`;
+      if (fotoFile) {
+        const ext = fotoFile.name.split(".").pop();
+        const path = `curriculos/${user.id}/foto-${Date.now()}.${ext}`;
 
-        const { error } = await supabase.storage
-          .from("anuncios")
-          .upload(path, foto);
+        const { error: uploadErroFoto } = await supabase.storage
+          .from(bucket)
+          .upload(path, fotoFile);
 
-        if (!error) {
-          const { data } = supabase.storage
-            .from("anuncios")
-            .getPublicUrl(path);
-          urlFoto = data.publicUrl;
+        if (uploadErroFoto) {
+          console.error("Erro upload foto currículo:", uploadErroFoto);
+          throw uploadErroFoto;
         }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        fotoUrl = data.publicUrl;
       }
 
       // Upload do PDF (opcional)
-      if (curriculoPDF) {
-        const ext = curriculoPDF.name.split(".").pop();
-        const path = `${user.id}/curriculo-${Date.now()}.${ext}`;
+      if (pdfFile) {
+        const ext = pdfFile.name.split(".").pop();
+        const path = `curriculos/${user.id}/cv-${Date.now()}.${ext}`;
 
-        const { error } = await supabase.storage
-          .from("anuncios")
-          .upload(path, curriculoPDF);
+        const { error: uploadErroPdf } = await supabase.storage
+          .from(bucket)
+          .upload(path, pdfFile);
 
-        if (!error) {
-          const { data } = supabase.storage
-            .from("anuncios")
-            .getPublicUrl(path);
-          urlPDF = data.publicUrl;
+        if (uploadErroPdf) {
+          console.error("Erro upload PDF currículo:", uploadErroPdf);
+          throw uploadErroPdf;
         }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        pdfUrl = data.publicUrl;
       }
 
-      // Inserção na tabela
-      const { error } = await supabase.from("anuncios").insert({
+      // Monta título e descrição principais
+      const titulo =
+        resumo || areaProfissional
+          ? `Currículo - ${nome} (${areaProfissional})`
+          : `Currículo - ${nome}`;
+
+      const descricaoBase =
+        resumo ||
+        experienciasProf ||
+        formacaoAcademica ||
+        "Currículo cadastrado no banco de talentos do Classilagos.";
+
+      // INSERT no Supabase
+      const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
         categoria: "curriculo",
-        titulo: `Currículo de ${nome}`,
-        descricao: experiencias,
+        titulo,
+        descricao: descricaoBase,
         cidade,
         bairro,
         nome_contato: nome,
+        // Campos específicos de currículo/empregos
+        area_profissional: areaProfissional,
+        escolaridade_minima: escolaridade,
+        formacao_academica: formacaoAcademica,
+        experiencias_profissionais: experienciasProf,
+        habilidades,
+        idiomas,
+        // Contatos
         telefone,
         whatsapp,
         email,
-        subcategoria_nautica: null, // ignorado
-        finalidade_nautica: null,
-        area_profissional: areaProfissional,
-        beneficios: habilidades,
-        video_url: null,
-        imagens: urlFoto ? [urlFoto] : null,
-        curriculo_url: urlPDF,
+        contato: contatoPrincipal, // 🔴 IMPORTANTE: coluna NOT NULL
+        // Arquivos
+        curriculo_foto_url: fotoUrl,
+        curriculo_pdf_url: pdfUrl,
         status: "ativo",
       });
 
-      if (error) {
-        console.error(error);
+      if (insertError) {
+        console.error("Erro ao inserir currículo:", insertError);
         setErro("Erro ao salvar seu currículo. Tente novamente.");
+        setUploading(false);
         return;
       }
 
-      setSucesso("Currículo enviado com sucesso!");
+      setSucesso("Currículo cadastrado com sucesso!");
+      setUploading(false);
+
+      // Limpa campos depois de salvar
+      setNome("");
+      setCidade("");
+      setBairro("");
+      setIdade("");
+      setAreaProfissional("");
+      setEscolaridade("");
+      setFormacaoAcademica("");
+      setExperienciasProf("");
+      setHabilidades("");
+      setIdiomas("");
+      setResumo("");
+      setTelefone("");
+      setWhatsapp("");
+      setEmail("");
+      setFotoFile(null);
+      setPdfFile(null);
 
       setTimeout(() => {
         router.push("/painel/meus-anuncios");
       }, 1800);
-
     } catch (err) {
       console.error(err);
-      setErro("Erro inesperado. Tente de novo.");
-    } finally {
+      setErro("Erro ao salvar seu currículo. Tente novamente.");
       setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={enviarFormulario} className="space-y-6">
-
+    <form onSubmit={handleSubmit} className="space-y-6">
       {erro && (
-        <p className="text-red-600 text-sm border p-2 rounded bg-red-50">
+        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
           {erro}
         </p>
       )}
       {sucesso && (
-        <p className="text-green-700 text-sm border p-2 rounded bg-emerald-50">
+        <p className="text-green-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
           {sucesso}
         </p>
       )}
 
-      <h2 className="text-lg font-semibold text-slate-900">
-        Dados pessoais
-      </h2>
+      {/* Dados pessoais */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Dados pessoais
+        </h2>
 
-      <div>
-        <label className="text-xs font-medium">Nome completo *</label>
-        <input
-          type="text"
-          className="w-full border rounded px-3 py-2 text-sm"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          required
-        />
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Nome completo *
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Idade (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={idade}
+              onChange={(e) => setIdade(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Cidade *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Bairro / Região
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Área / formação / experiência */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Perfil profissional
+        </h2>
+
         <div>
-          <label className="text-xs font-medium">Idade</label>
+          <label className="block text-xs font-medium text-slate-700">
+            Área profissional desejada *
+          </label>
+          <select
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            value={areaProfissional}
+            onChange={(e) => setAreaProfissional(e.target.value)}
+            required
+          >
+            <option value="">Selecione...</option>
+            {areas.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Escolaridade
+          </label>
           <input
-            type="number"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={idade}
-            onChange={(e) => setIdade(e.target.value)}
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex.: Ensino médio completo, superior em andamento..."
+            value={escolaridade}
+            onChange={(e) => setEscolaridade(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="text-xs font-medium">Cidade *</label>
-          <select
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            required
-          >
-            <option value="">Selecione...</option>
-            {cidades.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          <label className="block text-xs font-medium text-slate-700">
+            Formação acadêmica / cursos
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-20"
+            value={formacaoAcademica}
+            onChange={(e) => setFormacaoAcademica(e.target.value)}
+            placeholder="Cursos, faculdades, especializações, treinamentos..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Experiências profissionais
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
+            value={experienciasProf}
+            onChange={(e) => setExperienciasProf(e.target.value)}
+            placeholder="Últimos empregos, funções e tempo de atuação..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Habilidades / competências
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-20"
+            value={habilidades}
+            onChange={(e) => setHabilidades(e.target.value)}
+            placeholder="Ex.: atendimento ao público, caixa, informática básica, cozinha, vendas..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Idiomas (se houver)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            value={idiomas}
+            onChange={(e) => setIdiomas(e.target.value)}
+            placeholder="Ex.: Inglês básico, Espanhol intermediário..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Resumo profissional (opcional)
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-20"
+            value={resumo}
+            onChange={(e) => setResumo(e.target.value)}
+            placeholder="Faça um breve resumo de quem você é profissionalmente."
+          />
         </div>
       </div>
 
-      <div>
-        <label className="text-xs font-medium">Bairro (opcional)</label>
-        <input
-          type="text"
-          className="w-full border rounded px-3 py-2 text-sm"
-          value={bairro}
-          onChange={(e) => setBairro(e.target.value)}
-        />
-      </div>
-
-      {/* ÁREA PROFISSIONAL */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Área profissional *
+      {/* Arquivos */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Arquivos (opcional)
         </h2>
 
-        <select
-          className="w-full mt-2 border rounded px-3 py-2 text-sm"
-          value={areaProfissional}
-          onChange={(e) => setAreaProfissional(e.target.value)}
-          required
-        >
-          <option value="">Selecione...</option>
-          <option>Administração</option>
-          <option>Comércio / Vendas</option>
-          <option>Construção civil</option>
-          <option>Serviços gerais</option>
-          <option>Educação</option>
-          <option>Saúde</option>
-          <option>Atendimento / Caixa</option>
-          <option>Hotelaria / Turismo</option>
-          <option>TI / Informática</option>
-          <option>Motorista / Entregador</option>
-          <option>Outros</option>
-        </select>
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Foto para o currículo (opcional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            className="mt-1 w-full text-xs"
+            onChange={(e) => setFotoFile(e.target.files[0] || null)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Currículo em PDF (se já tiver pronto)
+          </label>
+          <input
+            type="file"
+            accept="application/pdf"
+            className="mt-1 w-full text-xs"
+            onChange={(e) => setPdfFile(e.target.files[0] || null)}
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Você pode enviar apenas o formulário, apenas o PDF ou os dois.
+          </p>
+        </div>
       </div>
 
-      {/* EXPERIÊNCIAS */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Experiências profissionais
-        </h2>
-        <textarea
-          className="w-full border rounded px-3 py-2 text-sm h-28"
-          placeholder="Liste suas experiências, serviços prestados, funções, locais onde trabalhou..."
-          value={experiencias}
-          onChange={(e) => setExperiencias(e.target.value)}
-        ></textarea>
-      </div>
+      {/* Contato */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
 
-      {/* FORMAÇÃO */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold text-slate-900">Formação</h2>
-        <textarea
-          className="w-full border rounded px-3 py-2 text-sm h-20"
-          placeholder="Ex: Ensino médio completo, cursos, certificados..."
-          value={formacao}
-          onChange={(e) => setFormacao(e.target.value)}
-        ></textarea>
-      </div>
-
-      {/* HABILIDADES */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold text-slate-900">Habilidades</h2>
-        <textarea
-          className="w-full border rounded px-3 py-2 text-sm h-20"
-          placeholder="Ex: informática, atendimento, organização, direção, cozinha..."
-          value={habilidades}
-          onChange={(e) => setHabilidades(e.target.value)}
-        ></textarea>
-      </div>
-
-      {/* FOTO */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold">Foto (opcional)</h2>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFoto(e.target.files[0])}
-          className="text-sm"
-        />
-      </div>
-
-      {/* PDF */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold">Upload do currículo PDF (opcional)</h2>
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setCurriculoPDF(e.target.files[0])}
-          className="text-sm"
-        />
-      </div>
-
-      {/* CONTATO */}
-      <div className="border-t pt-4">
-        <h2 className="text-lg font-semibold">Contato</h2>
-
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="text-xs font-medium">Telefone</label>
+            <label className="block text-xs font-medium text-slate-700">
+              Telefone
+            </label>
             <input
               type="text"
-              className="w-full border rounded px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-xs font-medium">WhatsApp</label>
+            <label className="block text-xs font-medium text-slate-700">
+              WhatsApp
+            </label>
             <input
               type="text"
-              className="w-full border rounded px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
             />
           </div>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium">E-mail</label>
-          <input
-            type="email"
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              E-mail
+            </label>
+            <input
+              type="email"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Pelo menos um desses dados será exibido para empresas entrarem em contato.
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
+          exibido para contato das empresas.
         </p>
       </div>
 
       <button
         type="submit"
         disabled={uploading}
-        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700"
+        className="mt-2 w-full bg-emerald-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-emerald-700 transition disabled:opacity-60"
       >
-        {uploading ? "Enviando..." : "Enviar currículo"}
+        {uploading ? "Enviando currículo..." : "Cadastrar currículo"}
       </button>
     </form>
   );
