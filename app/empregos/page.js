@@ -41,12 +41,9 @@ export default function EmpregosPage() {
         .order("created_at", { ascending: false })
         .limit(8);
 
-      if (error) {
-        console.error("Erro ao carregar vagas:", error);
-        setVagasRecentes([]);
-      } else {
-        setVagasRecentes(data || []);
-      }
+      if (!error) setVagasRecentes(data || []);
+      else setVagasRecentes([]);
+
       setLoadingVagas(false);
     };
 
@@ -62,12 +59,9 @@ export default function EmpregosPage() {
         .order("created_at", { ascending: false })
         .limit(8);
 
-      if (error) {
-        console.error("Erro ao carregar currículos:", error);
-        setCurriculosRecentes([]);
-      } else {
-        setCurriculosRecentes(data || []);
-      }
+      if (!error) setCurriculosRecentes(data || []);
+      else setCurriculosRecentes([]);
+
       setLoadingCurriculos(false);
     };
 
@@ -95,6 +89,7 @@ export default function EmpregosPage() {
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
+
           <Image
             key={heroImages[currentHero]}
             src={heroImages[currentHero]}
@@ -105,10 +100,8 @@ export default function EmpregosPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          {/* leve véu, mantendo o clima claro */}
           <div className="absolute inset-0 bg-white/15" />
 
-          {/* TEXTOS EM PRETO */}
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center text-black">
             <p className="text-sm md:text-base font-medium">
               Encontre oportunidades e seja encontrado pelas empresas da Região dos Lagos.
@@ -131,6 +124,7 @@ export default function EmpregosPage() {
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+
               {/* Busca */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
@@ -148,7 +142,7 @@ export default function EmpregosPage() {
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800">
                   <option>Toda a região</option>
                   <option>Maricá</option>
                   <option>Saquarema</option>
@@ -162,7 +156,6 @@ export default function EmpregosPage() {
                 </select>
               </div>
 
-              {/* Botão */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -171,6 +164,7 @@ export default function EmpregosPage() {
                   Buscar
                 </button>
               </div>
+
             </div>
           </div>
 
@@ -180,86 +174,51 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      <div className="h-8 sm:h-10" />
+      {/* BOTÕES CHAMATIVOS */}
+      <section className="max-w-6xl mx-auto px-4 mt-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-      {/* GRANDES AÇÕES: CANDIDATO X EMPRESA */}
-      <section className="max-w-6xl mx-auto px-4 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {/* Estou procurando emprego */}
-          <div className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-5 md:p-6 flex flex-col justify-between shadow-sm">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-1">
-                Para candidatos
-              </p>
-              <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
-                Quero cadastrar meu currículo
-              </h2>
-              <p className="text-xs md:text-sm text-slate-700 mb-4">
-                Preencha um formulário simples, com suas experiências, formação e contatos,
-                e faça parte do banco de currículos do Classilagos. As empresas poderão
-                encontrar seu perfil com poucos cliques.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/anunciar/curriculo"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Cadastrar meu currículo
-              </Link>
-            </div>
-          </div>
+          <Link
+            href="/anunciar/curriculo"
+            className="flex items-center justify-center rounded-2xl bg-emerald-600 hover:bg-emerald-700 
+                       px-6 py-4 text-white text-sm sm:text-base font-semibold shadow-md transition text-center"
+          >
+            📄 Cadastrar currículo
+          </Link>
 
-          {/* Tenho uma vaga */}
-          <div className="rounded-3xl border border-sky-200 bg-sky-50/80 p-5 md:p-6 flex flex-col justify-between shadow-sm">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-sky-700 font-semibold mb-1">
-                Para empresas
-              </p>
-              <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
-                Quero anunciar uma vaga
-              </h2>
-              <p className="text-xs md:text-sm text-slate-700 mb-4">
-                Divulgue oportunidades de trabalho para toda a Região dos Lagos. Ideal para
-                comércios, bares, restaurantes, pousadas, hotéis, escritórios, obras e muito mais.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/anunciar/empregos"
-                className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
-              >
-                Anunciar vaga de emprego
-              </Link>
-            </div>
-          </div>
+          <Link
+            href="/anunciar/empregos"
+            className="flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 
+                       px-6 py-4 text-white text-sm sm:text-base font-semibold shadow-md transition text-center"
+          >
+            💼 Anunciar vaga de emprego
+          </Link>
+
         </div>
+
+        <p className="text-center text-[11px] text-slate-500 mt-2">
+          Cadastre seu currículo ou anuncie vagas gratuitamente durante o lançamento.
+        </p>
       </section>
 
       {/* DIVISOR SUAVE */}
-      <div className="h-6" />
+      <div className="h-4" />
 
       {/* VAGAS RECENTES */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm md:text-base font-semibold text-slate-900">
-            Vagas recentes
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900">Vagas recentes</h2>
           <span className="text-[11px] text-slate-500">
             {loadingVagas
               ? "Carregando vagas..."
               : vagasRecentes.length === 0
               ? "Nenhuma vaga cadastrada ainda."
-              : `${vagasRecentes.length} vaga(s) encontrada(s)`}
+              : `${vagasRecentes.length} vaga(s)`}
           </span>
         </div>
 
-        {loadingVagas && (
-          <p className="text-[12px] text-slate-500">Buscando vagas…</p>
-        )}
-
         {!loadingVagas && vagasRecentes.length === 0 && (
-          <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
+          <div className="border border-dashed border-slate-300 rounded-xl px-4 py-6 text-xs text-slate-500 text-center">
             Ainda não há vagas cadastradas.
             <br />
             <Link
@@ -277,23 +236,27 @@ export default function EmpregosPage() {
               <Link
                 key={vaga.id}
                 href={`/anuncios/${vaga.id}`}
-                className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col p-3"
+                className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition p-3 flex flex-col"
               >
                 <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
                   {vaga.titulo}
                 </p>
+
                 <p className="text-[11px] text-slate-600 mb-1">
-                  {vaga.area_profissional || "Área não informada"}
+                  {vaga.area_profissional}
                 </p>
+
                 <p className="text-[11px] text-slate-600 mb-1">
                   {vaga.cidade}
                   {vaga.bairro ? ` • ${vaga.bairro}` : ""}
                 </p>
+
                 {vaga.tipo_vaga && (
                   <p className="text-[10px] uppercase tracking-wide text-sky-700 mb-1">
                     {vaga.tipo_vaga}
                   </p>
                 )}
+
                 {vaga.faixa_salarial && (
                   <p className="text-[11px] font-semibold text-emerald-700">
                     {vaga.faixa_salarial}
@@ -306,26 +269,20 @@ export default function EmpregosPage() {
       </section>
 
       {/* CURRÍCULOS RECENTES */}
-      <section className="max-w-6xl mx-auto px-4 pb-12">
+      <section className="max-w-6xl mx-auto px-4 pb-16">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm md:text-base font-semibold text-slate-900">
-            Currículos recentes
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900">Currículos recentes</h2>
           <span className="text-[11px] text-slate-500">
             {loadingCurriculos
               ? "Carregando currículos..."
               : curriculosRecentes.length === 0
               ? "Nenhum currículo cadastrado ainda."
-              : `${curriculosRecentes.length} currículo(s) encontrado(s)`}
+              : `${curriculosRecentes.length} currículo(s)`}
           </span>
         </div>
 
-        {loadingCurriculos && (
-          <p className="text-[12px] text-slate-500">Buscando currículos…</p>
-        )}
-
         {!loadingCurriculos && curriculosRecentes.length === 0 && (
-          <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
+          <div className="border border-dashed border-slate-300 rounded-xl px-4 py-6 text-xs text-slate-500 text-center">
             Ainda não há currículos cadastrados.
             <br />
             <Link
@@ -343,14 +300,16 @@ export default function EmpregosPage() {
               <Link
                 key={cv.id}
                 href={`/anuncios/${cv.id}`}
-                className="group rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition overflow-hidden flex flex-col p-3"
+                className="group rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition p-3 flex flex-col"
               >
                 <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-1">
-                  {cv.nome_contato || "Candidato"}
+                  {cv.nome_contato}
                 </p>
+
                 <p className="text-[11px] text-slate-600 mb-1">
-                  {cv.area_profissional || "Área não informada"}
+                  {cv.area_profissional}
                 </p>
+
                 <p className="text-[11px] text-slate-600">
                   {cv.cidade}
                   {cv.bairro ? ` • ${cv.bairro}` : ""}
