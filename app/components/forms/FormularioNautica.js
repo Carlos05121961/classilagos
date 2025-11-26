@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
 export default function FormularioNautica() {
   const router = useRouter();
 
-  // CAMPOS BÁSICOS
+  // Campos básicos
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
 
@@ -15,69 +15,64 @@ export default function FormularioNautica() {
   const [bairro, setBairro] = useState("");
   const [pontoEmbarque, setPontoEmbarque] = useState("");
 
-  // CATEGORIAS
-  const [subcategoria, setSubcategoria] = useState("");
-  const [finalidade, setFinalidade] = useState("");
+  // Categoria / finalidade
+  const [subcategoria, setSubcategoria] = useState(""); // Lancha, Veleiro, Jetski...
+  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / passeio / servico / vaga_marina
 
-  // PREÇO
-  const [preco, setPreco] = useState("");
-
-  // FOTOS
-  const [arquivos, setArquivos] = useState([]);
-  const [uploading, setUploading] = useState(false);
-
-  // VIDEO
-  const [videoUrl, setVideoUrl] = useState("");
-
-  // CONTATO
-  const [nomeContato, setNomeContato] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-
-  // CAMPOS TÉCNICOS PROFISSIONAIS
+  // Informações técnicas básicas
   const [marcaEmbarcacao, setMarcaEmbarcacao] = useState("");
   const [modeloEmbarcacao, setModeloEmbarcacao] = useState("");
   const [anoEmbarcacao, setAnoEmbarcacao] = useState("");
   const [comprimentoPes, setComprimentoPes] = useState("");
   const [materialCasco, setMaterialCasco] = useState("");
 
-  // MOTOR
+  // Motor
   const [marcaMotor, setMarcaMotor] = useState("");
   const [potenciaMotorHp, setPotenciaMotorHp] = useState("");
   const [qtdMotores, setQtdMotores] = useState("");
   const [horasMotor, setHorasMotor] = useState("");
   const [combustivel, setCombustivel] = useState("");
 
-  // CAPACIDADE / INTERIOR
+  // Capacidade
   const [capacidadePessoas, setCapacidadePessoas] = useState("");
   const [qtdCabines, setQtdCabines] = useState("");
   const [qtdBanheiros, setQtdBanheiros] = useState("");
 
-  // DOCUMENTAÇÃO
-  const [registroCapitania, setRegistroCapitania] = useState("");
-  const [documentacaoEmDia, setDocumentacaoEmDia] = useState("");
-
-  // PASSEIOS
+  // Passeios
   const [tipoPasseio, setTipoPasseio] = useState("");
   const [duracaoPasseio, setDuracaoPasseio] = useState("");
   const [valorPessoa, setValorPessoa] = useState("");
   const [valorFechado, setValorFechado] = useState("");
   const [itensInclusos, setItensInclusos] = useState("");
 
-  // VAGA EM MARINA
+  // Vaga em marina
   const [tipoVaga, setTipoVaga] = useState("");
-  const [comprimentoMaxPes, setComprimentoMaxPes] = useState("");
+  const [comprimentoMaximoPes, setComprimentoMaximoPes] = useState("");
   const [estruturaDisponivel, setEstruturaDisponivel] = useState("");
 
-  // TERMOS
+  // Valor geral
+  const [preco, setPreco] = useState("");
+
+  // Upload
+  const [arquivos, setArquivos] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Vídeo
+  const [videoUrl, setVideoUrl] = useState("");
+
+  // Contato
+  const [nomeContato, setNomeContato] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Termos
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
-  // MENSAGENS
+  // Mensagens
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // LISTAS
   const cidades = [
     "Maricá",
     "Saquarema",
@@ -101,18 +96,20 @@ export default function FormularioNautica() {
     "Outros",
   ];
 
-  const finalidades = [
-    "venda",
-    "passeio",
-    "aluguel",
-    "servico",
-    "vaga_marina",
+  const finalidadesNautica = [
+    { value: "venda", label: "Venda" },
+    { value: "aluguel", label: "Aluguel" },
+    { value: "passeio", label: "Passeio turístico" },
+    { value: "servico", label: "Serviço náutico" },
+    { value: "vaga_marina", label: "Vaga em marina / guardaria" },
   ];
 
-  // LOGIN
+  // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
+      if (!data.user) {
+        router.push("/login");
+      }
     });
   }, [router]);
 
@@ -121,13 +118,14 @@ export default function FormularioNautica() {
     setArquivos(files.slice(0, 8));
   };
 
-  // ENVIO
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
@@ -135,13 +133,25 @@ export default function FormularioNautica() {
       return;
     }
 
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe ao menos um meio de contato.");
+    if (!subcategoria || !finalidade) {
+      setErro("Selecione a subcategoria e a finalidade do anúncio.");
       return;
     }
 
-    // UPLOAD
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
+      return;
+    }
+
+    if (!aceitoTermos) {
+      setErro(
+        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
+      );
+      return;
+    }
+
+    // Upload de imagens
     let urlsUpload = [];
 
     try {
@@ -159,11 +169,11 @@ export default function FormularioNautica() {
 
             if (uploadError) throw uploadError;
 
-            const { data } = supabase.storage
+            const { data: publicData } = supabase.storage
               .from("anuncios")
               .getPublicUrl(filePath);
 
-            return data.publicUrl;
+            return publicData.publicUrl;
           })
         );
 
@@ -171,33 +181,34 @@ export default function FormularioNautica() {
       }
     } catch (err) {
       console.error(err);
-      setErro("Erro ao enviar imagens. Tente novamente.");
+      setErro("Erro ao enviar as imagens. Tente novamente.");
       setUploading(false);
       return;
+    } finally {
+      setUploading(false);
     }
 
     const imagens = urlsUpload;
 
-    // INSERT
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "nautica",
       titulo,
       descricao,
-
       cidade,
       bairro,
       ponto_embarque: pontoEmbarque,
-
       preco,
-      video_url: videoUrl,
       imagens,
+      video_url: videoUrl,
+      telefone,
+      whatsapp,
+      email,
       contato: contatoPrincipal,
 
       subcategoria_nautica: subcategoria,
       finalidade_nautica: finalidade,
 
-      // CAMPOS TÉCNICOS
       marca_embarcacao: marcaEmbarcacao,
       modelo_embarcacao: modeloEmbarcacao,
       ano_embarcacao: anoEmbarcacao,
@@ -214,9 +225,6 @@ export default function FormularioNautica() {
       qtd_cabines: qtdCabines,
       qtd_banheiros: qtdBanheiros,
 
-      registro_capitania: registroCapitania,
-      documentacao_em_dia: documentacaoEmDia,
-
       tipo_passeio: tipoPasseio,
       duracao_passeio: duracaoPasseio,
       valor_passeio_pessoa: valorPessoa,
@@ -224,241 +232,645 @@ export default function FormularioNautica() {
       itens_inclusos: itensInclusos,
 
       tipo_vaga: tipoVaga,
-      comprimento_maximo_pes: comprimentoMaxPes,
+      comprimento_maximo_pes: comprimentoMaximoPes,
       estrutura_disponivel: estruturaDisponivel,
-
-      nome_contato: nomeContato,
-      telefone,
-      whatsapp,
-      email,
 
       status: "ativo",
       destaque: false,
+      nome_contato: nomeContato,
     });
 
     if (error) {
       console.error(error);
-      setErro("Erro ao salvar anúncio. Verifique os campos.");
+      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
       return;
     }
 
-    setSucesso("Seu anúncio foi publicado com sucesso!");
+    setSucesso("Anúncio náutico enviado com sucesso!");
+
+    // Limpa formulário
+    setTitulo("");
+    setDescricao("");
+    setCidade("");
+    setBairro("");
+    setPontoEmbarque("");
+    setSubcategoria("");
+    setFinalidade("");
+    setMarcaEmbarcacao("");
+    setModeloEmbarcacao("");
+    setAnoEmbarcacao("");
+    setComprimentoPes("");
+    setMaterialCasco("");
+    setMarcaMotor("");
+    setPotenciaMotorHp("");
+    setQtdMotores("");
+    setHorasMotor("");
+    setCombustivel("");
+    setCapacidadePessoas("");
+    setQtdCabines("");
+    setQtdBanheiros("");
+    setTipoPasseio("");
+    setDuracaoPasseio("");
+    setValorPessoa("");
+    setValorFechado("");
+    setItensInclusos("");
+    setTipoVaga("");
+    setComprimentoMaximoPes("");
+    setEstruturaDisponivel("");
+    setPreco("");
+    setArquivos([]);
+    setVideoUrl("");
+    setNomeContato("");
+    setTelefone("");
+    setWhatsapp("");
+    setEmail("");
+    setAceitoTermos(false);
 
     setTimeout(() => {
       router.push("/painel/meus-anuncios");
     }, 2000);
   };
 
-  // COMPONENTE DE BLOCO
-  const Bloco = ({ titulo, children }) => (
-    <div className="space-y-4 border-t border-slate-200 pt-4">
-      <h2 className="text-sm font-semibold text-slate-900">{titulo}</h2>
-      {children}
-    </div>
-  );
-
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-8 text-xs md:text-sm">
-
+    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
       {erro && (
-        <p className="text-red-600 border border-red-200 bg-red-50 rounded-lg px-3 py-2">
+        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
           {erro}
         </p>
       )}
-
       {sucesso && (
-        <p className="text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-lg px-3 py-2">
+        <p className="text-emerald-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
           {sucesso}
         </p>
       )}
 
-      {/* BÁSICO */}
-      <Bloco titulo="Tipo de anúncio náutico">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+      {/* BLOCO: TIPO */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio náutico</h2>
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-slate-700">Subcategoria *</label>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Subcategoria *
+            </label>
             <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={subcategoria}
               onChange={(e) => setSubcategoria(e.target.value)}
               required
-              className="mt-1 w-full rounded-lg border px-3 py-2"
             >
               <option value="">Selecione...</option>
               {subcategoriasNautica.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-slate-700">Finalidade *</label>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Finalidade *
+            </label>
             <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={finalidade}
               onChange={(e) => setFinalidade(e.target.value)}
               required
-              className="mt-1 w-full rounded-lg border px-3 py-2"
             >
               <option value="">Selecione...</option>
-              <option value="venda">Venda</option>
-              <option value="aluguel">Aluguel</option>
-              <option value="passeio">Passeio turístico</option>
-              <option value="servico">Serviço náutico</option>
-              <option value="vaga_marina">Vaga em marina</option>
+              {finalidadesNautica.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO: TÍTULO / DESCRIÇÃO */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Informações principais
+        </h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Título do anúncio *
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex.: Lancha 30 pés com 2 motores Mercury"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Descrição detalhada *
+          </label>
+          <textarea
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
+            placeholder="Descreva os principais detalhes da embarcação ou serviço..."
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+
+      {/* BLOCO: LOCALIZAÇÃO */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Localização / ponto de embarque
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Cidade *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
 
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Bairro / região
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Ex.: Centro, Praia do Forte..."
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
         </div>
-      </Bloco>
 
-      {/* IDENTIFICAÇÃO BÁSICA */}
-      <Bloco titulo="Identificação da embarcação / serviço">
-        <label className="block text-slate-700">Título *</label>
-        <input
-          className="w-full rounded-lg border px-3 py-2 mt-1"
-          placeholder="Ex: Lancha FS 305 com 2 motores Mercury"
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          required
-        />
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Ponto de embarque (opcional)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex.: Marina X, píer da Praia Y..."
+            value={pontoEmbarque}
+            onChange={(e) => setPontoEmbarque(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <label className="block text-slate-700">Descrição *</label>
-        <textarea
-          className="w-full rounded-lg border px-3 py-2 mt-1 h-28"
-          placeholder="Descreva todos os detalhes importantes..."
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          required
-        />
-      </Bloco>
+      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
+      {(finalidade === "venda" || finalidade === "aluguel") && (
+        <div className="space-y-3 border-t border-slate-100 pt-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Detalhes da embarcação
+          </h2>
 
-      {/* CAMPOS PROFISSIONAIS — APARECEM SE FOR VENDA */}
-      {finalidade === "venda" && (
-        <Bloco titulo="Detalhes da embarcação (Venda)">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input className="form" placeholder="Marca" value={marcaEmbarcacao} onChange={(e)=>setMarcaEmbarcacao(e.target.value)} />
-            <input className="form" placeholder="Modelo" value={modeloEmbarcacao} onChange={(e)=>setModeloEmbarcacao(e.target.value)} />
-            <input className="form" placeholder="Ano" value={anoEmbarcacao} onChange={(e)=>setAnoEmbarcacao(e.target.value)} />
-            <input className="form" placeholder="Comprimento (pés)" value={comprimentoPes} onChange={(e)=>setComprimentoPes(e.target.value)} />
-            <input className="form" placeholder="Material do casco" value={materialCasco} onChange={(e)=>setMaterialCasco(e.target.value)} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Marca
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={marcaEmbarcacao}
+                onChange={(e) => setMarcaEmbarcacao(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Modelo
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={modeloEmbarcacao}
+                onChange={(e) => setModeloEmbarcacao(e.target.value)}
+              />
+            </div>
           </div>
 
-          <h3 className="font-medium mt-4">Motorização</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input className="form" placeholder="Marca do motor" value={marcaMotor} onChange={(e)=>setMarcaMotor(e.target.value)} />
-            <input className="form" placeholder="Potência (HP)" value={potenciaMotorHp} onChange={(e)=>setPotenciaMotorHp(e.target.value)} />
-            <input className="form" placeholder="Quantidade de motores" value={qtdMotores} onChange={(e)=>setQtdMotores(e.target.value)} />
-            <input className="form" placeholder="Horas de motor" value={horasMotor} onChange={(e)=>setHorasMotor(e.target.value)} />
-            <input className="form" placeholder="Combustível" value={combustivel} onChange={(e)=>setCombustivel(e.target.value)} />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Ano
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={anoEmbarcacao}
+                onChange={(e) => setAnoEmbarcacao(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Comprimento (pés)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={comprimentoPes}
+                onChange={(e) => setComprimentoPes(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Material do casco
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={materialCasco}
+                onChange={(e) => setMaterialCasco(e.target.value)}
+              />
+            </div>
           </div>
 
-          <h3 className="font-medium mt-4">Capacidade / Interior</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input className="form" placeholder="Pessoas" value={capacidadePessoas} onChange={(e)=>setCapacidadePessoas(e.target.value)} />
-            <input className="form" placeholder="Cabines" value={qtdCabines} onChange={(e)=>setQtdCabines(e.target.value)} />
-            <input className="form" placeholder="Banheiros" value={qtdBanheiros} onChange={(e)=>setQtdBanheiros(e.target.value)} />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Marca do motor
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={marcaMotor}
+                onChange={(e) => setMarcaMotor(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Potência total (HP)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={potenciaMotorHp}
+                onChange={(e) => setPotenciaMotorHp(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Qtde. de motores
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={qtdMotores}
+                onChange={(e) => setQtdMotores(e.target.value)}
+              />
+            </div>
           </div>
 
-          <h3 className="font-medium mt-4">Documentação</h3>
-          <input className="form" placeholder="Registro na Capitania" value={registroCapitania} onChange={(e)=>setRegistroCapitania(e.target.value)} />
-          <input className="form mt-2" placeholder="Documentação em dia (sim/não)" value={documentacaoEmDia} onChange={(e)=>setDocumentacaoEmDia(e.target.value)} />
-        </Bloco>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Horas de motor
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={horasMotor}
+                onChange={(e) => setHorasMotor(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Combustível
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={combustivel}
+                onChange={(e) => setCombustivel(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Capacidade (pessoas)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={capacidadePessoas}
+                onChange={(e) => setCapacidadePessoas(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Cabines
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={qtdCabines}
+                onChange={(e) => setQtdCabines(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Banheiros
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={qtdBanheiros}
+                onChange={(e) => setQtdBanheiros(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* PASSEIOS */}
+      {/* BLOCO: PASSEIOS */}
       {finalidade === "passeio" && (
-        <Bloco titulo="Informações para Passeio Turístico">
-          <input className="form" placeholder="Tipo de passeio (escuna, exclusivo...)" value={tipoPasseio} onChange={(e)=>setTipoPasseio(e.target.value)} />
-          <input className="form mt-2" placeholder="Duração (horas)" value={duracaoPasseio} onChange={(e)=>setDuracaoPasseio(e.target.value)} />
-          <input className="form mt-2" placeholder="Valor por pessoa" value={valorPessoa} onChange={(e)=>setValorPessoa(e.target.value)} />
-          <input className="form mt-2" placeholder="Valor passeio fechado" value={valorFechado} onChange={(e)=>setValorFechado(e.target.value)} />
-          <textarea className="form mt-2 h-24" placeholder="Itens inclusos (bebidas, equipamentos...)" value={itensInclusos} onChange={(e)=>setItensInclusos(e.target.value)} />
-        </Bloco>
-      )}
+        <div className="space-y-3 border-t border-slate-100 pt-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Informações do passeio
+          </h2>
 
-      {/* ALUGUEL */}
-      {finalidade === "aluguel" && (
-        <Bloco titulo="Informações para Aluguel">
-          <textarea className="form h-24" placeholder="Regras, capacidade, horários..." value={itensInclusos} onChange={(e)=>setItensInclusos(e.target.value)} />
-        </Bloco>
-      )}
-
-      {/* SERVIÇO NÁUTICO */}
-      {finalidade === "servico" && (
-        <Bloco titulo="Informações do Serviço Náutico">
-          <textarea className="form h-24" placeholder="Descreva o serviço oferecido..." value={itensInclusos} onChange={(e)=>setItensInclusos(e.target.value)} />
-        </Bloco>
-      )}
-
-      {/* VAGA EM MARINA */}
-      {finalidade === "vaga_marina" && (
-        <Bloco titulo="Informações da Vaga em Marina / Guardaria">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input className="form" placeholder="Tipo de vaga (seca, molhada)" value={tipoVaga} onChange={(e)=>setTipoVaga(e.target.value)} />
-            <input className="form" placeholder="Comprimento máximo (pés)" value={comprimentoMaxPes} onChange={(e)=>setComprimentoMaxPes(e.target.value)} />
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Tipo de passeio
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Ex.: passeio de lancha exclusivo, escuna, mergulho..."
+              value={tipoPasseio}
+              onChange={(e) => setTipoPasseio(e.target.value)}
+            />
           </div>
-          <textarea className="form h-24 mt-3" placeholder="Estrutura disponível (banheiro, água, luz...)" value={estruturaDisponivel} onChange={(e)=>setEstruturaDisponivel(e.target.value)} />
-        </Bloco>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Duração média
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                placeholder="Ex.: 3h, 6h, dia inteiro"
+                value={duracaoPasseio}
+                onChange={(e) => setDuracaoPasseio(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Valor por pessoa
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={valorPessoa}
+                onChange={(e) => setValorPessoa(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Valor passeio fechado
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={valorFechado}
+              onChange={(e) => setValorFechado(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Itens inclusos
+            </label>
+            <textarea
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
+              placeholder="Ex.: bebidas, coletes, máscara, churrasco..."
+              value={itensInclusos}
+              onChange={(e) => setItensInclusos(e.target.value)}
+            />
+          </div>
+        </div>
       )}
 
-      {/* LOCAL */}
-      <Bloco titulo="Localização / Embarque">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <select className="form" value={cidade} onChange={(e)=>setCidade(e.target.value)}>
-            <option value="">Cidade *</option>
-            {cidades.map((c)=> <option key={c}>{c}</option>)}
-          </select>
+      {/* BLOCO: VAGA EM MARINA */}
+      {finalidade === "vaga_marina" && (
+        <div className="space-y-3 border-t border-slate-100 pt-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Informações da vaga em marina / guardaria
+          </h2>
 
-          <input className="form" placeholder="Bairro" value={bairro} onChange={(e)=>setBairro(e.target.value)} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Tipo de vaga
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                placeholder="Ex.: seca, molhada..."
+                value={tipoVaga}
+                onChange={(e) => setTipoVaga(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-700">
+                Comprimento máximo (pés)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={comprimentoMaximoPes}
+                onChange={(e) => setComprimentoMaximoPes(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Estrutura disponível
+            </label>
+            <textarea
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
+              placeholder="Ex.: água, luz, banheiro, segurança 24h..."
+              value={estruturaDisponivel}
+              onChange={(e) => setEstruturaDisponivel(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* BLOCO: VALOR */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Preço (R$)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Ex.: R$ 250.000, R$ 800 / passeio..."
+            value={preco}
+            onChange={(e) => setPreco(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* BLOCO: FOTOS */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Enviar fotos (upload) – até 8 imagens
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleArquivosChange}
+            className="mt-1 w-full text-xs"
+          />
+          {arquivos.length > 0 && (
+            <p className="mt-1 text-[11px] text-slate-500">
+              {arquivos.length} arquivo(s) selecionado(s).
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* BLOCO: VÍDEO */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            URL do vídeo (YouTube)
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* BLOCO: CONTATO */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Nome de contato
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Nome do proprietário ou empresa"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
+          />
         </div>
 
-        <input className="form mt-2" placeholder="Ponto de embarque (opcional)" value={pontoEmbarque} onChange={(e)=>setPontoEmbarque(e.target.value)} />
-      </Bloco>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              Telefone
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Telefone para contato"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </div>
 
-      {/* VALOR */}
-      <Bloco titulo="Valor">
-        <input className="form" placeholder="Preço (ex: R$ 250.000 ou R$ 150 por pessoa)" value={preco} onChange={(e)=>setPreco(e.target.value)} />
-      </Bloco>
-
-      {/* FOTOS */}
-      <Bloco titulo="Fotos">
-        <input type="file" multiple accept="image/*" onChange={handleArquivosChange} />
-        {arquivos.length > 0 && (
-          <p className="text-xs text-slate-500 mt-1">{arquivos.length} foto(s) selecionada(s)</p>
-        )}
-      </Bloco>
-
-      {/* VÍDEO */}
-      <Bloco titulo="Vídeo (YouTube)">
-        <input className="form" placeholder="Link do vídeo" value={videoUrl} onChange={(e)=>setVideoUrl(e.target.value)} />
-      </Bloco>
-
-      {/* CONTATO */}
-      <Bloco titulo="Contato">
-        <input className="form" placeholder="Nome para contato" value={nomeContato} onChange={(e)=>setNomeContato(e.target.value)} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-          <input className="form" placeholder="Telefone" value={telefone} onChange={(e)=>setTelefone(e.target.value)} />
-          <input className="form" placeholder="WhatsApp" value={whatsapp} onChange={(e)=>setWhatsapp(e.target.value)} />
+          <div>
+            <label className="block text-[11px] font-medium text-slate-700">
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="DDD + número"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
         </div>
-        <input className="form mt-2" placeholder="E-mail" value={email} onChange={(e)=>setEmail(e.target.value)} />
-      </Bloco>
 
-      {/* TERMOS */}
-      <label className="flex items-start gap-2 border-t pt-4 text-xs text-slate-600">
-        <input type="checkbox" checked={aceitoTermos} onChange={(e)=>setAceitoTermos(e.target.checked)} />
-        <span>
-          Declaro que as informações são verdadeiras e estou de acordo com os
-          <a href="/termos-de-uso" className="text-sky-700 underline ml-1" target="_blank">Termos de Uso</a>.
-        </span>
-      </label>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            E-mail
+          </label>
+          <input
+            type="email"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* BLOCO: TERMOS */}
+      <div className="space-y-2 border-t border-slate-100 pt-4">
+        <label className="flex items-start gap-2 text-[11px] text-slate-600">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            checked={aceitoTermos}
+            onChange={(e) => setAceitoTermos(e.target.checked)}
+          />
+          <span>
+            Declaro que as informações deste anúncio são verdadeiras e que
+            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
+            e de acordo com os{" "}
+            <a
+              href="/termos-de-uso"
+              className="text-cyan-700 underline hover:text-cyan-800"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Termos de uso do Classilagos
+            </a>
+            .
+          </span>
+        </label>
+      </div>
 
       <button
         type="submit"
+        className="mt-2 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
         disabled={uploading}
-        className="w-full bg-sky-600 hover:bg-sky-700 text-white rounded-full py-3 font-semibold"
       >
-        {uploading ? "Enviando anúncio..." : "Publicar anúncio"}
+        {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
       </button>
     </form>
   );
 }
+
