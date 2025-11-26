@@ -104,10 +104,6 @@ export default function NauticaPage() {
             <h1 className="mt-1 text-3xl md:text-4xl font-extrabold drop-shadow-lg tracking-tight">
               Classilagos – Náutica
             </h1>
-            <p className="mt-3 text-[11px] sm:text-xs text-sky-100/90">
-              Compra, venda, aluguel e serviços náuticos em Maricá, Saquarema,
-              Araruama, Cabo Frio, Búzios e muito mais.
-            </p>
           </div>
         </div>
       </section>
@@ -381,4 +377,3 @@ export default function NauticaPage() {
     </main>
   );
 }
-
