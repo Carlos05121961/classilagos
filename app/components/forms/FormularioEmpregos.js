@@ -69,6 +69,15 @@ export default function FormularioEmpregos() {
       return;
     }
 
+    // CONTATO PRINCIPAL (OBRIGATÓRIO)
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      setErro(
+        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
+      return;
+    }
+
     let logoUrl = null;
 
     try {
@@ -78,15 +87,17 @@ export default function FormularioEmpregos() {
         const ext = logo.name.split(".").pop();
         const path = `${user.id}/empresa-logo-${Date.now()}.${ext}`;
 
-        const { error } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("anuncios")
           .upload(path, logo);
 
-        if (!error) {
+        if (!uploadError) {
           const { data } = supabase.storage
             .from("anuncios")
             .getPublicUrl(path);
           logoUrl = data.publicUrl;
+        } else {
+          console.error("Erro ao fazer upload da logo:", uploadError);
         }
       }
 
@@ -101,6 +112,7 @@ export default function FormularioEmpregos() {
         telefone,
         whatsapp,
         email,
+        contato: contatoPrincipal, // 👈 AGORA GRAVA NA COLUNA OBRIGATÓRIA
         area_profissional: areaProfissional,
         tipo_vaga: tipoVaga,
         modelo_trabalho: modeloTrabalho,
@@ -122,7 +134,6 @@ export default function FormularioEmpregos() {
       setTimeout(() => {
         router.push("/painel/meus-anuncios");
       }, 1800);
-
     } catch (err) {
       console.error(err);
       setErro("Erro inesperado. Tente de novo.");
@@ -133,7 +144,6 @@ export default function FormularioEmpregos() {
 
   return (
     <form onSubmit={enviarFormulario} className="space-y-6">
-
       {erro && (
         <p className="text-red-600 text-sm border p-2 rounded bg-red-50">
           {erro}
@@ -250,7 +260,7 @@ export default function FormularioEmpregos() {
           placeholder="Vale-transporte, alimentação, plano de saúde..."
           value={beneficios}
           onChange={(e) => setBeneficios(e.target.value)}
-        ></textarea>
+        />
       </div>
 
       {/* LOCAL */}
@@ -294,7 +304,7 @@ export default function FormularioEmpregos() {
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           required
-        ></textarea>
+        />
       </div>
 
       {/* LOGO (opcional) */}
@@ -303,7 +313,7 @@ export default function FormularioEmpregos() {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setLogo(e.target.files[0])}
+          onChange={(e) => setLogo(e.target.files[0] || null)}
           className="text-sm"
         />
       </div>
