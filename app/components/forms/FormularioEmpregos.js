@@ -30,6 +30,9 @@ export default function FormularioEmpregos() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
+  // ✅ checkbox de responsabilidade
+  const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
+
   // Verifica login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -78,6 +81,14 @@ export default function FormularioEmpregos() {
       return;
     }
 
+    // ✅ precisa marcar a caixinha
+    if (!aceitoResponsabilidade) {
+      setErro(
+        "Para publicar a vaga, marque a declaração de responsabilidade pelas informações."
+      );
+      return;
+    }
+
     let logoUrl = null;
 
     try {
@@ -91,13 +102,13 @@ export default function FormularioEmpregos() {
           .from("anuncios")
           .upload(path, logo);
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error("Erro ao fazer upload da logo:", uploadError);
+        } else {
           const { data } = supabase.storage
             .from("anuncios")
             .getPublicUrl(path);
           logoUrl = data.publicUrl;
-        } else {
-          console.error("Erro ao fazer upload da logo:", uploadError);
         }
       }
 
@@ -112,7 +123,7 @@ export default function FormularioEmpregos() {
         telefone,
         whatsapp,
         email,
-        contato: contatoPrincipal, // 👈 AGORA GRAVA NA COLUNA OBRIGATÓRIA
+        contato: contatoPrincipal, // coluna obrigatória
         area_profissional: areaProfissional,
         tipo_vaga: tipoVaga,
         modelo_trabalho: modeloTrabalho,
@@ -368,10 +379,29 @@ export default function FormularioEmpregos() {
         Pelo menos um meio de contato será exibido.
       </p>
 
+      {/* ✅ Declaração de responsabilidade */}
+      <div className="mt-3 flex items-start gap-2">
+        <input
+          id="responsabilidade"
+          type="checkbox"
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          checked={aceitoResponsabilidade}
+          onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
+        />
+        <label
+          htmlFor="responsabilidade"
+          className="text-[11px] md:text-xs text-slate-600"
+        >
+          Declaro que todas as informações desta vaga são verdadeiras, estão de
+          acordo com a legislação trabalhista vigente e que não há qualquer
+          conteúdo discriminatório ou ilegal.
+        </label>
+      </div>
+
       <button
         type="submit"
         disabled={uploading}
-        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700"
+        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
       >
         {uploading ? "Publicando vaga..." : "Publicar vaga"}
       </button>
