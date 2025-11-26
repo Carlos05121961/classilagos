@@ -80,33 +80,48 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* HERO – FOTO + TEXTO */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Náutica"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
-          />
+  {/* HERO – FOTO + TEXTO (versão sem degradê e com sombra no texto) */}
+<section className="relative w-full">
+  <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
 
-          {/* Degradê azul marinho por cima */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/50 to-slate-900/70" />
+    {/* Foto do Hero */}
+    <Image
+      key={heroImages[currentHero]}
+      src={heroImages[currentHero]}
+      alt="Classilagos Náutica"
+      fill
+      priority
+      sizes="100vw"
+      className="object-cover transition-opacity duration-700"
+    />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow mb-2 max-w-2xl">
-              Encontre lanchas, veleiros, jetski, motores e serviços náuticos
-              em toda a Região dos Lagos.
-            </p>
-            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold drop-shadow-lg tracking-tight">
-              Classilagos – Náutica
-            </h1>
-          </div>
-        </div>
-      </section>
+    {/* TEXTO COM SOMBRA FORTES (estilo profissional) */}
+    <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+
+      <p
+        className="
+          text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl
+          drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]
+          shadow-black
+        "
+      >
+        Encontre lanchas, veleiros, jetski, motores e serviços náuticos
+        em toda a Região dos Lagos.
+      </p>
+
+      <h1
+        className="
+          mt-1 text-3xl md:text-4xl font-extrabold tracking-tight
+          drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]
+          shadow-black
+        "
+      >
+        Classilagos – Náutica
+      </h1>
+    </div>
+  </div>
+</section>
+
 
       {/* CAIXA DE BUSCA FORA DA FOTO */}
       <section className="bg-white">
