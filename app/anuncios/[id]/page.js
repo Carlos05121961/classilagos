@@ -45,7 +45,7 @@ export default function AnuncioDetalhePage() {
 
       const { data: similaresData } = await supabase
         .from("anuncios")
-        .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens")
+        .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens, categoria")
         .eq("categoria", data.categoria || "imoveis")
         .eq("cidade", data.cidade)
         .neq("id", data.id)
@@ -108,7 +108,7 @@ export default function AnuncioDetalhePage() {
   // Compartilhamento
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(
-    `Olha este imóvel no Classilagos: ${anuncio.titulo}`
+    `Olha este anúncio no Classilagos: ${anuncio.titulo}`
   );
   const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
@@ -127,6 +127,22 @@ export default function AnuncioDetalhePage() {
   );
   const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
+  // 🔹 Título dinâmico da seção de similares
+  const tituloSimilares =
+    anuncio.categoria === "veiculos"
+      ? "Veículos similares na Região dos Lagos"
+      : anuncio.categoria === "imoveis"
+      ? "Imóveis similares na Região dos Lagos"
+      : "Anúncios similares na Região dos Lagos";
+
+  // 🔹 Texto dinâmico quando não houver similares
+  const textoSimilaresVazio =
+    anuncio.categoria === "veiculos"
+      ? "Em breve mais veículos nesta região aparecerão aqui."
+      : anuncio.categoria === "imoveis"
+      ? "Em breve mais imóveis nesta região aparecerão aqui."
+      : "Em breve mais anúncios nesta região aparecerão aqui.";
+
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
       {/* BANNER TOPO */}
@@ -141,7 +157,14 @@ export default function AnuncioDetalhePage() {
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] text-slate-500">Classilagos – Imóveis</p>
+              <p className="text-[11px] text-slate-500">
+                Classilagos –{" "}
+                {anuncio.categoria === "veiculos"
+                  ? "Veículos"
+                  : anuncio.categoria === "imoveis"
+                  ? "Imóveis"
+                  : "Anúncios"}
+              </p>
               <h1 className="text-xl md:text-2xl font-bold text-slate-900">
                 {anuncio.titulo}
               </h1>
@@ -152,10 +175,21 @@ export default function AnuncioDetalhePage() {
             </div>
 
             <Link
-              href="/imoveis"
+              href={
+                anuncio.categoria === "veiculos"
+                  ? "/veiculos"
+                  : anuncio.categoria === "imoveis"
+                  ? "/imoveis"
+                  : "/"
+              }
               className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
             >
-              Voltar para Imóveis
+              Voltar para{" "}
+              {anuncio.categoria === "veiculos"
+                ? "Veículos"
+                : anuncio.categoria === "imoveis"
+                ? "Imóveis"
+                : "a lista"}
             </Link>
           </div>
 
@@ -184,58 +218,54 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* CARD DE FOTOS NOVO */}
-      {/* CARD DE FOTOS NOVO */}
-      {temImagens && (
-        <section className="w-full flex flex-col gap-3">
-          {/* Foto principal */}
-          <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
-            <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] lg:h-[380px]">
-              <img
-                src={imagens[fotoIndex]}
-                alt={anuncio.titulo}
-                className="w-full h-full object-cover object-center"
-              />
+        {/* CARD DE FOTOS */}
+        {temImagens && (
+          <section className="w-full flex flex-col gap-3">
+            {/* Foto principal */}
+            <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+              <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] lg:h-[380px]">
+                <img
+                  src={imagens[fotoIndex]}
+                  alt={anuncio.titulo}
+                  className="w-full h-full object-cover object-center"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Miniaturas */}
-          {imagens.length > 1 && (
-            <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-              {imagens.map((url, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => setFotoIndex(index)}
-                  className={`rounded-xl overflow-hidden border transition ${
-                    fotoIndex === index
-                      ? "border-cyan-500 ring-2 ring-cyan-400/40"
-                      : "border-slate-300 hover:border-cyan-400"
-                  }`}
-                >
-                  <img
-                    src={url}
-                    alt={`Foto ${index + 1}`}
-                    className="w-full h-20 object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+            {/* Miniaturas */}
+            {imagens.length > 1 && (
+              <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                {imagens.map((url, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setFotoIndex(index)}
+                    className={`rounded-xl overflow-hidden border transition ${
+                      fotoIndex === index
+                        ? "border-cyan-500 ring-2 ring-cyan-400/40"
+                        : "border-slate-300 hover:border-cyan-400"
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-16 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
-
-
-
-        {/* GRID PRINCIPAL: ESQUERDA (imóvel) / DIREITA (contato + ML) */}
+        {/* GRID PRINCIPAL: ESQUERDA (detalhes) / DIREITA (contato + ML) */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
             {/* Resumo */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Resumo do imóvel
+                Resumo do anúncio
               </h2>
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
                 {anuncio.preco && (
@@ -246,6 +276,8 @@ export default function AnuncioDetalhePage() {
                     R$ {anuncio.preco}
                   </div>
                 )}
+
+                {/* IMÓVEIS */}
                 {anuncio.tipo_imovel && (
                   <div>
                     <span className="font-semibold text-slate-900">
@@ -298,6 +330,40 @@ export default function AnuncioDetalhePage() {
                     {anuncio.vagas}
                   </div>
                 )}
+
+                {/* CAMPOS ESPECÍFICOS DE VEÍCULOS (se existirem) */}
+                {anuncio.marca && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Marca:{" "}
+                    </span>
+                    {anuncio.marca}
+                  </div>
+                )}
+                {anuncio.modelo && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Modelo:{" "}
+                    </span>
+                    {anuncio.modelo}
+                  </div>
+                )}
+                {anuncio.ano && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Ano:{" "}
+                    </span>
+                    {anuncio.ano}
+                  </div>
+                )}
+                {anuncio.km && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Km:{" "}
+                    </span>
+                    {anuncio.km}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -305,7 +371,7 @@ export default function AnuncioDetalhePage() {
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                  Descrição do imóvel
+                  Descrição
                 </h2>
                 <p className="text-xs text-slate-700 whitespace-pre-line">
                   {anuncio.descricao}
@@ -320,7 +386,7 @@ export default function AnuncioDetalhePage() {
                         <span className="font-semibold text-slate-900">
                           Condomínio:{" "}
                         </span>
-                          R$ {anuncio.condominio}
+                        R$ {anuncio.condominio}
                       </div>
                     )}
                     {anuncio.iptu && (
@@ -369,10 +435,10 @@ export default function AnuncioDetalhePage() {
             {anuncio.video_url && (
               <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                  Vídeo do imóvel
+                  Vídeo
                 </h2>
                 <p className="text-xs text-slate-700 mb-3">
-                  Assista ao vídeo completo deste imóvel no YouTube.
+                  Assista ao vídeo completo deste anúncio no YouTube.
                 </p>
                 <a
                   href={anuncio.video_url}
@@ -473,11 +539,10 @@ export default function AnuncioDetalhePage() {
             {/* Mercado Livre */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Ofertas para sua casa (Mercado Livre)
+                Ofertas que combinam com este anúncio (Mercado Livre)
               </h2>
               <p className="text-[11px] text-slate-600 mb-3">
-                Itens que combinam com este imóvel. Clique para ver mais detalhes
-                no Mercado Livre.
+                Itens para equipar ou cuidar melhor deste imóvel ou veículo.
               </p>
               <ul className="space-y-2 text-xs text-slate-700">
                 <li>
@@ -519,16 +584,16 @@ export default function AnuncioDetalhePage() {
           </div>
         </div>
 
-        {/* Imóveis similares */}
+        {/* Similares */}
         <section className="mt-6">
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Imóveis similares na Região dos Lagos
+              {tituloSimilares}
             </h2>
 
             {similares.length === 0 && (
               <p className="text-[11px] text-slate-600">
-                Em breve mais imóveis nesta região aparecerão aqui.
+                {textoSimilaresVazio}
               </p>
             )}
 
@@ -580,10 +645,16 @@ export default function AnuncioDetalhePage() {
         {/* Botão voltar (mobile) */}
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
-            href="/imoveis"
+            href={
+              anuncio.categoria === "veiculos"
+                ? "/veiculos"
+                : anuncio.categoria === "imoveis"
+                ? "/imoveis"
+                : "/"
+            }
             className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
           >
-            Voltar para Imóveis
+            Voltar
           </Link>
         </div>
 
