@@ -84,9 +84,14 @@ export default function AnuncioDetalhePage() {
     );
   }
 
-  // Imagens
+  // Flags por tipo
+  const isCurriculo = anuncio.categoria === "curriculo";
+  const isEmprego = anuncio.categoria === "emprego";
+
+  // Imagens (não usamos galeria para currículo e vagas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
+  const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
@@ -127,20 +132,28 @@ export default function AnuncioDetalhePage() {
   );
   const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
-  // 🔹 Título dinâmico da seção de similares
+  // Título dinâmico da seção de similares
   const tituloSimilares =
     anuncio.categoria === "veiculos"
       ? "Veículos similares na Região dos Lagos"
       : anuncio.categoria === "imoveis"
       ? "Imóveis similares na Região dos Lagos"
+      : anuncio.categoria === "emprego"
+      ? "Vagas que podem interessar"
+      : anuncio.categoria === "curriculo"
+      ? "Currículos recentes na Região dos Lagos"
       : "Anúncios similares na Região dos Lagos";
 
-  // 🔹 Texto dinâmico quando não houver similares
+  // Texto dinâmico quando não houver similares
   const textoSimilaresVazio =
     anuncio.categoria === "veiculos"
       ? "Em breve mais veículos nesta região aparecerão aqui."
       : anuncio.categoria === "imoveis"
       ? "Em breve mais imóveis nesta região aparecerão aqui."
+      : anuncio.categoria === "emprego"
+      ? "Em breve mais vagas aparecerão aqui."
+      : anuncio.categoria === "curriculo"
+      ? "Em breve mais currículos cadastrados aparecerão aqui."
       : "Em breve mais anúncios nesta região aparecerão aqui.";
 
   return (
@@ -163,6 +176,10 @@ export default function AnuncioDetalhePage() {
                   ? "Veículos"
                   : anuncio.categoria === "imoveis"
                   ? "Imóveis"
+                  : anuncio.categoria === "emprego"
+                  ? "Empregos"
+                  : anuncio.categoria === "curriculo"
+                  ? "Currículos"
                   : "Anúncios"}
               </p>
               <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -180,6 +197,9 @@ export default function AnuncioDetalhePage() {
                   ? "/veiculos"
                   : anuncio.categoria === "imoveis"
                   ? "/imoveis"
+                  : anuncio.categoria === "emprego" ||
+                    anuncio.categoria === "curriculo"
+                  ? "/empregos"
                   : "/"
               }
               className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
@@ -189,6 +209,9 @@ export default function AnuncioDetalhePage() {
                 ? "Veículos"
                 : anuncio.categoria === "imoveis"
                 ? "Imóveis"
+                : anuncio.categoria === "emprego" ||
+                  anuncio.categoria === "curriculo"
+                ? "Empregos"
                 : "a lista"}
             </Link>
           </div>
@@ -218,8 +241,8 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* CARD DE FOTOS */}
-        {temImagens && (
+        {/* GALERIA DE FOTOS (não mostra para VAGAS nem CURRÍCULO) */}
+        {mostrarGaleria && (
           <section className="w-full flex flex-col gap-3">
             {/* Foto principal */}
             <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
@@ -258,197 +281,354 @@ export default function AnuncioDetalhePage() {
           </section>
         )}
 
-        {/* GRID PRINCIPAL: ESQUERDA (detalhes) / DIREITA (contato + ML) */}
+        {/* GRID PRINCIPAL: ESQUERDA / DIREITA */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* Resumo */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Resumo do anúncio
-              </h2>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
-                {anuncio.preco && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Valor:{" "}
-                    </span>
-                    R$ {anuncio.preco}
-                  </div>
-                )}
+            {/* ===================== CURRÍCULO ===================== */}
+            {isCurriculo ? (
+              <>
+                {/* RESUMO DO CURRÍCULO */}
+                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                  <h2 className="text-sm font-semibold text-slate-900 mb-3">
+                    Resumo do currículo
+                  </h2>
 
-                {/* IMÓVEIS */}
-                {anuncio.tipo_imovel && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Tipo:{" "}
-                    </span>
-                    {anuncio.tipo_imovel}
-                  </div>
-                )}
-                {anuncio.finalidade && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Finalidade:{" "}
-                    </span>
-                    {anuncio.finalidade === "venda" && "Venda"}
-                    {anuncio.finalidade === "aluguel_fixo" && "Aluguel fixo"}
-                    {anuncio.finalidade === "aluguel" && "Aluguel"}
-                    {anuncio.finalidade === "temporada" &&
-                      "Aluguel por temporada"}
-                  </div>
-                )}
-                {anuncio.area && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Área:{" "}
-                    </span>
-                    {anuncio.area} m²
-                  </div>
-                )}
-                {anuncio.quartos && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Quartos:{" "}
-                    </span>
-                    {anuncio.quartos}
-                  </div>
-                )}
-                {anuncio.banheiros && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Banheiros:{" "}
-                    </span>
-                    {anuncio.banheiros}
-                  </div>
-                )}
-                {anuncio.vagas && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Vagas:{" "}
-                    </span>
-                    {anuncio.vagas}
-                  </div>
-                )}
-
-                {/* CAMPOS ESPECÍFICOS DE VEÍCULOS (se existirem) */}
-                {anuncio.marca && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Marca:{" "}
-                    </span>
-                    {anuncio.marca}
-                  </div>
-                )}
-                {anuncio.modelo && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Modelo:{" "}
-                    </span>
-                    {anuncio.modelo}
-                  </div>
-                )}
-                {anuncio.ano && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Ano:{" "}
-                    </span>
-                    {anuncio.ano}
-                  </div>
-                )}
-                {anuncio.km && (
-                  <div>
-                    <span className="font-semibold text-slate-900">
-                      Km:{" "}
-                    </span>
-                    {anuncio.km}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Descrição + mapa */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                  Descrição
-                </h2>
-                <p className="text-xs text-slate-700 whitespace-pre-line">
-                  {anuncio.descricao}
-                </p>
-
-                {(anuncio.condominio ||
-                  anuncio.iptu ||
-                  anuncio.aceita_financiamento) && (
-                  <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
-                    {anuncio.condominio && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Condomínio:{" "}
-                        </span>
-                        R$ {anuncio.condominio}
-                      </div>
+                  <div className="flex items-center gap-3 mb-3">
+                    {anuncio.curriculo_foto_url && (
+                      <img
+                        src={anuncio.curriculo_foto_url}
+                        alt={anuncio.nome_contato || "Candidato"}
+                        className="w-16 h-16 rounded-full object-cover border border-slate-200"
+                      />
                     )}
-                    {anuncio.iptu && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          IPTU (ano):{" "}
-                        </span>
-                        R$ {anuncio.iptu}
-                      </div>
+                    <div className="text-xs text-slate-800">
+                      <p className="font-semibold text-sm">
+                        {anuncio.nome_contato || "Candidato"}
+                      </p>
+                      {anuncio.area_profissional && (
+                        <p className="text-[11px] text-slate-600">
+                          Área: {anuncio.area_profissional}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-slate-500">
+                        {anuncio.cidade}
+                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2 text-xs text-slate-700">
+                    {anuncio.escolaridade_minima && (
+                      <p>
+                        <span className="font-semibold">Escolaridade: </span>
+                        {anuncio.escolaridade_minima}
+                      </p>
                     )}
-                    {anuncio.aceita_financiamento && (
-                      <div className="col-span-full">
-                        <span className="font-semibold text-slate-900">
-                          Aceita financiamento:{" "}
+                    {anuncio.formacao_academica && (
+                      <p>
+                        <span className="font-semibold">
+                          Formação / cursos:{" "}
                         </span>
-                        {anuncio.aceita_financiamento}
-                      </div>
+                        {anuncio.formacao_academica}
+                      </p>
                     )}
                   </div>
-                )}
-              </div>
-
-              {/* Mapa */}
-              <div className="mt-2">
-                <h3 className="text-xs font-semibold text-slate-900 mb-2">
-                  Localização aproximada
-                </h3>
-                <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                  <iframe
-                    title="Mapa do imóvel"
-                    src={mapaUrl}
-                    width="100%"
-                    height="100%"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
                 </div>
-                <p className="mt-1 text-[10px] text-slate-500">
-                  O mapa é aproximado e pode não indicar o número exato do
-                  imóvel. Confirme sempre com o anunciante.
-                </p>
-              </div>
-            </div>
 
-            {/* Vídeo */}
-            {anuncio.video_url && (
-              <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                  Vídeo
-                </h2>
-                <p className="text-xs text-slate-700 mb-3">
-                  Assista ao vídeo completo deste anúncio no YouTube.
-                </p>
-                <a
-                  href={anuncio.video_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
-                >
-                  Ver vídeo no YouTube
-                </a>
-              </div>
+                {/* DETALHES DO CURRÍCULO */}
+                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                      Descrição
+                    </h2>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.descricao}
+                    </p>
+                  </div>
+
+                  {anuncio.experiencias_profissionais && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-slate-900 mb-1">
+                        Experiências profissionais
+                      </h3>
+                      <p className="text-xs text-slate-700 whitespace-pre-line">
+                        {anuncio.experiencias_profissionais}
+                      </p>
+                    </div>
+                  )}
+
+                  {anuncio.habilidades && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-slate-900 mb-1">
+                        Habilidades / competências
+                      </h3>
+                      <p className="text-xs text-slate-700 whitespace-pre-line">
+                        {anuncio.habilidades}
+                      </p>
+                    </div>
+                  )}
+
+                  {anuncio.idiomas && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-slate-900 mb-1">
+                        Idiomas
+                      </h3>
+                      <p className="text-xs text-slate-700">
+                        {anuncio.idiomas}
+                      </p>
+                    </div>
+                  )}
+
+                  {anuncio.curriculo_pdf_url && (
+                    <div className="pt-2">
+                      <a
+                        href={anuncio.curriculo_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-full border border-emerald-600 px-4 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                      >
+                        Ver currículo em PDF
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* ===================== OUTROS TIPOS (IMÓVEL, VAGA, ETC) ===================== */}
+                {/* Resumo */}
+                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                  <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                    Resumo do anúncio
+                  </h2>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
+                    {anuncio.preco && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Valor:{" "}
+                        </span>
+                        R$ {anuncio.preco}
+                      </div>
+                    )}
+
+                    {/* IMÓVEIS */}
+                    {anuncio.tipo_imovel && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Tipo:{" "}
+                        </span>
+                        {anuncio.tipo_imovel}
+                      </div>
+                    )}
+                    {anuncio.finalidade && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Finalidade:{" "}
+                        </span>
+                        {anuncio.finalidade === "venda" && "Venda"}
+                        {anuncio.finalidade === "aluguel_fixo" &&
+                          "Aluguel fixo"}
+                        {anuncio.finalidade === "aluguel" && "Aluguel"}
+                        {anuncio.finalidade === "temporada" &&
+                          "Aluguel por temporada"}
+                      </div>
+                    )}
+                    {anuncio.area && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Área:{" "}
+                        </span>
+                        {anuncio.area} m²
+                      </div>
+                    )}
+                    {anuncio.quartos && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Quartos:{" "}
+                        </span>
+                        {anuncio.quartos}
+                      </div>
+                    )}
+                    {anuncio.banheiros && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Banheiros:{" "}
+                        </span>
+                        {anuncio.banheiros}
+                      </div>
+                    )}
+                    {anuncio.vagas && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Vagas:{" "}
+                        </span>
+                        {anuncio.vagas}
+                      </div>
+                    )}
+
+                    {/* CAMPOS DE VAGA DE EMPREGO */}
+                    {isEmprego && anuncio.area_profissional && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Área:{" "}
+                        </span>
+                        {anuncio.area_profissional}
+                      </div>
+                    )}
+                    {isEmprego && anuncio.tipo_vaga && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Tipo de vaga:{" "}
+                        </span>
+                        {anuncio.tipo_vaga}
+                      </div>
+                    )}
+                    {isEmprego && anuncio.modelo_trabalho && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Modelo:{" "}
+                        </span>
+                        {anuncio.modelo_trabalho}
+                      </div>
+                    )}
+                    {isEmprego && anuncio.carga_horaria && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Carga horária:{" "}
+                        </span>
+                        {anuncio.carga_horaria}
+                      </div>
+                    )}
+                    {isEmprego && anuncio.faixa_salarial && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Faixa salarial:{" "}
+                        </span>
+                        {anuncio.faixa_salarial}
+                      </div>
+                    )}
+
+                    {/* CAMPOS ESPECÍFICOS DE VEÍCULOS (se existirem) */}
+                    {anuncio.marca && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Marca:{" "}
+                        </span>
+                        {anuncio.marca}
+                      </div>
+                    )}
+                    {anuncio.modelo && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Modelo:{" "}
+                        </span>
+                        {anuncio.modelo}
+                      </div>
+                    )}
+                    {anuncio.ano && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Ano:{" "}
+                        </span>
+                        {anuncio.ano}
+                      </div>
+                    )}
+                    {anuncio.km && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Km:{" "}
+                        </span>
+                        {anuncio.km}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Descrição + mapa */}
+                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                      Descrição
+                    </h2>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.descricao}
+                    </p>
+
+                    {(anuncio.condominio ||
+                      anuncio.iptu ||
+                      anuncio.aceita_financiamento) && (
+                      <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
+                        {anuncio.condominio && (
+                          <div>
+                            <span className="font-semibold text-slate-900">
+                              Condomínio:{" "}
+                            </span>
+                            R$ {anuncio.condominio}
+                          </div>
+                        )}
+                        {anuncio.iptu && (
+                          <div>
+                            <span className="font-semibold text-slate-900">
+                              IPTU (ano):{" "}
+                            </span>
+                            R$ {anuncio.iptu}
+                          </div>
+                        )}
+                        {anuncio.aceita_financiamento && (
+                          <div className="col-span-full">
+                            <span className="font-semibold text-slate-900">
+                              Aceita financiamento:{" "}
+                            </span>
+                            {anuncio.aceita_financiamento}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mapa (mantém para imóveis/veículos/serviços, não é problema para vaga também) */}
+                  <div className="mt-2">
+                    <h3 className="text-xs font-semibold text-slate-900 mb-2">
+                      Localização aproximada
+                    </h3>
+                    <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+                      <iframe
+                        title="Mapa do anúncio"
+                        src={mapaUrl}
+                        width="100%"
+                        height="100%"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                    <p className="mt-1 text-[10px] text-slate-500">
+                      O mapa é aproximado e pode não indicar o endereço exato.
+                      Confirme sempre com o anunciante.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vídeo */}
+                {anuncio.video_url && (
+                  <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                      Vídeo
+                    </h2>
+                    <p className="text-xs text-slate-700 mb-3">
+                      Assista ao vídeo completo deste anúncio no YouTube.
+                    </p>
+                    <a
+                      href={anuncio.video_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
+                    >
+                      Ver vídeo no YouTube
+                    </a>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -542,7 +722,8 @@ export default function AnuncioDetalhePage() {
                 Ofertas que combinam com este anúncio (Mercado Livre)
               </h2>
               <p className="text-[11px] text-slate-600 mb-3">
-                Itens para equipar ou cuidar melhor deste imóvel ou veículo.
+                Itens para equipar ou cuidar melhor deste imóvel, veículo ou
+                ambiente de trabalho.
               </p>
               <ul className="space-y-2 text-xs text-slate-700">
                 <li>
@@ -650,6 +831,9 @@ export default function AnuncioDetalhePage() {
                 ? "/veiculos"
                 : anuncio.categoria === "imoveis"
                 ? "/imoveis"
+                : anuncio.categoria === "emprego" ||
+                  anuncio.categoria === "curriculo"
+                ? "/empregos"
                 : "/"
             }
             className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
