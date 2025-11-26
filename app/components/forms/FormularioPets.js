@@ -13,25 +13,17 @@ export default function FormularioPets() {
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Subcategoria simples (Lista B)
+  // Tipo de anúncio (simples)
   const [subcategoria, setSubcategoria] = useState(""); // Animais / Acessórios / Serviços pet
-
-  // Para animais
-  const [especie, setEspecie] = useState("");
-  const [raca, setRaca] = useState("");
-  const [idade, setIdade] = useState("");
-  const [sexo, setSexo] = useState("");
-  const [vacinado, setVacinado] = useState("nao");
-  const [castrado, setCastrado] = useState("nao");
 
   // Valor
   const [preco, setPreco] = useState("");
 
-  // Upload
+  // Upload de fotos
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // Vídeo
+  // Vídeo (opcional)
   const [videoUrl, setVideoUrl] = useState("");
 
   // Contato
@@ -40,10 +32,8 @@ export default function FormularioPets() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Termos
+  // Termos e mensagens
   const [aceitoTermos, setAceitoTermos] = useState(false);
-
-  // Mensagens
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -60,8 +50,6 @@ export default function FormularioPets() {
   ];
 
   const subcategoriasPets = ["Animais", "Acessórios", "Serviços pet"];
-
-  const especies = ["Cachorro", "Gato", "Ave", "Peixe", "Roedor", "Outros"];
 
   // Garante login
   useEffect(() => {
@@ -92,16 +80,16 @@ export default function FormularioPets() {
       return;
     }
 
+    if (!subcategoria) {
+      setErro("Selecione o tipo de anúncio (Animais, Acessórios ou Serviços).");
+      return;
+    }
+
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
       setErro(
         "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
       );
-      return;
-    }
-
-    if (!subcategoria) {
-      setErro("Selecione o tipo de anúncio (Animais, Acessórios ou Serviços).");
       return;
     }
 
@@ -112,14 +100,12 @@ export default function FormularioPets() {
       return;
     }
 
-    // Upload
+    // Upload das fotos
     let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
         setUploading(true);
-
-        const bucketName = "anuncios";
 
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
@@ -127,13 +113,13 @@ export default function FormularioPets() {
             const filePath = `${user.id}/${Date.now()}-pets-${index}.${ext}`;
 
             const { error: uploadError } = await supabase.storage
-              .from(bucketName)
+              .from("anuncios")
               .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
             const { data: publicData } = supabase.storage
-              .from(bucketName)
+              .from("anuncios")
               .getPublicUrl(filePath);
 
             return publicData.publicUrl;
@@ -153,21 +139,11 @@ export default function FormularioPets() {
 
     const imagens = urlsUpload;
 
-    // Para simplificar, vamos armazenar as infos de pet dentro da descrição extra
-    const descricaoCompleta =
-      subcategoria === "Animais"
-        ? `${descricao}\n\nEspécie: ${especie || "-"} | Raça: ${
-            raca || "-"
-          } | Idade: ${idade || "-"} | Sexo: ${
-            sexo || "-"
-          } | Vacinado: ${vacinado} | Castrado: ${castrado}`
-        : descricao;
-
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "pets",
       titulo,
-      descricao: descricaoCompleta,
+      descricao,
       cidade,
       bairro,
       preco,
@@ -177,7 +153,7 @@ export default function FormularioPets() {
       whatsapp,
       email,
       contato: contatoPrincipal,
-      tipo_imovel: subcategoria, // aqui usamos tipo_imovel como "tipo do anúncio pets"
+      tipo_imovel: subcategoria, // aqui usamos como tipo do anúncio
       nome_contato: nomeContato,
       status: "ativo",
       destaque: false,
@@ -191,18 +167,12 @@ export default function FormularioPets() {
 
     setSucesso("Anúncio de pets enviado com sucesso!");
 
-    // Limpa
+    // Limpa formulário
     setTitulo("");
     setDescricao("");
     setCidade("");
     setBairro("");
     setSubcategoria("");
-    setEspecie("");
-    setRaca("");
-    setIdade("");
-    setSexo("");
-    setVacinado("nao");
-    setCastrado("nao");
     setPreco("");
     setArquivos([]);
     setVideoUrl("");
@@ -217,15 +187,9 @@ export default function FormularioPets() {
     }, 2000);
   };
 
-  const Bloco = ({ titulo, children }) => (
-    <div className="space-y-3 border-t border-slate-200 pt-4">
-      <h2 className="text-sm font-semibold text-slate-900">{titulo}</h2>
-      {children}
-    </div>
-  );
-
   return (
     <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
+      {/* Mensagens */}
       {erro && (
         <p className="text-red-600 border border-red-200 bg-red-50 rounded-lg px-3 py-2">
           {erro}
@@ -237,126 +201,38 @@ export default function FormularioPets() {
         </p>
       )}
 
-      {/* Tipo de anúncio */}
-      <Bloco titulo="Tipo de anúncio para pets">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Categoria *
-            </label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={subcategoria}
-              onChange={(e) => setSubcategoria(e.target.value)}
-              required
-            >
-              <option value="">Selecione...</option>
-              {subcategoriasPets.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* TIPO DE ANÚNCIO */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Tipo de anúncio para pets
+        </h2>
 
-          {subcategoria === "Animais" && (
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Espécie
-              </label>
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={especie}
-                onChange={(e) => setEspecie(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {especies.map((e1) => (
-                  <option key={e1} value={e1}>
-                    {e1}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+        <div>
+          <label className="block text-[11px] font-medium text-slate-700">
+            Categoria *
+          </label>
+          <select
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            value={subcategoria}
+            onChange={(e) => setSubcategoria(e.target.value)}
+            required
+          >
+            <option value="">Selecione...</option>
+            {subcategoriasPets.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
-      </Bloco>
+      </div>
 
-      {/* Dados do animal (se for animais) */}
-      {subcategoria === "Animais" && (
-        <Bloco titulo="Informações do animal">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Raça
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={raca}
-                onChange={(e) => setRaca(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Idade
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: 3 meses, 2 anos"
-                value={idade}
-                onChange={(e) => setIdade(e.target.value)}
-              />
-            </div>
-          </div>
+      {/* TÍTULO / DESCRIÇÃO */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Informações do anúncio
+        </h2>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Sexo
-              </label>
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={sexo}
-                onChange={(e) => setSexo(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                <option value="Macho">Macho</option>
-                <option value="Fêmea">Fêmea</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Vacinado?
-              </label>
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={vacinado}
-                onChange={(e) => setVacinado(e.target.value)}
-              >
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Castrado?
-              </label>
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={castrado}
-                onChange={(e) => setCastrado(e.target.value)}
-              >
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-              </select>
-            </div>
-          </div>
-        </Bloco>
-      )}
-
-      {/* Título e descrição */}
-      <Bloco titulo="Informações do anúncio">
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Título do anúncio *
@@ -364,7 +240,7 @@ export default function FormularioPets() {
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: Filhotes de cachorro SRD para adoção"
+            placeholder="Ex.: Filhotes para adoção, banho e tosa, hotel para pets..."
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             required
@@ -383,10 +259,12 @@ export default function FormularioPets() {
             required
           />
         </div>
-      </Bloco>
+      </div>
 
-      {/* Localização */}
-      <Bloco titulo="Localização">
+      {/* LOCALIZAÇÃO */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
@@ -420,10 +298,12 @@ export default function FormularioPets() {
             />
           </div>
         </div>
-      </Bloco>
+      </div>
 
-      {/* Valor */}
-      <Bloco titulo="Valor">
+      {/* VALOR */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
+
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Preço (R$)
@@ -431,19 +311,17 @@ export default function FormularioPets() {
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder={
-              subcategoria === "Animais"
-                ? "Ex.: taxa simbólica, R$ 300,00 etc."
-                : "Ex.: R$ 80,00 o banho, R$ 50,00 o produto..."
-            }
+            placeholder="Ex.: taxa simbólica, valor do serviço ou produto"
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
           />
         </div>
-      </Bloco>
+      </div>
 
-      {/* Fotos */}
-      <Bloco titulo="Fotos">
+      {/* FOTOS */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
+
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Enviar fotos (upload) – até 8 imagens
@@ -460,14 +338,13 @@ export default function FormularioPets() {
               {arquivos.length} arquivo(s) selecionado(s).
             </p>
           )}
-          <p className="mt-1 text-[11px] text-slate-500">
-            Formatos recomendados: JPG ou PNG, até 2MB cada.
-          </p>
         </div>
-      </Bloco>
+      </div>
 
-      {/* Vídeo */}
-      <Bloco titulo="Vídeo (opcional)">
+      {/* VÍDEO */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
+
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             URL do vídeo (YouTube)
@@ -480,10 +357,12 @@ export default function FormularioPets() {
             onChange={(e) => setVideoUrl(e.target.value)}
           />
         </div>
-      </Bloco>
+      </div>
 
-      {/* Contato */}
-      <Bloco titulo="Dados de contato">
+      {/* CONTATO */}
+      <div className="space-y-3 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Nome para contato
@@ -537,14 +416,9 @@ export default function FormularioPets() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+      </div>
 
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para as pessoas entrarem em contato com você.
-        </p>
-      </Bloco>
-
-      {/* Termos */}
+      {/* TERMOS */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
