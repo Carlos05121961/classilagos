@@ -31,6 +31,9 @@ export default function FormularioCurriculo() {
   const [fotoFile, setFotoFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
 
+  // Checkbox de confirmação
+  const [aceitoTermos, setAceitoTermos] = useState(false);
+
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -94,6 +97,13 @@ export default function FormularioCurriculo() {
     if (!contatoPrincipal) {
       setErro(
         "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
+      return;
+    }
+
+    if (!aceitoTermos) {
+      setErro(
+        "Para cadastrar seu currículo, marque a opção confirmando que as informações são verdadeiras."
       );
       return;
     }
@@ -163,7 +173,7 @@ export default function FormularioCurriculo() {
         cidade,
         bairro,
         nome_contato: nome,
-        // Campos específicos de currículo/empregos
+        // Campos específicos de currículo
         area_profissional: areaProfissional,
         escolaridade_minima: escolaridade,
         formacao_academica: formacaoAcademica,
@@ -174,7 +184,7 @@ export default function FormularioCurriculo() {
         telefone,
         whatsapp,
         email,
-        contato: contatoPrincipal, // 🔴 IMPORTANTE: coluna NOT NULL
+        contato: contatoPrincipal, // coluna NOT NULL
         // Arquivos
         curriculo_foto_url: fotoUrl,
         curriculo_pdf_url: pdfUrl,
@@ -183,7 +193,9 @@ export default function FormularioCurriculo() {
 
       if (insertError) {
         console.error("Erro ao inserir currículo:", insertError);
-        setErro("Erro ao salvar seu currículo. Tente novamente.");
+        setErro(
+          `Erro ao salvar seu currículo: ${insertError.message || "Tente novamente."}`
+        );
         setUploading(false);
         return;
       }
@@ -208,13 +220,16 @@ export default function FormularioCurriculo() {
       setEmail("");
       setFotoFile(null);
       setPdfFile(null);
+      setAceitoTermos(false);
 
       setTimeout(() => {
         router.push("/painel/meus-anuncios");
       }, 1800);
     } catch (err) {
       console.error(err);
-      setErro("Erro ao salvar seu currículo. Tente novamente.");
+      setErro(
+        `Erro ao salvar seu currículo: ${err.message || "Tente novamente."}`
+      );
       setUploading(false);
     }
   };
@@ -234,9 +249,7 @@ export default function FormularioCurriculo() {
 
       {/* Dados pessoais */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Dados pessoais
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Dados pessoais</h2>
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
@@ -295,7 +308,7 @@ export default function FormularioCurriculo() {
         </div>
       </div>
 
-      {/* Área / formação / experiência */}
+      {/* Perfil profissional */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Perfil profissional
@@ -473,6 +486,22 @@ export default function FormularioCurriculo() {
           Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
           exibido para contato das empresas.
         </p>
+      </div>
+
+      {/* Checkbox de confirmação */}
+      <div className="border-t border-slate-100 pt-4">
+        <label className="flex items-start gap-2 text-[11px] text-slate-700">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={aceitoTermos}
+            onChange={(e) => setAceitoTermos(e.target.checked)}
+          />
+          <span>
+            Declaro que as informações preenchidas são verdadeiras e autorizo que
+            meu currículo seja exibido para empresas na plataforma Classilagos.
+          </span>
+        </label>
       </div>
 
       <button
