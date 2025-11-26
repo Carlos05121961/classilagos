@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "../supabaseClient";
 
 const heroImages = [
   "/veiculos/carro-01.jpg",
@@ -12,12 +13,40 @@ const heroImages = [
 
 export default function VeiculosPage() {
   const [currentHero, setCurrentHero] = useState(0);
+  const [veiculos, setVeiculos] = useState([]);
+  const [loadingVeiculos, setLoadingVeiculos] = useState(true);
 
+  // ROTATIVO DO HERO
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
     }, 6000);
     return () => clearInterval(interval);
+  }, []);
+
+  // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE
+  useEffect(() => {
+    const fetchVeiculos = async () => {
+      setLoadingVeiculos(true);
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, preco, imagens")
+        .eq("categoria", "veiculos")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      if (error) {
+        console.error("Erro ao buscar veículos:", error);
+        setVeiculos([]);
+      } else {
+        setVeiculos(data || []);
+      }
+
+      setLoadingVeiculos(false);
+    };
+
+    fetchVeiculos();
   }, []);
 
   const categoriasLinha1 = [
@@ -139,7 +168,8 @@ export default function VeiculosPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
+            Em breve, essa busca estará ligada aos anúncios reais da
+            plataforma.
           </p>
         </div>
       </section>
@@ -178,19 +208,94 @@ export default function VeiculosPage() {
           ))}
         </div>
 
-        {/* DESTAQUES RESERVADOS */}
+        {/* VEÍCULOS EM DESTAQUE (DINÂMICO DO SUPABASE) */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
+            Veículos em destaque
+          </h2>
+          {/* Futuramente: botão "ver todos" */}
+        </div>
+
+        {/* GRID DE CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200"
-            >
-              <div className="h-28 md:h-32 w-full bg-emerald-800" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                Veículo destaque
-              </div>
-            </div>
-          ))}
+          {loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-slate-200 animate-pulse" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Carregando...
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {!loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-emerald-800" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Veículo destaque
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {veiculos.length > 0 &&
+            veiculos.map((carro) => {
+              const img =
+                Array.isArray(carro.imagens) && carro.imagens.length > 0
+                  ? carro.imagens[0]
+                  : null;
+
+              return (
+                <Link
+                  key={carro.id}
+                  href={`/anuncios/${carro.id}`}
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
+                >
+                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                    {img ? (
+                      <Image
+                        src={img}
+                        alt={carro.titulo}
+                        fill
+                        sizes="300px"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                        Sem foto
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-900 text-white px-3 py-2">
+                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">
+                      {carro.titulo}
+                    </p>
+                    <p className="mt-1 text-[10px] text-slate-200">
+                      {carro.cidade}
+                      {carro.bairro ? ` • ${carro.bairro}` : ""}
+                    </p>
+                    {carro.preco && (
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">
+                        R$ {carro.preco}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
         </div>
       </section>
 
