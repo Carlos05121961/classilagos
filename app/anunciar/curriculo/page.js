@@ -1,6 +1,7 @@
 "use client";
 
-import FormularioCurriculo from "@/app/components/forms/FormularioCurriculo";
+import FormularioCurriculo from "../../components/forms/FormularioCurriculo";
+
 
 export default function AnunciarCurriculoPage() {
   return (
