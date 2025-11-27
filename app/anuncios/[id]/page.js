@@ -45,7 +45,9 @@ export default function AnuncioDetalhePage() {
 
       const { data: similaresData } = await supabase
         .from("anuncios")
-        .select("id, titulo, cidade, bairro, preco, tipo_imovel, imagens, categoria")
+        .select(
+          "id, titulo, cidade, bairro, preco, tipo_imovel, imagens, categoria, subcategoria_servico"
+        )
         .eq("categoria", data.categoria || "imoveis")
         .eq("cidade", data.cidade)
         .neq("id", data.id)
@@ -59,7 +61,6 @@ export default function AnuncioDetalhePage() {
     fetchAnuncio();
   }, [id]);
 
-  // Estados de carregamento / erro
   if (loading) {
     return (
       <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center">
@@ -75,10 +76,10 @@ export default function AnuncioDetalhePage() {
           {erro || "Anúncio não encontrado."}
         </p>
         <Link
-          href="/imoveis"
+          href="/"
           className="rounded-full bg-[#21D4FD] px-5 py-2 text-sm text-white font-semibold hover:bg-[#3EC9C3]"
         >
-          Voltar para Imóveis
+          Voltar para a página inicial
         </Link>
       </main>
     );
@@ -87,6 +88,7 @@ export default function AnuncioDetalhePage() {
   // Flags por tipo
   const isCurriculo = anuncio.categoria === "curriculo";
   const isEmprego = anuncio.categoria === "emprego";
+  const isServico = anuncio.categoria === "servico";
 
   // Imagens (não usamos galeria para currículo e vagas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
@@ -142,6 +144,8 @@ export default function AnuncioDetalhePage() {
       ? "Vagas que podem interessar"
       : anuncio.categoria === "curriculo"
       ? "Currículos recentes na Região dos Lagos"
+      : anuncio.categoria === "servico"
+      ? "Serviços similares na Região dos Lagos"
       : "Anúncios similares na Região dos Lagos";
 
   // Texto dinâmico quando não houver similares
@@ -154,7 +158,33 @@ export default function AnuncioDetalhePage() {
       ? "Em breve mais vagas aparecerão aqui."
       : anuncio.categoria === "curriculo"
       ? "Em breve mais currículos cadastrados aparecerão aqui."
+      : anuncio.categoria === "servico"
+      ? "Em breve mais serviços cadastrados aparecerão aqui."
       : "Em breve mais anúncios nesta região aparecerão aqui.";
+
+  // Rota para o "voltar"
+  const rotaVoltar =
+    anuncio.categoria === "veiculos"
+      ? "/veiculos"
+      : anuncio.categoria === "imoveis"
+      ? "/imoveis"
+      : anuncio.categoria === "emprego" || anuncio.categoria === "curriculo"
+      ? "/empregos"
+      : anuncio.categoria === "servico"
+      ? "/servicos"
+      : "/";
+
+  // Texto "Voltar para ..."
+  const textoVoltar =
+    anuncio.categoria === "veiculos"
+      ? "Veículos"
+      : anuncio.categoria === "imoveis"
+      ? "Imóveis"
+      : anuncio.categoria === "emprego" || anuncio.categoria === "curriculo"
+      ? "Empregos"
+      : anuncio.categoria === "servico"
+      ? "Serviços"
+      : "a lista";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
@@ -180,6 +210,8 @@ export default function AnuncioDetalhePage() {
                   ? "Empregos"
                   : anuncio.categoria === "curriculo"
                   ? "Currículos"
+                  : anuncio.categoria === "servico"
+                  ? "Serviços"
                   : "Anúncios"}
               </p>
               <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -192,27 +224,10 @@ export default function AnuncioDetalhePage() {
             </div>
 
             <Link
-              href={
-                anuncio.categoria === "veiculos"
-                  ? "/veiculos"
-                  : anuncio.categoria === "imoveis"
-                  ? "/imoveis"
-                  : anuncio.categoria === "emprego" ||
-                    anuncio.categoria === "curriculo"
-                  ? "/empregos"
-                  : "/"
-              }
+              href={rotaVoltar}
               className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
             >
-              Voltar para{" "}
-              {anuncio.categoria === "veiculos"
-                ? "Veículos"
-                : anuncio.categoria === "imoveis"
-                ? "Imóveis"
-                : anuncio.categoria === "emprego" ||
-                  anuncio.categoria === "curriculo"
-                ? "Empregos"
-                : "a lista"}
+              Voltar para {textoVoltar}
             </Link>
           </div>
 
@@ -244,7 +259,6 @@ export default function AnuncioDetalhePage() {
         {/* GALERIA DE FOTOS (não mostra para VAGAS nem CURRÍCULO) */}
         {mostrarGaleria && (
           <section className="w-full flex flex-col gap-3">
-            {/* Foto principal */}
             <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
               <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] lg:h-[380px]">
                 <img
@@ -255,7 +269,6 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
 
-            {/* Miniaturas */}
             {imagens.length > 1 && (
               <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                 {imagens.map((url, index) => (
@@ -288,7 +301,6 @@ export default function AnuncioDetalhePage() {
             {/* ===================== CURRÍCULO ===================== */}
             {isCurriculo ? (
               <>
-                {/* RESUMO DO CURRÍCULO */}
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h2 className="text-sm font-semibold text-slate-900 mb-3">
                     Resumo do currículo
@@ -336,7 +348,6 @@ export default function AnuncioDetalhePage() {
                   </div>
                 </div>
 
-                {/* DETALHES DO CURRÍCULO */}
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
                   <div>
                     <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -396,19 +407,36 @@ export default function AnuncioDetalhePage() {
               </>
             ) : (
               <>
-                {/* ===================== OUTROS TIPOS (IMÓVEL, VAGA, ETC) ===================== */}
-                {/* Resumo */}
+                {/* ===================== OUTROS TIPOS ===================== */}
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h2 className="text-sm font-semibold text-slate-900 mb-2">
                     Resumo do anúncio
                   </h2>
+
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
+                    {/* Valor / faixa */}
                     {anuncio.preco && (
                       <div>
                         <span className="font-semibold text-slate-900">
                           Valor:{" "}
                         </span>
                         R$ {anuncio.preco}
+                      </div>
+                    )}
+                    {isEmprego && anuncio.faixa_salarial && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Faixa salarial:{" "}
+                        </span>
+                        {anuncio.faixa_salarial}
+                      </div>
+                    )}
+                    {isServico && anuncio.faixa_preco && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Faixa de preço:{" "}
+                        </span>
+                        {anuncio.faixa_preco}
                       </div>
                     )}
 
@@ -467,7 +495,7 @@ export default function AnuncioDetalhePage() {
                       </div>
                     )}
 
-                    {/* CAMPOS DE VAGA DE EMPREGO */}
+                    {/* CAMPOS VAGA DE EMPREGO */}
                     {isEmprego && anuncio.area_profissional && (
                       <div>
                         <span className="font-semibold text-slate-900">
@@ -500,16 +528,48 @@ export default function AnuncioDetalhePage() {
                         {anuncio.carga_horaria}
                       </div>
                     )}
-                    {isEmprego && anuncio.faixa_salarial && (
+
+                    {/* SERVIÇOS */}
+                    {isServico && anuncio.subcategoria_servico && (
                       <div>
                         <span className="font-semibold text-slate-900">
-                          Faixa salarial:{" "}
+                          Tipo de serviço:{" "}
                         </span>
-                        {anuncio.faixa_salarial}
+                        {anuncio.subcategoria_servico === "classimed" &&
+                          "Saúde (Classimed)"}
+                        {anuncio.subcategoria_servico === "eventos" &&
+                          "Festas & Eventos"}
+                        {anuncio.subcategoria_servico === "profissionais" &&
+                          "Profissionais & Serviços"}
                       </div>
                     )}
+                    {isServico && anuncio.nome_negocio && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Nome do negócio:{" "}
+                        </span>
+                        {anuncio.nome_negocio}
+                      </div>
+                    )}
+                    {isServico && anuncio.horario_atendimento && (
+                      <div>
+                        <span className="font-semibold text-slate-900">
+                          Horário de atendimento:{" "}
+                        </span>
+                        {anuncio.horario_atendimento}
+                      </div>
+                    )}
+                    {isServico &&
+                      typeof anuncio.atende_domicilio === "boolean" && (
+                        <div>
+                          <span className="font-semibold text-slate-900">
+                            Atende em domicílio:{" "}
+                          </span>
+                          {anuncio.atende_domicilio ? "Sim" : "Não"}
+                        </div>
+                      )}
 
-                    {/* CAMPOS ESPECÍFICOS DE VEÍCULOS (se existirem) */}
+                    {/* CAMPOS DE VEÍCULOS (se existirem) */}
                     {anuncio.marca && (
                       <div>
                         <span className="font-semibold text-slate-900">
@@ -585,9 +645,51 @@ export default function AnuncioDetalhePage() {
                         )}
                       </div>
                     )}
+
+                    {/* Links extras para serviços */}
+                    {isServico && (anuncio.site_url || anuncio.instagram) && (
+                      <div className="mt-4 space-y-1 text-xs text-slate-700">
+                        {anuncio.site_url && (
+                          <p>
+                            <span className="font-semibold text-slate-900">
+                              Site:{" "}
+                            </span>
+                            <a
+                              href={anuncio.site_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {anuncio.site_url}
+                            </a>
+                          </p>
+                        )}
+                        {anuncio.instagram && (
+                          <p>
+                            <span className="font-semibold text-slate-900">
+                              Instagram:{" "}
+                            </span>
+                            <a
+                              href={
+                                anuncio.instagram.startsWith("http")
+                                  ? anuncio.instagram
+                                  : `https://instagram.com/${anuncio.instagram.replace(
+                                      "@",
+                                      ""
+                                    )}`
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {anuncio.instagram}
+                            </a>
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Mapa (mantém para imóveis/veículos/serviços, não é problema para vaga também) */}
                   <div className="mt-2">
                     <h3 className="text-xs font-semibold text-slate-900 mb-2">
                       Localização aproximada
@@ -634,7 +736,6 @@ export default function AnuncioDetalhePage() {
 
           {/* COLUNA DIREITA: CONTATO + MERCADO LIVRE */}
           <div className="space-y-4">
-            {/* Contato */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
                 Fale com o anunciante
@@ -716,7 +817,6 @@ export default function AnuncioDetalhePage() {
               </p>
             </div>
 
-            {/* Mercado Livre */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Ofertas que combinam com este anúncio (Mercado Livre)
@@ -826,16 +926,7 @@ export default function AnuncioDetalhePage() {
         {/* Botão voltar (mobile) */}
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
-            href={
-              anuncio.categoria === "veiculos"
-                ? "/veiculos"
-                : anuncio.categoria === "imoveis"
-                ? "/imoveis"
-                : anuncio.categoria === "emprego" ||
-                  anuncio.categoria === "curriculo"
-                ? "/empregos"
-                : "/"
-            }
+            href={rotaVoltar}
             className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
           >
             Voltar
