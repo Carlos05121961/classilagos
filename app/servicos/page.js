@@ -19,7 +19,8 @@ export default function ServicosPage() {
         .select(
           "id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens"
         )
-        .eq("categoria", "servicos")
+       .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
+,
         .eq("status", "ativo")
         .order("created_at", { ascending: false });
 
