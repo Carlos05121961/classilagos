@@ -1,529 +1,362 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../supabaseClient";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function FormularioLagolistas() {
+  const supabase = createClientComponentClient();
   const router = useRouter();
 
-  // CAMPOS PRINCIPAIS
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [bairro, setBairro] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [formData, setFormData] = useState({
+    titulo: "",
+    razao_social: "",
+    cnpj: "",
+    inscricao_municipal: "",
+    registro_profissional: "",
+    descricao: "",
+    cidade: "",
+    endereco: "",
+    telefone: "",
+    whatsapp: "",
+    email: "",
+    imagemUrl: "",
+  });
 
-  const [segmento, setSegmento] = useState(""); // vai em area_profissional
-
-  // DADOS DA EMPRESA / PROFISSIONAL
-  const [razaoSocial, setRazaoSocial] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [inscricaoMunicipal, setInscricaoMunicipal] = useState("");
-  const [registroProfissional, setRegistroProfissional] = useState("");
-
-  // CONTATOS
-  const [telefone, setTelefone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-  const [siteUrl, setSiteUrl] = useState("");
-  const [instagram, setInstagram] = useState("");
-
-  // IMAGEM / LOGO
-  const [imagemFile, setImagemFile] = useState(null);
-
-  // CONTROLE
-  const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState("");
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
 
-  const cidades = [
-    "Maricá",
-    "Saquarema",
-    "Araruama",
-    "Iguaba Grande",
-    "São Pedro da Aldeia",
-    "Arraial do Cabo",
-    "Cabo Frio",
-    "Búzios",
-    "Rio das Ostras",
-  ];
-
-  const segmentosLagolistas = [
-    "Mercados & mercearias",
-    "Farmácias & drogarias",
-    "Bares, restaurantes & lanchonetes",
-    "Pizzarias & delivery",
-    "Padarias & confeitarias",
-    "Lojas de roupas & calçados",
-    "Lojas de materiais de construção",
-    "Depósitos & home center",
-    "Imobiliárias",
-    "Concessionárias & revendas de veículos",
-    "Lojas de autopeças & serviços automotivos",
-    "Hotéis, pousadas & hospedagem",
-    "Clínicas, consultórios & saúde",
-    "Beleza & bem-estar",
-    "Educação & cursos",
-    "Serviços em geral",
-    "Turismo & passeios",
-    "Órgãos públicos & serviços da prefeitura",
-    "Serviços de emergência & utilidade pública",
-    "Profissionais liberais",
-    "Outros",
-  ];
-
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
-    setSucesso("");
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setErro("Você precisa estar logado para fazer um cadastro no LagoListas.");
-      router.push("/login");
-      return;
-    }
-
-    if (!titulo || !cidade || !segmento) {
-      setErro("Preencha título, cidade e categoria principal.");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
-      return;
-    }
-
-    if (!aceitoResponsabilidade) {
-      setErro(
-        "Para publicar o cadastro, marque a declaração de responsabilidade pelas informações."
-      );
-      return;
-    }
-
-    setUploading(true);
-    let imagemUrl = null;
+    setMensagem("");
+    setLoading(true);
 
     try {
-      const bucket = "anuncios";
-
-      if (imagemFile) {
-        const ext = imagemFile.name.split(".").pop();
-        const path = `lagolistas/${user.id}/logo-${Date.now()}.${ext}`;
-
-        const { error: uploadErro } = await supabase.storage
-          .from(bucket)
-          .upload(path, imagemFile);
-
-        if (uploadErro) {
-          console.error("Erro upload imagem LagoListas:", uploadErro);
-          throw uploadErro;
-        }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        imagemUrl = data.publicUrl;
-      }
-
-      const { error: insertError } = await supabase.from("anuncios").insert({
-        user_id: user.id,
-        categoria: "lagolistas",
-
+      const {
         titulo,
+        razao_social,
+        cnpj,
+        inscricao_municipal,
+        registro_profissional,
         descricao,
         cidade,
-        bairro,
         endereco,
-
-        area_profissional: segmento,
-
         telefone,
         whatsapp,
         email,
-        contato: contatoPrincipal,
-        site_url: siteUrl,
-        instagram,
+        imagemUrl,
+      } = formData;
 
-        cnpj,
-        razao_social: razaoSocial,
-        inscricao_municipal: inscricaoMunicipal,
-        registro_profissional: registroProfissional,
+      // verifica usuário logado
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-        imagens: imagemUrl ? [imagemUrl] : null,
-        status: "ativo",
-      });
-
-      if (insertError) {
-        console.error("Erro ao salvar cadastro LagoListas:", insertError);
-        setErro(
-          "Erro ao salvar o cadastro. Tente novamente em alguns instantes."
-        );
-        setUploading(false);
+      if (userError || !user) {
+        setErro("Você precisa estar logado para anunciar.");
+        setLoading(false);
         return;
       }
 
-      setSucesso("Cadastro no LagoListas realizado com sucesso!");
+      const { error: insertError } = await supabase
+        .from("anuncios")
+        .insert({
+          categoria: "lagolistas",
+          titulo,
+          descricao,
+          cidade,
+          endereco,
+          telefone,
+          whatsapp,
+          email,
+          usuario_id: user.id,
+          imagens: imagemUrl ? [imagemUrl] : [],
 
-      // limpa tudo
-      setTitulo("");
-      setDescricao("");
-      setCidade("");
-      setBairro("");
-      setEndereco("");
-      setSegmento("");
+          // campos NOVOS / OPCIONAIS
+          cnpj: cnpj || null,
+          razao_social: razao_social || null,
+          inscricao_municipal: inscricao_municipal || null,
+          registro_profissional: registro_profissional || null,
+        });
 
-      setRazaoSocial("");
-      setCnpj("");
-      setInscricaoMunicipal("");
-      setRegistroProfissional("");
+      if (insertError) {
+        console.error(insertError);
+        setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+      } else {
+        setMensagem("Anúncio cadastrado com sucesso no Lagolistas! 🎉");
+        // limpa o formulário
+        setFormData({
+          titulo: "",
+          razao_social: "",
+          cnpj: "",
+          inscricao_municipal: "",
+          registro_profissional: "",
+          descricao: "",
+          cidade: "",
+          endereco: "",
+          telefone: "",
+          whatsapp: "",
+          email: "",
+          imagemUrl: "",
+        });
 
-      setTelefone("");
-      setWhatsapp("");
-      setEmail("");
-      setSiteUrl("");
-      setInstagram("");
-
-      setImagemFile(null);
-      setAceitoResponsabilidade(false);
-
-      setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1800);
-    } catch (err) {
-      console.error(err);
-      setErro(
-        `Erro ao salvar seu cadastro no LagoListas: ${
-          err.message || "tente novamente."
-        }`
-      );
+        // opcional: redirecionar para a página do Lagolistas
+        // router.push("/lagolistas");
+      }
+    } catch (error) {
+      console.error(error);
+      setErro("Erro inesperado ao salvar o anúncio.");
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {erro && (
-        <p className="text-red-700 text-sm border border-red-200 p-3 rounded-2xl bg-red-50">
-          {erro}
-        </p>
-      )}
-      {sucesso && (
-        <p className="text-emerald-700 text-sm border border-emerald-200 p-3 rounded-2xl bg-emerald-50">
-          {sucesso}
-        </p>
-      )}
+    <section className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+      <h1 className="text-2xl font-bold text-slate-800 mb-2">
+        Anunciar no Lagolistas
+      </h1>
+      <p className="text-sm text-slate-600 mb-6">
+        Preencha os dados do seu comércio, empresa ou serviço. Os campos de
+        CNPJ, razão social, inscrição municipal e registro profissional são
+        opcionais, mas passam mais segurança para o cliente.
+      </p>
 
-      {/* DADOS DO CADASTRO */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações do cadastro no LagoListas
-        </h2>
-
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* NOME / TÍTULO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Título do cadastro *
-            <span
-              className="ml-1 text-[11px] text-slate-400 cursor-help"
-              title="Esse será o nome em destaque na lista. Ex.: Supermercado Mar Azul, Imobiliária Lagoa Viva, Clínica Vida Plena."
-            >
-              ⓘ
-            </span>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Nome do comércio / título do anúncio *
           </label>
           <input
             type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Supermercado Mar Azul, Imobiliária Lagoa Viva..."
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
+            name="titulo"
+            value={formData.titulo}
+            onChange={handleChange}
             required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: Padaria Pão Quentinho"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Cidade *
-            </label>
-            <select
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              required
-            >
-              <option value="">Selecione...</option>
-              {cidades.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Bairro / Região
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: Centro, Itaipuaçu, Praia do Forte..."
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
-            />
-          </div>
-        </div>
-
+        {/* RAZÃO SOCIAL (opcional) */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Endereço completo
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Razão social (opcional)
           </label>
           <input
             type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Av. Beira Mar, 123 - Loja 2"
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
+            name="razao_social"
+            value={formData.razao_social}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: Pão Quentinho Comércio de Alimentos LTDA"
           />
         </div>
 
+        {/* CNPJ (opcional) */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Categoria principal *
-            <span
-              className="ml-1 text-[11px] text-slate-400 cursor-help"
-              title="Escolha o tipo principal do seu negócio. Isso organiza o LagoListas e ajuda na busca."
-            >
-              ⓘ
-            </span>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            CNPJ (opcional)
+          </label>
+          <input
+            type="text"
+            name="cnpj"
+            value={formData.cnpj}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: 12.345.678/0001-90"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Essa informação é pública em muitos cadastros e ajuda a passar
+            confiança para o cliente.
+          </p>
+        </div>
+
+        {/* INSCRIÇÃO MUNICIPAL (opcional) */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Inscrição municipal (opcional)
+          </label>
+          <input
+            type="text"
+            name="inscricao_municipal"
+            value={formData.inscricao_municipal}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: 123456-7"
+          />
+        </div>
+
+        {/* REGISTRO PROFISSIONAL (CRECI, CRM, OAB...) */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Registro profissional (CRECI, CRM, OAB, CREA, etc.) – opcional
+          </label>
+          <input
+            type="text"
+            name="registro_profissional"
+            value={formData.registro_profissional}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: CRECI 12345-RJ"
+          />
+        </div>
+
+        {/* DESCRIÇÃO */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Descrição do seu comércio / serviços *
+          </label>
+          <textarea
+            name="descricao"
+            value={formData.descricao}
+            onChange={handleChange}
+            required
+            rows={4}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Conte o que você oferece, diferenciais, horários, formas de pagamento..."
+          />
+        </div>
+
+        {/* CIDADE */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Cidade *
           </label>
           <select
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-            value={segmento}
-            onChange={(e) => setSegmento(e.target.value)}
+            name="cidade"
+            value={formData.cidade}
+            onChange={handleChange}
             required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Selecione...</option>
-            {segmentosLagolistas.map((seg) => (
-              <option key={seg} value={seg}>
-                {seg}
-              </option>
-            ))}
+            <option value="">Selecione a cidade</option>
+            <option value="Maricá">Maricá</option>
+            <option value="Saquarema">Saquarema</option>
+            <option value="Araruama">Araruama</option>
+            <option value="Iguaba Grande">Iguaba Grande</option>
+            <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
+            <option value="Arraial do Cabo">Arraial do Cabo</option>
+            <option value="Cabo Frio">Cabo Frio</option>
+            <option value="Búzios">Búzios</option>
+            <option value="Rio das Ostras">Rio das Ostras</option>
           </select>
         </div>
 
+        {/* ENDEREÇO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Descrição / observações *
-            <span
-              className="ml-1 text-[11px] text-slate-400 cursor-help"
-              title="Resuma o que a empresa oferece: principais produtos/serviços, diferenciais, horário de atendimento, formas de pagamento etc."
-            >
-              ⓘ
-            </span>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Endereço completo *
           </label>
-          <textarea
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
-            placeholder="Fale rapidamente sobre o que sua empresa oferece e quais são os principais diferenciais."
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      {/* DADOS DA EMPRESA / REGISTROS */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Empresa / profissional (opcional)
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Razão social (opcional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={razaoSocial}
-              onChange={(e) => setRazaoSocial(e.target.value)}
-              placeholder="Ex.: Lagoa Viva Comércio de Alimentos LTDA"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              CNPJ (opcional)
-              <span
-                className="ml-1 text-[11px] text-slate-400 cursor-help"
-                title="Informar o CNPJ é opcional, mas aumenta a confiança de quem busca."
-              >
-                ⓘ
-              </span>
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={cnpj}
-              onChange={(e) => setCnpj(e.target.value)}
-              placeholder="Ex.: 12.345.678/0001-90"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Inscrição municipal (opcional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={inscricaoMunicipal}
-              onChange={(e) => setInscricaoMunicipal(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Registro profissional (CRECI, CRM, OAB, CREA etc.) (opcional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={registroProfissional}
-              onChange={(e) => setRegistroProfissional(e.target.value)}
-              placeholder="Ex.: CRECI 12345-RJ, OAB/RJ 0000..."
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* CONTATOS */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Telefone
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              WhatsApp
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              E-mail
-            </label>
-            <input
-              type="email"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Site / página (opcional)
-            </label>
-            <input
-              type="url"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: https://minhaempresa.com.br"
-              value={siteUrl}
-              onChange={(e) => setSiteUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Instagram ou rede social (opcional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="@minhaempresa"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para contato.
-        </p>
-      </div>
-
-      {/* IMAGEM / LOGO */}
-      <div className="space-y-2 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Logo ou foto principal (opcional)
-        </h2>
-        <input
-          type="file"
-          accept="image/*"
-          className="text-sm"
-          onChange={(e) => setImagemFile(e.target.files[0] || null)}
-        />
-        <p className="text-[11px] text-slate-500">
-          Envie uma imagem em JPG ou PNG, até 1 MB. Ela aparecerá como destaque
-          no cadastro.
-        </p>
-      </div>
-
-      {/* RESPONSABILIDADE */}
-      <div className="border-t border-slate-200 pt-4">
-        <label className="flex items-start gap-2 text-[11px] text-slate-700">
           <input
-            type="checkbox"
-            className="mt-0.5 h-4 w-4"
-            checked={aceitoResponsabilidade}
-            onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
+            type="text"
+            name="endereco"
+            value={formData.endereco}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Rua, número, bairro, ponto de referência..."
           />
-          <span>
-            Declaro que as informações deste cadastro são verdadeiras e que sou
-            responsável por qualquer negociação realizada a partir deste
-            anúncio. Estou de acordo com os termos de uso do Classilagos.
-          </span>
-        </label>
-      </div>
+        </div>
 
-      <button
-        type="submit"
-        disabled={uploading}
-        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-      >
-        {uploading
-          ? "Publicando cadastro no LagoListas..."
-          : "Publicar cadastro no LagoListas"}
-      </button>
-    </form>
+        {/* TELEFONE / WHATSAPP / EMAIL */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Telefone fixo (opcional)
+            </label>
+            <input
+              type="text"
+              name="telefone"
+              value={formData.telefone}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Ex: (22) 0000-0000"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              WhatsApp *
+            </label>
+            <input
+              type="text"
+              name="whatsapp"
+              value={formData.whatsapp}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Ex: (22) 9 9999-9999"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            E-mail de contato (opcional)
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ex: contato@minhaempresa.com.br"
+          />
+        </div>
+
+        {/* IMAGEM PRINCIPAL */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            URL da imagem principal (fachada, logo, vitrine) *
+          </label>
+          <input
+            type="url"
+            name="imagemUrl"
+            value={formData.imagemUrl}
+            onChange={handleChange}
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Cole aqui o link da imagem hospedada"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Depois podemos evoluir para upload direto pelo site. Por enquanto é
+            só colar o link da imagem.
+          </p>
+        </div>
+
+        {/* MENSAGENS */}
+        {erro && (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {erro}
+          </div>
+        )}
+        {mensagem && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-700">
+            {mensagem}
+          </div>
+        )}
+
+        {/* BOTÃO */}
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full md:w-auto inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          >
+            {loading ? "Salvando anúncio..." : "Publicar no Lagolistas"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
