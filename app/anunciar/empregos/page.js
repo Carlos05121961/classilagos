@@ -51,9 +51,6 @@ export default function AnunciarVagaPage() {
 
           {/* Formulário */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Informações da vaga
-            </h2>
             <FormularioEmpregos />
           </div>
         </div>
@@ -61,4 +58,3 @@ export default function AnunciarVagaPage() {
     </main>
   );
 }
-
