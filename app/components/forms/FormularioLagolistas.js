@@ -1,32 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
 export default function FormularioLagolistas() {
   const router = useRouter();
 
+  // CAMPOS PRINCIPAIS
   const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState(""); // aqui será o Endereço / observações
+  const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
+  const [endereco, setEndereco] = useState("");
 
-  const [segmento, setSegmento] = useState(""); // usa area_profissional no banco
+  const [segmento, setSegmento] = useState(""); // vai em area_profissional
 
-  const [nomeContato, setNomeContato] = useState("");
-  const [nomeNegocio, setNomeNegocio] = useState("");
+  // DADOS DA EMPRESA / PROFISSIONAL
+  const [razaoSocial, setRazaoSocial] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [inscricaoMunicipal, setInscricaoMunicipal] = useState("");
+  const [registroProfissional, setRegistroProfissional] = useState("");
 
-  const [horarioFuncionamento, setHorarioFuncionamento] = useState("");
-
+  // CONTATOS
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
+  // IMAGEM / LOGO
   const [imagemFile, setImagemFile] = useState(null);
 
+  // CONTROLE
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
@@ -51,18 +57,26 @@ export default function FormularioLagolistas() {
   ];
 
   const segmentosLagolistas = [
-    "Comércio & lojas",
     "Mercados & mercearias",
     "Farmácias & drogarias",
     "Bares, restaurantes & lanchonetes",
     "Pizzarias & delivery",
+    "Padarias & confeitarias",
+    "Lojas de roupas & calçados",
+    "Lojas de materiais de construção",
+    "Depósitos & home center",
+    "Imobiliárias",
+    "Concessionárias & revendas de veículos",
+    "Lojas de autopeças & serviços automotivos",
     "Hotéis, pousadas & hospedagem",
+    "Clínicas, consultórios & saúde",
+    "Beleza & bem-estar",
+    "Educação & cursos",
     "Serviços em geral",
-    "Saúde, beleza & bem-estar",
-    "Educação & escolas",
+    "Turismo & passeios",
     "Órgãos públicos & serviços da prefeitura",
     "Serviços de emergência & utilidade pública",
-    "Turismo & passeios",
+    "Profissionais liberais",
     "Outros",
   ];
 
@@ -76,13 +90,13 @@ export default function FormularioLagolistas() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setErro("Você precisa estar logado para cadastrar no LagoListas.");
+      setErro("Você precisa estar logado para fazer um cadastro no LagoListas.");
       router.push("/login");
       return;
     }
 
-    if (!titulo || !cidade || !segmento || !descricao) {
-      setErro("Preencha título, cidade, segmento e endereço/observações.");
+    if (!titulo || !cidade || !segmento) {
+      setErro("Preencha título, cidade e categoria principal.");
       return;
     }
 
@@ -116,7 +130,7 @@ export default function FormularioLagolistas() {
           .upload(path, imagemFile);
 
         if (uploadErro) {
-          console.error("Erro upload imagem lagoListas:", uploadErro);
+          console.error("Erro upload imagem LagoListas:", uploadErro);
           throw uploadErro;
         }
 
@@ -129,15 +143,12 @@ export default function FormularioLagolistas() {
         categoria: "lagolistas",
 
         titulo,
-        descricao, // aqui guardamos Endereço / observações
+        descricao,
         cidade,
         bairro,
+        endereco,
 
-        nome_contato: nomeContato,
-        nome_negocio: nomeNegocio,
-        area_profissional: segmento, // usamos como segmento
-
-        horario_atendimento: horarioFuncionamento,
+        area_profissional: segmento,
 
         telefone,
         whatsapp,
@@ -146,13 +157,17 @@ export default function FormularioLagolistas() {
         site_url: siteUrl,
         instagram,
 
+        cnpj,
+        razao_social: razaoSocial,
+        inscricao_municipal: inscricaoMunicipal,
+        registro_profissional: registroProfissional,
+
         imagens: imagemUrl ? [imagemUrl] : null,
         status: "ativo",
-        destaque: false,
       });
 
       if (insertError) {
-        console.error("Erro ao salvar cadastro do LagoListas:", insertError);
+        console.error("Erro ao salvar cadastro LagoListas:", insertError);
         setErro(
           "Erro ao salvar o cadastro. Tente novamente em alguns instantes."
         );
@@ -162,19 +177,25 @@ export default function FormularioLagolistas() {
 
       setSucesso("Cadastro no LagoListas realizado com sucesso!");
 
+      // limpa tudo
       setTitulo("");
       setDescricao("");
       setCidade("");
       setBairro("");
+      setEndereco("");
       setSegmento("");
-      setNomeContato("");
-      setNomeNegocio("");
-      setHorarioFuncionamento("");
+
+      setRazaoSocial("");
+      setCnpj("");
+      setInscricaoMunicipal("");
+      setRegistroProfissional("");
+
       setTelefone("");
       setWhatsapp("");
       setEmail("");
       setSiteUrl("");
       setInstagram("");
+
       setImagemFile(null);
       setAceitoResponsabilidade(false);
 
@@ -184,7 +205,9 @@ export default function FormularioLagolistas() {
     } catch (err) {
       console.error(err);
       setErro(
-        `Erro ao salvar seu cadastro: ${err.message || "tente novamente."}`
+        `Erro ao salvar seu cadastro no LagoListas: ${
+          err.message || "tente novamente."
+        }`
       );
     } finally {
       setUploading(false);
@@ -204,36 +227,32 @@ export default function FormularioLagolistas() {
         </p>
       )}
 
-      {/* DADOS BÁSICOS */}
+      {/* DADOS DO CADASTRO */}
       <div className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Dados do comércio / serviço / órgão público
+          Informações do cadastro no LagoListas
         </h2>
 
-        {/* TÍTULO */}
         <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Nome / título do anúncio *
-            </label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Título do cadastro *
             <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Esse será o nome em destaque no LagoListas. Ex.: Farmácia Central, Pizzaria da Orla, Prefeitura de Maricá."
+              className="ml-1 text-[11px] text-slate-400 cursor-help"
+              title="Esse será o nome em destaque na lista. Ex.: Supermercado Mar Azul, Imobiliária Lagoa Viva, Clínica Vida Plena."
             >
-              i
+              ⓘ
             </span>
-          </div>
+          </label>
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Farmácia Central, Pizzaria da Orla, Clínica Lagoas..."
+            placeholder="Ex.: Supermercado Mar Azul, Imobiliária Lagoa Viva..."
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             required
           />
         </div>
 
-        {/* CIDADE / BAIRRO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -258,26 +277,36 @@ export default function FormularioLagolistas() {
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              placeholder="Ex.: Centro, Itaipuaçu, Praia do Forte..."
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
-              placeholder="Ex.: Centro, Itaipuaçu, Bacaxá..."
             />
           </div>
         </div>
 
-        {/* SEGMENTO */}
         <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Segmento principal *
-            </label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Endereço completo
+          </label>
+          <input
+            type="text"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+            placeholder="Ex.: Av. Beira Mar, 123 - Loja 2"
+            value={endereco}
+            onChange={(e) => setEndereco(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Categoria principal *
             <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Escolha a categoria que melhor representa este comércio, serviço ou órgão público."
+              className="ml-1 text-[11px] text-slate-400 cursor-help"
+              title="Escolha o tipo principal do seu negócio. Isso organiza o LagoListas e ajuda na busca."
             >
-              i
+              ⓘ
             </span>
-          </div>
+          </label>
           <select
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={segmento}
@@ -293,22 +322,19 @@ export default function FormularioLagolistas() {
           </select>
         </div>
 
-        {/* ENDEREÇO / OBSERVAÇÕES */}
         <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Endereço / observações *
-            </label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Descrição / observações *
             <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Informe o endereço completo e, se quiser, um ponto de referência ou observação curta."
+              className="ml-1 text-[11px] text-slate-400 cursor-help"
+              title="Resuma o que a empresa oferece: principais produtos/serviços, diferenciais, horário de atendimento, formas de pagamento etc."
             >
-              i
+              ⓘ
             </span>
-          </div>
+          </label>
           <textarea
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-20 resize-none"
-            placeholder="Ex.: Rua das Lagoas, 123 - Em frente à praça principal. Estacionamento próprio."
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
+            placeholder="Fale rapidamente sobre o que sua empresa oferece e quais são os principais diferenciais."
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
             required
@@ -316,64 +342,75 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* CONTATO / RESPONSÁVEL */}
+      {/* DADOS DA EMPRESA / REGISTROS */}
       <div className="space-y-4 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Contato e responsável
+          Empresa / profissional (opcional)
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nome do responsável (opcional)
+              Razão social (opcional)
             </label>
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={nomeContato}
-              onChange={(e) => setNomeContato(e.target.value)}
-              placeholder="Ex.: João da Silva"
+              value={razaoSocial}
+              onChange={(e) => setRazaoSocial(e.target.value)}
+              placeholder="Ex.: Lagoa Viva Comércio de Alimentos LTDA"
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nome fantasia / razão social (opcional)
+              CNPJ (opcional)
+              <span
+                className="ml-1 text-[11px] text-slate-400 cursor-help"
+                title="Informar o CNPJ é opcional, mas aumenta a confiança de quem busca."
+              >
+                ⓘ
+              </span>
             </label>
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={nomeNegocio}
-              onChange={(e) => setNomeNegocio(e.target.value)}
-              placeholder="Ex.: Supermercado Lago Azul"
+              value={cnpj}
+              onChange={(e) => setCnpj(e.target.value)}
+              placeholder="Ex.: 12.345.678/0001-90"
             />
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Horário de funcionamento
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Inscrição municipal (opcional)
             </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Informe os dias e horários em que o local funciona ou atende o público."
-            >
-              i
-            </span>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              value={inscricaoMunicipal}
+              onChange={(e) => setInscricaoMunicipal(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Seg a sáb, 8h às 20h / Domingos das 9h às 14h"
-            value={horarioFuncionamento}
-            onChange={(e) => setHorarioFuncionamento(e.target.value)}
-          />
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Registro profissional (CRECI, CRM, OAB, CREA etc.) (opcional)
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              value={registroProfissional}
+              onChange={(e) => setRegistroProfissional(e.target.value)}
+              placeholder="Ex.: CRECI 12345-RJ, OAB/RJ 0000..."
+            />
+          </div>
         </div>
       </div>
 
       {/* CONTATOS */}
       <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Canais de contato</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -385,7 +422,6 @@ export default function FormularioLagolistas() {
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
-              placeholder="(21) 0000-0000"
             />
           </div>
           <div>
@@ -397,7 +433,6 @@ export default function FormularioLagolistas() {
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="(21) 9 0000-0000"
             />
           </div>
           <div>
@@ -409,7 +444,6 @@ export default function FormularioLagolistas() {
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="contato@exemplo.com"
             />
           </div>
         </div>
@@ -422,19 +456,19 @@ export default function FormularioLagolistas() {
             <input
               type="url"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: https://minhaloja.com.br"
+              placeholder="Ex.: https://minhaempresa.com.br"
               value={siteUrl}
               onChange={(e) => setSiteUrl(e.target.value)}
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Instagram, Facebook ou rede social (opcional)
+              Instagram ou rede social (opcional)
             </label>
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="@minhaloja ou facebook.com/minhaloja"
+              placeholder="@minhaempresa"
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
             />
@@ -447,19 +481,11 @@ export default function FormularioLagolistas() {
         </p>
       </div>
 
-      {/* IMAGEM */}
+      {/* IMAGEM / LOGO */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
-        <div className="flex items-center gap-1 mb-1">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Logo ou foto da fachada (opcional)
-          </h2>
-          <span
-            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-            title="Envie a logo ou uma foto da fachada. Essa imagem aparece junto ao seu cadastro no LagoListas."
-          >
-            i
-          </span>
-        </div>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Logo ou foto principal (opcional)
+        </h2>
         <input
           type="file"
           accept="image/*"
@@ -467,7 +493,8 @@ export default function FormularioLagolistas() {
           onChange={(e) => setImagemFile(e.target.files[0] || null)}
         />
         <p className="text-[11px] text-slate-500">
-          Envie uma imagem em JPG ou PNG, até 1 MB.
+          Envie uma imagem em JPG ou PNG, até 1 MB. Ela aparecerá como destaque
+          no cadastro.
         </p>
       </div>
 
@@ -482,8 +509,8 @@ export default function FormularioLagolistas() {
           />
           <span>
             Declaro que as informações deste cadastro são verdadeiras e que sou
-            responsável por qualquer contato ou atendimento realizado a partir
-            do LagoListas. Estou de acordo com os termos de uso do Classilagos.
+            responsável por qualquer negociação realizada a partir deste
+            anúncio. Estou de acordo com os termos de uso do Classilagos.
           </span>
         </label>
       </div>
@@ -493,7 +520,9 @@ export default function FormularioLagolistas() {
         disabled={uploading}
         className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
       >
-        {uploading ? "Publicando cadastro..." : "Publicar no LagoListas"}
+        {uploading
+          ? "Publicando cadastro no LagoListas..."
+          : "Publicar cadastro no LagoListas"}
       </button>
     </form>
   );
