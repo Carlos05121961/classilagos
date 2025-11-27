@@ -218,7 +218,7 @@ export default function ServicosPage() {
           </p>
 
           <Link
-            href="/anunciar"
+            href="/anunciar/servicos"
             className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
             Cadastrar meu serviço
