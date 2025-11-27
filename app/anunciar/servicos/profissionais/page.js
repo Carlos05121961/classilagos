@@ -1,6 +1,6 @@
 "use client";
 
-import FormularioProfissionais from "../../../../components/forms/FormularioProfissionais";
+import FormularioProfissionais from "../../../components/forms/FormularioProfissionais";
 
 export default function AnunciarProfissionaisPage() {
   return (
