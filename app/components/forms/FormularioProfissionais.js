@@ -51,6 +51,25 @@ export default function FormularioProfissionais() {
     "Rio das Ostras",
   ];
 
+  const servicosProfissionais = [
+    "Eletricista",
+    "Encanador",
+    "Marido de aluguel",
+    "Pintor",
+    "Pedreiro",
+    "Diarista",
+    "Jardineiro",
+    "Montador de móveis",
+    "Técnico em informática",
+    "Manutenção de ar-condicionado",
+    "Chaveiro",
+    "Motorista particular",
+    "Aulas particulares",
+    "Consultor(a)",
+    "Designer / Criação de arte",
+    "Outros serviços profissionais",
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -68,7 +87,7 @@ export default function FormularioProfissionais() {
 
     if (!titulo || !cidade || !areaProfissional) {
       setErro(
-        "Preencha pelo menos título, cidade e tipo de serviço profissional."
+        "Preencha título, cidade e tipo de serviço profissional."
       );
       return;
     }
@@ -149,7 +168,6 @@ export default function FormularioProfissionais() {
 
       setSucesso("Serviço profissional cadastrado com sucesso!");
 
-      // limpa campos
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -246,18 +264,28 @@ export default function FormularioProfissionais() {
           </div>
         </div>
 
+        {/* SELECT TIPO DE SERVIÇO */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Tipo de serviço profissional *
           </label>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Eletricista, Encanador, Diarista, Professor, Consultor, Designer, Técnico em informática..."
+          <select
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={areaProfissional}
             onChange={(e) => setAreaProfissional(e.target.value)}
             required
-          />
+          >
+            <option value="">Selecione...</option>
+            {servicosProfissionais.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Escolha o serviço principal. Mais pra frente podemos detalhar por
+            filtros, mas essa seleção já organiza muito o portal.
+          </p>
         </div>
 
         <div>
