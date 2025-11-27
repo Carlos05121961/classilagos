@@ -242,4 +242,204 @@ export default function FormularioEmpregos() {
               <option>Híbrido</option>
               <option>Home-office</option>
             </select>
-          </div
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Carga horária
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              placeholder="Ex: 44h semanais"
+              value={cargaHoraria}
+              onChange={(e) => setCargaHoraria(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Faixa salarial
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              placeholder="Ex: R$ 1.600 a R$ 1.900"
+              value={faixaSalarial}
+              onChange={(e) => setFaixaSalarial(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Benefícios
+            </label>
+            <textarea
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              placeholder="Vale-transporte, alimentação, plano de saúde..."
+              value={beneficios}
+              onChange={(e) => setBeneficios(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* LOCAL */}
+      <div className="space-y-4 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Local da vaga</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Cidade *
+            </label>
+            <select
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {cidades.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Bairro
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* DESCRIÇÃO */}
+      <div className="space-y-2 border-t border-slate-200 pt-4">
+        <label className="block text-xs font-semibold text-slate-700 mb-1">
+          Descrição da vaga *
+        </label>
+        <textarea
+          className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+          placeholder="Explique a função, atividades, requisitos e detalhes importantes."
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          required
+        />
+      </div>
+
+      {/* LOGO */}
+      <div className="space-y-2 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Logo da empresa (opcional)
+        </h2>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setLogo(e.target.files[0] || null)}
+          className="text-sm"
+        />
+        <p className="text-[11px] text-slate-500">
+          Imagens em JPG ou PNG, tamanho máximo recomendado 1 MB.
+        </p>
+      </div>
+
+      {/* CONTATO */}
+      <div className="space-y-4 border-t border-slate-200 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Dados de contato
+        </h2>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            Nome do responsável
+          </label>
+          <input
+            type="text"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Telefone
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">
+            E-mail
+          </label>
+          <input
+            type="email"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <p className="text-[11px] text-slate-500">
+          Pelo menos um meio de contato será exibido (WhatsApp, telefone ou
+          e-mail).
+        </p>
+      </div>
+
+      {/* RESPONSABILIDADE */}
+      <div className="mt-2 flex items-start gap-2">
+        <input
+          id="responsabilidade"
+          type="checkbox"
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          checked={aceitoResponsabilidade}
+          onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
+        />
+        <label
+          htmlFor="responsabilidade"
+          className="text-[11px] md:text-xs text-slate-600"
+        >
+          Declaro que todas as informações desta vaga são verdadeiras, estão de
+          acordo com a legislação trabalhista vigente e que não há qualquer
+          conteúdo discriminatório ou ilegal.
+        </label>
+      </div>
+
+      {/* BOTÃO */}
+      <button
+        type="submit"
+        disabled={uploading}
+        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+      >
+        {uploading ? "Publicando vaga..." : "Publicar vaga"}
+      </button>
+    </form>
+  );
+}
