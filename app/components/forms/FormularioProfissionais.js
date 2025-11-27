@@ -55,18 +55,41 @@ export default function FormularioProfissionais() {
     "Eletricista",
     "Encanador",
     "Marido de aluguel",
+    "Pedreiro / Reformas",
     "Pintor",
-    "Pedreiro",
-    "Diarista",
-    "Jardineiro",
-    "Montador de móveis",
+    "Gesseiro",
+    "Azulejista",
+    "Marceneiro / Carpinteiro",
+    "Serralheiro",
+    "Vidraceiro",
+    "Piscineiro (Cuidador de piscinas)",
+    "Jardineiro / Paisagismo",
+    "Diarista / Faxineira",
+    "Passadeira",
+    "Reboque / Guincho",
+    "Cuidador(a) de idosos",
+    "Babá / Cuidador(a) infantil",
+    "Churrasqueiro",
+    "Cozinheiro(a) / Marmitex / Quentinha",
     "Técnico em informática",
-    "Manutenção de ar-condicionado",
+    "Manutenção de celulares",
+    "Manutenção de eletrônicos e eletrodomésticos",
+    "Manutenção de ar-condicionado / refrigeração",
     "Chaveiro",
-    "Motorista particular",
+    "Motorista particular / Transporte executivo",
+    "Transporte / Frete / Carreto",
+    "Van escolar",
+    "Arquiteto",
+    "Engenheiro civil",
+    "Engenheiro elétrico",
+    "Engenheiro mecânico",
+    "Designer de interiores",
     "Aulas particulares",
-    "Consultor(a)",
-    "Designer / Criação de arte",
+    "Aulas de música / canto / instrumentos",
+    "Aulas de idiomas",
+    "Designer gráfico",
+    "Social media / Marketing digital",
+    "Consultor(a) / Mentor(a)",
     "Outros serviços profissionais",
   ];
 
@@ -86,9 +109,7 @@ export default function FormularioProfissionais() {
     }
 
     if (!titulo || !cidade || !areaProfissional) {
-      setErro(
-        "Preencha título, cidade e tipo de serviço profissional."
-      );
+      setErro("Preencha título, cidade e tipo de serviço profissional.");
       return;
     }
 
@@ -227,7 +248,7 @@ export default function FormularioProfissionais() {
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Eletricista residencial, Encanador 24h, Diarista de confiança, Aulas particulares..."
+            placeholder="Ex.: Eletricista residencial, Diarista de confiança, Aulas de violão..."
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             required
@@ -264,7 +285,6 @@ export default function FormularioProfissionais() {
           </div>
         </div>
 
-        {/* SELECT TIPO DE SERVIÇO */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Tipo de serviço profissional *
@@ -283,8 +303,8 @@ export default function FormularioProfissionais() {
             ))}
           </select>
           <p className="mt-1 text-[11px] text-slate-500">
-            Escolha o serviço principal. Mais pra frente podemos detalhar por
-            filtros, mas essa seleção já organiza muito o portal.
+            Escolha o serviço principal. Essa seleção já organiza o portal e
+            melhora a busca.
           </p>
         </div>
 
