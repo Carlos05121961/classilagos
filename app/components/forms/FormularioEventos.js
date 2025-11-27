@@ -53,17 +53,23 @@ export default function FormularioEventos() {
 
   const servicosEventos = [
     "Buffet completo",
-    "Bolos e doces",
+    "Doces e Salgados (salgadinhos)",
+    "Bolo & confeitaria",
     "Decoração de festas",
+    "Balões / cenários instagramáveis",
     "DJ",
     "Som e iluminação",
-    "Fotografia",
-    "Filmagem",
-    "Cerimonial",
-    "Espaço para festas",
-    "Locação de brinquedos",
-    "Recreação / animação",
-    "Barracas / estrutura",
+    "Banda / música ao vivo",
+    "Fotografia de eventos",
+    "Filmagem de eventos",
+    "Cerimonial / organização de eventos",
+    "Recreação / animação infantil",
+    "Aluguel de brinquedos",
+    "Espaço para festas / salão",
+    "Barracas / tendas / estruturas",
+    "Bar de drinks / bartender",
+    "Aluguel de mesas, cadeiras e louças",
+    "Food truck / carrinhos (pipoca, churros, hot dog etc.)",
     "Outros serviços para eventos",
   ];
 
@@ -83,9 +89,7 @@ export default function FormularioEventos() {
     }
 
     if (!titulo || !cidade || !areaProfissional) {
-      setErro(
-        "Preencha título, cidade e tipo de serviço para eventos."
-      );
+      setErro("Preencha título, cidade e tipo de serviço para eventos.");
       return;
     }
 
@@ -261,7 +265,6 @@ export default function FormularioEventos() {
           </div>
         </div>
 
-        {/* SELECT TIPO DE SERVIÇO */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Tipo de serviço para eventos *
@@ -280,8 +283,8 @@ export default function FormularioEventos() {
             ))}
           </select>
           <p className="mt-1 text-[11px] text-slate-500">
-            Escolha o tipo de serviço principal. Isso ajuda as pessoas a
-            encontrarem seu anúncio com mais facilidade.
+            Escolha o tipo principal. Isso ajuda as pessoas a encontrarem seu
+            anúncio com mais facilidade.
           </p>
         </div>
 
