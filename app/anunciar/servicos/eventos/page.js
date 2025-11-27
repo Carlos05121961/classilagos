@@ -1,6 +1,6 @@
 "use client";
 
-import FormularioEventos from "../../../../components/forms/FormularioEventos";
+import FormularioEventos from "../../../components/forms/FormularioEventos";
 
 export default function AnunciarEventosPage() {
   return (
@@ -14,8 +14,9 @@ export default function AnunciarEventosPage() {
             Anunciar serviço para festas e eventos
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo, espaços
-            para festas e tudo o que seu evento precisa na Região dos Lagos.
+            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo,
+            espaços para festas e tudo o que seu evento precisa na Região
+            dos Lagos.
           </p>
         </div>
 
