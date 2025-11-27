@@ -89,6 +89,7 @@ export default function AnuncioDetalhePage() {
   const isCurriculo = anuncio.categoria === "curriculo";
   const isEmprego = anuncio.categoria === "emprego";
   const isServico = anuncio.categoria === "servico";
+  const isLagolistas = anuncio.categoria === "lagolistas";
 
   // Imagens (não usamos galeria para currículo e vagas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
@@ -146,6 +147,8 @@ export default function AnuncioDetalhePage() {
       ? "Currículos recentes na Região dos Lagos"
       : anuncio.categoria === "servico"
       ? "Serviços similares na Região dos Lagos"
+      : anuncio.categoria === "lagolistas"
+      ? "Comércios similares na Região dos Lagos"
       : "Anúncios similares na Região dos Lagos";
 
   // Texto dinâmico quando não houver similares
@@ -160,6 +163,8 @@ export default function AnuncioDetalhePage() {
       ? "Em breve mais currículos cadastrados aparecerão aqui."
       : anuncio.categoria === "servico"
       ? "Em breve mais serviços cadastrados aparecerão aqui."
+      : anuncio.categoria === "lagolistas"
+      ? "Em breve mais comércios desta região aparecerão aqui."
       : "Em breve mais anúncios nesta região aparecerão aqui.";
 
   // Rota para o "voltar"
@@ -172,6 +177,8 @@ export default function AnuncioDetalhePage() {
       ? "/empregos"
       : anuncio.categoria === "servico"
       ? "/servicos"
+      : anuncio.categoria === "lagolistas"
+      ? "/lagolistas"
       : "/";
 
   // Texto "Voltar para ..."
@@ -184,6 +191,8 @@ export default function AnuncioDetalhePage() {
       ? "Empregos"
       : anuncio.categoria === "servico"
       ? "Serviços"
+      : anuncio.categoria === "lagolistas"
+      ? "LagoListas"
       : "a lista";
 
   return (
@@ -212,6 +221,8 @@ export default function AnuncioDetalhePage() {
                   ? "Currículos"
                   : anuncio.categoria === "servico"
                   ? "Serviços"
+                  : anuncio.categoria === "lagolistas"
+                  ? "LagoListas"
                   : "Anúncios"}
               </p>
               <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -258,7 +269,10 @@ export default function AnuncioDetalhePage() {
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         {/* GALERIA DE FOTOS (não mostra para VAGAS nem CURRÍCULO) */}
         {mostrarGaleria && (
-          <section className="w-full flex flex-col gap-3">
+          <section
+            className="w-full flex flex-col gap-3"
+            id="fachada" // âncora para "Ver foto da fachada"
+          >
             <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
               <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] lg:h-[380px]">
                 <img
@@ -604,6 +618,134 @@ export default function AnuncioDetalhePage() {
                     )}
                   </div>
                 </div>
+
+                {/* BLOCO ESPECIAL LAGOLISTAS – INFORMAÇÕES DO ESTABELECIMENTO */}
+                {isLagolistas && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h2 className="text-sm font-semibold text-slate-900 mb-4">
+                      Informações do estabelecimento
+                    </h2>
+
+                    <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
+                      {/* Mini logo + link fachada */}
+                      <div className="flex-shrink-0">
+                        {imagens && imagens.length > 0 && (
+                          <a href="#fachada" className="group block">
+                            <img
+                              src={imagens[0]}
+                              alt={anuncio.titulo || "Foto do estabelecimento"}
+                              className="h-24 w-24 md:h-28 md:w-28 rounded-xl object-cover border border-slate-200"
+                            />
+                            <span className="mt-1 block text-[11px] text-blue-600 group-hover:underline">
+                              Ver foto da fachada
+                            </span>
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Dados em colunas */}
+                      <div className="grid gap-2 text-xs md:text-sm flex-1 md:grid-cols-2">
+                        {anuncio.nome_negocio && (
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              Nome do comércio
+                            </p>
+                            <p className="text-slate-700">
+                              {anuncio.nome_negocio}
+                            </p>
+                          </div>
+                        )}
+
+                        {anuncio.razao_social && (
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              Razão social
+                            </p>
+                            <p className="text-slate-700">
+                              {anuncio.razao_social}
+                            </p>
+                          </div>
+                        )}
+
+                        {anuncio.cnpj && (
+                          <div>
+                            <p className="font-medium text-slate-800">CNPJ</p>
+                            <p className="text-slate-700">{anuncio.cnpj}</p>
+                          </div>
+                        )}
+
+                        {anuncio.inscricao_municipal && (
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              Inscrição municipal
+                            </p>
+                            <p className="text-slate-700">
+                              {anuncio.inscricao_municipal}
+                            </p>
+                          </div>
+                        )}
+
+                        {anuncio.registro_profissional && (
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              Registro profissional
+                            </p>
+                            <p className="text-slate-700">
+                              {anuncio.registro_profissional}
+                            </p>
+                          </div>
+                        )}
+
+                        {(anuncio.endereco ||
+                          anuncio.bairro ||
+                          anuncio.cidade) && (
+                          <div className="md:col-span-2">
+                            <p className="font-medium text-slate-800">
+                              Endereço
+                            </p>
+                            <p className="text-slate-700">
+                              {anuncio.endereco && `${anuncio.endereco}`}
+                              {anuncio.bairro && ` - ${anuncio.bairro}`}
+                              {anuncio.cidade && `, ${anuncio.cidade}`}
+                            </p>
+                          </div>
+                        )}
+
+                        {(anuncio.site_url || anuncio.instagram) && (
+                          <div className="md:col-span-2 flex flex-wrap gap-3 mt-1">
+                            {anuncio.site_url && (
+                              <a
+                                href={anuncio.site_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] md:text-xs text-blue-600 underline"
+                              >
+                                Visitar site
+                              </a>
+                            )}
+                            {anuncio.instagram && (
+                              <a
+                                href={
+                                  anuncio.instagram.startsWith("http")
+                                    ? anuncio.instagram
+                                    : `https://instagram.com/${anuncio.instagram.replace(
+                                        "@",
+                                        ""
+                                      )}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] md:text-xs text-pink-600 underline"
+                              >
+                                Ver Instagram
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                )}
 
                 {/* Descrição + mapa */}
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
