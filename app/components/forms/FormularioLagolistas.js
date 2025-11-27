@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 
 export default function FormularioLagolistas() {
-  const supabase = createClientComponentClient();
+  
   const router = useRouter();
 
   const [formData, setFormData] = useState({
