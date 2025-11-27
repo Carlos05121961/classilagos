@@ -221,6 +221,7 @@ export default function FormularioEventos() {
           Informações do serviço para festas e eventos
         </h2>
 
+        {/* TÍTULO DO ANÚNCIO */}
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-xs font-semibold text-slate-700">
@@ -243,6 +244,7 @@ export default function FormularioEventos() {
           />
         </div>
 
+        {/* CIDADE / BAIRRO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -273,6 +275,7 @@ export default function FormularioEventos() {
           </div>
         </div>
 
+        {/* TIPO DE SERVIÇO */}
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-xs font-semibold text-slate-700">
@@ -304,10 +307,19 @@ export default function FormularioEventos() {
           </p>
         </div>
 
+        {/* DESCRIÇÃO DO SERVIÇO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Descrição do serviço *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Descrição do serviço *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Descreva seu serviço com detalhes: tipo de evento, tamanho das festas, pacotes, diferenciais e cidades atendidas."
+            >
+              i
+            </span>
+          </div>
           <textarea
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
             placeholder="Explique como funciona seu serviço, tipos de eventos que atende, tamanhos de festa, pacotes, diferenciais, cidades atendidas etc."
@@ -351,9 +363,17 @@ export default function FormularioEventos() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Horário de atendimento
-            </label>
+            <div className="flex items-center gap-1 mb-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Horário de atendimento
+              </label>
+              <span
+                className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+                title="Informe os dias e horários em que você responde clientes ou realiza atendimentos."
+              >
+                i
+              </span>
+            </div>
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -374,9 +394,17 @@ export default function FormularioEventos() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Faixa de preço (opcional)
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Faixa de preço (opcional)
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Você pode indicar um valor inicial ou faixa, sem precisar fechar um preço exato."
+            >
+              i
+            </span>
+          </div>
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -462,9 +490,17 @@ export default function FormularioEventos() {
 
       {/* IMAGEM */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Foto do serviço / logo (opcional)
-        </h2>
+        <div className="flex items-center gap-1 mb-1">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Foto do serviço / logo (opcional)
+          </h2>
+          <span
+            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+            title="Envie uma imagem que represente bem seu serviço. Ela aparecerá como destaque no seu anúncio."
+          >
+            i
+          </span>
+        </div>
         <input
           type="file"
           accept="image/*"
