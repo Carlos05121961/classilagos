@@ -51,6 +51,22 @@ export default function FormularioEventos() {
     "Rio das Ostras",
   ];
 
+  const servicosEventos = [
+    "Buffet completo",
+    "Bolos e doces",
+    "Decoração de festas",
+    "DJ",
+    "Som e iluminação",
+    "Fotografia",
+    "Filmagem",
+    "Cerimonial",
+    "Espaço para festas",
+    "Locação de brinquedos",
+    "Recreação / animação",
+    "Barracas / estrutura",
+    "Outros serviços para eventos",
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -68,7 +84,7 @@ export default function FormularioEventos() {
 
     if (!titulo || !cidade || !areaProfissional) {
       setErro(
-        "Preencha pelo menos título, cidade e tipo de serviço para eventos."
+        "Preencha título, cidade e tipo de serviço para eventos."
       );
       return;
     }
@@ -149,7 +165,6 @@ export default function FormularioEventos() {
 
       setSucesso("Serviço para festas e eventos cadastrado com sucesso!");
 
-      // limpa campos
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -246,18 +261,28 @@ export default function FormularioEventos() {
           </div>
         </div>
 
+        {/* SELECT TIPO DE SERVIÇO */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Tipo de serviço para eventos *
           </label>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Buffet, Bolos e doces, Decoração, DJ, Som e luz, Foto e vídeo, Espaço para festas..."
+          <select
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={areaProfissional}
             onChange={(e) => setAreaProfissional(e.target.value)}
             required
-          />
+          >
+            <option value="">Selecione...</option>
+            {servicosEventos.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Escolha o tipo de serviço principal. Isso ajuda as pessoas a
+            encontrarem seu anúncio com mais facilidade.
+          </p>
         </div>
 
         <div>
