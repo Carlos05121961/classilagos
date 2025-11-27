@@ -17,7 +17,7 @@ export default function ServicosPage() {
         .select(
           "id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens"
         )
-        .eq("categoria", "servico") // <<< CORRIGIDO
+        .eq("categoria", "servico")
         .eq("status", "ativo")
         .order("created_at", { ascending: false });
 
@@ -128,7 +128,6 @@ export default function ServicosPage() {
 
   return (
     <main className="bg-white min-h-screen">
-
       {/* BANNER FIXO */}
       <section className="w-full flex justify-center bg-slate-100 border-b py-3">
         <div className="w-full max-w-[1000px] px-4">
@@ -167,8 +166,44 @@ export default function ServicosPage() {
         </div>
       </section>
 
+      {/* 🔵 BLOCOS DOS 3 PILARES – BOTÕES PARA ANUNCIAR */}
+      <section className="max-w-5xl mx-auto px-4 py-6">
+        <div className="bg-sky-50 border border-sky-100 rounded-3xl px-4 py-5 md:px-8 md:py-6 text-center">
+          <h2 className="text-lg md:text-xl font-bold text-slate-900">
+            Anuncie seus serviços no Classilagos
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Escolha o tipo de serviço e cadastre seu anúncio gratuitamente. Seu
+            cliente encontra você aqui.
+          </p>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/anunciar/formulario?tipo=servico&categoria=classimed"
+              className="px-5 py-3 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-md hover:bg-blue-700 transition"
+            >
+              Classimed – Saúde & Bem-estar
+            </Link>
+
+            <Link
+              href="/anunciar/formulario?tipo=servico&categoria=eventos"
+              className="px-5 py-3 rounded-full bg-emerald-600 text-white text-sm font-semibold shadow-md hover:bg-emerald-700 transition"
+            >
+              Festas &amp; Eventos
+            </Link>
+
+            <Link
+              href="/anunciar/formulario?tipo=servico&categoria=profissionais"
+              className="px-5 py-3 rounded-full bg-orange-600 text-white text-sm font-semibold shadow-md hover:bg-orange-700 transition"
+            >
+              Profissionais &amp; Serviços
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ==================== BLOCO CLASSIMED ==================== */}
-      <section className="max-w-5xl mx-auto px-4 pt-8 pb-4">
+      <section className="max-w-5xl mx-auto px-4 pt-4 pb-4">
         <h2 className="text-xl font-bold text-slate-900 mb-3">Classimed</h2>
 
         {loading && <p className="text-sm text-slate-500">Carregando…</p>}
@@ -217,7 +252,6 @@ export default function ServicosPage() {
           ))}
         </div>
       </section>
-
     </main>
   );
 }
