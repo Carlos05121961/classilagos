@@ -53,17 +53,23 @@ export default function FormularioClassimed() {
 
   const especialidadesClassimed = [
     "Clínico geral",
-    "Dentista",
-    "Psicólogo(a)",
-    "Nutricionista",
-    "Fisioterapeuta",
-    "Fonoaudiólogo(a)",
-    "Enfermeiro(a)",
-    "Massoterapeuta",
-    "Esteticista",
+    "Medicina de família",
+    "Pediatria",
+    "Ginecologia / Obstetrícia",
+    "Cardiologia",
+    "Ortopedia / Fisiatria",
+    "Fisioterapia",
+    "Nutrição",
+    "Psicologia / Psicoterapia",
+    "Psiquiatria",
+    "Odontologia (Dentista)",
+    "Fonoaudiologia",
+    "Enfermagem / Técnico de enfermagem",
+    "Estética / Dermato funcional",
+    "Massoterapia / SPA",
     "Terapias integrativas",
     "Pilates",
-    "Academia / Studio",
+    "Academia / Studio de treino",
     "Personal trainer",
     "Outros serviços de saúde",
   ];
@@ -260,7 +266,6 @@ export default function FormularioClassimed() {
           </div>
         </div>
 
-        {/* SELECT ESPECIALIDADE */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Especialidade / área de atuação *
@@ -279,8 +284,7 @@ export default function FormularioClassimed() {
             ))}
           </select>
           <p className="mt-1 text-[11px] text-slate-500">
-            Escolha a opção que mais combina com o seu serviço. Isso ajuda na
-            busca e na organização do portal.
+            Essa escolha ajuda a organizar o Classimed e facilita a busca.
           </p>
         </div>
 
