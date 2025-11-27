@@ -17,9 +17,10 @@ export default function EmpregosPage() {
   const [loadingCurriculos, setLoadingCurriculos] = useState(true);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
+    const interval = setInterval(
+      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
+      6000
+    );
     return () => clearInterval(interval);
   }, []);
 
@@ -60,11 +61,11 @@ export default function EmpregosPage() {
   }, []);
 
   return (
-    <main className="bg-slate-50 min-h-screen">
+    <main className="bg-white min-h-screen">
       {/* BANNER FIXO NO TOPO */}
       <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-5xl px-4">
-          <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden flex items-center justify-center">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
             <Image
               src="/banners/anuncio-01.png"
               alt="Anuncie no Classilagos"
@@ -78,7 +79,7 @@ export default function EmpregosPage() {
 
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[360px] overflow-hidden">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
           <Image
             key={heroImages[currentHero]}
             src={heroImages[currentHero]}
@@ -86,170 +87,153 @@ export default function EmpregosPage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover transition-opacity duration-700"
           />
 
-          {/* véu/gradiente */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/10" />
+          {/* véu suave */}
+          <div className="absolute inset-0 bg-black/10" />
 
           {/* TEXTOS */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="mb-2 text-xs font-semibold tracking-[0.2em] uppercase text-emerald-200">
-              Oportunidades na Região dos Lagos
-            </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-md">
-              Classilagos Empregos
+          <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-black">
+            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">
+              Classilagos – Empregos
             </h1>
-            <p className="mt-3 max-w-2xl text-xs md:text-sm text-slate-100 drop-shadow">
-              Vagas de emprego, banco de currículos e oportunidades para as nove cidades da Região dos Lagos.
+            <p className="mt-2 text-xs md:text-sm text-slate-50 max-w-2xl drop-shadow">
+              Vagas de emprego, banco de currículos e oportunidades em toda a Região
+              dos Lagos.
             </p>
           </div>
         </div>
       </section>
 
-      {/* BOTÕES PRINCIPAIS */}
-      <section className="max-w-5xl mx-auto px-4 -mt-8 md:-mt-10 pb-4">
+      {/* BOTÕES PRINCIPAIS – CARDS MODERNOS */}
+      <section className="max-w-5xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Botão — CADASTRAR CURRÍCULO */}
+          {/* CARD – CADASTRAR CURRÍCULO */}
           <Link
             href="/anunciar/curriculo"
-            className="group bg-emerald-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 border border-emerald-500"
+            className="group block rounded-3xl border border-emerald-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
           >
-            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide mb-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-300" />
-              Banco de talentos
-            </span>
-            <h2 className="text-xl font-bold mb-1">
-              Quero cadastrar meu currículo
-            </h2>
-            <p className="text-sm text-emerald-50">
-              Empresas de toda a região poderão encontrar seu perfil profissional com facilidade.
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
+                📄
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  Para candidatos
+                </p>
+                <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                  Quero cadastrar meu currículo
+                </h2>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-3">
+              Cadastre seu perfil no banco de talentos do Classilagos e seja
+              encontrado por empresas das nove cidades da Região dos Lagos.
             </p>
-            <span className="inline-flex items-center gap-1 mt-3 text-sm font-semibold">
-              👉 Começar agora
+
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 group-hover:gap-2 transition-all">
+              Começar agora <span>➜</span>
             </span>
           </Link>
 
-          {/* Botão — ANUNCIAR VAGA */}
+          {/* CARD – ANUNCIAR VAGA */}
           <Link
             href="/anunciar/empregos"
-            className="group bg-sky-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 border border-sky-500"
+            className="group block rounded-3xl border border-sky-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
           >
-            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide mb-2">
-              <span className="h-2 w-2 rounded-full bg-sky-300" />
-              Para empresas e comércios
-            </span>
-            <h2 className="text-xl font-bold mb-1">
-              Quero anunciar uma vaga
-            </h2>
-            <p className="text-sm text-sky-50">
-              Divulgue vagas para as nove cidades e receba candidatos qualificados rapidamente.
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-2xl">
+                💼
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                  Para empresas e comércios
+                </p>
+                <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                  Quero anunciar uma vaga
+                </h2>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-3">
+              Divulgue gratuitamente oportunidades de trabalho e receba candidatos
+              qualificados de toda a Região dos Lagos.
             </p>
-            <span className="inline-flex items-center gap-1 mt-3 text-sm font-semibold">
-              👔 Publicar vaga
+
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 group-hover:gap-2 transition-all">
+              Publicar vaga <span>➜</span>
             </span>
           </Link>
         </div>
       </section>
 
-      {/* BLOCO LISTAGENS */}
-      <section className="max-w-6xl mx-auto px-4 pb-12 space-y-8">
-        {/* VAGAS RECENTES */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Vagas recentes
-              </h2>
-              <p className="text-xs text-slate-500">
-                Últimas oportunidades cadastradas por empresas da Região dos Lagos.
+      {/* VAGAS RECENTES */}
+      <section className="max-w-6xl mx-auto px-4 py-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+          Vagas recentes
+        </h2>
+
+        {!loadingVagas && vagasRecentes.length === 0 && (
+          <p className="text-slate-500 text-sm">
+            Nenhuma vaga cadastrada ainda.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {vagasRecentes.map((vaga) => (
+            <Link
+              key={vaga.id}
+              href={`/anuncios/${vaga.id}`}
+              className="rounded-2xl border p-4 bg-slate-50 hover:bg-slate-100 shadow-sm hover:shadow transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
+                {vaga.titulo}
               </p>
-            </div>
-            <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-medium text-emerald-800">
-              {loadingVagas
-                ? "Carregando..."
-                : `${vagasRecentes.length || 0} vagas em destaque`}
-            </span>
-          </div>
-
-          {!loadingVagas && vagasRecentes.length === 0 && (
-            <p className="text-slate-500 text-sm">
-              Nenhuma vaga cadastrada ainda. Seja o primeiro a anunciar uma oportunidade.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            {vagasRecentes.map((vaga) => (
-              <Link
-                key={vaga.id}
-                href={`/anuncios/${vaga.id}`}
-                className="rounded-2xl border border-slate-200 p-4 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-sky-50 hover:to-slate-50 shadow-sm hover:shadow transition"
-              >
-                <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
-                  {vaga.titulo}
+              <p className="text-[11px] text-slate-600 mb-1">
+                {vaga.cidade}
+              </p>
+              {vaga.faixa_salarial && (
+                <p className="text-[11px] text-emerald-700 font-semibold">
+                  {vaga.faixa_salarial}
                 </p>
-                <p className="text-[11px] text-slate-600 mb-1">
-                  {vaga.cidade} {vaga.bairro ? `• ${vaga.bairro}` : ""}
-                </p>
-                {vaga.tipo_vaga && (
-                  <span className="inline-flex items-center rounded-full bg-sky-50 border border-sky-200 px-2 py-[2px] text-[10px] font-medium text-sky-700 mb-1">
-                    {vaga.tipo_vaga}
-                  </span>
-                )}
-                {vaga.faixa_salarial && (
-                  <p className="text-[11px] text-emerald-700 font-semibold mt-1">
-                    {vaga.faixa_salarial}
-                  </p>
-                )}
-              </Link>
-            ))}
-          </div>
+              )}
+            </Link>
+          ))}
         </div>
+      </section>
 
-        {/* CURRÍCULOS RECENTES */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Currículos recentes
-              </h2>
-              <p className="text-xs text-slate-500">
-                Profissionais que estão buscando oportunidades nas cidades da região.
+      {/* CURRÍCULOS RECENTES */}
+      <section className="max-w-6xl mx-auto px-4 pb-12">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+          Currículos recentes
+        </h2>
+
+        {!loadingCurriculos && curriculosRecentes.length === 0 && (
+          <p className="text-slate-500 text-sm">
+            Nenhum currículo cadastrado ainda.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {curriculosRecentes.map((cv) => (
+            <Link
+              key={cv.id}
+              href={`/anuncios/${cv.id}`}
+              className="rounded-2xl border p-4 bg-white hover:bg-slate-50 shadow-sm hover:shadow transition"
+            >
+              <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-1">
+                {cv.nome_contato || "Candidato"}
               </p>
-            </div>
-            <span className="hidden sm:inline-flex items-center rounded-full bg-sky-50 border border-sky-200 px-3 py-1 text-[11px] font-medium text-sky-800">
-              {loadingCurriculos
-                ? "Carregando..."
-                : `${curriculosRecentes.length || 0} perfis em destaque`}
-            </span>
-          </div>
-
-          {!loadingCurriculos && curriculosRecentes.length === 0 && (
-            <p className="text-slate-500 text-sm">
-              Nenhum currículo cadastrado ainda. Comece criando o seu perfil profissional.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            {curriculosRecentes.map((cv) => (
-              <Link
-                key={cv.id}
-                href={`/anuncios/${cv.id}`}
-                className="rounded-2xl border border-slate-200 p-4 bg-white hover:bg-slate-50 shadow-sm hover:shadow transition"
-              >
-                <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-1">
-                  {cv.nome_contato || "Candidato"}
-                </p>
-                <p className="text-[11px] text-slate-600 mb-1">
-                  {cv.area_profissional}
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  {cv.cidade}
-                  {cv.bairro ? ` • ${cv.bairro}` : ""}
-                </p>
-              </Link>
-            ))}
-          </div>
+              <p className="text-[11px] text-slate-600 mb-1">
+                {cv.area_profissional}
+              </p>
+              <p className="text-[11px] text-slate-600">
+                {cv.cidade}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -273,4 +257,3 @@ export default function EmpregosPage() {
     </main>
   );
 }
-
