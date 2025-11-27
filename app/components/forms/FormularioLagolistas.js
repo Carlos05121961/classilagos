@@ -1,368 +1,530 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+import { supabase } from "../../supabaseClient";
 
 export default function FormularioLagolistas() {
-  
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    titulo: "",
-    razao_social: "",
-    cnpj: "",
-    inscricao_municipal: "",
-    registro_profissional: "",
-    descricao: "",
-    cidade: "",
-    endereco: "",
-    telefone: "",
-    whatsapp: "",
-    email: "",
-    imagemUrl: "",
-  });
+  // Campos principais
+  const [titulo, setTitulo] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [endereco, setEndereco] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [mensagem, setMensagem] = useState("");
+  // Dados da empresa / comércio
+  const [nomeNegocio, setNomeNegocio] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [inscricaoMunicipal, setInscricaoMunicipal] = useState("");
+  const [registroProfissional, setRegistroProfissional] = useState("");
+
+  // Descrição
+  const [descricao, setDescricao] = useState("");
+
+  // Links
+  const [siteUrl, setSiteUrl] = useState("");
+  const [instagram, setInstagram] = useState("");
+
+  // Contatos
+  const [telefone, setTelefone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Imagem (logo / fachada)
+  const [logoFile, setLogoFile] = useState(null);
+
+  // Estados gerais
+  const [aceitoTermos, setAceitoTermos] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
+  // Verificar login (mesmo padrão do Classimed)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.push("/login");
+      }
+    });
+  }, [router]);
 
-  async function handleSubmit(e) {
+  const cidades = [
+    "Maricá",
+    "Saquarema",
+    "Araruama",
+    "Iguaba Grande",
+    "São Pedro da Aldeia",
+    "Arraial do Cabo",
+    "Cabo Frio",
+    "Búzios",
+    "Rio das Ostras",
+  ];
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
-    setMensagem("");
-    setLoading(true);
+    setSucesso("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setErro("Você precisa estar logado para anunciar.");
+      router.push("/login");
+      return;
+    }
+
+    // Validações principais
+    if (!titulo || !cidade || !descricao) {
+      setErro(
+        "Preencha pelo menos o título, a cidade e a descrição do seu comércio/serviço."
+      );
+      return;
+    }
+
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      setErro(
+        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
+      return;
+    }
+
+    if (!aceitoTermos) {
+      setErro(
+        "Para publicar no Lagolistas, marque a opção confirmando que as informações são verdadeiras."
+      );
+      return;
+    }
+
+    setUploading(true);
+
+    let logoUrl = null;
 
     try {
-      const {
+      const bucket = "anuncios";
+
+      // Upload opcional da logo / fachada (MESMO PADRÃO DO CLASSIMED)
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `lagolistas/${user.id}/lagolistas-logo-${Date.now()}.${ext}`;
+
+        const { error: uploadErroLogo } = await supabase.storage
+          .from(bucket)
+          .upload(path, logoFile);
+
+        if (uploadErroLogo) {
+          console.error("Erro upload logo Lagolistas:", uploadErroLogo);
+          throw uploadErroLogo;
+        }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        logoUrl = data.publicUrl;
+      }
+
+      // INSERT no Supabase
+      const { error: insertError } = await supabase.from("anuncios").insert({
+        user_id: user.id,
+
+        // Categoria para o Lagolistas
+        categoria: "lagolistas",
+        // se quiser usar subcategoria depois, já existe a coluna:
+        // subcategoria_servico: "lagolistas",
+
         titulo,
-        razao_social,
-        cnpj,
-        inscricao_municipal,
-        registro_profissional,
         descricao,
         cidade,
+        bairro,
         endereco,
+
+        // dados da empresa
+        nome_negocio: nomeNegocio,
+        // podemos aproveitar nome_contato depois se quiser:
+        // nome_contato: ..., 
+
+        // campos novos da tabela
+        cnpj: cnpj || null,
+        razao_social: razaoSocial || null,
+        inscricao_municipal: inscricaoMunicipal || null,
+        registro_profissional: registroProfissional || null,
+
+        // links
+        site_url: siteUrl,
+        instagram,
+
+        // contatos
         telefone,
         whatsapp,
         email,
-        imagemUrl,
-      } = formData;
+        contato: contatoPrincipal,
 
-      // verifica usuário logado
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+        // imagem principal
+        imagens: logoUrl ? [logoUrl] : null,
 
-      if (userError || !user) {
-        setErro("Você precisa estar logado para anunciar.");
-        setLoading(false);
+        status: "ativo",
+      });
+
+      if (insertError) {
+        console.error("Erro ao salvar anúncio Lagolistas:", insertError);
+        setErro(
+          `Erro ao salvar seu anúncio. Tente novamente: ${
+            insertError.message || ""
+          }`
+        );
+        setUploading(false);
         return;
       }
 
-      const { error: insertError } = await supabase
-        .from("anuncios")
-        .insert({
-          categoria: "lagolistas",
-          titulo,
-          descricao,
-          cidade,
-          endereco,
-          telefone,
-          whatsapp,
-          email,
-          usuario_id: user.id,
-          imagens: imagemUrl ? [imagemUrl] : [],
+      setSucesso("Anúncio publicado com sucesso no Lagolistas! 🎉");
 
-          // campos NOVOS / OPCIONAIS
-          cnpj: cnpj || null,
-          razao_social: razao_social || null,
-          inscricao_municipal: inscricao_municipal || null,
-          registro_profissional: registro_profissional || null,
-        });
+      // Limpar formulário
+      setTitulo("");
+      setCidade("");
+      setBairro("");
+      setEndereco("");
+      setNomeNegocio("");
+      setRazaoSocial("");
+      setCnpj("");
+      setInscricaoMunicipal("");
+      setRegistroProfissional("");
+      setDescricao("");
+      setSiteUrl("");
+      setInstagram("");
+      setTelefone("");
+      setWhatsapp("");
+      setEmail("");
+      setLogoFile(null);
+      setAceitoTermos(false);
 
-      if (insertError) {
-        console.error(insertError);
-        setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
-      } else {
-        setMensagem("Anúncio cadastrado com sucesso no Lagolistas! 🎉");
-        // limpa o formulário
-        setFormData({
-          titulo: "",
-          razao_social: "",
-          cnpj: "",
-          inscricao_municipal: "",
-          registro_profissional: "",
-          descricao: "",
-          cidade: "",
-          endereco: "",
-          telefone: "",
-          whatsapp: "",
-          email: "",
-          imagemUrl: "",
-        });
+      setUploading(false);
 
-        // opcional: redirecionar para a página do Lagolistas
-        // router.push("/lagolistas");
-      }
-    } catch (error) {
-      console.error(error);
-      setErro("Erro inesperado ao salvar o anúncio.");
-    } finally {
-      setLoading(false);
+      setTimeout(() => {
+        router.push("/painel/meus-anuncios");
+      }, 1800);
+    } catch (err) {
+      console.error(err);
+      setErro(
+        `Erro ao salvar seu anúncio. Tente novamente: ${
+          err.message || "Erro inesperado."
+        }`
+      );
+      setUploading(false);
     }
-  }
+  };
 
   return (
-    <section className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">
-        Anunciar no Lagolistas
-      </h1>
-      <p className="text-sm text-slate-600 mb-6">
-        Preencha os dados do seu comércio, empresa ou serviço. Os campos de
-        CNPJ, razão social, inscrição municipal e registro profissional são
-        opcionais, mas passam mais segurança para o cliente.
-      </p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {erro && (
+        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
+          {erro}
+        </p>
+      )}
+      {sucesso && (
+        <p className="text-green-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
+          {sucesso}
+        </p>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* NOME / TÍTULO */}
+      {/* TÍTULO DO ANÚNCIO */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs font-medium text-slate-800">
+            Título do anúncio *
+          </label>
+
+          <div className="relative group text-[11px] text-slate-500 cursor-help">
+            <span>ℹ</span>
+            <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              Ex.: <strong>“Mercado São José – Ofertas todo dia em Maricá”</strong> ou{" "}
+              <strong>“Imobiliária Lagoa Viva – Aluguel e venda em Cabo Frio”</strong>.
+            </div>
+          </div>
+        </div>
+
+        <input
+          type="text"
+          className="w-full border rounded-lg px-3 py-2 text-sm"
+          placeholder="Ex.: Padaria Pão Quentinho – Café da manhã e lanches"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          required
+        />
+      </div>
+
+      {/* LOCALIZAÇÃO */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Cidade *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Bairro / Região (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+              placeholder="Ex.: Centro, Itaipuaçu, Braga..."
+            />
+          </div>
+        </div>
+
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Nome do comércio / título do anúncio *
+          <label className="block text-xs font-medium text-slate-700">
+            Endereço completo (opcional, mas recomendado)
           </label>
           <input
             type="text"
-            name="titulo"
-            value={formData.titulo}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: Padaria Pão Quentinho"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            value={endereco}
+            onChange={(e) => setEndereco(e.target.value)}
+            placeholder="Rua, número, sala, ponto de referência..."
           />
         </div>
+      </div>
 
-        {/* RAZÃO SOCIAL (opcional) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Razão social (opcional)
-          </label>
-          <input
-            type="text"
-            name="razao_social"
-            value={formData.razao_social}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: Pão Quentinho Comércio de Alimentos LTDA"
-          />
+      {/* DADOS DA EMPRESA */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Dados da empresa / comércio
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Nome fantasia / nome do comércio
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={nomeNegocio}
+              onChange={(e) => setNomeNegocio(e.target.value)}
+              placeholder="Ex.: Mercado São José"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Razão social (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={razaoSocial}
+              onChange={(e) => setRazaoSocial(e.target.value)}
+              placeholder="Ex.: São José Comércio de Alimentos LTDA"
+            />
+          </div>
         </div>
 
-        {/* CNPJ (opcional) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            CNPJ (opcional)
-          </label>
-          <input
-            type="text"
-            name="cnpj"
-            value={formData.cnpj}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: 12.345.678/0001-90"
-          />
-          <p className="text-xs text-slate-500 mt-1">
-            Essa informação é pública em muitos cadastros e ajuda a passar
-            confiança para o cliente.
-          </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              CNPJ (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={cnpj}
+              onChange={(e) => setCnpj(e.target.value)}
+              placeholder="00.000.000/0001-00"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Inscrição municipal (opcional)
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={inscricaoMunicipal}
+              onChange={(e) => setInscricaoMunicipal(e.target.value)}
+              placeholder="Ex.: 123456-7"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Registro profissional (CRECI, CRM, OAB etc.) – opcional
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={registroProfissional}
+              onChange={(e) => setRegistroProfissional(e.target.value)}
+              placeholder="Ex.: CRECI 12345-RJ"
+            />
+          </div>
         </div>
+      </div>
 
-        {/* INSCRIÇÃO MUNICIPAL (opcional) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Inscrição municipal (opcional)
-          </label>
-          <input
-            type="text"
-            name="inscricao_municipal"
-            value={formData.inscricao_municipal}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: 123456-7"
-          />
-        </div>
-
-        {/* REGISTRO PROFISSIONAL (CRECI, CRM, OAB...) */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Registro profissional (CRECI, CRM, OAB, CREA, etc.) – opcional
-          </label>
-          <input
-            type="text"
-            name="registro_profissional"
-            value={formData.registro_profissional}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: CRECI 12345-RJ"
-          />
-        </div>
-
-        {/* DESCRIÇÃO */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+      {/* DESCRIÇÃO */}
+      <div className="space-y-1 border-t border-slate-100 pt-4">
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs font-medium text-slate-800">
             Descrição do seu comércio / serviços *
           </label>
-          <textarea
-            name="descricao"
-            value={formData.descricao}
-            onChange={handleChange}
-            required
-            rows={4}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Conte o que você oferece, diferenciais, horários, formas de pagamento..."
-          />
+
+          <div className="relative group text-[11px] text-slate-500 cursor-help">
+            <span>ℹ</span>
+            <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              Fale o que você oferece, diferenciais, horário de
+              funcionamento, formas de pagamento, delivery, promoções etc.
+            </div>
+          </div>
         </div>
 
-        {/* CIDADE */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Cidade *
-          </label>
-          <select
-            name="cidade"
-            value={formData.cidade}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Selecione a cidade</option>
-            <option value="Maricá">Maricá</option>
-            <option value="Saquarema">Saquarema</option>
-            <option value="Araruama">Araruama</option>
-            <option value="Iguaba Grande">Iguaba Grande</option>
-            <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
-            <option value="Arraial do Cabo">Arraial do Cabo</option>
-            <option value="Cabo Frio">Cabo Frio</option>
-            <option value="Búzios">Búzios</option>
-            <option value="Rio das Ostras">Rio das Ostras</option>
-          </select>
-        </div>
+        <textarea
+          className="w-full border rounded-lg px-3 py-2 text-sm h-32"
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="Ex.: Mercado com hortifrúti, açougue, padaria e entrega em domicílio..."
+          required
+        />
+      </div>
 
-        {/* ENDEREÇO */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Endereço completo *
-          </label>
-          <input
-            type="text"
-            name="endereco"
-            value={formData.endereco}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Rua, número, bairro, ponto de referência..."
-          />
-        </div>
+      {/* LINKS */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Links (opcional)</h2>
 
-        {/* TELEFONE / WHATSAPP / EMAIL */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Telefone fixo (opcional)
+            <label className="block text-xs font-medium text-slate-700">
+              Site / página
+            </label>
+            <input
+              type="url"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={siteUrl}
+              onChange={(e) => setSiteUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Instagram
             </label>
             <input
               type="text"
-              name="telefone"
-              value={formData.telefone}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: (22) 0000-0000"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="@seu_perfil"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* LOGO / FOTO */}
+      <div className="space-y-2 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">
+          Logo / foto do comércio (opcional)
+        </h2>
+        <input
+          type="file"
+          accept="image/*"
+          className="w-full text-xs"
+          onChange={(e) => setLogoFile(e.target.files[0] || null)}
+        />
+        <p className="text-[11px] text-slate-500">
+          Imagem quadrada ou horizontal funciona melhor na vitrine do Lagolistas.
+        </p>
+      </div>
+
+      {/* CONTATOS */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Telefone
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              WhatsApp *
+            <label className="block text-xs font-medium text-slate-700">
+              WhatsApp
             </label>
             <input
               type="text"
-              name="whatsapp"
-              value={formData.whatsapp}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: (22) 9 9999-9999"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              E-mail
+            </label>
+            <input
+              type="email"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            E-mail de contato (opcional)
-          </label>
+        <p className="text-[11px] text-slate-500">
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido
+          para contato dos clientes.
+        </p>
+      </div>
+
+      {/* CONFIRMAÇÃO */}
+      <div className="border-t border-slate-100 pt-4">
+        <label className="flex items-start gap-2 text-[11px] text-slate-700">
           <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Ex: contato@minhaempresa.com.br"
+            type="checkbox"
+            className="mt-0.5"
+            checked={aceitoTermos}
+            onChange={(e) => setAceitoTermos(e.target.checked)}
           />
-        </div>
+          <span>
+            Declaro que as informações preenchidas são verdadeiras e autorizo
+            que este anúncio seja exibido no Lagolistas / Classilagos para os
+            consumidores da Região dos Lagos.
+          </span>
+        </label>
+      </div>
 
-        {/* IMAGEM PRINCIPAL */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            URL da imagem principal (fachada, logo, vitrine) *
-          </label>
-          <input
-            type="url"
-            name="imagemUrl"
-            value={formData.imagemUrl}
-            onChange={handleChange}
-            required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Cole aqui o link da imagem hospedada"
-          />
-          <p className="text-xs text-slate-500 mt-1">
-            Depois podemos evoluir para upload direto pelo site. Por enquanto é
-            só colar o link da imagem.
-          </p>
-        </div>
-
-        {/* MENSAGENS */}
-        {erro && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {erro}
-          </div>
-        )}
-        {mensagem && (
-          <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-700">
-            {mensagem}
-          </div>
-        )}
-
-        {/* BOTÃO */}
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full md:w-auto inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-          >
-            {loading ? "Salvando anúncio..." : "Publicar no Lagolistas"}
-          </button>
-        </div>
-      </form>
-    </section>
+      <button
+        type="submit"
+        disabled={uploading}
+        className="mt-2 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+      >
+        {uploading
+          ? "Publicando anúncio..."
+          : "Publicar meu comércio no Lagolistas"}
+      </button>
+    </form>
   );
 }
