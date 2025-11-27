@@ -51,6 +51,23 @@ export default function FormularioClassimed() {
     "Rio das Ostras",
   ];
 
+  const especialidadesClassimed = [
+    "Clínico geral",
+    "Dentista",
+    "Psicólogo(a)",
+    "Nutricionista",
+    "Fisioterapeuta",
+    "Fonoaudiólogo(a)",
+    "Enfermeiro(a)",
+    "Massoterapeuta",
+    "Esteticista",
+    "Terapias integrativas",
+    "Pilates",
+    "Academia / Studio",
+    "Personal trainer",
+    "Outros serviços de saúde",
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -67,7 +84,7 @@ export default function FormularioClassimed() {
     }
 
     if (!titulo || !cidade || !areaProfissional) {
-      setErro("Preencha pelo menos título, cidade e especialidade.");
+      setErro("Preencha título, cidade e especialidade do serviço.");
       return;
     }
 
@@ -193,6 +210,7 @@ export default function FormularioClassimed() {
         </p>
       )}
 
+      {/* DADOS DO SERVIÇO */}
       <div className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Informações do serviço de saúde (Classimed)
@@ -242,18 +260,28 @@ export default function FormularioClassimed() {
           </div>
         </div>
 
+        {/* SELECT ESPECIALIDADE */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Especialidade / área de atuação *
           </label>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Psicólogo, Nutricionista, Fisioterapeuta, Terapias integrativas..."
+          <select
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={areaProfissional}
             onChange={(e) => setAreaProfissional(e.target.value)}
             required
-          />
+          >
+            <option value="">Selecione...</option>
+            {especialidadesClassimed.map((esp) => (
+              <option key={esp} value={esp}>
+                {esp}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Escolha a opção que mais combina com o seu serviço. Isso ajuda na
+            busca e na organização do portal.
+          </p>
         </div>
 
         <div>
@@ -270,6 +298,7 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
+      {/* PROFISSIONAL / CLÍNICA */}
       <div className="space-y-4 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Profissional / clínica
@@ -338,6 +367,7 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
+      {/* CONTATOS */}
       <div className="space-y-4 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
 
@@ -410,6 +440,7 @@ export default function FormularioClassimed() {
         </p>
       </div>
 
+      {/* IMAGEM */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Foto / logo (opcional)
@@ -426,6 +457,7 @@ export default function FormularioClassimed() {
         </p>
       </div>
 
+      {/* RESPONSABILIDADE */}
       <div className="border-t border-slate-200 pt-4">
         <label className="flex items-start gap-2 text-[11px] text-slate-700">
           <input
