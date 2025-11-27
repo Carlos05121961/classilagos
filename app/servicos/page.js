@@ -114,6 +114,97 @@ export default function ServicosPage() {
 
       <div className="h-4 sm:h-6" />
 
+      {/* 3 PILARES: CLASSIMED / FESTAS / PROFISSIONAIS */}
+      <section className="max-w-5xl mx-auto px-4 pb-6">
+        <h2 className="text-center text-sm font-semibold text-slate-900 mb-4">
+          Escolha o tipo de serviço que deseja encontrar ou divulgar
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* CLASSIMED */}
+          <Link
+            href="/servicos/classimed"
+            className="group block rounded-3xl border border-emerald-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
+                🩺
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  Saúde &amp; bem-estar
+                </p>
+                <h3 className="text-base md:text-lg font-bold text-slate-900">
+                  Classimed
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs md:text-sm text-slate-600 mb-3">
+              Médicos, dentistas, psicólogos, fisioterapeutas, terapeutas,
+              massagistas, academias e outros serviços de saúde na Região dos
+              Lagos.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-emerald-700 group-hover:gap-2 transition-all">
+              Ver serviços de saúde <span>➜</span>
+            </span>
+          </Link>
+
+          {/* FESTAS E EVENTOS */}
+          <Link
+            href="/servicos/eventos"
+            className="group block rounded-3xl border border-fuchsia-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-fuchsia-100 text-2xl">
+                🎉
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-fuchsia-700">
+                  Festas &amp; eventos
+                </p>
+                <h3 className="text-base md:text-lg font-bold text-slate-900">
+                  Festas e Eventos
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs md:text-sm text-slate-600 mb-3">
+              Buffets, bolos, doces, decoração, DJs, som e iluminação, foto e
+              vídeo, espaços para festas e tudo para o seu evento.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-fuchsia-700 group-hover:gap-2 transition-all">
+              Ver serviços de eventos <span>➜</span>
+            </span>
+          </Link>
+
+          {/* PROFISSIONAIS LIBERAIS */}
+          <Link
+            href="/servicos/profissionais"
+            className="group block rounded-3xl border border-sky-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-2xl">
+                🛠️
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                  Profissionais &amp; serviços gerais
+                </p>
+                <h3 className="text-base md:text-lg font-bold text-slate-900">
+                  Profissionais Liberais
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs md:text-sm text-slate-600 mb-3">
+              Eletricistas, encanadores, diaristas, professores particulares,
+              consultores, designers, técnicos e diversos serviços especializados.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-sky-700 group-hover:gap-2 transition-all">
+              Ver profissionais e serviços <span>➜</span>
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* CHAMADA SIMPLES ABAIXO */}
       <section className="max-w-4xl mx-auto px-4 pb-12">
         <div className="rounded-3xl bg-slate-100 border border-slate-200 px-6 py-7 text-center">
