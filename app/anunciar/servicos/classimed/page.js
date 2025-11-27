@@ -1,6 +1,6 @@
 "use client";
 
-import FormularioClassimed from "../../../../components/forms/FormularioClassimed";
+import FormularioClassimed from "../../../components/forms/FormularioClassimed";
 
 export default function AnunciarClassimedPage() {
   return (
