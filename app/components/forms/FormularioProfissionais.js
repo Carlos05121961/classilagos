@@ -241,10 +241,19 @@ export default function FormularioProfissionais() {
           Informações do serviço profissional
         </h2>
 
+        {/* TÍTULO DO ANÚNCIO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Título do anúncio *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Título do anúncio *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Esse será o título em destaque no card do seu serviço profissional."
+            >
+              i
+            </span>
+          </div>
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -255,6 +264,7 @@ export default function FormularioProfissionais() {
           />
         </div>
 
+        {/* CIDADE / BAIRRO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -285,10 +295,19 @@ export default function FormularioProfissionais() {
           </div>
         </div>
 
+        {/* TIPO DE SERVIÇO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Tipo de serviço profissional *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Tipo de serviço profissional *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Escolha o serviço principal. Isso organiza o portal e facilita a busca pelos clientes."
+            >
+              i
+            </span>
+          </div>
           <select
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={areaProfissional}
@@ -308,10 +327,19 @@ export default function FormularioProfissionais() {
           </p>
         </div>
 
+        {/* DESCRIÇÃO */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Descrição do serviço *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Descrição do serviço *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Descreva o que você faz, sua experiência, diferenciais, cidades atendidas e formas de atendimento."
+            >
+              i
+            </span>
+          </div>
           <textarea
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
             placeholder="Descreva o que você faz, tipos de serviços, cidades em que atende, experiência, diferenciais, formas de pagamento etc."
@@ -355,9 +383,17 @@ export default function FormularioProfissionais() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Horário de atendimento
-            </label>
+            <div className="flex items-center gap-1 mb-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Horário de atendimento
+              </label>
+              <span
+                className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+                title="Informe os dias e horários em que você costuma atender ou responder clientes."
+              >
+                i
+              </span>
+            </div>
             <input
               type="text"
               className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -378,9 +414,17 @@ export default function FormularioProfissionais() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Faixa de preço (opcional)
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Faixa de preço (opcional)
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Você pode informar valores iniciais ou uma faixa, sem precisar definir um preço fechado."
+            >
+              i
+            </span>
+          </div>
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -466,9 +510,17 @@ export default function FormularioProfissionais() {
 
       {/* IMAGEM */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Foto do serviço / logo (opcional)
-        </h2>
+        <div className="flex items-center gap-1 mb-1">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Foto do serviço / logo (opcional)
+          </h2>
+          <span
+            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+            title="Envie uma foto do seu serviço ou sua logo. Essa imagem aparece em destaque no card do anúncio."
+          >
+            i
+          </span>
+        </div>
         <input
           type="file"
           accept="image/*"
