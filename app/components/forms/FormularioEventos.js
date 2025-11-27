@@ -222,9 +222,17 @@ export default function FormularioEventos() {
         </h2>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Título do anúncio *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Título do anúncio *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Esse será o título em destaque no card do seu serviço de eventos."
+            >
+              i
+            </span>
+          </div>
           <input
             type="text"
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
@@ -266,9 +274,17 @@ export default function FormularioEventos() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Tipo de serviço para eventos *
-          </label>
+          <div className="flex items-center gap-1 mb-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              Tipo de serviço para eventos *
+            </label>
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
+              title="Escolha o tipo principal de serviço. Isso ajuda as pessoas a encontrarem seu anúncio com mais facilidade."
+            >
+              i
+            </span>
+          </div>
           <select
             className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
             value={areaProfissional}
