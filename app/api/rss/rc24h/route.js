@@ -109,15 +109,15 @@ export async function POST() {
     // 3) Buscar no Supabase quais URLs já existem pra não duplicar
     const { data: existentes, error: erroExistentes } = await supabase
       .from("noticias")
-      .select("id, url_origem")
-      .in("url_origem", urls);
+      .select("id, link_original")
+      .in("link_original", urls);
 
     if (erroExistentes) {
       console.error("Erro ao buscar notícias existentes (RC24h):", erroExistentes);
     }
 
     const urlsExistentes = new Set(
-      (existentes || []).map((n) => n.url_origem)
+      (existentes || []).map((n) => n.link_original)
     );
 
     let inseridas = 0;
@@ -143,9 +143,10 @@ export async function POST() {
         resumo: textoCurto,
         texto: textoCompleto,
         fonte: "RC24h",
-        url_origem: item.link,
+        link_original: item.link,
         cidade: cidadeDetectada,
         categoria: "Geral",
+        imagem_capa: null,
         tipo: "importada",
         status: "rascunho",
       });
@@ -192,3 +193,4 @@ export async function POST() {
     );
   }
 }
+
