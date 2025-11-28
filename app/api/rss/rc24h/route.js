@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../supabaseClient";
+import { supabaseServer as supabase } from "../../../supabaseServerClient";
+
 
 // URL principal do feed do RC24h (WordPress)
 const FEED_URL = "https://rc24h.com.br/feed/";
