@@ -15,12 +15,14 @@ export default function NoticiasHomePage() {
       setErro("");
 
       const { data, error } = await supabase
-        .from("noticias")
-        .select(
-          "id, titulo, cidade, categoria, resumo, imagem_capa, created_at"
-        )
-        .order("created_at", { ascending: false })
-        .limit(12);
+  .from("noticias")
+  .select(
+    "id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status"
+  )
+  .eq("status", "publicado")
+  .order("created_at", { ascending: false })
+  .limit(12);
+
 
       if (error) {
         console.error("Erro ao carregar notícias:", error);
