@@ -22,7 +22,7 @@ export default function AnunciarPage() {
       id: "nautica",
       titulo: "Náutica",
       descricao:
-        "Barcos, lanchas, jet skis, passeios e serviços náuticos.",
+        "Barcos, lanchas, jet skis e serviços náuticos.",
       href: "/anunciar/formulario?tipo=nautica",
     },
     {
@@ -36,33 +36,29 @@ export default function AnunciarPage() {
       id: "empregos",
       titulo: "Empregos",
       descricao:
-        "Vagas de trabalho e banco de currículos em toda a região.",
-      // mantém a página especial de empregos com os dois botões
-      href: "/empregos",
+        "Vagas e oportunidades de trabalho em toda a região.",
+      href: "/empregos", // mantém a tela com currículo / vagas
     },
     {
       id: "servicos",
       titulo: "Serviços",
       descricao:
         "Profissionais liberais, autônomos e empresas de serviços em geral.",
-      // mantém a página com os 3 pilares (Classimed / Eventos / Profissionais)
-      href: "/anunciar/servicos",
+      href: "/anunciar/servicos", // mantém a tela com os 3 pilares
     },
     {
       id: "turismo",
       titulo: "Turismo",
       descricao:
-        "Pousadas, hotéis, bares, restaurantes, passeios e experiências turísticas na Região dos Lagos.",
-      // vai direto para o formulário de turismo (quando já estiver tratado no /anunciar/formulario)
-      href: "/anunciar/formulario?tipo=turismo",
+        "Pousadas, hotéis, bares, restaurantes, passeios e experiências turísticas.",
+      href: "/anunciar/formulario?tipo=turismo", // quando o form de turismo estiver pronto
     },
     {
       id: "lagolistas",
       titulo: "LagoListas",
       descricao:
-        "Guia comercial: lojas, comércios e empresas para serem encontrados em toda a região.",
-      // segue o mesmo padrão: formulário específico de LagoListas
-      href: "/anunciar/formulario?tipo=lagolistas",
+        "Guia comercial: lojas, comércios e empresas da Região dos Lagos.",
+      href: "/anunciar/lagolistas", // 🔹 AQUI é o ajuste
     },
   ];
 
@@ -102,14 +98,14 @@ export default function AnunciarPage() {
                   href={secao.href}
                   className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  {secao.id === "empregos"
-                    ? "Anunciar em Empregos"
-                    : secao.id === "servicos"
-                    ? "Anunciar em Serviços"
+                  {secao.id === "lagolistas"
+                    ? "Anunciar no LagoListas"
                     : secao.id === "turismo"
                     ? "Anunciar em Turismo"
-                    : secao.id === "lagolistas"
-                    ? "Anunciar em LagoListas"
+                    : secao.id === "servicos"
+                    ? "Anunciar em Serviços"
+                    : secao.id === "empregos"
+                    ? "Anunciar em Empregos"
                     : `Anunciar em ${secao.titulo}`}
                 </Link>
               </div>
@@ -120,3 +116,4 @@ export default function AnunciarPage() {
     </main>
   );
 }
+
