@@ -139,7 +139,7 @@ export default function EmpregosPage() {
 
           {/* CARD – ANUNCIAR VAGA */}
           <Link
-            href="/empregos/anunciar"
+            href="/anunciar/empregos"
             className="group block rounded-3xl border border-sky-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
           >
             <div className="flex items-center gap-3 mb-3">
