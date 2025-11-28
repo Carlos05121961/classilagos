@@ -58,7 +58,7 @@ function parseRss(xml) {
 
     return {
       titulo,
-      url_origem: link,
+      link_original: link,
       resumo: descricao || "",
       cidade,
       categoria: "Geral",
@@ -87,11 +87,11 @@ export async function GET() {
     const pulados = [];
 
     for (const item of itens) {
-      // verifica se já existe notícia com essa url_origem
+      // verifica se já existe notícia com esse link_original
       const { data: existente, error: erroBusca } = await supabase
         .from("noticias")
         .select("id")
-        .eq("url_origem", item.url_origem)
+        .eq("link_original", item.link_original)
         .maybeSingle();
 
       if (erroBusca) {
@@ -110,10 +110,11 @@ export async function GET() {
         categoria: item.categoria,
         resumo: item.resumo || item.titulo,
         texto: item.resumo || item.titulo,
+        imagem_capa: null,
         fonte: "G1 Região dos Lagos",
-        url_origem: item.url_origem,
-        tipo: "importada",
-        status: "rascunho",
+        link_original: item.link_original,
+        tipo: "importada",   // sobrescreve o default 'autoral'
+        status: "rascunho",  // sobrescreve o default 'publicado'
       });
 
       if (insertError) {
@@ -141,3 +142,4 @@ export async function GET() {
     );
   }
 }
+
