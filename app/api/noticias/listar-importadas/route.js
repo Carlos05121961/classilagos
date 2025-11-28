@@ -8,7 +8,18 @@ export async function GET() {
     const { data, error } = await supabase
       .from("noticias")
       .select(
-        "id, titulo, fonte, created_at, status, tipo"
+        `
+        id,
+        titulo,
+        resumo,
+        texto,
+        cidade,
+        categoria,
+        fonte,
+        status,
+        tipo,
+        created_at
+      `
       )
       .eq("tipo", "importada")
       .order("created_at", { ascending: false })
@@ -31,3 +42,4 @@ export async function GET() {
     );
   }
 }
+
