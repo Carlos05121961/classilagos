@@ -1,90 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../supabaseClient";
-import AuthGuard from "../components/AuthGuard";
 
 export default function PainelPage() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("Erro ao buscar usuário:", error);
-        return;
-      }
-
-      setUser(data.user);
-    };
-
-    loadUser();
-  }, []);
-
   return (
-    <AuthGuard>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          Painel Classilagos
+        </h1>
+        <p className="text-sm text-slate-600 mb-6">
+          Bem-vindo ao seu painel administrativo. Aqui você gerencia anúncios,
+          notícias e outras áreas internas do portal.
+        </p>
 
-        {/* Título */}
-        <h1 className="text-2xl font-bold mb-4">Meu painel</h1>
-
-        {/* Box com dados básicos */}
-        {user && (
-          <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
-              Usuário logado
-            </p>
-            <p className="text-sm font-semibold text-slate-900">
-              {user.email}
-            </p>
-          </div>
-        )}
-
-        {/* Cards principais */}
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-
-          {/* Criar anúncio */}
-          <Link
-            href="/anunciar"
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
-          >
-            <h2 className="mb-1 text-base font-semibold">Criar novo anúncio</h2>
-            <p className="text-sm text-slate-600">
-              Publique um novo anúncio grátis em qualquer categoria.
-            </p>
-          </Link>
-
-          {/* Meus anúncios */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Card Meus anúncios */}
           <Link
             href="/painel/meus-anuncios"
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
+            className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
           >
-            <h2 className="mb-1 text-base font-semibold">Meus anúncios</h2>
-            <p className="text-sm text-slate-600">
-              Veja e gerencie todos os anúncios cadastrados na sua conta.
+            <h2 className="text-sm font-semibold text-slate-900 mb-1">
+              Meus anúncios
+            </h2>
+            <p className="text-xs text-slate-600 mb-3">
+              Veja e gerencie todos os anúncios que você já publicou
+              no Classilagos.
             </p>
+            <span className="inline-flex text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1">
+              Abrir painel de anúncios
+            </span>
           </Link>
 
-          {/* Editar cadastro */}
+          {/* Card Importar notícias */}
           <Link
-            href="/editar-perfil"
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-slate-50 transition"
+            href="/painel/importar-noticias"
+            className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
           >
-            <h2 className="mb-1 text-base font-semibold">Editar cadastro</h2>
-            <p className="text-sm text-slate-600">
-              Atualize nome, cidade, telefone e outras informações pessoais.
+            <h2 className="text-sm font-semibold text-slate-900 mb-1">
+              Importar notícias
+            </h2>
+            <p className="text-xs text-slate-600 mb-3">
+              Busque automaticamente notícias do G1 Região dos Lagos e RC24h
+              para o banco de dados.
             </p>
+            <span className="inline-flex text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1">
+              Abrir importador de notícias
+            </span>
           </Link>
 
+          {/* Card Notícias importadas */}
+          <Link
+            href="/painel/noticias-importadas"
+            className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
+          >
+            <h2 className="text-sm font-semibold text-slate-900 mb-1">
+              Notícias importadas
+            </h2>
+            <p className="text-xs text-slate-600 mb-3">
+              Veja as notícias trazidas das fontes externas, publique, refine
+              ou exclua o que não for interessante.
+            </p>
+            <span className="inline-flex text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1">
+              Gerenciar notícias importadas
+            </span>
+          </Link>
         </div>
 
-        {/* Rodapé / futuras funções */}
-        <div className="mt-8 text-xs text-slate-500">
-          Em breve: favoritos, estatísticas, mensagens, histórico e muito mais.
-        </div>
+        <p className="mt-6 text-xs text-slate-500">
+          Dica: a parte pública do portal de notícias fica em{" "}
+          <strong>/noticias</strong>. Este painel é apenas para você gerenciar
+          o conteúdo interno.
+        </p>
       </div>
-    </AuthGuard>
+    </main>
   );
 }
