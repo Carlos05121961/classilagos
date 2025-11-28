@@ -14,52 +14,50 @@ export default function AnunciarPage() {
     {
       id: "veiculos",
       titulo: "Veículos",
-      descricao:
-        "Carros, motos e outros veículos novos e usados.",
+      descricao: "Carros, motos e outros veículos novos e usados.",
       href: "/anunciar/formulario?tipo=veiculos",
     },
     {
       id: "nautica",
       titulo: "Náutica",
-      descricao:
-        "Barcos, lanchas, jet skis e serviços náuticos.",
+      descricao: "Barcos, lanchas, jet skis e serviços náuticos.",
       href: "/anunciar/formulario?tipo=nautica",
     },
     {
       id: "pets",
       titulo: "Pets",
-      descricao:
-        "Adoção, venda, acessórios e serviços para seu melhor amigo.",
+      descricao: "Adoção, venda, acessórios e serviços para seu melhor amigo.",
       href: "/anunciar/formulario?tipo=pets",
     },
-{
-  id: "empregos",
-  titulo: "Empregos",
-  descricao:
-    "Vagas e oportunidades de trabalho em toda a região.",
-  href: "/anunciar/empregos", // 👉 agora aponta para a nova pagininha
-},
+
+    // 🔥 CORRIGIDO AQUI
+    {
+      id: "empregos",
+      titulo: "Empregos",
+      descricao: "Vagas e oportunidades de trabalho em toda a região.",
+      href: "/empregos", // 👉 AGORA FUNCIONA
+    },
 
     {
       id: "servicos",
       titulo: "Serviços",
       descricao:
         "Profissionais liberais, autônomos e empresas de serviços em geral.",
-      href: "/anunciar/servicos", // mantém a tela com os 3 pilares
+      href: "/anunciar/servicos",
     },
     {
       id: "turismo",
       titulo: "Turismo",
       descricao:
         "Pousadas, hotéis, bares, restaurantes, passeios e experiências turísticas.",
-      href: "/anunciar/formulario?tipo=turismo", // quando o form de turismo estiver pronto
+      href: "/anunciar/formulario?tipo=turismo",
     },
     {
       id: "lagolistas",
       titulo: "LagoListas",
       descricao:
         "Guia comercial: lojas, comércios e empresas da Região dos Lagos.",
-      href: "/anunciar/lagolistas", // 🔹 AQUI é o ajuste
+      href: "/anunciar/lagolistas",
     },
   ];
 
@@ -117,4 +115,3 @@ export default function AnunciarPage() {
     </main>
   );
 }
-
