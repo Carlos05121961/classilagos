@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
 import { supabaseServer as supabase } from "../../../supabaseServerClient";
 
-
 export const dynamic = "force-dynamic";
 
-export async function POST(req) {
+export async function POST(request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json(
+      { message: "ID da notícia não informado." },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "ID da notícia não informado." },
-        { status: 400 }
-      );
-    }
-
     const { error } = await supabase
       .from("noticias")
       .update({ status: "publicado" })
@@ -24,19 +23,16 @@ export async function POST(req) {
     if (error) {
       console.error("Erro ao publicar notícia:", error);
       return NextResponse.json(
-        { error: "Erro ao publicar notícia." },
+        { message: error.message || "Erro ao publicar notícia." },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      message: "Notícia publicada com sucesso.",
-    });
-  } catch (err) {
-    console.error("Erro interno ao publicar notícia:", err);
+    return NextResponse.json({ message: "Notícia publicada com sucesso." });
+  } catch (e) {
+    console.error("Erro inesperado ao publicar notícia:", e);
     return NextResponse.json(
-      { error: "Erro interno ao publicar notícia." },
+      { message: "Erro inesperado ao publicar notícia." },
       { status: 500 }
     );
   }
