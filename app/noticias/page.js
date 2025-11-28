@@ -1,79 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-
-const noticiasMock = [
-  {
-    id: 1,
-    titulo: "Show de verão agita a orla de Cabo Frio no fim de semana",
-    resumo:
-      "Programação musical gratuita reúne artistas locais e visitantes na Praia do Forte.",
-    cidade: "Cabo Frio",
-    categoria: "Cultura",
-    data: "27/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/2102567/pexels-photo-2102567.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: 2,
-    titulo: "Maricá lança novo calendário de eventos turísticos para 2026",
-    resumo:
-      "Circuito de shows, feiras e festivais deve movimentar a economia criativa na cidade.",
-    cidade: "Maricá",
-    categoria: "Turismo",
-    data: "26/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/210205/pexels-photo-210205.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: 3,
-    titulo: "Saquarema recebe etapa especial de surfe com atletas internacionais",
-    resumo:
-      "Praia de Itaúna volta a ser palco de grandes competições de surfe profissional.",
-    cidade: "Saquarema",
-    categoria: "Esportes",
-    data: "25/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/457882/pexels-photo-457882.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: 4,
-    titulo: "Arraial do Cabo reforça ações de preservação nas trilhas e mirantes",
-    resumo:
-      "Medidas educativas e de fiscalização visam proteger áreas de visitação intensa.",
-    cidade: "Arraial do Cabo",
-    categoria: "Meio ambiente",
-    data: "24/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/2405264/pexels-photo-2405264.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: 5,
-    titulo: "Búzios prepara festival gastronômico com foco em frutos do mar",
-    resumo:
-      "Chefs locais e convidados apresentam cardápios especiais em vários bairros da península.",
-    cidade: "Armação dos Búzios",
-    categoria: "Gastronomia",
-    data: "23/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/109836/pexels-photo-109836.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-  {
-    id: 6,
-    titulo: "Rio das Ostras amplia calendário de eventos na orla para o verão",
-    resumo:
-      "Shows, esportes e atividades culturais prometem movimentar a alta temporada.",
-    cidade: "Rio das Ostras",
-    categoria: "Cidade",
-    data: "22/11/2025",
-    imagem:
-      "https://images.pexels.com/photos/462162/pexels-photo-462162.jpeg?auto=compress&cs=tinysrgb&w=800",
-  },
-];
+import { supabase } from "../supabaseClient";
 
 export default function NoticiasHomePage() {
-  const destaques = noticiasMock.slice(0, 3);
-  const recentes = noticiasMock.slice(3);
+  const [noticias, setNoticias] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    const fetchNoticias = async () => {
+      setLoading(true);
+      setErro("");
+
+      const { data, error } = await supabase
+        .from("noticias")
+        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at")
+        .order("created_at", { ascending: false })
+        .limit(12);
+
+      if (error) {
+        console.error("Erro ao carregar notícias:", error);
+        setErro("Não foi possível carregar as notícias no momento.");
+        setLoading(false);
+        return;
+      }
+
+      setNoticias(data || []);
+      setLoading(false);
+    };
+
+    fetchNoticias();
+  }, []);
+
+  const destaques = noticias.slice(0, 3);
+  const recentes = noticias.slice(3);
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
@@ -167,144 +129,162 @@ export default function NoticiasHomePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
-        {/* COLUNA ESQUERDA: DESTAQUES + RECENTES */}
+        {/* COLUNA ESQUERDA: DESTAQUES + RECENTES + TV */}
         <div className="space-y-6">
+          {/* ERRO / AVISO */}
+          {erro && (
+            <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
+              {erro}
+            </div>
+          )}
+
           {/* DESTAQUES */}
           <section>
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
               Destaques de hoje
             </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {/* destaque principal */}
-              {destaques[0] && (
-                <Link
-                  href={`/noticias/${destaques[0].id}`}
-                  className="md:col-span-2 group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col md:flex-row"
-                >
-                  <div className="md:w-2/3 h-48 md:h-auto overflow-hidden">
-                    <img
-                      src={destaques[0].imagem}
-                      alt={destaques[0].titulo}
-                      className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                    />
-                  </div>
-                  <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
-                    <div>
-                      <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {destaques[0].cidade} • {destaques[0].categoria}
-                      </p>
-                      <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
-                        {destaques[0].titulo}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-600 line-clamp-3">
-                        {destaques[0].resumo}
-                      </p>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      Publicado em {destaques[0].data}
-                    </p>
-                  </div>
-                </Link>
-              )}
 
-              {/* dois destaques menores */}
-              {destaques.slice(1).map((n) => (
-                <Link
-                  key={n.id}
-                  href={`/noticias/${n.id}`}
-                  className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
-                >
-                  <div className="h-32 overflow-hidden">
-                    <img
-                      src={n.imagem}
-                      alt={n.titulo}
-                      className="w-full h-full object-cover group-hover:scale-[1.05] transition"
-                    />
-                  </div>
-                  <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
-                    <div>
-                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {n.cidade} • {n.categoria}
-                      </p>
-                      <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
-                        {n.titulo}
-                      </h3>
+            {loading ? (
+              <p className="text-xs text-slate-500">Carregando notícias…</p>
+            ) : noticias.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                Nenhuma notícia publicada ainda. Comece clicando em “Publicar
+                uma notícia”.
+              </p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-3">
+                {/* destaque principal */}
+                {destaques[0] && (
+                  <Link
+                    href={`/noticias/${destaques[0].id}`}
+                    className="md:col-span-2 group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col md:flex-row"
+                  >
+                    <div className="md:w-2/3 h-48 md:h-auto overflow-hidden bg-slate-100">
+                      {destaques[0].imagem_capa && (
+                        <img
+                          src={destaques[0].imagem_capa}
+                          alt={destaques[0].titulo}
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                        />
+                      )}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      {n.data}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                    <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
+                      <div>
+                        <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {destaques[0].cidade} • {destaques[0].categoria}
+                        </p>
+                        <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
+                          {destaques[0].titulo}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-600 line-clamp-3">
+                          {destaques[0].resumo}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        {new Date(
+                          destaques[0].created_at
+                        ).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </Link>
+                )}
+
+                {/* dois destaques menores */}
+                {destaques.slice(1).map((n) => (
+                  <Link
+                    key={n.id}
+                    href={`/noticias/${n.id}`}
+                    className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
+                  >
+                    <div className="h-32 overflow-hidden bg-slate-100">
+                      {n.imagem_capa && (
+                        <img
+                          src={n.imagem_capa}
+                          alt={n.titulo}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition"
+                        />
+                      )}
+                    </div>
+                    <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {n.cidade} • {n.categoria}
+                        </p>
+                        <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
+                          {n.titulo}
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {new Date(n.created_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* NOTÍCIAS RECENTES */}
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                Últimas notícias
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-[11px] text-slate-500">
-                  Filtrar por cidade:
-                </span>
-                {/* No futuro, este filtro será dinâmico */}
-                <div className="flex flex-wrap gap-1">
-                  {[
-                    "Maricá",
-                    "Cabo Frio",
-                    "Arraial",
-                    "Búzios",
-                    "Saquarema",
-                    "Rio das Ostras",
-                  ].map((cidade) => (
-                    <button
-                      key={cidade}
-                      type="button"
-                      className="rounded-full border border-slate-200 px-2.5 py-1 text-[11px] text-slate-600 hover:border-sky-400 hover:text-sky-700"
-                    >
-                      {cidade}
-                    </button>
-                  ))}
+          {!loading && noticias.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Últimas notícias
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-[11px] text-slate-500">
+                    Filtrar por cidade (em breve):
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              {recentes.map((n) => (
-                <Link
-                  key={n.id}
-                  href={`/noticias/${n.id}`}
-                  className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
-                >
-                  <div className="h-32 overflow-hidden">
-                    <img
-                      src={n.imagem}
-                      alt={n.titulo}
-                      className="w-full h-full object-cover group-hover:scale-[1.05] transition"
-                    />
-                  </div>
-                  <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
-                    <div>
-                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {n.cidade} • {n.categoria}
-                      </p>
-                      <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
-                        {n.titulo}
-                      </h3>
-                      <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
-                        {n.resumo}
+              <div className="grid gap-4 md:grid-cols-2">
+                {recentes.length === 0 &&
+                  destaques.length > 0 &&
+                  noticias.length > 0 && (
+                    <p className="text-[11px] text-slate-500">
+                      No momento, todas as notícias são destaque. Em breve,
+                      quando houver mais conteúdo, aparecerão aqui as últimas
+                      publicações.
+                    </p>
+                  )}
+
+                {recentes.map((n) => (
+                  <Link
+                    key={n.id}
+                    href={`/noticias/${n.id}`}
+                    className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
+                  >
+                    <div className="h-32 overflow-hidden bg-slate-100">
+                      {n.imagem_capa && (
+                        <img
+                          src={n.imagem_capa}
+                          alt={n.titulo}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition"
+                        />
+                      )}
+                    </div>
+                    <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {n.cidade} • {n.categoria}
+                        </p>
+                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
+                          {n.titulo}
+                        </h3>
+                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
+                          {n.resumo}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {new Date(n.created_at).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      {n.data}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* TV CLASSILAGOS */}
           <section>
@@ -464,13 +444,14 @@ export default function NoticiasHomePage() {
                 "Búzios",
                 "Rio das Ostras",
               ].map((cidade) => (
-                <Link
+                <button
                   key={cidade}
-                  href="#"
+                  type="button"
                   className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-sky-400 hover:text-sky-700 text-center"
+                  // Futuro: aqui vamos aplicar filtro por cidade
                 >
                   {cidade}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
