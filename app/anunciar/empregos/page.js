@@ -1,6 +1,6 @@
 "use client";
 
-import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
+import FormularioEmpregos from "../../../components/forms/FormularioEmpregos";
 
 export default function AnunciarEmpregosPage() {
   return (
@@ -16,12 +16,10 @@ export default function AnunciarEmpregosPage() {
         </h1>
 
         <p className="text-sm md:text-base text-slate-600 max-w-2xl">
-          Divulgue uma oportunidade de trabalho para milhares de candidatos das
-          nove cidades da Região dos Lagos.
+          Preencha os dados da vaga e publique gratuitamente no Classilagos.
         </p>
       </header>
 
-      {/* Formulário REAL de vagas */}
       <section className="bg-white border rounded-2xl shadow-sm p-4 md:p-6">
         <FormularioEmpregos />
       </section>
@@ -29,3 +27,4 @@ export default function AnunciarEmpregosPage() {
     </main>
   );
 }
+
