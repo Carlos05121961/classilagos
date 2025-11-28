@@ -1,6 +1,7 @@
 "use client";
 
-import FormularioEmpregos from "../../../components/forms/FormularioEmpregos";
+import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
+
 
 export default function AnunciarEmpregosPage() {
   return (
