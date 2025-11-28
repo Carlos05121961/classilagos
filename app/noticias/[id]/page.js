@@ -12,7 +12,6 @@ export default function NoticiaDetalhePage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
-  // Compartilhamento
   const [shareUrl, setShareUrl] = useState("");
 
   useEffect(() => {
@@ -21,7 +20,6 @@ export default function NoticiaDetalhePage() {
     }
   }, []);
 
-  // Buscar a notícia
   useEffect(() => {
     if (!id) return;
 
@@ -40,10 +38,11 @@ export default function NoticiaDetalhePage() {
 
       setNoticia(data);
 
-      // Buscar relacionadas
       const { data: rel } = await supabase
         .from("noticias")
-        .select("id, titulo, cidade, categoria, imagem_capa, resumo")
+        .select(
+          "id, titulo, cidade, categoria, imagem_capa, resumo, created_at"
+        )
         .eq("cidade", data.cidade)
         .neq("id", data.id)
         .order("created_at", { ascending: false })
@@ -78,30 +77,31 @@ export default function NoticiaDetalhePage() {
     );
   }
 
-  // SHARE LINKS
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(noticia.titulo);
 
-  const whatsappShare =
-    `https://wa.me/?text=${shareText}%20${encodedUrl}`;
-  const facebookShare =
-    `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  const whatsappShare = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
+  const facebookShare = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-
-      {/* BANNER TOPO */}
+      {/* TOPO MARCA + SLOGAN */}
       <section className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-3">
+        <div className="max-w-5xl mx-auto px-4 py-4 space-y-1">
           <p className="text-[11px] text-slate-500">
             Classilagos • Notícias
+          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
+            Classilagos Notícias
+          </h1>
+          <p className="text-xs md:text-sm text-slate-600">
+            O portal oficial de informação da Região dos Lagos
           </p>
         </div>
       </section>
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-4xl mx-auto px-4 pt-6 space-y-6">
-
         {/* CAPA */}
         {noticia.imagem_capa && (
           <div className="rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
@@ -113,24 +113,24 @@ export default function NoticiaDetalhePage() {
           </div>
         )}
 
-        {/* CABEÇALHO */}
+        {/* CABEÇALHO DA MATÉRIA */}
         <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
             {noticia.titulo}
-          </h1>
+          </h2>
 
           <p className="text-xs text-slate-500">
             {noticia.cidade} • {noticia.categoria} •{" "}
             {new Date(noticia.created_at).toLocaleDateString("pt-BR")}
           </p>
 
-          {/* COMPARTILHAR */}
           <div className="flex items-center gap-2 text-[11px] mt-1">
             <span className="text-slate-500">Compartilhar:</span>
 
             <a
               href={whatsappShare}
               target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
             >
               🟢 WhatsApp
@@ -139,6 +139,7 @@ export default function NoticiaDetalhePage() {
             <a
               href={facebookShare}
               target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
             >
               📘 Facebook
@@ -146,7 +147,7 @@ export default function NoticiaDetalhePage() {
           </div>
         </div>
 
-        {/* TEXTO PRINCIPAL */}
+        {/* TEXTO */}
         <article className="bg-white rounded-3xl border border-slate-200 px-5 py-6 shadow-sm">
           <p className="text-sm text-slate-800 whitespace-pre-line leading-relaxed">
             {noticia.texto}
@@ -155,9 +156,9 @@ export default function NoticiaDetalhePage() {
 
         {/* RELACIONADAS */}
         <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">
+          <h3 className="text-sm font-semibold text-slate-900 mb-3">
             Notícias relacionadas em {noticia.cidade}
-          </h2>
+          </h3>
 
           {relacionadas.length === 0 && (
             <p className="text-xs text-slate-500">
@@ -187,7 +188,9 @@ export default function NoticiaDetalhePage() {
                     <p className="text-[13px] font-semibold line-clamp-2">
                       {n.titulo}
                     </p>
-                    <p className="text-[11px] text-slate-600">{n.resumo}</p>
+                    <p className="text-[11px] text-slate-600 line-clamp-2">
+                      {n.resumo}
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -195,7 +198,7 @@ export default function NoticiaDetalhePage() {
           )}
         </section>
 
-        {/* BOTÃO VOLTAR (MOBILE) */}
+        {/* VOLTAR (MOBILE) */}
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
             href="/noticias"
