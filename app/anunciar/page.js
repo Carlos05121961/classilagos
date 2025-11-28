@@ -35,7 +35,7 @@ export default function AnunciarPage() {
       id: "empregos",
       titulo: "Empregos",
       descricao: "Vagas e oportunidades de trabalho em toda a região.",
-      href: "/empregos", // 👉 AGORA FUNCIONA
+       href: "/anunciar/empregos",
     },
 
     {
