@@ -34,7 +34,7 @@ export default function AnunciarPage() {
       id: "empregos",
       titulo: "Empregos",
       descricao: "Vagas e oportunidades de trabalho em toda a região.",
-      // 👉 Vai para a página de Empregos (portal)
+      // vai para a página Empregos (que tem os dois botões)
       href: "/empregos",
     },
     {
@@ -42,7 +42,6 @@ export default function AnunciarPage() {
       titulo: "Serviços",
       descricao:
         "Profissionais liberais, autônomos e empresas de serviços em geral.",
-      // mantém a tela com os 3 pilares
       href: "/anunciar/servicos",
     },
     {
@@ -50,8 +49,8 @@ export default function AnunciarPage() {
       titulo: "Turismo",
       descricao:
         "Pousadas, hotéis, bares, restaurantes, passeios e experiências turísticas.",
-      // 👉 AGORA: vai para o portal de Turismo
-      href: "/turismo",
+      // 👉 agora vai direto para o FORMULÁRIO de turismo
+      href: "/anunciar/turismo",
     },
     {
       id: "lagolistas",
@@ -100,10 +99,6 @@ export default function AnunciarPage() {
                 >
                   {secao.id === "lagolistas"
                     ? "Anunciar no LagoListas"
-                    : secao.id === "turismo"
-                    ? "Ir para Turismo"
-                    : secao.id === "servicos"
-                    ? "Anunciar em Serviços"
                     : secao.id === "empregos"
                     ? "Ir para Empregos"
                     : `Anunciar em ${secao.titulo}`}
