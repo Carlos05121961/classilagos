@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer as supabase } from "../../../supabaseServerClient";
 
+export const dynamic = "force-dynamic";
 
 // URL principal do feed do RC24h (WordPress)
 const FEED_URL = "https://rc24h.com.br/feed/";
@@ -67,7 +68,7 @@ function detectarCidade(texto = "") {
       return cidade;
     }
   }
-  return null;
+  return "Região dos Lagos";
 }
 
 // POST /api/rss/rc24h
@@ -123,7 +124,7 @@ export async function POST() {
     let puladas = 0;
     const registrosParaInserir = [];
 
-    // 4) Montar os registros novos
+    // 4) Montar os registros novos (schema SIMPLES)
     for (const item of itens) {
       if (urlsExistentes.has(item.link)) {
         puladas++;
@@ -139,22 +140,14 @@ export async function POST() {
 
       registrosParaInserir.push({
         titulo: item.title,
-        texto_curto: textoCurto,
-        texto_completo: textoCompleto,
-        imagem_url: null, // por enquanto sem imagem
+        resumo: textoCurto,
+        texto: textoCompleto,
         fonte: "RC24h",
         url_origem: item.link,
         cidade: cidadeDetectada,
-        categoria: null, // pode ser preenchido depois
-        tags: null,
-        publicado: false, // ainda não vai pro portal, só pro painel
-        destaque: false,
-        autor: null,
-        refined: false,
-        refined_title: null,
-        refined_short: null,
-        refined_text: null,
-        manual: false,
+        categoria: "Geral",
+        tipo: "importada",
+        status: "rascunho",
       });
     }
 
