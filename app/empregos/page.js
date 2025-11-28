@@ -90,10 +90,8 @@ export default function EmpregosPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          {/* véu suave */}
           <div className="absolute inset-0 bg-black/10" />
 
-          {/* TEXTOS */}
           <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-black">
             <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">
               Classilagos – Empregos
@@ -106,9 +104,10 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* BOTÕES PRINCIPAIS – CARDS MODERNOS */}
+      {/* BOTÕES PRINCIPAIS */}
       <section className="max-w-5xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          
           {/* CARD – CADASTRAR CURRÍCULO */}
           <Link
             href="/anunciar/curriculo"
@@ -130,7 +129,7 @@ export default function EmpregosPage() {
 
             <p className="text-sm text-slate-600 mb-3">
               Cadastre seu perfil no banco de talentos do Classilagos e seja
-              encontrado por empresas das nove cidades da Região dos Lagos.
+              encontrado por empresas de toda a região.
             </p>
 
             <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 group-hover:gap-2 transition-all">
@@ -140,7 +139,7 @@ export default function EmpregosPage() {
 
           {/* CARD – ANUNCIAR VAGA */}
           <Link
-            href="/anunciar/empregos"
+            href="/empregos/anunciar"
             className="group block rounded-3xl border border-sky-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
           >
             <div className="flex items-center gap-3 mb-3">
@@ -237,7 +236,7 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* RODAPÉ PADRÃO */}
+      {/* RODAPÉ */}
       <footer className="bg-slate-100 border-t py-6 text-center text-xs text-slate-600">
         <p>Classilagos © {new Date().getFullYear()}</p>
         <p className="mt-1">
