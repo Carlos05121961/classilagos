@@ -1,59 +1,89 @@
 "use client";
 
-import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
+import Link from "next/link";
 
-export default function AnunciarVagaPage() {
+export default function AnunciarEmpregosPage() {
   return (
-    <main className="bg-slate-50 min-h-screen pb-12">
-      <section className="max-w-5xl mx-auto px-4 pt-8">
-        {/* Cabeçalho */}
-        <div className="mb-6">
-          <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-700 border border-sky-200">
-            Anuncie gratuitamente
-          </span>
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
-            Anunciar vaga de emprego
+    <main className="min-h-screen bg-white pb-10">
+      {/* Faixa topo suave, tipo serviços */}
+      <section className="bg-[#FFF9E5] border-b border-yellow-200">
+        <div className="max-w-6xl mx-auto px-4 pt-8 pb-6">
+          <p className="text-[11px] text-slate-500 mb-1">
+            Classilagos • Empregos
+          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
+            Anunciar em Empregos
           </h1>
-          <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Cadastre uma oportunidade de trabalho para sua empresa ou
-            estabelecimento. Seu anúncio ficará visível para candidatos em
-            toda a Região dos Lagos.
+          <p className="mt-2 text-xs md:text-sm text-slate-700 max-w-2xl">
+            Escolha se você quer cadastrar o seu currículo para ser encontrado
+            por empresas ou anunciar uma vaga de trabalho para receber
+            candidatos da Região dos Lagos.
           </p>
         </div>
+      </section>
 
-        {/* Card geral com Dicas + Formulário */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-6">
-          {/* Dicas */}
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 md:p-5">
-            <h2 className="text-sm font-semibold text-slate-900 mb-2">
-              Dicas para anunciar boas vagas
-            </h2>
-            <ul className="text-xs md:text-sm text-slate-600 space-y-1 list-disc pl-4">
-              <li>
-                Seja claro no título da vaga (ex: Atendente de Loja, Garçom,
-                Auxiliar...).
-              </li>
-              <li>
-                Informe a carga horária e o tipo de contratação (CLT, estágio,
-                temporário...).
-              </li>
-              <li>
-                Se houver benefícios, destaque-os — isso atrai mais candidatos.
-              </li>
-              <li>
-                Descreva bem o que o profissional fará no dia a dia.
-              </li>
-              <li>
-                Mantenha um contato ativo (WhatsApp, telefone ou e-mail).
-              </li>
-            </ul>
+      {/* Cards com as duas opções */}
+      <section className="max-w-6xl mx-auto px-4 pt-8 pb-10">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* CARD – CANDIDATO */}
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 shadow-sm hover:shadow-md transition flex flex-col justify-between p-5">
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">
+                Para candidatos
+              </p>
+              <h2 className="text-base md:text-lg font-semibold text-slate-900">
+                Quero cadastrar meu currículo
+              </h2>
+              <p className="text-[11px] md:text-xs text-slate-700">
+                Preencha seu perfil com experiência, formação e contatos.
+                Seu currículo ficará disponível para empresas de todas as
+                nove cidades da Região dos Lagos.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                href="/empregos/curriculo"
+                // Se o seu formulário estiver em outro caminho,
+                // é só trocar o href acima.
+                className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Cadastrar meu currículo →
+              </Link>
+            </div>
           </div>
 
-          {/* Formulário */}
-          <div>
-            <FormularioEmpregos />
+          {/* CARD – EMPRESA / VAGA */}
+          <div className="rounded-3xl border border-sky-200 bg-sky-50/70 shadow-sm hover:shadow-md transition flex flex-col justify-between p-5">
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold text-sky-700 uppercase tracking-wide">
+                Para empresas e comércios
+              </p>
+              <h2 className="text-base md:text-lg font-semibold text-slate-900">
+                Quero anunciar uma vaga
+              </h2>
+              <p className="text-[11px] md:text-xs text-slate-700">
+                Divulgue vagas de emprego, estágio ou temporárias e receba
+                currículos de candidatos qualificados de toda a região.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                href="/empregos/vaga"
+                // Troque o href se o formulário de vaga estiver em outro caminho.
+                className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                Publicar vaga de emprego →
+              </Link>
+            </div>
           </div>
         </div>
+
+        <p className="mt-4 text-[10px] text-slate-400 text-center">
+          Na fase de lançamento do Classilagos, o cadastro de currículos e
+          anúncios de vagas é totalmente gratuito.
+        </p>
       </section>
     </main>
   );
