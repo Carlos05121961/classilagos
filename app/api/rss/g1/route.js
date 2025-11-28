@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer as supabase } from "../../../supabaseServerClient";
 
-
 export const dynamic = "force-dynamic";
 
 const FEED_URL =
@@ -59,7 +58,7 @@ function parseRss(xml) {
 
     return {
       titulo,
-      link_original: link,
+      url_origem: link,
       resumo: descricao || "",
       cidade,
       categoria: "Geral",
@@ -88,15 +87,15 @@ export async function GET() {
     const pulados = [];
 
     for (const item of itens) {
-      // verifica se já existe notícia com esse link_original
+      // verifica se já existe notícia com essa url_origem
       const { data: existente, error: erroBusca } = await supabase
         .from("noticias")
         .select("id")
-        .eq("link_original", item.link_original)
+        .eq("url_origem", item.url_origem)
         .maybeSingle();
 
       if (erroBusca) {
-        console.error("Erro ao verificar notícia existente:", erroBusca);
+        console.error("Erro ao verificar notícia existente (G1):", erroBusca);
         continue;
       }
 
@@ -111,15 +110,14 @@ export async function GET() {
         categoria: item.categoria,
         resumo: item.resumo || item.titulo,
         texto: item.resumo || item.titulo,
-        imagem_capa: null,
         fonte: "G1 Região dos Lagos",
-        link_original: item.link_original,
+        url_origem: item.url_origem,
         tipo: "importada",
         status: "rascunho",
       });
 
       if (insertError) {
-        console.error("Erro ao inserir notícia importada:", insertError);
+        console.error("Erro ao inserir notícia importada (G1):", insertError);
         continue;
       }
 
