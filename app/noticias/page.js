@@ -16,7 +16,9 @@ export default function NoticiasHomePage() {
 
       const { data, error } = await supabase
         .from("noticias")
-        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at")
+        .select(
+          "id, titulo, cidade, categoria, resumo, imagem_capa, created_at"
+        )
         .order("created_at", { ascending: false })
         .limit(12);
 
@@ -39,23 +41,33 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* HERO TOPO */}
+      {/* TOPO MARCA + SLOGAN */}
+      <section className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 pt-6 pb-4 space-y-1">
+          <p className="text-[11px] text-slate-500">
+            Classilagos • Notícias
+          </p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900">
+            Classilagos Notícias
+          </h1>
+          <p className="text-xs md:text-sm text-slate-600">
+            O portal oficial de informação da Região dos Lagos
+          </p>
+        </div>
+      </section>
+
+      {/* HERO PRINCIPAL */}
       <section className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="flex-1 space-y-3">
-            <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-[11px] font-semibold text-sky-700">
-              Classilagos Notícias
-            </span>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight">
-              Notícias da Região dos Lagos, em um só lugar.
-            </h1>
             <p className="text-sm md:text-base text-slate-600 max-w-2xl">
               Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba
               Grande, São Pedro da Aldeia, Arraial do Cabo, Cabo Frio, Búzios e
-              Rio das Ostras.
+              Rio das Ostras: cidade, turismo, cultura, trânsito, clima e muito
+              mais.
             </p>
 
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-1">
               <span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">
                 Turismo &amp; Cultura
               </span>
@@ -129,9 +141,8 @@ export default function NoticiasHomePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
-        {/* COLUNA ESQUERDA: DESTAQUES + RECENTES + TV */}
+        {/* COLUNA ESQUERDA */}
         <div className="space-y-6">
-          {/* ERRO / AVISO */}
           {erro && (
             <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
               {erro}
@@ -153,7 +164,6 @@ export default function NoticiasHomePage() {
               </p>
             ) : (
               <div className="grid gap-4 md:grid-cols-3">
-                {/* destaque principal */}
                 {destaques[0] && (
                   <Link
                     href={`/noticias/${destaques[0].id}`}
@@ -189,7 +199,6 @@ export default function NoticiasHomePage() {
                   </Link>
                 )}
 
-                {/* dois destaques menores */}
                 {destaques.slice(1).map((n) => (
                   <Link
                     key={n.id}
@@ -224,30 +233,25 @@ export default function NoticiasHomePage() {
             )}
           </section>
 
-          {/* NOTÍCIAS RECENTES */}
+          {/* RECENTES */}
           {!loading && noticias.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-slate-900">
                   Últimas notícias
                 </h2>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[11px] text-slate-500">
-                    Filtrar por cidade (em breve):
-                  </span>
-                </div>
+                <span className="text-[11px] text-slate-500">
+                  Em breve: filtros por cidade e tema.
+                </span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {recentes.length === 0 &&
-                  destaques.length > 0 &&
-                  noticias.length > 0 && (
-                    <p className="text-[11px] text-slate-500">
-                      No momento, todas as notícias são destaque. Em breve,
-                      quando houver mais conteúdo, aparecerão aqui as últimas
-                      publicações.
-                    </p>
-                  )}
+                {recentes.length === 0 && (
+                  <p className="text-[11px] text-slate-500">
+                    Quando houver mais notícias, as mais recentes aparecerão
+                    aqui.
+                  </p>
+                )}
 
                 {recentes.map((n) => (
                   <Link
@@ -298,7 +302,6 @@ export default function NoticiasHomePage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Canal 1 */}
               <div className="rounded-3xl border border-slate-200 bg-white p-3 flex flex-col gap-2">
                 <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video flex items-center justify-center text-white text-xs">
                   <span className="opacity-80">
@@ -323,7 +326,6 @@ export default function NoticiasHomePage() {
                 </div>
               </div>
 
-              {/* Canal 2 */}
               <div className="rounded-3xl border border-slate-200 bg-white p-3 flex flex-col gap-2">
                 <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video flex items-center justify-center text-white text-xs">
                   <span className="opacity-80">
@@ -356,9 +358,8 @@ export default function NoticiasHomePage() {
           </section>
         </div>
 
-        {/* COLUNA DIREITA: SIDEBAR */}
+        {/* SIDEBAR */}
         <aside className="space-y-4">
-          {/* CLIMA / MARÉS / ONDAS / CÂMERAS */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3">
             <h2 className="text-sm font-semibold text-slate-900">
               Painel rápido da região
@@ -375,19 +376,13 @@ export default function NoticiasHomePage() {
                 </span>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
+              <div className="pt-2 border-top border-slate-100 grid grid-cols-2 gap-3">
                 <div>
                   <p className="font-semibold text-emerald-700 text-[11px]">
                     Tábua de marés
                   </p>
                   <p>Alta: 09h40</p>
                   <p>Baixa: 15h55</p>
-                  <Link
-                    href="#"
-                    className="mt-1 inline-block text-[10px] text-emerald-700 underline"
-                  >
-                    Ver tábua completa
-                  </Link>
                 </div>
                 <div>
                   <p className="font-semibold text-yellow-700 text-[11px]">
@@ -395,12 +390,6 @@ export default function NoticiasHomePage() {
                   </p>
                   <p>Altura: 1,2 m</p>
                   <p>Condição: boa</p>
-                  <Link
-                    href="#"
-                    className="mt-1 inline-block text-[10px] text-yellow-700 underline"
-                  >
-                    Ver previsão detalhada
-                  </Link>
                 </div>
               </div>
 
@@ -427,7 +416,6 @@ export default function NoticiasHomePage() {
             </div>
           </div>
 
-          {/* NAVEGAÇÃO POR CIDADE */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <h2 className="text-sm font-semibold text-slate-900 mb-2">
               Notícias por cidade
@@ -448,7 +436,6 @@ export default function NoticiasHomePage() {
                   key={cidade}
                   type="button"
                   className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-sky-400 hover:text-sky-700 text-center"
-                  // Futuro: aqui vamos aplicar filtro por cidade
                 >
                   {cidade}
                 </button>
@@ -460,3 +447,4 @@ export default function NoticiasHomePage() {
     </main>
   );
 }
+
