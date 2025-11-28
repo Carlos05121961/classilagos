@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function NoticiasImportadasPage() {
   const [lista, setLista] = useState([]);
@@ -11,9 +12,17 @@ export default function NoticiasImportadasPage() {
   // Buscar notícias importadas
   async function carregar() {
     setLoading(true);
-    const res = await fetch("/api/noticias/listar-importadas");
-    const json = await res.json();
-    setLista(json || []);
+    setMensagem("");
+
+    try {
+      const res = await fetch("/api/noticias/listar-importadas");
+      const json = await res.json();
+      setLista(json || []);
+    } catch (e) {
+      console.error(e);
+      setMensagem("Erro ao carregar notícias importadas.");
+    }
+
     setLoading(false);
   }
 
@@ -32,9 +41,10 @@ export default function NoticiasImportadasPage() {
       });
       const json = await res.json();
 
-      setMensagem(json.message || "Refinado!");
+      setMensagem(json.message || "Notícia refinada.");
       carregar();
     } catch (e) {
+      console.error(e);
       setMensagem("Erro ao refinar notícia.");
     }
 
@@ -44,7 +54,7 @@ export default function NoticiasImportadasPage() {
   // Publicar notícia
   async function publicar(id) {
     setProcessando(id);
-    setMensagem("Publicando...");
+    setMensagem("Publicando notícia...");
 
     try {
       const res = await fetch(`/api/noticias/publicar?id=${id}`, {
@@ -52,10 +62,11 @@ export default function NoticiasImportadasPage() {
       });
       const json = await res.json();
 
-      setMensagem(json.message || "Publicado!");
+      setMensagem(json.message || "Notícia publicada com sucesso.");
       carregar();
     } catch (e) {
-      setMensagem("Erro ao publicar.");
+      console.error(e);
+      setMensagem("Erro ao publicar notícia.");
     }
 
     setProcessando(null);
@@ -66,7 +77,7 @@ export default function NoticiasImportadasPage() {
     if (!confirm("Tem certeza que deseja excluir esta notícia?")) return;
 
     setProcessando(id);
-    setMensagem("Excluindo...");
+    setMensagem("Excluindo notícia...");
 
     try {
       const res = await fetch(`/api/noticias/excluir?id=${id}`, {
@@ -74,10 +85,11 @@ export default function NoticiasImportadasPage() {
       });
       const json = await res.json();
 
-      setMensagem(json.message || "Excluído!");
+      setMensagem(json.message || "Notícia excluída com sucesso.");
       carregar();
     } catch (e) {
-      setMensagem("Erro ao excluir.");
+      console.error(e);
+      setMensagem("Erro ao excluir notícia.");
     }
 
     setProcessando(null);
@@ -85,9 +97,29 @@ export default function NoticiasImportadasPage() {
 
   return (
     <main className="min-h-screen bg-white px-6 py-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">
-        Notícias Importadas
+      <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        Notícias importadas
       </h1>
+
+      <p className="text-sm text-slate-600 mb-4">
+        Aqui você vê as notícias trazidas automaticamente do G1 Região dos
+        Lagos e do RC24h. Você pode visualizar a notícia completa, refinar com
+        IA, publicar no portal ou excluir o que não for interessante.
+      </p>
+
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={carregar}
+          className="rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2"
+        >
+          Atualizar lista
+        </button>
+
+        <span className="text-xs text-slate-500">
+          Total importadas:{" "}
+          <strong className="text-slate-700">{lista.length}</strong>
+        </span>
+      </div>
 
       {mensagem && (
         <p className="mb-4 text-sm text-blue-600 font-medium">{mensagem}</p>
@@ -112,30 +144,58 @@ export default function NoticiasImportadasPage() {
 
               <p className="text-xs text-slate-600 mb-2">
                 Fonte: {n.fonte || "Desconhecida"} •{" "}
-                {new Date(n.created_at).toLocaleDateString("pt-BR")}
+                {n.created_at
+                  ? new Date(n.created_at).toLocaleDateString("pt-BR")
+                  : "Data não informada"}
               </p>
 
+              {n.status && (
+                <p className="text-[11px] text-slate-500 mb-2">
+                  Status:{" "}
+                  <span
+                    className={
+                      n.status === "publicado"
+                        ? "text-emerald-700 font-semibold"
+                        : "text-amber-700 font-semibold"
+                    }
+                  >
+                    {n.status}
+                  </span>
+                </p>
+              )}
+
               <div className="flex flex-wrap gap-2 mt-3">
+                {/* Ver notícia */}
+                <Link
+                  href={`/painel/noticias-importadas/${n.id}`}
+                  className="rounded-full bg-slate-600 text-white text-xs px-4 py-1.5 hover:bg-slate-700"
+                >
+                  Ver notícia
+                </Link>
+
+                {/* Refinar */}
                 <button
                   disabled={processando === n.id}
                   onClick={() => refinar(n.id)}
-                  className="rounded-full bg-emerald-600 text-white text-xs px-4 py-1.5 hover:bg-emerald-700"
+                  className="rounded-full bg-emerald-600 text-white text-xs px-4 py-1.5 hover:bg-emerald-700 disabled:opacity-60"
                 >
                   {processando === n.id ? "Processando..." : "Refinar com IA"}
                 </button>
 
+                {/* Publicar */}
                 <button
                   disabled={processando === n.id}
                   onClick={() => publicar(n.id)}
-                  className="rounded-full bg-blue-600 text-white text-xs px-4 py-1.5 hover:bg-blue-700"
+                  className="rounded-full bg-blue-600 text-white text-xs px-4 py-1.5 hover:bg-blue-700 disabled:opacity-60"
                 >
                   Publicar
                 </button>
 
+                {/* Excluir */}
                 <button
                   disabled={processando === n.id}
                   onClick={() => excluir(n.id)}
-                  className="rounded-full bg-red-600 text-white text-xs px-4 py-1.5 hover:bg-red-700"
+                  className="rounded-full bg-red-600 text-white text-xs px-4 py-1.5 hover:bg-red-700 disabled:opacity-60"
                 >
                   Excluir
                 </button>
