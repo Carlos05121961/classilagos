@@ -18,11 +18,17 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-// Remove CDATA e tags HTML
+// Remove CDATA, HTML e algumas entidades básicas
 function limparTexto(str = "") {
   return str
     .replace(/<!\[CDATA\[|\]\]>/g, "")
-    .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/<\/?[^>]+(>|$)/g, "") // remove tags HTML
+    .replace(/&#8230;/g, "...") // reticências
+    .replace(/&#8220;|&#8221;/g, '"') // aspas duplas
+    .replace(/&#8216;|&#8217;/g, "'") // aspas simples
+    .replace(/&#8211;/g, "-") // travessão/traço
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -60,6 +66,7 @@ function parseRss(xml) {
       titulo,
       link_original: link,
       resumo: descricao || "",
+      texto: descricao || "",
       cidade,
       categoria: "Geral",
       pubDate,
@@ -69,7 +76,8 @@ function parseRss(xml) {
   return itens.filter(Boolean);
 }
 
-export async function GET() {
+// AGORA A ROTA É POST (igual RC24h)
+export async function POST() {
   try {
     const res = await fetch(FEED_URL, { cache: "no-store" });
 
@@ -95,7 +103,7 @@ export async function GET() {
         .maybeSingle();
 
       if (erroBusca) {
-        console.error("Erro ao verificar notícia existente (G1):", erroBusca);
+        console.error("Erro ao verificar notícia existente:", erroBusca);
         continue;
       }
 
@@ -109,12 +117,12 @@ export async function GET() {
         cidade: item.cidade,
         categoria: item.categoria,
         resumo: item.resumo || item.titulo,
-        texto: item.resumo || item.titulo,
+        texto: item.texto || item.titulo,
         imagem_capa: null,
         fonte: "G1 Região dos Lagos",
         link_original: item.link_original,
-        tipo: "importada",   // sobrescreve o default 'autoral'
-        status: "rascunho",  // sobrescreve o default 'publicado'
+        tipo: "importada",
+        status: "rascunho",
       });
 
       if (insertError) {
