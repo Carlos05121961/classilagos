@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
 import { supabaseServer as supabase } from "../../../supabaseServerClient";
 
-
 export const dynamic = "force-dynamic";
 
-export async function DELETE(req) {
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json(
+      { message: "ID da notícia não informado." },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "ID da notícia não informado." },
-        { status: 400 }
-      );
-    }
-
     const { error } = await supabase
       .from("noticias")
       .delete()
@@ -24,19 +23,16 @@ export async function DELETE(req) {
     if (error) {
       console.error("Erro ao excluir notícia:", error);
       return NextResponse.json(
-        { error: "Erro ao excluir notícia." },
+        { message: error.message || "Erro ao excluir notícia." },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      message: "Notícia excluída com sucesso.",
-    });
-  } catch (err) {
-    console.error("Erro interno ao excluir notícia:", err);
+    return NextResponse.json({ message: "Notícia excluída com sucesso." });
+  } catch (e) {
+    console.error("Erro inesperado ao excluir notícia:", e);
     return NextResponse.json(
-      { error: "Erro interno ao excluir notícia." },
+      { message: "Erro inesperado ao excluir notícia." },
       { status: 500 }
     );
   }
