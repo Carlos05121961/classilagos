@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../supabaseClient";
-import OpenAI from "openai";
+import { supabase } from "../../../../supabaseClient";
 
 export const dynamic = "force-dynamic";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export async function POST(req) {
   try {
@@ -20,7 +15,6 @@ export async function POST(req) {
       );
     }
 
-    // Buscar notícia no Supabase
     const { data: noticia, error: erroBusca } = await supabase
       .from("noticias")
       .select("id, titulo, resumo, texto, cidade, categoria, fonte")
@@ -38,6 +32,15 @@ export async function POST(req) {
     const tituloOriginal = noticia.titulo || "";
     const resumoOriginal = noticia.resumo || "";
     const textoOriginal = noticia.texto || "";
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      console.error("OPENAI_API_KEY não configurada");
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY não configurada no ambiente." },
+        { status: 500 }
+      );
+    }
 
     const promptUsuario = `
 Você é um redator de portal de notícias da Região dos Lagos (Classilagos Notícias).
@@ -78,29 +81,46 @@ Responda APENAS em JSON no formato:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Você é um jornalista profissional de um portal regional chamado Classilagos Notícias.",
-        },
-        {
-          role: "user",
-          content: promptUsuario,
-        },
-      ],
-      temperature: 0.5,
+    const resposta = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Você é um jornalista profissional de um portal regional chamado Classilagos Notícias.",
+          },
+          {
+            role: "user",
+            content: promptUsuario,
+          },
+        ],
+        temperature: 0.5,
+      }),
     });
 
-    const conteudo = completion.choices[0]?.message?.content || "";
-    let parsed;
+    if (!resposta.ok) {
+      const erroTexto = await resposta.text();
+      console.error("Erro da API OpenAI:", erroTexto);
+      return NextResponse.json(
+        { error: "Falha ao se comunicar com a IA." },
+        { status: 500 }
+      );
+    }
 
+    const data = await resposta.json();
+    const conteudo = data.choices?.[0]?.message?.content || "";
+
+    let parsed;
     try {
       parsed = JSON.parse(conteudo);
     } catch (err) {
-      console.error("Falha ao fazer parse do JSON retornado pela IA:", err);
+      console.error("Falha ao interpretar JSON da IA:", err, conteudo);
       return NextResponse.json(
         { error: "Resposta da IA em formato inesperado." },
         { status: 500 }
@@ -111,7 +131,6 @@ Responda APENAS em JSON no formato:
     const novoResumo = parsed.resumo || resumoOriginal;
     const novoTexto = parsed.texto || textoOriginal;
 
-    // Atualizar notícia no Supabase
     const { error: erroUpdate } = await supabase
       .from("noticias")
       .update({
