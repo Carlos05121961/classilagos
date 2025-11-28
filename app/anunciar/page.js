@@ -32,13 +32,14 @@ export default function AnunciarPage() {
         "Adoção, venda, acessórios e serviços para seu melhor amigo.",
       href: "/anunciar/formulario?tipo=pets",
     },
-    {
-      id: "empregos",
-      titulo: "Empregos",
-      descricao:
-        "Vagas e oportunidades de trabalho em toda a região.",
-      href: "/empregos", // mantém a tela com currículo / vagas
-    },
+{
+  id: "empregos",
+  titulo: "Empregos",
+  descricao:
+    "Vagas e oportunidades de trabalho em toda a região.",
+  href: "/anunciar/empregos", // 👉 agora aponta para a nova pagininha
+},
+
     {
       id: "servicos",
       titulo: "Serviços",
