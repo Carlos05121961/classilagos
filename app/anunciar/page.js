@@ -26,23 +26,23 @@ export default function AnunciarPage() {
     {
       id: "pets",
       titulo: "Pets",
-      descricao: "Adoção, venda, acessórios e serviços para seu melhor amigo.",
+      descricao:
+        "Adoção, venda, acessórios e serviços para seu melhor amigo.",
       href: "/anunciar/formulario?tipo=pets",
     },
-
-    // 🔥 CORRIGIDO AQUI
     {
       id: "empregos",
       titulo: "Empregos",
       descricao: "Vagas e oportunidades de trabalho em toda a região.",
-       href: "/empregos",
+      // 👉 Vai para a página de Empregos (portal)
+      href: "/empregos",
     },
-
     {
       id: "servicos",
       titulo: "Serviços",
       descricao:
         "Profissionais liberais, autônomos e empresas de serviços em geral.",
+      // mantém a tela com os 3 pilares
       href: "/anunciar/servicos",
     },
     {
@@ -50,7 +50,8 @@ export default function AnunciarPage() {
       titulo: "Turismo",
       descricao:
         "Pousadas, hotéis, bares, restaurantes, passeios e experiências turísticas.",
-      href: "/anunciar/formulario?tipo=turismo",
+      // 👉 AGORA: vai para o portal de Turismo
+      href: "/turismo",
     },
     {
       id: "lagolistas",
@@ -100,11 +101,11 @@ export default function AnunciarPage() {
                   {secao.id === "lagolistas"
                     ? "Anunciar no LagoListas"
                     : secao.id === "turismo"
-                    ? "Anunciar em Turismo"
+                    ? "Ir para Turismo"
                     : secao.id === "servicos"
                     ? "Anunciar em Serviços"
                     : secao.id === "empregos"
-                    ? "Anunciar em Empregos"
+                    ? "Ir para Empregos"
                     : `Anunciar em ${secao.titulo}`}
                 </Link>
               </div>
