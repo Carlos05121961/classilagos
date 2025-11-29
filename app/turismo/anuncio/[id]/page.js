@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "../../supabaseClient";
-import BannerRotator from "../../components/BannerRotator";
+import { supabase } from "../../../supabaseClient";
+import BannerRotator from "../../../components/BannerRotator";
 
-export default function AnuncioDetalhePage() {
+export default function TurismoAnuncioPage() {
   const { id } = useParams();
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function AnuncioDetalhePage() {
     }
   }, []);
 
-  // Buscar anúncio + similares
+  // Buscar anúncio de turismo + similares
   useEffect(() => {
     if (!id) return;
 
@@ -31,11 +31,12 @@ export default function AnuncioDetalhePage() {
         .from("anuncios")
         .select("*")
         .eq("id", id)
+        .eq("categoria", "turismo")
         .single();
 
       if (error || !data) {
-        console.error("Erro ao buscar anúncio:", error);
-        setErro("Não foi possível carregar este anúncio.");
+        console.error("Erro ao buscar anúncio de turismo:", error);
+        setErro("Não foi possível carregar este anúncio de turismo.");
         setLoading(false);
         return;
       }
@@ -43,16 +44,18 @@ export default function AnuncioDetalhePage() {
       setAnuncio(data);
       setFotoIndex(0);
 
+      // buscar similares: mesma categoria (turismo) e mesma cidade
       const { data: similaresData } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, tipo_imovel, imagens, categoria, subcategoria_servico"
+          "id, titulo, cidade, bairro, imagens, faixa_preco, preco, pilar_turismo, subcategoria_turismo"
         )
-        .eq("categoria", data.categoria || "imoveis")
+        .eq("categoria", "turismo")
         .eq("cidade", data.cidade)
         .neq("id", data.id)
+        .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(6);
 
       setSimilares(similaresData || []);
       setLoading(false);
@@ -64,7 +67,7 @@ export default function AnuncioDetalhePage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center">
-        <p className="text-sm text-slate-600">Carregando anúncio…</p>
+        <p className="text-sm text-slate-600">Carregando anúncio de turismo…</p>
       </main>
     );
   }
@@ -73,56 +76,48 @@ export default function AnuncioDetalhePage() {
     return (
       <main className="min-h-screen bg-[#F5FBFF] flex flex-col items-center justify-center px-4">
         <p className="text-sm text-slate-700 mb-4">
-          {erro || "Anúncio não encontrado."}
+          {erro || "Anúncio de turismo não encontrado."}
         </p>
         <Link
-          href="/"
+          href="/turismo"
           className="rounded-full bg-[#21D4FD] px-5 py-2 text-sm text-white font-semibold hover:bg-[#3EC9C3]"
         >
-          Voltar para a página inicial
+          Voltar para Turismo
         </Link>
       </main>
     );
   }
 
-  // Flags por tipo
-  const isCurriculo = anuncio.categoria === "curriculo";
-  const isEmprego = anuncio.categoria === "emprego";
-  const isServico = anuncio.categoria === "servico";
-  const isLagolistas = anuncio.categoria === "lagolistas";
+  // ---------- Dados de turismo / rótulos ----------
 
-  // Imagens (não usamos galeria para currículo e vagas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
-  const mostrarGaleria =
-    temImagens && !isCurriculo && !isEmprego && !isLagolistas; // Lagolistas sem foto grande
 
-  // Contatos
   const telefoneRaw = anuncio.telefone || "";
   const whatsappRaw = anuncio.whatsapp || "";
   const email = anuncio.email || "";
-  const imobiliaria = anuncio.imobiliaria || "";
-  const corretor = anuncio.corretor || "";
-  const creci = anuncio.creci || "";
+  const nomeContato = anuncio.nome_contato || "";
+  const siteUrl = anuncio.site_url || "";
+  const instagram = anuncio.instagram || "";
 
   const whatsappDigits = whatsappRaw.replace(/\D/g, "");
 
   const whatsappLink =
     whatsappDigits && shareUrl
       ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
-          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos e gostaria de mais informações.`
+          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos Turismo e gostaria de mais informações.`
         )}`
       : null;
 
-  // Compartilhamento
+  // Compartilhar
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(
-    `Olha este anúncio no Classilagos: ${anuncio.titulo}`
+    `Olha este lugar no Classilagos Turismo: ${anuncio.titulo}`
   );
   const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
-  // Endereço para mapa
+  // Mapa
   const enderecoCompleto = [
     anuncio.endereco || "",
     anuncio.bairro || "",
@@ -136,195 +131,116 @@ export default function AnuncioDetalhePage() {
   );
   const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
-  // Título dinâmico da seção de similares
-  const tituloSimilares =
-    anuncio.categoria === "veiculos"
-      ? "Veículos similares na Região dos Lagos"
-      : anuncio.categoria === "imoveis"
-      ? "Imóveis similares na Região dos Lagos"
-      : anuncio.categoria === "emprego"
-      ? "Vagas que podem interessar"
-      : anuncio.categoria === "curriculo"
-      ? "Currículos recentes na Região dos Lagos"
-      : anuncio.categoria === "servico"
-      ? "Serviços similares na Região dos Lagos"
-      : anuncio.categoria === "lagolistas"
-      ? "Comércios similares na Região dos Lagos"
-      : "Anúncios similares na Região dos Lagos";
+  // Rótulos de pilares/subcategorias
+  const labelPilar = {
+    onde_ficar: "Onde ficar",
+    onde_comer: "Onde comer",
+    onde_se_divertir: "Onde se divertir",
+    onde_passear: "Onde passear",
+    servicos_turismo: "Serviços de turismo",
+    produtos_turisticos: "Produtos turísticos",
+    outros: "Turismo / serviços",
+  };
 
-  // Texto dinâmico quando não houver similares
+  const pilarTexto = labelPilar[anuncio.pilar_turismo] || "Turismo";
+
+  const labelSubcategoria = (sub) => {
+    if (!sub) return "";
+    return sub
+      .split("_")
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ");
+  };
+
+  const subcategoriaTexto = labelSubcategoria(anuncio.subcategoria_turismo);
+
+  const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
+
+  // Título similares
+  const tituloSimilares = "Outros lugares que você pode gostar";
+
   const textoSimilaresVazio =
-    anuncio.categoria === "veiculos"
-      ? "Em breve mais veículos nesta região aparecerão aqui."
-      : anuncio.categoria === "imoveis"
-      ? "Em breve mais imóveis nesta região aparecerão aqui."
-      : anuncio.categoria === "emprego"
-      ? "Em breve mais vagas aparecerão aqui."
-      : anuncio.categoria === "curriculo"
-      ? "Em breve mais currículos cadastrados aparecerão aqui."
-      : anuncio.categoria === "servico"
-      ? "Em breve mais serviços cadastrados aparecerão aqui."
-      : anuncio.categoria === "lagolistas"
-      ? "Em breve mais comércios desta região aparecerão aqui."
-      : "Em breve mais anúncios nesta região aparecerão aqui.";
-
-  // Rota para o "voltar"
-  const rotaVoltar =
-    anuncio.categoria === "veiculos"
-      ? "/veiculos"
-      : anuncio.categoria === "imoveis"
-      ? "/imoveis"
-      : anuncio.categoria === "emprego" || anuncio.categoria === "curriculo"
-      ? "/empregos"
-      : anuncio.categoria === "servico"
-      ? "/servicos"
-      : anuncio.categoria === "lagolistas"
-      ? "/lagolistas"
-      : "/";
-
-  // Texto "Voltar para ..."
-  const textoVoltar =
-    anuncio.categoria === "veiculos"
-      ? "Veículos"
-      : anuncio.categoria === "imoveis"
-      ? "Imóveis"
-      : anuncio.categoria === "emprego" || anuncio.categoria === "curriculo"
-      ? "Empregos"
-      : anuncio.categoria === "servico"
-      ? "Serviços"
-      : anuncio.categoria === "lagolistas"
-      ? "LagoListas"
-      : "a lista";
+    "Em breve, mais opções de turismo nesta região aparecerão aqui.";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* BANNER TOPO */}
+      {/* BANNER TOPO (igual às outras páginas) */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
           <BannerRotator />
         </div>
       </section>
 
-      {/* CABEÇALHO DO ANÚNCIO */}
+      {/* CABEÇALHO – TURISMO & GUIA ONDE */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
-          {isLagolistas ? (
-            // CABEÇALHO ESPECIAL LAGOLISTAS – TARJA AMARELO MOSTARDA
-            <div className="rounded-3xl bg-[#F2B705] px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-semibold text-black/80">
-                    Classilagos – LagoListas
-                  </p>
-                  <h1 className="text-2xl md:text-3xl font-black text-black leading-snug">
-                    {anuncio.titulo}
-                  </h1>
-                  <p className="text-xs md:text-sm text-black/80">
-                    {anuncio.cidade}
-                    {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-                  </p>
-                </div>
+          <p className="text-[11px] text-slate-500">
+            Classilagos – Turismo &amp; Guia ONDE
+          </p>
 
-                <Link
-                  href={rotaVoltar}
-                  className="hidden sm:inline-flex rounded-full border border-black/30 bg-white/80 px-4 py-1.5 text-xs font-semibold text-black hover:bg-white"
-                >
-                  Voltar para {textoVoltar}
-                </Link>
-              </div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug">
+                {anuncio.titulo}
+              </h1>
 
-              {/* COMPARTILHAR */}
-              <div className="flex items-center gap-2 text-[11px] mt-1">
-                <span className="text-black/80">Compartilhar:</span>
-                <a
-                  href={whatsappShareUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
-                >
-                  🟢 WhatsApp
-                </a>
-                <a
-                  href={facebookShareUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
-                >
-                  📘 Facebook
-                </a>
-              </div>
+              <p className="mt-1 text-xs md:text-sm text-sky-800 font-semibold">
+                {pilarTexto}
+                {subcategoriaTexto ? ` • ${subcategoriaTexto}` : ""}
+              </p>
+
+              <p className="text-xs md:text-sm text-slate-600">
+                {anuncio.cidade}
+                {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+              </p>
             </div>
-          ) : (
-            // CABEÇALHO PADRÃO OUTRAS CATEGORIAS
-            <>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] text-slate-500">
-                    Classilagos –{" "}
-                    {anuncio.categoria === "veiculos"
-                      ? "Veículos"
-                      : anuncio.categoria === "imoveis"
-                      ? "Imóveis"
-                      : anuncio.categoria === "emprego"
-                      ? "Empregos"
-                      : anuncio.categoria === "curriculo"
-                      ? "Currículos"
-                      : anuncio.categoria === "servico"
-                      ? "Serviços"
-                      : anuncio.categoria === "lagolistas"
-                      ? "LagoListas"
-                      : "Anúncios"}
-                  </p>
-                  <h1 className="text-xl md:text-2xl font-bold text-slate-900">
-                    {anuncio.titulo}
-                  </h1>
-                  <p className="text-xs md:text-sm text-slate-600">
-                    {anuncio.cidade}
-                    {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-                  </p>
+
+            <div className="flex flex-col items-end gap-2">
+              {precoExibicao && (
+                <div className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs md:text-sm font-bold text-white shadow">
+                  {precoExibicao.toString().startsWith("R$")
+                    ? precoExibicao
+                    : `R$ ${precoExibicao}`}
                 </div>
+              )}
 
-                <Link
-                  href={rotaVoltar}
-                  className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                >
-                  Voltar para {textoVoltar}
-                </Link>
-              </div>
+              <Link
+                href="/turismo"
+                className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+              >
+                Voltar para Turismo
+              </Link>
+            </div>
+          </div>
 
-              {/* COMPARTILHAR */}
-              <div className="flex items-center gap-2 text-[11px]">
-                <span className="text-slate-500">Compartilhar:</span>
-                <a
-                  href={whatsappShareUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
-                >
-                  🟢 WhatsApp
-                </a>
-                <a
-                  href={facebookShareUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
-                >
-                  📘 Facebook
-                </a>
-              </div>
-            </>
-          )}
+          {/* Compartilhar */}
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-slate-500">Compartilhar:</span>
+            <a
+              href={whatsappShareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
+            >
+              🟢 WhatsApp
+            </a>
+            <a
+              href={facebookShareUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
+            >
+              📘 Facebook
+            </a>
+          </div>
         </div>
       </section>
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
-        {mostrarGaleria && (
-          <section
-            className="w-full flex flex-col gap-3"
-            id="fachada" // âncora p/outros tipos
-          >
+        {/* GALERIA DE FOTOS */}
+        {temImagens && (
+          <section className="w-full flex flex-col gap-3">
             <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
               <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] lg:h-[380px]">
                 <img
@@ -360,476 +276,121 @@ export default function AnuncioDetalhePage() {
           </section>
         )}
 
-        {/* GRID PRINCIPAL: ESQUERDA / DIREITA */}
+        {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* ===================== CURRÍCULO ===================== */}
-            {isCurriculo ? (
-              <>
-                {/* ... (BLOCO DE CURRÍCULO MANTIDO IGUAL) ... */}
-                {/* para economizar espaço aqui, mantemos idêntico ao seu,
-                    você já colou antes; não alterei nada nessa parte */}
-              </>
-            ) : (
-              <>
-                {/* ===================== OUTROS TIPOS ===================== */}
-                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                  <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                    Resumo do anúncio
-                  </h2>
+            {/* SOBRE ESTE LUGAR */}
+            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">
+                  Sobre este lugar
+                </h2>
+                <p className="text-xs text-slate-700 whitespace-pre-line">
+                  {anuncio.descricao}
+                </p>
+              </div>
 
-                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
-                    {/* (todo o bloco de resumo original permanece igual) */}
-                    {anuncio.preco && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Valor:{" "}
-                        </span>
-                        R$ {anuncio.preco}
-                      </div>
-                    )}
-                    {isEmprego && anuncio.faixa_salarial && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Faixa salarial:{" "}
-                        </span>
-                        {anuncio.faixa_salarial}
-                      </div>
-                    )}
-                    {isServico && anuncio.faixa_preco && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Faixa de preço:{" "}
-                        </span>
-                        {anuncio.faixa_preco}
-                      </div>
-                    )}
-
-                    {anuncio.tipo_imovel && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Tipo:{" "}
-                        </span>
-                        {anuncio.tipo_imovel}
-                      </div>
-                    )}
-                    {anuncio.finalidade && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Finalidade:{" "}
-                        </span>
-                        {anuncio.finalidade === "venda" && "Venda"}
-                        {anuncio.finalidade === "aluguel_fixo" &&
-                          "Aluguel fixo"}
-                        {anuncio.finalidade === "aluguel" && "Aluguel"}
-                        {anuncio.finalidade === "temporada" &&
-                          "Aluguel por temporada"}
-                      </div>
-                    )}
-                    {anuncio.area && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Área:{" "}
-                        </span>
-                        {anuncio.area} m²
-                      </div>
-                    )}
-                    {anuncio.quartos && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Quartos:{" "}
-                        </span>
-                        {anuncio.quartos}
-                      </div>
-                    )}
-                    {anuncio.banheiros && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Banheiros:{" "}
-                        </span>
-                        {anuncio.banheiros}
-                      </div>
-                    )}
-                    {anuncio.vagas && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Vagas:{" "}
-                        </span>
-                        {anuncio.vagas}
-                      </div>
-                    )}
-
-                    {isEmprego && anuncio.area_profissional && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Área:{" "}
-                        </span>
-                        {anuncio.area_profissional}
-                      </div>
-                    )}
-                    {isEmprego && anuncio.tipo_vaga && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Tipo de vaga:{" "}
-                        </span>
-                        {anuncio.tipo_vaga}
-                      </div>
-                    )}
-                    {isEmprego && anuncio.modelo_trabalho && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Modelo:{" "}
-                        </span>
-                        {anuncio.modelo_trabalho}
-                      </div>
-                    )}
-                    {isEmprego && anuncio.carga_horaria && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Carga horária:{" "}
-                        </span>
-                        {anuncio.carga_horaria}
-                      </div>
-                    )}
-
-                    {isServico && anuncio.subcategoria_servico && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Tipo de serviço:{" "}
-                        </span>
-                        {anuncio.subcategoria_servico === "classimed" &&
-                          "Saúde (Classimed)"}
-                        {anuncio.subcategoria_servico === "eventos" &&
-                          "Festas & Eventos"}
-                        {anuncio.subcategoria_servico === "profissionais" &&
-                          "Profissionais & Serviços"}
-                      </div>
-                    )}
-                    {isServico && anuncio.nome_negocio && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Nome do negócio:{" "}
-                        </span>
-                        {anuncio.nome_negocio}
-                      </div>
-                    )}
-                    {isServico && anuncio.horario_atendimento && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Horário de atendimento:{" "}
-                        </span>
-                        {anuncio.horario_atendimento}
-                      </div>
-                    )}
-                    {isServico &&
-                      typeof anuncio.atende_domicilio === "boolean" && (
-                        <div>
-                          <span className="font-semibold text-slate-900">
-                            Atende em domicílio:{" "}
-                          </span>
-                          {anuncio.atende_domicilio ? "Sim" : "Não"}
-                        </div>
-                      )}
-
-                    {anuncio.marca && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Marca:{" "}
-                        </span>
-                        {anuncio.marca}
-                      </div>
-                    )}
-                    {anuncio.modelo && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Modelo:{" "}
-                        </span>
-                        {anuncio.modelo}
-                      </div>
-                    )}
-                    {anuncio.ano && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Ano:{" "}
-                        </span>
-                        {anuncio.ano}
-                      </div>
-                    )}
-                    {anuncio.km && (
-                      <div>
-                        <span className="font-semibold text-slate-900">
-                          Km:{" "}
-                        </span>
-                        {anuncio.km}
-                      </div>
-                    )}
-                  </div>
+              <div className="grid gap-2 text-xs text-slate-700 sm:grid-cols-2">
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    Tipo de experiência
+                  </p>
+                  <p>
+                    {pilarTexto}
+                    {subcategoriaTexto ? ` • ${subcategoriaTexto}` : ""}
+                  </p>
                 </div>
 
-                {/* BLOCO ESPECIAL LAGOLISTAS – INFORMAÇÕES DO ESTABELECIMENTO */}
-                {isLagolistas && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h2 className="text-sm font-semibold text-slate-900 mb-4">
-                      Informações do estabelecimento
-                    </h2>
-
-                    <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
-                      {/* Logo / miniatura */}
-                      <div className="flex-shrink-0">
-                        {imagens && imagens.length > 0 && (
-                          <div className="block">
-                            <img
-                              src={imagens[0]}
-                              alt={anuncio.titulo || "Foto do estabelecimento"}
-                              className="h-24 w-24 md:h-28 md:w-28 rounded-xl object-cover border border-slate-200"
-                            />
-                            <span className="mt-1 block text-[11px] text-slate-600">
-                              Logo / fachada do comércio
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Dados em colunas */}
-                      <div className="grid gap-2 text-xs md:text-sm flex-1 md:grid-cols-2">
-                        {anuncio.nome_negocio && (
-                          <div>
-                            <p className="font-medium text-slate-800">
-                              Nome do comércio
-                            </p>
-                            <p className="text-slate-700">
-                              {anuncio.nome_negocio}
-                            </p>
-                          </div>
-                        )}
-
-                        {anuncio.razao_social && (
-                          <div>
-                            <p className="font-medium text-slate-800">
-                              Razão social
-                            </p>
-                            <p className="text-slate-700">
-                              {anuncio.razao_social}
-                            </p>
-                          </div>
-                        )}
-
-                        {anuncio.cnpj && (
-                          <div>
-                            <p className="font-medium text-slate-800">CNPJ</p>
-                            <p className="text-slate-700">{anuncio.cnpj}</p>
-                          </div>
-                        )}
-
-                        {anuncio.inscricao_municipal && (
-                          <div>
-                            <p className="font-medium text-slate-800">
-                              Inscrição municipal
-                            </p>
-                            <p className="text-slate-700">
-                              {anuncio.inscricao_municipal}
-                            </p>
-                          </div>
-                        )}
-
-                        {anuncio.registro_profissional && (
-                          <div>
-                            <p className="font-medium text-slate-800">
-                              Registro profissional
-                            </p>
-                            <p className="text-slate-700">
-                              {anuncio.registro_profissional}
-                            </p>
-                          </div>
-                        )}
-
-                        {(anuncio.endereco ||
-                          anuncio.bairro ||
-                          anuncio.cidade) && (
-                          <div className="md:col-span-2">
-                            <p className="font-medium text-slate-800">
-                              Endereço
-                            </p>
-                            <p className="text-slate-700">
-                              {anuncio.endereco && `${anuncio.endereco}`}
-                              {anuncio.bairro && ` - ${anuncio.bairro}`}
-                              {anuncio.cidade && `, ${anuncio.cidade}`}
-                            </p>
-                          </div>
-                        )}
-
-                        {(anuncio.site_url || anuncio.instagram) && (
-                          <div className="md:col-span-2 flex flex-wrap gap-3 mt-1">
-                            {anuncio.site_url && (
-                              <a
-                                href={anuncio.site_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[11px] md:text-xs text-blue-600 underline"
-                              >
-                                Visitar site
-                              </a>
-                            )}
-                            {anuncio.instagram && (
-                              <a
-                                href={
-                                  anuncio.instagram.startsWith("http")
-                                    ? anuncio.instagram
-                                    : `https://instagram.com/${anuncio.instagram.replace(
-                                        "@",
-                                        ""
-                                      )}`
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[11px] md:text-xs text-pink-600 underline"
-                              >
-                                Ver Instagram
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-                )}
-
-                {/* Descrição + mapa */}
-                <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
+                {precoExibicao && (
                   <div>
-                    <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                      Descrição
-                    </h2>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.descricao}
-                    </p>
-
-                    {(anuncio.condominio ||
-                      anuncio.iptu ||
-                      anuncio.aceita_financiamento) && (
-                      <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
-                        {anuncio.condominio && (
-                          <div>
-                            <span className="font-semibold text-slate-900">
-                              Condomínio:{" "}
-                            </span>
-                            R$ {anuncio.condominio}
-                          </div>
-                        )}
-                        {anuncio.iptu && (
-                          <div>
-                            <span className="font-semibold text-slate-900">
-                              IPTU (ano):{" "}
-                            </span>
-                            R$ {anuncio.iptu}
-                          </div>
-                        )}
-                        {anuncio.aceita_financiamento && (
-                          <div className="col-span-full">
-                            <span className="font-semibold text-slate-900">
-                              Aceita financiamento:{" "}
-                            </span>
-                            {anuncio.aceita_financiamento}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Links extras para serviços */}
-                    {isServico && (anuncio.site_url || anuncio.instagram) && (
-                      <div className="mt-4 space-y-1 text-xs text-slate-700">
-                        {anuncio.site_url && (
-                          <p>
-                            <span className="font-semibold text-slate-900">
-                              Site:{" "}
-                            </span>
-                            <a
-                              href={anuncio.site_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {anuncio.site_url}
-                            </a>
-                          </p>
-                        )}
-                        {anuncio.instagram && (
-                          <p>
-                            <span className="font-semibold text-slate-900">
-                              Instagram:{" "}
-                            </span>
-                            <a
-                              href={
-                                anuncio.instagram.startsWith("http")
-                                  ? anuncio.instagram
-                                  : `https://instagram.com/${anuncio.instagram.replace(
-                                      "@",
-                                      ""
-                                    )}`
-                              }
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {anuncio.instagram}
-                            </a>
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-2">
-                    <h3 className="text-xs font-semibold text-slate-900 mb-2">
-                      Localização aproximada
-                    </h3>
-                    <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                      <iframe
-                        title="Mapa do anúncio"
-                        src={mapaUrl}
-                        width="100%"
-                        height="100%"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                      />
-                    </div>
-                    <p className="mt-1 text-[10px] text-slate-500">
-                      O mapa é aproximado e pode não indicar o endereço exato.
-                      Confirme sempre com o anunciante.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Vídeo */}
-                {anuncio.video_url && (
-                  <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                      Vídeo
-                    </h2>
-                    <p className="text-xs text-slate-700 mb-3">
-                      Assista ao vídeo completo deste anúncio no YouTube.
-                    </p>
-                    <a
-                      href={anuncio.video_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
-                    >
-                      Ver vídeo no YouTube
-                    </a>
+                    <p className="font-semibold text-slate-900">Faixa de preço</p>
+                    <p>{precoExibicao}</p>
                   </div>
                 )}
-              </>
-            )}
+
+                {(siteUrl || instagram) && (
+                  <div className="sm:col-span-2 space-y-1 mt-1">
+                    {siteUrl && (
+                      <p>
+                        <span className="font-semibold text-slate-900">
+                          Site:{" "}
+                        </span>
+                        <a
+                          href={siteUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {siteUrl}
+                        </a>
+                      </p>
+                    )}
+                    {instagram && (
+                      <p>
+                        <span className="font-semibold text-slate-900">
+                          Instagram:{" "}
+                        </span>
+                        <a
+                          href={
+                            instagram.startsWith("http")
+                              ? instagram
+                              : `https://instagram.com/${instagram.replace(
+                                  "@",
+                                  ""
+                                )}`
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {instagram}
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* MAPA */}
+            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-2">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Localização aproximada
+              </h3>
+              <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+                <iframe
+                  title="Mapa do anúncio"
+                  src={mapaUrl}
+                  width="100%"
+                  height="100%"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <p className="mt-1 text-[10px] text-slate-500">
+                O mapa é aproximado e pode não indicar o endereço exato. Confirme
+                sempre com o anunciante.
+              </p>
+            </div>
           </div>
 
-          {/* COLUNA DIREITA: CONTATO + MERCADO LIVRE */}
+          {/* COLUNA DIREITA – CONTATO + COMPLEMENTO */}
           <div className="space-y-4">
+            {/* CONTATO */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
-                Fale com o anunciante
+                Informações e contato
               </h2>
+
+              {nomeContato && (
+                <p className="text-xs text-slate-700 mb-2">
+                  <span className="font-semibold text-slate-900">
+                    Responsável:{" "}
+                  </span>
+                  {nomeContato}
+                </p>
+              )}
 
               {whatsappLink && (
                 <div className="mb-4">
@@ -872,90 +433,38 @@ export default function AnuncioDetalhePage() {
                 )}
               </div>
 
-              {(imobiliaria || corretor || creci) && (
-                <div className="mt-4 pt-3 border-t border-slate-200 space-y-1 text-xs text-slate-700">
-                  {imobiliaria && (
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Imobiliária:{" "}
-                      </span>
-                      {imobiliaria}
-                    </p>
-                  )}
-                  {corretor && (
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        Corretor:{" "}
-                      </span>
-                      {corretor}
-                    </p>
-                  )}
-                  {creci && (
-                    <p>
-                      <span className="font-semibold text-slate-900">
-                        CRECI:{" "}
-                      </span>
-                      {creci}
-                    </p>
-                  )}
-                </div>
-              )}
-
               <p className="text-[11px] text-slate-500 pt-3">
                 Anúncio publicado em{" "}
                 {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
               </p>
             </div>
 
+            {/* COMPLEMENTAR VIAGEM / MERCADO LIVRE FUTURO */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Ofertas que combinam com este anúncio (Mercado Livre)
+                Para completar sua viagem
               </h2>
-              <p className="text-[11px] text-slate-600 mb-3">
-                Itens para equipar ou cuidar melhor deste imóvel, veículo ou
-                ambiente de trabalho.
+              <p className="text-[11px] text-slate-600 mb-2">
+                Em breve, aqui você poderá ver ofertas de parceiros e produtos
+                que combinam com esta experiência na Região dos Lagos.
               </p>
-              <ul className="space-y-2 text-xs text-slate-700">
+              <ul className="list-disc list-inside text-[11px] text-slate-600 space-y-1">
+                <li>Equipamentos de praia e mergulho.</li>
+                <li>Roupas leves, acessórios e itens de viagem.</li>
                 <li>
-                  <a
-                    href="https://www.mercadolivre.com.br/ofertas?c=decoracao-sala"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:underline"
-                  >
-                    • Sofás e decoração para sala de estar
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.mercadolivre.com.br/ofertas?c=cozinha-planejada"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:underline"
-                  >
-                    • Eletrodomésticos e itens de cozinha
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://www.mercadolivre.com.br/ofertas?c=area-gourmet"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:underline"
-                  >
-                    • Churrasqueiras, mesas externas e área gourmet
-                  </a>
+                  Itens para registrar a viagem (câmeras, suportes, proteção
+                  para celular, etc.).
                 </li>
               </ul>
               <p className="mt-3 text-[10px] text-slate-400">
-                Em breve este bloco poderá usar seus links de afiliado
-                personalizados.
+                Este espaço poderá ser integrado futuramente com seus links de
+                afiliado do Mercado Livre.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Similares */}
+        {/* SIMILARES */}
         <section className="mt-6">
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
@@ -969,17 +478,19 @@ export default function AnuncioDetalhePage() {
             )}
 
             {similares.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs text-slate-700">
                 {similares.map((item) => {
                   const img =
                     Array.isArray(item.imagens) && item.imagens.length > 0
                       ? item.imagens[0]
                       : null;
+                  const precoItem =
+                    item.faixa_preco || item.preco || "";
 
                   return (
                     <Link
                       key={item.id}
-                      href={`/anuncios/${item.id}`}
+                      href={`/turismo/anuncio/${item.id}`}
                       className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
                     >
                       {img && (
@@ -992,6 +503,9 @@ export default function AnuncioDetalhePage() {
                         </div>
                       )}
                       <div className="px-3 py-2 space-y-1">
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {labelPilar[item.pilar_turismo] || "Turismo"}
+                        </p>
                         <p className="font-semibold line-clamp-2">
                           {item.titulo}
                         </p>
@@ -999,9 +513,9 @@ export default function AnuncioDetalhePage() {
                           {item.cidade}
                           {item.bairro ? ` • ${item.bairro}` : ""}
                         </p>
-                        {item.preco && (
-                          <p className="text-[11px] font-semibold text-slate-900">
-                            R$ {item.preco}
+                        {precoItem && (
+                          <p className="text-[11px] font-semibold text-emerald-700">
+                            {precoItem}
                           </p>
                         )}
                       </div>
@@ -1016,10 +530,10 @@ export default function AnuncioDetalhePage() {
         {/* Botão voltar (mobile) */}
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
-            href={rotaVoltar}
+            href="/turismo"
             className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
           >
-            Voltar
+            Voltar para Turismo
           </Link>
         </div>
 
@@ -1043,10 +557,12 @@ export default function AnuncioDetalhePage() {
             </Link>
           </div>
           <p>
-            Classilagos • O seu guia de compras e serviços na Região dos Lagos
+            Classilagos • O seu guia de compras, serviços e turismo na Região
+            dos Lagos
           </p>
         </footer>
       </section>
     </main>
   );
 }
+
