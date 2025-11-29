@@ -745,9 +745,7 @@ function BackgroundMarinho() {
         sizes="100vw"
         className="object-cover"
       />
-      {/* camada para dar contraste e deixar meio transparente */}
-      <div className="absolute inset-0 bg-sky-950/70" />
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-900/30 via-sky-950/40 to-sky-950/80" />
     </div>
   );
 }
+
