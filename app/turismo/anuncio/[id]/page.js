@@ -99,7 +99,9 @@ export default function TurismoAnuncioPage() {
   if (erro || !anuncio) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-sky-950 text-slate-100 px-4">
-        <p className="text-sm mb-4">{erro || "Anúncio de turismo não encontrado."}</p>
+        <p className="text-sm mb-4">
+          {erro || "Anúncio de turismo não encontrado."}
+        </p>
         <Link
           href="/turismo"
           className="rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-white hover:bg-sky-400"
@@ -116,8 +118,7 @@ export default function TurismoAnuncioPage() {
 
   // preço / faixa de preço (no turismo geralmente usamos faixa_preco)
   const precoExibicao =
-    anuncio.faixa_preco ||
-    (anuncio.preco ? `R$ ${anuncio.preco}` : "");
+    anuncio.faixa_preco || (anuncio.preco ? `R$ ${anuncio.preco}` : "");
 
   // pilar e subcategoria
   const pilarLabel = PILAR_LABEL[anuncio.pilar_turismo] || "Turismo";
@@ -168,8 +169,8 @@ export default function TurismoAnuncioPage() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* camada azul escura por cima do fundo */}
-      <div className="min-h-screen bg-sky-950/85">
+      {/* camada bem suave por cima do fundo */}
+      <div className="min-h-screen bg-sky-950/30">
         {/* BANNER TOPO (igual às outras páginas) */}
         <section className="bg-white border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
@@ -429,14 +430,15 @@ export default function TurismoAnuncioPage() {
                   Para completar sua viagem
                 </h2>
                 <p className="text-xs text-slate-700 mb-2">
-                  Em breve, aqui você poderá ver ofertas de parceiros e
-                  produtos que combinam com esta experiência na Região dos
-                  Lagos.
+                  Em breve, aqui você poderá ver ofertas de parceiros e produtos
+                  que combinam com esta experiência na Região dos Lagos.
                 </p>
                 <ul className="list-disc list-inside text-[11px] text-slate-700 space-y-1">
                   <li>Equipamentos de praia e mergulho.</li>
                   <li>Roupas leves e acessórios de viagem.</li>
-                  <li>Itens para registrar a viagem (câmeras, suportes etc.).</li>
+                  <li>
+                    Itens para registrar a viagem (câmeras, suportes etc.).
+                  </li>
                 </ul>
               </div>
             </div>
@@ -460,8 +462,7 @@ export default function TurismoAnuncioPage() {
                       ? item.imagens[0]
                       : null;
                   const precoCard =
-                    item.faixa_preco ||
-                    (item.preco ? `R$ ${item.preco}` : "");
+                    item.faixa_preco || (item.preco ? `R$ ${item.preco}` : "");
 
                   return (
                     <Link
