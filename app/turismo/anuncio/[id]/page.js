@@ -85,7 +85,7 @@ export default function TurismoAnuncioPage() {
         return;
       }
 
-      // Garantir que é turismo (só por segurança)
+      // Garantir que é turismo (por segurança)
       if (data.categoria !== "turismo") {
         setErro("Este anúncio não pertence ao portal de Turismo.");
         setLoading(false);
@@ -170,7 +170,8 @@ export default function TurismoAnuncioPage() {
   );
   const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
-  const labelPilar: Record<string, string> = {
+  // AQUI estava o erro: tirei o ": Record<string,string>"
+  const labelPilar = {
     onde_ficar: "Onde ficar",
     onde_comer: "Onde comer",
     onde_se_divertir: "Onde se divertir",
@@ -182,10 +183,11 @@ export default function TurismoAnuncioPage() {
 
   const pilarLabel = labelPilar[anuncio.pilar_turismo] || "Turismo";
 
+  // AQUI também: tirei o "(p: string)" e deixei só "(p)"
   const subLabel = anuncio.subcategoria_turismo
     ? anuncio.subcategoria_turismo
         .split("_")
-        .map((p: string) => p.charAt(0).toUpperCase() + p.slice(1))
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
         .join(" ")
     : "";
 
@@ -549,7 +551,7 @@ export default function TurismoAnuncioPage() {
           </div>
         </section>
 
-        {/* Rodapé simples dentro do fundo marinho */}
+        {/* Rodapé dentro do fundo marinho */}
         <footer className="mt-8 text-center text-[11px] text-slate-100 space-y-1 pb-6">
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
             <Link href="/quem-somos" className="hover:underline">
