@@ -239,9 +239,18 @@ export default function TurismoPage() {
       <section className="max-w-6xl mx-auto px-4 pt-8 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
           <div>
-            <h2 className="text-sm md:text-base font-semibold text-slate-900">
-              GUIA ONDE – Turismo Classilagos
-            </h2>
+            <div className="flex items-center gap-2 mb-1">
+              <Image
+                src="/icons/guia-onde-b.png"
+                alt="Ícone Guia ONDE"
+                width={36}
+                height={36}
+                className="w-8 h-8 md:w-9 md:h-9 rounded-2xl drop-shadow"
+              />
+              <h2 className="text-sm md:text-base font-semibold text-slate-900">
+                GUIA ONDE – Turismo Classilagos
+              </h2>
+            </div>
             <p className="text-[11px] md:text-xs text-slate-600 max-w-2xl">
               Escolha por tipo de experiência e encontre lugares para se
               hospedar, comer, passear e se divertir em toda a Região dos
@@ -261,8 +270,14 @@ export default function TurismoPage() {
               className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm"
             >
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-2xl bg-sky-100 flex items-center justify-center text-base">
-                  {card.emoji}
+                <div className="h-10 w-10 rounded-2xl bg-white/90 border border-slate-100 shadow-sm flex items-center justify-center">
+                  <Image
+                    src="/icons/guia-onde-b.png"
+                    alt={`Ícone ${card.title}`}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
                 <h3 className="text-xs font-semibold text-slate-900">
                   {card.title}
@@ -461,4 +476,3 @@ export default function TurismoPage() {
     </main>
   );
 }
-
