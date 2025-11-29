@@ -1,164 +1,122 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
 export default function TurismoPage() {
-  const [anunciosTurismo, setAnunciosTurismo] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // HERO – você pode ajustar as imagens depois
+  // Imagens do hero de Turismo
   const heroImages = [
-    "/turismo/hero-turismo-01.jpg",
-    "/turismo/hero-turismo-02.jpg",
+    "/turismo/hero-turismo01.jpg",
+    "/turismo/hero-turismo02.jpg",
+    "/turismo/hero-turismo03.jpg",
+    "/turismo/hero-turismo04.jpg",
+    "/turismo/hero-turismo05.jpg",
+    "/turismo/hero-turismo06.jpg",
   ];
+
   const [currentHero, setCurrentHero] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
-    return () => clearInterval(interval);
-  }, []);
+  // Anúncios de turismo
+  const [anuncios, setAnuncios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
-  // Buscar anúncios de turismo no Supabase
   useEffect(() => {
-    async function carregarTurismo() {
+    const interval = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 6000); // troca a cada 6 segundos
+
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
+
+  // Carrega anúncios de turismo
+  useEffect(() => {
+    const fetchTurismo = async () => {
       setLoading(true);
+      setErro("");
+
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, categoria, pilar_turismo, subcategoria_turismo, nome_negocio, faixa_preco, imagens, status"
+          "id, titulo, cidade, bairro, pilar_turismo, subcategoria_turismo, preco, imagens, destaque, created_at"
         )
         .eq("categoria", "turismo")
         .eq("status", "ativo")
-        .order("created_at", { ascending: false });
+        .order("destaque", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(20);
 
       if (error) {
-        console.error("Erro ao carregar turismo:", error);
-        setAnunciosTurismo([]);
-      } else {
-        setAnunciosTurismo(data || []);
+        console.error("Erro ao carregar anúncios de turismo:", error);
+        setErro("Não foi possível carregar os anúncios de turismo no momento.");
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }
 
-    carregarTurismo();
+      setAnuncios(data || []);
+      setLoading(false);
+    };
+
+    fetchTurismo();
   }, []);
 
-  function filtrarPorPilar(pilar) {
-    return anunciosTurismo.filter(
-      (anuncio) => anuncio.pilar_turismo === pilar
-    );
-  }
+  const destaques = anuncios.filter((a) => a.destaque);
+  const recentes = anuncios.filter((a) => !a.destaque);
 
-  const ondeFicar = filtrarPorPilar("onde_ficar");
-  const ondeComer = filtrarPorPilar("onde_comer");
-  const ondePassear = filtrarPorPilar("onde_passear");
-  const produtosTuristicos = filtrarPorPilar("produtos_turisticos");
-  const servicosTurismo = filtrarPorPilar("servicos_turismo");
+  const labelPilar = {
+    onde_ficar: "Onde ficar",
+    onde_comer: "Onde comer",
+    onde_se_divertir: "Onde se divertir",
+    onde_passear: "Onde passear",
+    outros: "Turismo / serviços",
+  };
 
-  function CardTurismo({ item }) {
-    const primeiraImagem =
-      item.imagens && item.imagens.length > 0 ? item.imagens[0] : null;
+  const labelSubcategoria = (sub) => {
+    if (!sub) return "";
+    return sub
+      .split("_")
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ");
+  };
 
-    return (
-      <Link
-        href={`/anuncios/${item.id}`}
-        className="group rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-[2px] transition flex flex-col overflow-hidden"
-      >
-        {/* Imagem */}
-        {primeiraImagem ? (
-          <div className="relative w-full h-40">
-            <Image
-              src={primeiraImagem}
-              alt={item.titulo}
-              fill
-              sizes="300px"
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div className="w-full h-40 bg-slate-100 flex items-center justify-center text-[11px] text-slate-500">
-            Sem foto
-          </div>
-        )}
-
-        {/* Conteúdo */}
-        <div className="p-3 md:p-4 flex flex-col gap-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            {item.nome_negocio || "Anúncio de turismo"}
-          </p>
-
-          <h3 className="text-sm md:text-[15px] font-bold text-slate-900 line-clamp-2">
-            {item.titulo}
-          </h3>
-
-          <p className="text-[11px] text-slate-600">
-            {item.cidade}
-            {item.bairro ? ` • ${item.bairro}` : ""}
-          </p>
-
-          {item.faixa_preco && (
-            <p className="text-[11px] font-semibold text-emerald-700 mt-1">
-              {item.faixa_preco}
-            </p>
-          )}
-
-          <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 group-hover:gap-2 transition-all">
-            Ver detalhes <span>➜</span>
-          </span>
-        </div>
-      </Link>
-    );
-  }
-
-  function BlocoSecao({ id, titulo, descricao, lista }) {
-    return (
-      <section id={id} className="max-w-6xl mx-auto px-4 py-6 md:py-8">
-        <div className="flex items-baseline justify-between gap-2 mb-3">
-          <div>
-            <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              {titulo}
-            </h2>
-            {descricao && (
-              <p className="text-[11px] md:text-xs text-slate-600">
-                {descricao}
-              </p>
-            )}
-          </div>
-          {lista.length > 0 && (
-            <p className="text-[11px] text-slate-500">
-              {lista.length} anúncio(s)
-            </p>
-          )}
-        </div>
-
-        {loading && (
-          <p className="text-sm text-slate-500">Carregando anúncios...</p>
-        )}
-
-        {!loading && lista.length === 0 && (
-          <p className="text-sm text-slate-500">
-            Ainda não há anúncios nesta seção.
-          </p>
-        )}
-
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {lista.map((item) => (
-            <CardTurismo key={item.id} item={item} />
-          ))}
-        </div>
-      </section>
-    );
-  }
+  const guiaOndeCards = [
+    {
+      value: "onde_ficar",
+      title: "Onde ficar",
+      desc: "Pousadas, hotéis, hostels, casas de temporada e camping.",
+      emoji: "🏨",
+    },
+    {
+      value: "onde_comer",
+      title: "Onde comer",
+      desc: "Bares, restaurantes, quiosques, pizzarias, hamburguerias.",
+      emoji: "🍤",
+    },
+    {
+      value: "onde_se_divertir",
+      title: "Onde se divertir",
+      desc: "Casas de show, música ao vivo, baladas, pubs, eventos.",
+      emoji: "🎉",
+    },
+    {
+      value: "onde_passear",
+      title: "Onde passear",
+      desc: "Passeios de barco, buggy, trilhas, city tour, mergulho.",
+      emoji: "🌅",
+    },
+    {
+      value: "outros",
+      title: "Outros serviços de turismo",
+      desc: "Guias, turismo rural, turismo religioso e mais.",
+      emoji: "🧭",
+    },
+  ];
 
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
+      {/* BANNER FIXO NO TOPO (MESMO PADRÃO DAS OUTRAS PÁGINAS) */}
       <section className="w-full flex justify-center bg-slate-100 border-b py-3">
         <div className="w-full max-w-[1000px] px-4">
           <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
@@ -173,9 +131,9 @@ export default function TurismoPage() {
         </div>
       </section>
 
-      {/* HERO PRINCIPAL */}
+      {/* HERO TURISMO – CARROSSEL DE IMAGENS */}
       <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
             key={heroImages[currentHero]}
             src={heroImages[currentHero]}
@@ -186,120 +144,313 @@ export default function TurismoPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          <div className="absolute inset-0 bg-black/20" />
+          {/* leve escurecida pra destacar o texto */}
+          <div className="absolute inset-0 bg-black/30" />
 
-          <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-white">
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow">
-              Classilagos – Turismo
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+            <p className="text-sm md:text-base font-medium drop-shadow">
+              Descubra o melhor da Região dos Lagos em um só lugar.
+            </p>
+            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+              Classilagos – Turismo &amp; Guia ONDE
             </h1>
             <p className="mt-2 text-xs md:text-sm max-w-2xl drop-shadow">
-              Pousadas, hotéis, bares, restaurantes, passeios, mergulhos,
-              quadriciclo, trilhas e muito mais nas nove cidades da Região dos
-              Lagos.
+              Onde ficar, onde comer, onde passear e onde se divertir em Maricá,
+              Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia,
+              Arraial do Cabo, Cabo Frio, Búzios e Rio das Ostras.
             </p>
-
-            <div className="mt-4 flex flex-wrap justify-center gap-2 text-[11px] md:text-xs">
-              <Link
-                href="#onde-ficar"
-                className="rounded-full bg-white/90 text-slate-900 px-3 py-1 font-semibold hover:bg-white"
-              >
-                Onde ficar
-              </Link>
-              <Link
-                href="#onde-comer"
-                className="rounded-full bg-white/90 text-slate-900 px-3 py-1 font-semibold hover:bg-white"
-              >
-                Onde comer
-              </Link>
-              <Link
-                href="#passeios"
-                className="rounded-full bg-white/90 text-slate-900 px-3 py-1 font-semibold hover:bg-white"
-              >
-                Passeios & experiências
-              </Link>
-              <Link
-                href="#produtos-turisticos"
-                className="rounded-full bg-white/90 text-slate-900 px-3 py-1 font-semibold hover:bg-white"
-              >
-                Produtos turísticos
-              </Link>
-              <Link
-                href="#servicos-turismo"
-                className="rounded-full bg-white/90 text-slate-900 px-3 py-1 font-semibold hover:bg-white"
-              >
-                Serviços de turismo
-              </Link>
-            </div>
-
-            <div className="mt-5">
-              <Link
-                href="/anunciar/turismo"
-                className="rounded-full bg-blue-600 text-white px-6 py-3 font-semibold text-xs md:text-sm hover:bg-blue-700 shadow-lg"
-              >
-                Anunciar no turismo
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* BLOCO: ONDE FICAR */}
-      <BlocoSecao
-        id="onde-ficar"
-        titulo="Onde ficar"
-        descricao="Pousadas, hotéis, hostels e casas de temporada nas cidades da Região dos Lagos."
-        lista={ondeFicar}
-      />
+      {/* CAIXA DE BUSCA TURISMO */}
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+              {/* Busca livre */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Busca
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: pousada pé na areia, passeio de barco..."
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-      {/* BLOCO: ONDE COMER */}
-      <BlocoSecao
-        id="onde-comer"
-        titulo="Onde comer"
-        descricao="Bares, restaurantes, quiosques e lugares para curtir a gastronomia local."
-        lista={ondeComer}
-      />
+              {/* Categoria */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Categoria
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Todos</option>
+                  <option>Onde ficar</option>
+                  <option>Onde comer</option>
+                  <option>Onde se divertir</option>
+                  <option>Onde passear</option>
+                  <option>Outros serviços</option>
+                </select>
+              </div>
 
-      {/* BLOCO: PASSEIOS & EXPERIÊNCIAS */}
-      <BlocoSecao
-        id="passeios"
-        titulo="Passeios & experiências"
-        descricao="Passeios de barco, mergulho, quadriciclo, buggy, trilhas e muito mais."
-        lista={ondePassear}
-      />
+              {/* Cidade */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Toda a região</option>
+                  <option>Maricá</option>
+                  <option>Saquarema</option>
+                  <option>Araruama</option>
+                  <option>Iguaba Grande</option>
+                  <option>São Pedro da Aldeia</option>
+                  <option>Arraial do Cabo</option>
+                  <option>Cabo Frio</option>
+                  <option>Búzios</option>
+                  <option>Rio das Ostras</option>
+                </select>
+              </div>
 
-      {/* BLOCO: PRODUTOS TURÍSTICOS / SUBLIMAÇÃO */}
-      <BlocoSecao
-        id="produtos-turisticos"
-        titulo="Produtos turísticos & lembranças"
-        descricao="Canecas, camisetas, quadros e lembranças com a cara da Região dos Lagos."
-        lista={produtosTuristicos}
-      />
+              {/* Botão */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </div>
 
-      {/* BLOCO: SERVIÇOS DE TURISMO */}
-      <BlocoSecao
-        id="servicos-turismo"
-        titulo="Serviços de turismo"
-        descricao="Guias, agências, receptivos e outros serviços para organizar sua viagem."
-        lista={servicosTurismo}
-      />
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Em breve, essa busca estará ligada diretamente aos anúncios reais de
+            turismo da plataforma.
+          </p>
+        </div>
+      </section>
 
-      {/* RODAPÉ SIMPLES */}
-      <footer className="bg-slate-100 border-t py-6 text-center text-xs text-slate-600 mt-4">
-        <p>Classilagos © {new Date().getFullYear()}</p>
-        <p className="mt-1">
-          <Link href="/quem-somos" className="hover:underline">
-            Quem somos
-          </Link>{" "}
-          •{" "}
-          <Link href="/contato" className="hover:underline">
-            Contato
-          </Link>{" "}
-          •{" "}
-          <Link href="/politica" className="hover:underline">
-            Política de privacidade
-          </Link>
-        </p>
-      </footer>
+      {/* GUIA ONDE – PILARES DO TURISMO */}
+      <section className="max-w-6xl mx-auto px-4 pt-8 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
+          <div>
+            <h2 className="text-sm md:text-base font-semibold text-slate-900">
+              GUIA ONDE – Turismo Classilagos
+            </h2>
+            <p className="text-[11px] md:text-xs text-slate-600 max-w-2xl">
+              Escolha por tipo de experiência e encontre lugares para se
+              hospedar, comer, passear e se divertir em toda a Região dos
+              Lagos.
+            </p>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Em breve: páginas especiais por cidade (Maricá, Búzios, Cabo Frio…)
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+          {guiaOndeCards.map((card) => (
+            <div
+              key={card.value}
+              className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-2xl bg-sky-100 flex items-center justify-center text-base">
+                  {card.emoji}
+                </div>
+                <h3 className="text-xs font-semibold text-slate-900">
+                  {card.title}
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-600 flex-1 mb-3">
+                {card.desc}
+              </p>
+              <Link
+                href={`/turismo?secao=${card.value}`}
+                className="inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
+              >
+                Ver opções
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ESPAÇO */}
+      <div className="h-4 sm:h-6" />
+
+      {/* DESTAQUES DE TURISMO */}
+      <section className="max-w-6xl mx-auto px-4 pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
+            Destaques de turismo
+          </h2>
+          <span className="text-[11px] text-slate-500">
+            Anúncios com mais destaque aparecem primeiro.
+          </span>
+        </div>
+
+        {erro && (
+          <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3 mb-3">
+            {erro}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="text-[11px] text-slate-500">
+            Carregando anúncios de turismo…
+          </p>
+        ) : anuncios.length === 0 ? (
+          <p className="text-[11px] text-slate-500">
+            Ainda não há anúncios de turismo publicados. Aproveite a fase de
+            lançamento para ser um dos primeiros a aparecer aqui!
+          </p>
+        ) : destaques.length === 0 ? (
+          <p className="text-[11px] text-slate-500 mb-2">
+            Quando houver anúncios em destaque, eles aparecerão aqui no topo.
+          </p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {destaques.map((anuncio) => {
+              const imagemCapa =
+                anuncio.imagens && anuncio.imagens.length > 0
+                  ? anuncio.imagens[0]
+                  : null;
+
+              return (
+                <div
+                  key={anuncio.id}
+                  className="group rounded-3xl border border-amber-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden flex flex-col"
+                >
+                  <div className="h-36 bg-slate-100 overflow-hidden relative">
+                    {imagemCapa && (
+                      <img
+                        src={imagemCapa}
+                        alt={anuncio.titulo}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                      />
+                    )}
+                    <span className="absolute top-2 left-2 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-semibold text-white shadow">
+                      Destaque
+                    </span>
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                        {labelPilar[anuncio.pilar_turismo] || "Turismo"} •{" "}
+                        {labelSubcategoria(anuncio.subcategoria_turismo)}
+                      </p>
+                      <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
+                        {anuncio.titulo}
+                      </h3>
+                      <p className="text-[11px] text-slate-600">
+                        {anuncio.cidade}
+                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                      </p>
+                      {anuncio.preco && (
+                        <p className="text-[11px] text-emerald-700 font-semibold">
+                          {anuncio.preco}
+                        </p>
+                      )}
+                    </div>
+                    <p className="mt-2 text-[10px] text-slate-400">
+                      Publicado em{" "}
+                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ÚLTIMOS ANÚNCIOS DE TURISMO */}
+      {!loading && anuncios.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 pb-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm md:text-base font-semibold text-slate-900">
+              Últimos anúncios de turismo
+            </h2>
+            <span className="text-[11px] text-slate-500">
+              Em breve: filtros por cidade e por tipo de experiência.
+            </span>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {(recentes.length > 0 ? recentes : anuncios).map((anuncio) => {
+              const imagemCapa =
+                anuncio.imagens && anuncio.imagens.length > 0
+                  ? anuncio.imagens[0]
+                  : null;
+
+              return (
+                <div
+                  key={anuncio.id}
+                  className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
+                >
+                  <div className="h-28 bg-slate-100 overflow-hidden">
+                    {imagemCapa && (
+                      <img
+                        src={imagemCapa}
+                        alt={anuncio.titulo}
+                        className="w-full h-full object-cover group-hover:scale-[1.04] transition"
+                      />
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                        {labelPilar[anuncio.pilar_turismo] || "Turismo"}
+                      </p>
+                      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
+                        {anuncio.titulo}
+                      </h3>
+                      <p className="text-[11px] text-slate-600">
+                        {anuncio.cidade}
+                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                      </p>
+                      {anuncio.preco && (
+                        <p className="text-[11px] text-emerald-700 font-semibold">
+                          {anuncio.preco}
+                        </p>
+                      )}
+                    </div>
+                    <p className="mt-2 text-[10px] text-slate-400">
+                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* CTA ANUNCIAR NO TURISMO */}
+      <section className="max-w-6xl mx-auto px-4 pb-10">
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 py-8 px-4 text-center text-xs sm:text-sm text-slate-600">
+          Em breve, o Classilagos Turismo será o grande guia da região, com
+          pousadas, hotéis, bares, restaurantes, passeios, eventos, guias e
+          muito mais em todas as cidades.
+          <br />
+          <span className="font-semibold">
+            Aproveite a fase de lançamento para anunciar gratuitamente e ganhar
+            destaque desde o início.
+          </span>
+          <div className="mt-4">
+            <Link
+              href="/anunciar"
+              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Anunciar no turismo
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
