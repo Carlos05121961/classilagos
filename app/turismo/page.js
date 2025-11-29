@@ -40,19 +40,7 @@ export default function TurismoPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          `
-          id,
-          titulo,
-          cidade,
-          bairro,
-          pilar_turismo,
-          subcategoria_turismo,
-          preco,
-          faixa_preco,
-          imagens,
-          destaque,
-          created_at
-        `
+          "id, titulo, cidade, bairro, pilar_turismo, subcategoria_turismo, preco, faixa_preco, imagens, destaque, created_at"
         )
         .eq("categoria", "turismo")
         .eq("status", "ativo")
@@ -334,13 +322,12 @@ export default function TurismoPage() {
                 anuncio.imagens && anuncio.imagens.length > 0
                   ? anuncio.imagens[0]
                   : null;
-
-              const precoExibicao =
-                anuncio.faixa_preco || anuncio.preco || null;
+              const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
 
               return (
-                <div
+                <Link
                   key={anuncio.id}
+                  href={`/turismo/anuncio/${anuncio.id}`}
                   className="group rounded-3xl border border-amber-200 bg-white shadow-sm hover:shadow-md transition overflow-hidden flex flex-col"
                 >
                   <div className="h-36 bg-slate-100 overflow-hidden relative">
@@ -379,7 +366,7 @@ export default function TurismoPage() {
                       {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -404,13 +391,12 @@ export default function TurismoPage() {
                 anuncio.imagens && anuncio.imagens.length > 0
                   ? anuncio.imagens[0]
                   : null;
-
-              const precoExibicao =
-                anuncio.faixa_preco || anuncio.preco || null;
+              const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
 
               return (
-                <div
+                <Link
                   key={anuncio.id}
+                  href={`/turismo/anuncio/${anuncio.id}`}
                   className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
                 >
                   <div className="h-28 bg-slate-100 overflow-hidden">
@@ -444,7 +430,7 @@ export default function TurismoPage() {
                       {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
