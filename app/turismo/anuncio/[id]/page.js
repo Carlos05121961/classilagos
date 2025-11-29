@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "../../../supabaseClient";
 import BannerRotator from "../../../components/BannerRotator";
 
 export default function TurismoAnuncioPage() {
   const { id } = useParams();
+
   const [anuncio, setAnuncio] = useState(null);
   const [similares, setSimilares] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,168 +28,118 @@ export default function TurismoAnuncioPage() {
   useEffect(() => {
     if (!id) return;
 
-    const carregar = async () => {
+    const fetchAnuncio = async () => {
       setLoading(true);
       setErro("");
 
-      // 1) Busca o anúncio pelo ID
       const { data, error } = await supabase
         .from("anuncios")
-        .select(
-          `
-          id,
-          categoria,
-          titulo,
-          descricao,
-          cidade,
-          bairro,
-          imagens,
-          contato,
-          telefone,
-          whatsapp,
-          email,
-          nome_negocio,
-          faixa_preco,
-          site_url,
-          instagram,
-          cnpj,
-          razao_social,
-          inscricao_municipal,
-          registro_profissional,
-          pilar_turismo,
-          subcategoria_turismo,
-          tipo_passeio,
-          duracao_passeio,
-          valor_passeio_pessoa,
-          valor_passeio_fechado,
-          ponto_embarque,
-          itens_inclusos,
-          video_url,
-          endereco,
-          created_at
-        `
-        )
+        .select("*")
         .eq("id", id)
         .single();
 
       if (error || !data) {
-        console.error(error);
-        setErro("Anúncio não encontrado ou indisponível.");
-        setLoading(false);
-        return;
-      }
-
-      // Garante que é turismo
-      if (data.categoria !== "turismo") {
-        setErro("Este anúncio não é da categoria Turismo.");
+        console.error("Erro ao buscar anúncio de turismo:", error);
+        setErro("Não foi possível carregar este anúncio de turismo.");
         setLoading(false);
         return;
       }
 
       setAnuncio(data);
-      if (data.imagens && data.imagens.length > 0) {
-        setFotoIndex(0);
-      }
+      setFotoIndex(0);
 
-      // 2) Busca anúncios de turismo relacionados na mesma cidade
-      const { data: rel, error: relError } = await supabase
+      // Buscar similares: mesma categoria (turismo) e mesma cidade
+      const { data: similaresData } = await supabase
         .from("anuncios")
-        .select(`
-          id,
-          titulo,
-          cidade,
-          bairro,
-          imagens,
-          faixa_preco,
-          pilar_turismo,
-          subcategoria_turismo
-        `)
+        .select(
+          "id, titulo, cidade, bairro, imagens, faixa_preco, preco, pilar_turismo, subcategoria_turismo"
+        )
         .eq("categoria", "turismo")
+        .eq("status", "ativo")
         .eq("cidade", data.cidade)
         .neq("id", data.id)
-        .eq("status", "ativo")
+        .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(6);
 
-      if (!relError && rel) {
-        setSimilares(rel);
-      }
-
+      setSimilares(similaresData || []);
       setLoading(false);
     };
 
-    carregar();
+    fetchAnuncio();
   }, [id]);
+
+  // Labels de pilares e subcategorias de turismo
+  const labelPilar = {
+    onde_ficar: "Onde ficar",
+    onde_comer: "Onde comer",
+    onde_se_divertir: "Onde se divertir",
+    onde_passear: "Onde passear",
+    servicos_turismo: "Serviços de turismo",
+    produtos_turisticos: "Produtos turísticos",
+    outros: "Turismo / serviços",
+  };
+
+  const labelSubcategoria = (sub) => {
+    if (!sub) return "";
+    return sub
+      .split("_")
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ");
+  };
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#F5FBFF] pb-12">
-        {/* BANNER TOPO */}
-        <section className="bg-white border-b border-slate-200">
-          <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
-            <BannerRotator />
-          </div>
-        </section>
-
-        <div className="max-w-5xl mx-auto px-4 py-10 text-sm text-slate-600">
-          Carregando anúncio de turismo…
-        </div>
+      <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center">
+        <p className="text-sm text-slate-600">Carregando anúncio de turismo…</p>
       </main>
     );
   }
 
   if (erro || !anuncio) {
     return (
-      <main className="min-h-screen bg-[#F5FBFF] pb-12">
-        {/* BANNER TOPO */}
-        <section className="bg-white border-b border-slate-200">
-          <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
-            <BannerRotator />
-          </div>
-        </section>
-
-        <section className="max-w-5xl mx-auto px-4 py-10 space-y-4">
-          <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
-            {erro || "Anúncio não encontrado."}
-          </p>
-          <Link
-            href="/turismo"
-            className="inline-flex rounded-full bg-[#21D4FD] px-5 py-2 text-sm text-white font-semibold hover:bg-[#3EC9C3]"
-          >
-            Voltar para Turismo
-          </Link>
-        </section>
-
-        <RodapeBasico />
+      <main className="min-h-screen bg-[#F5FBFF] flex flex-col items-center justify-center px-4">
+        <p className="text-sm text-slate-700 mb-4">
+          {erro || "Anúncio de turismo não encontrado."}
+        </p>
+        <Link
+          href="/turismo"
+          className="rounded-full bg-blue-600 px-5 py-2 text-sm text-white font-semibold hover:bg-blue-700"
+        >
+          Voltar para Turismo
+        </Link>
       </main>
     );
   }
 
-  // Flags / dados auxiliares
+  // Imagens
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
 
+  // Contato
   const telefoneRaw = anuncio.telefone || "";
   const whatsappRaw = anuncio.whatsapp || "";
   const email = anuncio.email || "";
+  const nomeResponsavel = anuncio.nome_contato || "";
+  const nomeNegocio = anuncio.nome_negocio || anuncio.titulo;
 
   const whatsappDigits = whatsappRaw.replace(/\D/g, "");
-  const shareText = encodeURIComponent(
-    `Olha este lugar de turismo que encontrei no Classilagos: ${anuncio.titulo}`
-  );
-  const encodedUrl = encodeURIComponent(shareUrl || "");
-  const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
-  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-
   const whatsappLink =
     whatsappDigits && shareUrl
       ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
-          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos Turismo e gostaria de mais informações.`
+          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos Turismo & Guia ONDE e gostaria de mais informações.`
         )}`
       : null;
 
-  const precoExibicao = anuncio.faixa_preco || anuncio.preco || null;
+  // Compartilhamento
+  const encodedUrl = encodeURIComponent(shareUrl || "");
+  const shareText = encodeURIComponent(
+    `Olha este lugar que encontrei no Classilagos Turismo & Guia ONDE: ${anuncio.titulo}`
+  );
+  const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
+  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
+  // Mapa
   const enderecoCompleto = [
     anuncio.endereco || "",
     anuncio.bairro || "",
@@ -201,22 +153,27 @@ export default function TurismoAnuncioPage() {
   );
   const mapaUrl = `https://www.google.com/maps?q=${mapaQuery}&output=embed`;
 
-  const isPasseio =
+  const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
+
+  const pilarLabel =
+    labelPilar[anuncio.pilar_turismo] || "Turismo & Guia ONDE";
+  const subLabel = labelSubcategoria(anuncio.subcategoria_turismo);
+
+  const ehPasseio =
     !!anuncio.tipo_passeio ||
-    !!anuncio.duracao_passeio ||
     !!anuncio.valor_passeio_pessoa ||
     !!anuncio.valor_passeio_fechado;
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* BANNER TOPO */}
+      {/* BANNER TOPO, MESMO PADRÃO DO SITE */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
           <BannerRotator />
         </div>
       </section>
 
-      {/* CABEÇALHO TURISMO */}
+      {/* CABEÇALHO ESPECIAL TURISMO */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
           <div className="flex items-start justify-between gap-4">
@@ -224,53 +181,57 @@ export default function TurismoAnuncioPage() {
               <p className="text-[11px] text-slate-500">
                 Classilagos – Turismo &amp; Guia ONDE
               </p>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug">
                 {anuncio.titulo}
               </h1>
-              <p className="text-xs md:text-sm text-slate-600">
+              <p className="text-xs md:text-sm text-slate-600 mt-1">
+                {pilarLabel}
+                {subLabel ? ` • ${subLabel}` : ""} <br />
                 {anuncio.cidade}
                 {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
               </p>
             </div>
 
-            <Link
-              href="/turismo"
-              className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
-            >
-              Voltar para Turismo
-            </Link>
-          </div>
+            <div className="flex flex-col items-end gap-2">
+              <Link
+                href="/turismo"
+                className="hidden sm:inline-flex rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Voltar para Turismo
+              </Link>
 
-          {/* COMPARTILHAR */}
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-slate-500">Compartilhar:</span>
-            <a
-              href={whatsappShareUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
-            >
-              🟢 WhatsApp
-            </a>
-            <a
-              href={facebookShareUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
-            >
-              📘 Facebook
-            </a>
+              {/* Compartilhar */}
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">Compartilhar:</span>
+                <a
+                  href={whatsappShareUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1EBE57]"
+                >
+                  🟢 WhatsApp
+                </a>
+                <a
+                  href={facebookShareUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center rounded-full bg-[#1877F2] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#0F5BCC]"
+                >
+                  📘 Facebook
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CONTEÚDO TURISMO */}
+      {/* CONTEÚDO PRINCIPAL – GRID */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* GALERIA TURISMO */}
+        {/* GALERIA DE FOTOS EM ESTILO PORTAL TURISMO */}
         {temImagens && (
           <section className="w-full flex flex-col gap-3">
-            <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
-              <div className="relative w-full h-[260px] sm:h-[300px] md:h-[340px] lg:h-[380px]">
+            <div className="w-full rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+              <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] lg:h-[400px]">
                 <img
                   src={imagens[fotoIndex]}
                   alt={anuncio.titulo}
@@ -280,7 +241,7 @@ export default function TurismoAnuncioPage() {
             </div>
 
             {imagens.length > 1 && (
-              <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+              <div className="w-full grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                 {imagens.map((url, index) => (
                   <button
                     key={index}
@@ -288,8 +249,8 @@ export default function TurismoAnuncioPage() {
                     onClick={() => setFotoIndex(index)}
                     className={`rounded-xl overflow-hidden border transition ${
                       fotoIndex === index
-                        ? "border-cyan-500 ring-2 ring-cyan-400/40"
-                        : "border-slate-300 hover:border-cyan-400"
+                        ? "border-sky-500 ring-2 ring-sky-400/40"
+                        : "border-slate-300 hover:border-sky-400"
                     }`}
                   >
                     <img
@@ -304,226 +265,171 @@ export default function TurismoAnuncioPage() {
           </section>
         )}
 
-        {/* GRID PRINCIPAL TURISMO */}
+        {/* GRID: ESQUERDA (info) / DIREITA (contato) */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
-          {/* COLUNA ESQUERDA – DESCRIÇÃO, PASSEIO, MAPA, VÍDEO */}
+          {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* DESCRIÇÃO */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+            {/* RESUMO TURÍSTICO */}
+            <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Sobre este local / serviço
+                Resumo do local / serviço
               </h2>
-              <p className="text-xs text-slate-700 whitespace-pre-line">
-                {anuncio.descricao}
-              </p>
-            </div>
 
-            {/* DETALHES DE PASSEIO (SE HOUVER) */}
-            {isPasseio && (
-              <div className="bg-sky-50 rounded-3xl border border-sky-200 px-5 py-4 shadow-sm text-xs text-slate-800 space-y-2">
-                <h2 className="text-sm font-semibold text-slate-900 mb-1">
-                  Detalhes do passeio / atividade
-                </h2>
-                {anuncio.tipo_passeio && (
-                  <p>
-                    <span className="font-semibold">Tipo de passeio: </span>
-                    {anuncio.tipo_passeio}
-                  </p>
-                )}
-                {anuncio.duracao_passeio && (
-                  <p>
-                    <span className="font-semibold">Duração: </span>
-                    {anuncio.duracao_passeio}
-                  </p>
-                )}
-                {anuncio.valor_passeio_pessoa && (
-                  <p>
-                    <span className="font-semibold">Valor por pessoa: </span>
-                    {anuncio.valor_passeio_pessoa}
-                  </p>
-                )}
-                {anuncio.valor_passeio_fechado && (
-                  <p>
-                    <span className="font-semibold">Passeio fechado: </span>
-                    {anuncio.valor_passeio_fechado}
-                  </p>
-                )}
-                {anuncio.ponto_embarque && (
-                  <p>
-                    <span className="font-semibold">Ponto de embarque: </span>
-                    {anuncio.ponto_embarque}
-                  </p>
-                )}
-                {anuncio.itens_inclusos && (
-                  <p>
-                    <span className="font-semibold">Itens inclusos: </span>
-                    {anuncio.itens_inclusos}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* MAPA */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-              <h3 className="text-xs font-semibold text-slate-900 mb-2">
-                Localização aproximada
-              </h3>
-              <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                <iframe
-                  title="Mapa do anúncio"
-                  src={mapaUrl}
-                  width="100%"
-                  height="100%"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-              <p className="mt-1 text-[10px] text-slate-500">
-                O mapa é aproximado e pode não indicar o endereço exato.
-                Confirme sempre com o anunciante.
-              </p>
-            </div>
-
-            {/* VÍDEO EMBED (SE HOUVER) */}
-            {anuncio.video_url && (
-              <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                  Vídeo de apresentação
-                </h2>
-                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-black aspect-video">
-                  <iframe
-                    src={anuncio.video_url}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="Vídeo do anúncio"
-                  ></iframe>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
+                <div>
+                  <span className="font-semibold text-slate-900">
+                    Categoria:&nbsp;
+                  </span>
+                  {pilarLabel}
+                  {subLabel ? ` • ${subLabel}` : ""}
                 </div>
+
+                {precoExibicao && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Faixa de preço:&nbsp;
+                    </span>
+                    {precoExibicao}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.tipo_passeio && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Tipo de passeio:&nbsp;
+                    </span>
+                    {anuncio.tipo_passeio}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.duracao_passeio && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Duração:&nbsp;
+                    </span>
+                    {anuncio.duracao_passeio}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.valor_passeio_pessoa && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Valor por pessoa:&nbsp;
+                    </span>
+                    {anuncio.valor_passeio_pessoa}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.valor_passeio_fechado && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Passeio fechado:&nbsp;
+                    </span>
+                    {anuncio.valor_passeio_fechado}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.ponto_embarque && (
+                  <div className="basis-full">
+                    <span className="font-semibold text-slate-900">
+                      Ponto de embarque / encontro:&nbsp;
+                    </span>
+                    {anuncio.ponto_embarque}
+                  </div>
+                )}
+
+                {ehPasseio && anuncio.itens_inclusos && (
+                  <div className="basis-full">
+                    <span className="font-semibold text-slate-900">
+                      Itens inclusos:&nbsp;
+                    </span>
+                    {anuncio.itens_inclusos}
+                  </div>
+                )}
               </div>
-            )}
+            </section>
+
+            {/* DESCRIÇÃO + MAPA */}
+            <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm space-y-4">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                  Sobre o local / serviço
+                </h2>
+                <p className="text-xs text-slate-700 whitespace-pre-line">
+                  {anuncio.descricao}
+                </p>
+              </div>
+
+              {/* Vídeo opcional */}
+              {anuncio.video_url && (
+                <div className="mt-3">
+                  <h3 className="text-xs font-semibold text-slate-900 mb-1">
+                    Vídeo de apresentação
+                  </h3>
+                  <p className="text-[11px] text-slate-600 mb-2">
+                    Assista ao vídeo completo deste local / passeio.
+                  </p>
+                  <a
+                    href={anuncio.video_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-[11px] font-semibold text-white hover:bg-red-700"
+                  >
+                    ▶ Ver vídeo
+                  </a>
+                </div>
+              )}
+
+              <div className="mt-4">
+                <h3 className="text-xs font-semibold text-slate-900 mb-2">
+                  Localização aproximada
+                </h3>
+                <div className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <iframe
+                    title="Mapa do anúncio de turismo"
+                    src={mapaUrl}
+                    width="100%"
+                    height="100%"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+                <p className="mt-1 text-[10px] text-slate-500">
+                  O mapa é aproximado e pode não indicar o endereço exato. Em
+                  caso de dúvida, confirme sempre com o anunciante.
+                </p>
+              </div>
+            </section>
           </div>
 
-          {/* COLUNA DIREITA – INFO RÁPIDAS + CONTATO + EMPRESA */}
-          <div className="space-y-4">
-            {/* INFO RÁPIDAS */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm text-xs text-slate-800 space-y-2">
-              {precoExibicao && (
-                <div className="mb-2">
-                  <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">
-                    Faixa de preço
-                  </p>
-                  <p className="text-sm font-bold text-emerald-800">
-                    {precoExibicao}
-                  </p>
-                </div>
-              )}
-
-              {anuncio.nome_negocio && (
-                <p>
-                  <span className="font-semibold">Nome do negócio: </span>
-                  {anuncio.nome_negocio}
-                </p>
-              )}
-              <p>
-                <span className="font-semibold">Cidade: </span>
-                {anuncio.cidade}
-              </p>
-              {anuncio.bairro && (
-                <p>
-                  <span className="font-semibold">Bairro / região: </span>
-                  {anuncio.bairro}
-                </p>
-              )}
-              {anuncio.pilar_turismo && (
-                <p>
-                  <span className="font-semibold">Guia ONDE: </span>
-                  {anuncio.pilar_turismo}
-                </p>
-              )}
-              {anuncio.subcategoria_turismo && (
-                <p>
-                  <span className="font-semibold">Tipo: </span>
-                  {anuncio.subcategoria_turismo}
-                </p>
-              )}
-              {anuncio.site_url && (
-                <p>
-                  <span className="font-semibold">Site / reservas: </span>
-                  <a
-                    href={anuncio.site_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline break-all"
-                  >
-                    {anuncio.site_url}
-                  </a>
-                </p>
-              )}
-              {anuncio.instagram && (
-                <p>
-                  <span className="font-semibold">Instagram: </span>
-                  <a
-                    href={
-                      anuncio.instagram.startsWith("http")
-                        ? anuncio.instagram
-                        : `https://instagram.com/${anuncio.instagram.replace(
-                            "@",
-                            ""
-                          )}`
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-pink-600 hover:underline break-all"
-                  >
-                    {anuncio.instagram}
-                  </a>
-                </p>
-              )}
-            </div>
-
-            {/* DADOS DA EMPRESA / PROFISSIONAL (SE HOUVER) */}
-            {(anuncio.cnpj ||
-              anuncio.razao_social ||
-              anuncio.inscricao_municipal ||
-              anuncio.registro_profissional) && (
-              <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm text-[11px] text-slate-800 space-y-1">
-                <p className="font-semibold text-slate-900 uppercase tracking-wide mb-1">
-                  Dados da empresa / profissional
-                </p>
-                {anuncio.razao_social && (
-                  <p>
-                    <span className="font-semibold">Razão social: </span>
-                    {anuncio.razao_social}
-                  </p>
-                )}
-                {anuncio.cnpj && (
-                  <p>
-                    <span className="font-semibold">CNPJ: </span>
-                    {anuncio.cnpj}
-                  </p>
-                )}
-                {anuncio.inscricao_municipal && (
-                  <p>
-                    <span className="font-semibold">
-                      Inscrição municipal:{" "}
-                    </span>
-                    {anuncio.inscricao_municipal}
-                  </p>
-                )}
-                {anuncio.registro_profissional && (
-                  <p>
-                    <span className="font-semibold">Registro: </span>
-                    {anuncio.registro_profissional}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* CONTATO */}
-            <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-900 mb-3">
-                Fale com o anunciante
+          {/* COLUNA DIREITA – CONTATO */}
+          <aside className="space-y-4">
+            <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+              <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                Reserve / fale com o anunciante
               </h2>
+
+              <p className="text-xs text-slate-700 mb-3">
+                Diga que você viu no{" "}
+                <span className="font-semibold">
+                  Classilagos Turismo &amp; Guia ONDE
+                </span>{" "}
+                para fortalecer a plataforma e o turismo da região.
+              </p>
+
+              <div className="space-y-1 text-xs text-slate-800 mb-3">
+                <p className="font-semibold">{nomeNegocio}</p>
+                {nomeResponsavel && (
+                  <p>
+                    <span className="text-slate-600">Responsável:&nbsp;</span>
+                    {nomeResponsavel}
+                  </p>
+                )}
+                <p className="text-slate-600">
+                  {anuncio.cidade}
+                  {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                </p>
+              </div>
 
               {whatsappLink && (
                 <div className="mb-4">
@@ -543,7 +449,7 @@ export default function TurismoAnuncioPage() {
                 {whatsappRaw && (
                   <p>
                     <span className="font-semibold text-slate-900">
-                      WhatsApp:{" "}
+                      WhatsApp:&nbsp;
                     </span>
                     {whatsappRaw}
                   </p>
@@ -551,7 +457,7 @@ export default function TurismoAnuncioPage() {
                 {telefoneRaw && (
                   <p>
                     <span className="font-semibold text-slate-900">
-                      Telefone:{" "}
+                      Telefone:&nbsp;
                     </span>
                     {telefoneRaw}
                   </p>
@@ -559,42 +465,84 @@ export default function TurismoAnuncioPage() {
                 {email && (
                   <p>
                     <span className="font-semibold text-slate-900">
-                      E-mail:{" "}
+                      E-mail:&nbsp;
                     </span>
                     {email}
                   </p>
                 )}
               </div>
 
+              {(anuncio.site_url || anuncio.instagram) && (
+                <div className="mt-4 pt-3 border-t border-slate-200 space-y-2 text-xs text-slate-700">
+                  {anuncio.site_url && (
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Site / reservas:&nbsp;
+                      </span>
+                      <a
+                        href={anuncio.site_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline break-all"
+                      >
+                        {anuncio.site_url}
+                      </a>
+                    </p>
+                  )}
+                  {anuncio.instagram && (
+                    <p>
+                      <span className="font-semibold text-slate-900">
+                        Instagram:&nbsp;
+                      </span>
+                      <a
+                        href={
+                          anuncio.instagram.startsWith("http")
+                            ? anuncio.instagram
+                            : `https://instagram.com/${anuncio.instagram.replace(
+                                "@",
+                                ""
+                              )}`
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-pink-600 hover:underline break-all"
+                      >
+                        {anuncio.instagram}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              )}
+
               <p className="text-[11px] text-slate-500 pt-3">
                 Anúncio publicado em{" "}
                 {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
               </p>
-            </div>
-          </div>
+            </section>
+          </aside>
         </div>
 
-        {/* SIMILARES TURISMO */}
-        <section className="mt-6">
+        {/* OUTROS LUGARES / PASSEIOS SIMILARES */}
+        <section className="mt-4">
           <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Outros lugares de turismo em {anuncio.cidade}
+              Outros lugares que você pode gostar
             </h2>
 
-            {similares.length === 0 && (
+            {similares.length === 0 ? (
               <p className="text-[11px] text-slate-600">
-                Em breve mais anúncios de turismo nesta região aparecerão aqui.
+                Assim que mais locais da cidade forem cadastrados, eles
+                aparecerão aqui como sugestão para os visitantes.
               </p>
-            )}
-
-            {similares.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs text-slate-700">
                 {similares.map((item) => {
                   const img =
                     Array.isArray(item.imagens) && item.imagens.length > 0
                       ? item.imagens[0]
                       : null;
-                  const precoRel = item.faixa_preco || item.preco || null;
+                  const precoItem =
+                    item.faixa_preco || item.preco || "";
 
                   return (
                     <Link
@@ -612,6 +560,9 @@ export default function TurismoAnuncioPage() {
                         </div>
                       )}
                       <div className="px-3 py-2 space-y-1">
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {labelPilar[item.pilar_turismo] || "Turismo"}
+                        </p>
                         <p className="font-semibold line-clamp-2">
                           {item.titulo}
                         </p>
@@ -619,9 +570,9 @@ export default function TurismoAnuncioPage() {
                           {item.cidade}
                           {item.bairro ? ` • ${item.bairro}` : ""}
                         </p>
-                        {precoRel && (
+                        {precoItem && (
                           <p className="text-[11px] font-semibold text-emerald-700">
-                            {precoRel}
+                            {precoItem}
                           </p>
                         )}
                       </div>
@@ -637,47 +588,37 @@ export default function TurismoAnuncioPage() {
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
             href="/turismo"
-            className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
             Voltar para Turismo
           </Link>
         </div>
 
-        <RodapeBasico />
+        {/* RODAPÉ SIMPLES */}
+        <footer className="mt-8 text-center text-[11px] text-slate-500 space-y-1">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <Link href="/quem-somos" className="hover:underline">
+              Quem somos
+            </Link>
+            <Link href="/como-anunciar" className="hover:underline">
+              Como anunciar
+            </Link>
+            <Link href="/fale-conosco" className="hover:underline">
+              Fale conosco
+            </Link>
+            <Link href="/termos-de-uso" className="hover:underline">
+              Termos de uso
+            </Link>
+            <Link href="/politica-de-privacidade" className="hover:underline">
+              Política de privacidade
+            </Link>
+          </div>
+          <p>
+            Classilagos • O seu guia de compras, serviços e turismo na Região
+            dos Lagos
+          </p>
+        </footer>
       </section>
     </main>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* RODAPÉ BÁSICO                                                      */
-/* ------------------------------------------------------------------ */
-
-function RodapeBasico() {
-  return (
-    <footer className="border-t border-slate-200 bg-slate-50 mt-6">
-      <div className="max-w-6xl mx-auto px-4 py-6 text-[11px] text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex flex-wrap gap-3">
-          <Link href="/quem-somos" className="hover:text-slate-900">
-            Quem somos
-          </Link>
-          <Link href="/fale-conosco" className="hover:text-slate-900">
-            Fale conosco
-          </Link>
-          <Link href="/como-anunciar" className="hover:text-slate-900">
-            Como anunciar
-          </Link>
-          <Link href="/termos-de-uso" className="hover:text-slate-900">
-            Termos de uso
-          </Link>
-          <Link href="/politica-de-privacidade" className="hover:text-slate-900">
-            Política de privacidade
-          </Link>
-        </div>
-        <p className="text-[10px] text-slate-400">
-          Classilagos – Turismo &amp; Guia ONDE • A vitrine da Região dos Lagos.
-        </p>
-      </div>
-    </footer>
   );
 }
