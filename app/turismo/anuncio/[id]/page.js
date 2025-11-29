@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../../../supabaseClient";
 import BannerRotator from "../../../components/BannerRotator";
 
 // Fundo marinho em tela cheia
