@@ -40,7 +40,19 @@ export default function TurismoPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, pilar_turismo, subcategoria_turismo, preco, imagens, destaque, created_at"
+          `
+          id,
+          titulo,
+          cidade,
+          bairro,
+          pilar_turismo,
+          subcategoria_turismo,
+          preco,
+          faixa_preco,
+          imagens,
+          destaque,
+          created_at
+        `
         )
         .eq("categoria", "turismo")
         .eq("status", "ativo")
@@ -70,6 +82,8 @@ export default function TurismoPage() {
     onde_comer: "Onde comer",
     onde_se_divertir: "Onde se divertir",
     onde_passear: "Onde passear",
+    servicos_turismo: "Serviços de turismo",
+    produtos_turisticos: "Produtos turísticos",
     outros: "Turismo / serviços",
   };
 
@@ -156,8 +170,8 @@ export default function TurismoPage() {
             </h1>
             <p className="mt-2 text-xs md:text-sm max-w-2xl drop-shadow">
               Onde ficar, onde comer, onde passear e onde se divertir em Maricá,
-              Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia,
-              Arraial do Cabo, Cabo Frio, Búzios e Rio das Ostras.
+              Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial
+              do Cabo, Cabo Frio, Búzios e Rio das Ostras.
             </p>
           </div>
         </div>
@@ -247,7 +261,8 @@ export default function TurismoPage() {
             </p>
           </div>
           <p className="text-[11px] text-slate-500">
-            Em breve: páginas especiais por cidade (Maricá, Búzios, Cabo Frio…)
+            Em breve: páginas especiais por cidade (Maricá, Búzios, Cabo
+            Frio…)
           </p>
         </div>
 
@@ -320,6 +335,9 @@ export default function TurismoPage() {
                   ? anuncio.imagens[0]
                   : null;
 
+              const precoExibicao =
+                anuncio.faixa_preco || anuncio.preco || null;
+
               return (
                 <div
                   key={anuncio.id}
@@ -350,9 +368,9 @@ export default function TurismoPage() {
                         {anuncio.cidade}
                         {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
-                      {anuncio.preco && (
+                      {precoExibicao && (
                         <p className="text-[11px] text-emerald-700 font-semibold">
-                          {anuncio.preco}
+                          {precoExibicao}
                         </p>
                       )}
                     </div>
@@ -387,6 +405,9 @@ export default function TurismoPage() {
                   ? anuncio.imagens[0]
                   : null;
 
+              const precoExibicao =
+                anuncio.faixa_preco || anuncio.preco || null;
+
               return (
                 <div
                   key={anuncio.id}
@@ -413,9 +434,9 @@ export default function TurismoPage() {
                         {anuncio.cidade}
                         {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
-                      {anuncio.preco && (
+                      {precoExibicao && (
                         <p className="text-[11px] text-emerald-700 font-semibold">
-                          {anuncio.preco}
+                          {precoExibicao}
                         </p>
                       )}
                     </div>
@@ -443,7 +464,7 @@ export default function TurismoPage() {
           </span>
           <div className="mt-4">
             <Link
-              href="/anunciar"
+              href="/anunciar/turismo"
               className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-blue-700"
             >
               Anunciar no turismo
@@ -454,3 +475,4 @@ export default function TurismoPage() {
     </main>
   );
 }
+
