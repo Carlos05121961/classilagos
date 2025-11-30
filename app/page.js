@@ -149,34 +149,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ESPECIAL DE NATAL */}
-      <section className="bg-slate-950">
-        <div className="max-w-4xl mx-auto px-4 pb-6">
-          <div className="w-full rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-emerald-400/60 shadow-[0_0_30px_rgba(0,255,170,0.45)] flex items-center gap-4 px-4 py-3">
-            <div className="relative w-[72px] h-[72px]">
-              <Image
-                src="/icons/especial-natal.jpg"
-                alt="Especial de Natal"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-sm font-semibold text-emerald-200">Especial de Natal Classilagos</h2>
-              <p className="text-[11px] text-slate-200/90">
-                Ofertas, ceias, passeios, presentes e mais — aproveite o fim de ano na Região dos Lagos!
-              </p>
-            </div>
-            <Link
-              href="/lagolistas"
-              className="text-[11px] font-semibold rounded-full border border-emerald-300/70 px-3 py-1.5 text-emerald-100 hover:bg-emerald-400/15 transition"
-            >
-              Ver opções
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* PILARES */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-7xl mx-auto px-4 -mt-4">
