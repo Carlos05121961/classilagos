@@ -13,15 +13,48 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
+  // Agora categorias é um array de objetos (mais flexível, já preparado para ícones neon)
   const categorias = [
-    ["Imóveis", "/imoveis"],
-    ["Veículos", "/veiculos"],
-    ["Náutica", "/nautica"],
-    ["Pets", "/pets"],
-    ["Empregos", "/empregos"],
-    ["Serviços", "/servicos"],
-    ["Turismo", "/turismo"],
-    ["LagoListas", "/lagolistas"],
+    {
+      label: "Imóveis",
+      href: "/imoveis",
+      icon: "/icons/pilares/imoveis-neon.png",
+    },
+    {
+      label: "Veículos",
+      href: "/veiculos",
+      icon: "/icons/pilares/veiculos-neon.png",
+    },
+    {
+      label: "Náutica",
+      href: "/nautica",
+      icon: "/icons/pilares/nautica-neon.png",
+    },
+    {
+      label: "Pets",
+      href: "/pets",
+      icon: "/icons/pilares/pets-neon.png",
+    },
+    {
+      label: "Empregos",
+      href: "/empregos",
+      icon: "/icons/pilares/empregos-neon.png",
+    },
+    {
+      label: "Serviços",
+      href: "/servicos",
+      icon: "/icons/pilares/servicos-neon.png",
+    },
+    {
+      label: "Turismo",
+      href: "/turismo",
+      icon: "/icons/pilares/turismo-neon.png",
+    },
+    {
+      label: "LagoListas",
+      href: "/lagolistas",
+      icon: "/icons/pilares/lagolistas-neon.png",
+    },
   ];
 
   const cidades = [
@@ -76,7 +109,8 @@ export default function Home() {
             <div className="flex-1 flex items-center justify-center px-4 pb-10">
               <div className="text-center text-white drop-shadow max-w-2xl">
                 <p className="text-xs sm:text-sm md:text-base mb-2">
-                  O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
+                  O seu guia de compras, serviços, turismo e oportunidades em
+                  toda a Região dos Lagos.
                 </p>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
                   Classilagos – Região dos Lagos em um só lugar
@@ -110,8 +144,8 @@ export default function Home() {
                   Categoria
                 </label>
                 <select className="w-full rounded-full border border-slate-200 px-3 py-2">
-                  {categorias.map(([label]) => (
-                    <option key={label}>{label}</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.label}>{cat.label}</option>
                   ))}
                 </select>
               </div>
@@ -141,7 +175,7 @@ export default function Home() {
         </div>
       </section>
 
-        {/* CATEGORIAS – FUNDO PRAIA DIRETO NO SECTION */}
+      {/* CATEGORIAS – FUNDO PRAIA DIRETO NO SECTION */}
       <section
         className="
           py-12
@@ -150,24 +184,53 @@ export default function Home() {
         "
       >
         <div className="max-w-7xl mx-auto px-4 -mt-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {categorias.map(([label, href]) => (
+          {/* Linha com os 8 ícones em cards 165x205 (neon) */}
+          <div className="flex items-center justify-center gap-3 overflow-x-auto scrollbar-none pb-2">
+            {categorias.map((cat) => (
               <Link
-                key={href}
-                href={href}
-                className="rounded-2xl bg-slate-900/95 text-center p-3
-                  border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition backdrop-blur-sm"
+                key={cat.href}
+                href={cat.href}
+                className="
+                  w-[165px] h-[205px]
+                  rounded-2xl
+                  flex flex-col items-center
+                  bg-black/85
+                  border border-white/10
+                  shadow-[0_0_26px_rgba(0,0,0,0.9)]
+                  hover:shadow-[0_0_32px_rgba(255,80,200,0.6)]
+                  hover:border-pink-400/80
+                  transition-all duration-200
+                  shrink-0
+                  pt-3 pb-3 px-2
+                  backdrop-blur-sm
+                "
               >
-                <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
-                  {label}
+                {/* ÍCONE NEON – ocupa a parte de cima */}
+                <div className="relative w-full h-[75%] flex items-center justify-center">
+                  {cat.icon && (
+                    <Image
+                      src={cat.icon}
+                      alt={cat.label}
+                      fill
+                      className="object-contain pointer-events-none"
+                    />
+                  )}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Abrir</div>
+
+                {/* TEXTO DA CATEGORIA */}
+                <div className="mt-1 flex flex-col items-center">
+                  <span className="text-[11px] md:text-xs font-semibold text-white text-center uppercase tracking-[0.16em]">
+                    {cat.label}
+                  </span>
+                  <span className="text-[10px] text-pink-200/80 mt-0.5">
+                    Abrir
+                  </span>
+                </div>
               </Link>
             ))}
           </div>
         </div>
       </section>
-
 
       {/* CHAMADAS */}
       <section className="bg-white pb-16">
@@ -176,7 +239,9 @@ export default function Home() {
             href="#"
             className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
           >
-            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
+            <h3 className="font-semibold text-slate-900 mb-2">
+              Classilagos TV
+            </h3>
             <p className="text-sm text-slate-600">
               Pautas locais e vídeos da nossa região.
             </p>
@@ -206,3 +271,4 @@ export default function Home() {
     </main>
   );
 }
+
