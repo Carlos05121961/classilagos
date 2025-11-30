@@ -155,7 +155,7 @@ export default function Home() {
               <Link
                 key={href}
                 href={href}
-                className="rounded-2xl bg-slate-900/95 text-center p-5 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition backdrop-blur-sm"
+                className="rounded-2xl bg-slate-900/95 text-center p-4 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition backdrop-blur-sm"
               >
                 <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
                   {label}
