@@ -9,10 +9,19 @@ export default function MobileAnunciarBar() {
   // Não mostra na home
   if (pathname === "/") return null;
 
-  // Se quiser, pode esconder em certas rotas específicas:
+  // Páginas onde NÃO queremos a barra (já tem CTA forte no topo)
   const hiddenPaths = [
     "/anunciar",
     "/anunciar/formulario",
+    "/imoveis",
+    "/veiculos",
+    "/nautica",
+    "/pets",
+    "/empregos",
+    "/servicos",
+    "/turismo",
+    "/lagolistas",
+    "/noticias",
   ];
 
   if (hiddenPaths.includes(pathname)) return null;
