@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../../supabaseClient";
+import Link from "next/link";
 
 const CATEGORIAS = [
   { value: "todas", label: "Todas as categorias" },
@@ -33,7 +34,7 @@ export default function AdminAnunciosPage() {
   const [filtroCidade, setFiltroCidade] = useState("");
   const [buscaTexto, setBuscaTexto] = useState("");
 
-  // 🔹 Buscar anúncios no Supabase
+  // Carregar anúncios
   useEffect(() => {
     async function carregarAnuncios() {
       setCarregando(true);
@@ -57,10 +58,9 @@ export default function AdminAnunciosPage() {
     carregarAnuncios();
   }, []);
 
-  // 🔹 Aplicar filtros em memória
+  // Filtros
   const anunciosFiltrados = useMemo(() => {
     return anuncios.filter((anuncio) => {
-      // categoria
       if (
         filtroCategoria !== "todas" &&
         anuncio.categoria !== filtroCategoria
@@ -68,7 +68,6 @@ export default function AdminAnunciosPage() {
         return false;
       }
 
-      // cidade
       if (
         filtroCidade &&
         anuncio.cidade &&
@@ -79,7 +78,6 @@ export default function AdminAnunciosPage() {
         return false;
       }
 
-      // busca texto: título ou descrição
       if (buscaTexto) {
         const texto = `${anuncio.titulo || ""} ${anuncio.descricao || ""}`.toLowerCase();
         if (!texto.includes(buscaTexto.trim().toLowerCase())) {
@@ -93,7 +91,7 @@ export default function AdminAnunciosPage() {
 
   return (
     <div className="space-y-4">
-      {/* Título / descrição */}
+      {/* Cabeçalho */}
       <div>
         <p className="text-[11px] text-slate-500 uppercase tracking-wide">
           Administração • Classilagos
@@ -102,9 +100,8 @@ export default function AdminAnunciosPage() {
           Gerenciar anúncios
         </h1>
         <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-          Aqui você visualiza todos os anúncios publicados na plataforma, de
-          todas as categorias. Em breve vamos adicionar ações de edição,
-          destaque e moderação.
+          Aqui você visualiza todos os anúncios publicados na plataforma.
+          Em breve vamos adicionar ações de edição, destaque e moderação.
         </p>
       </div>
 
@@ -117,7 +114,7 @@ export default function AdminAnunciosPage() {
               Categoria
             </label>
             <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
             >
@@ -137,245 +134,216 @@ export default function AdminAnunciosPage() {
             <input
               type="text"
               placeholder="Ex.: Maricá, Cabo Frio..."
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
               value={filtroCidade}
               onChange={(e) => setFiltroCidade(e.target.value)}
             />
           </div>
 
-          {/* Busca texto */}
+          {/* Texto */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-600">
               Buscar por título / descrição
             </label>
             <input
               type="text"
-              placeholder="Ex.: casa com piscina, pousada, consultório..."
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
+              placeholder="Ex.: casa com piscina..."
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
               value={buscaTexto}
               onChange={(e) => setBuscaTexto(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Contador */}
         <div className="text-right text-xs text-slate-500 mt-2 md:mt-0">
           {carregando ? (
             <span>Carregando anúncios…</span>
           ) : (
             <span>
-              Mostrando{" "}
-              <span className="font-semibold text-slate-800">
-                {anunciosFiltrados.length}
-              </span>{" "}
-              de {anuncios.length} anúncios
+              Mostrando <b>{anunciosFiltrados.length}</b> de {anuncios.length}
             </span>
           )}
         </div>
       </div>
 
-      {/* Erro */}
       {erro && (
-        <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           {erro}
         </div>
       )}
 
-      {/* Lista / tabela */}
-      <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-        {/* Tabela desktop */}
-        <div className="hidden md:block">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr className="text-xs text-slate-500">
-                <th className="py-2 pl-4 pr-2 text-left">Anúncio</th>
-                <th className="px-2 text-left">Categoria</th>
-                <th className="px-2 text-left">Cidade</th>
-                <th className="px-2 text-left">Contato</th>
-                <th className="px-2 text-left">Status</th>
-                <th className="px-2 text-left">Criado em</th>
+      {/* Tabela */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200">
+        <table className="w-full text-sm">
+          {/* HEADER */}
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr className="text-xs text-slate-500">
+              <th className="py-2 pl-4 pr-2 text-left">Anúncio</th>
+              <th className="px-2 text-left">Categoria</th>
+              <th className="px-2 text-left">Cidade</th>
+              <th className="px-2 text-left">Contato</th>
+              <th className="px-2 text-left">Status</th>
+              <th className="px-2 text-left">Criado em</th>
+              <th className="px-2 text-left">Ações</th>
+            </tr>
+          </thead>
+
+          {/* BODY */}
+          <tbody>
+            {carregando && (
+              <tr>
+                <td colSpan={7} className="py-6 text-center text-slate-500">
+                  Carregando anúncios…
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {carregando && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-6 text-center text-sm text-slate-500"
-                  >
-                    Carregando anúncios…
-                  </td>
-                </tr>
-              )}
+            )}
 
-              {!carregando && anunciosFiltrados.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-6 text-center text-sm text-slate-500"
-                  >
-                    Nenhum anúncio encontrado com os filtros atuais.
-                  </td>
-                </tr>
-              )}
+            {!carregando && anunciosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={7} className="py-6 text-center text-slate-500">
+                  Nenhum anúncio encontrado.
+                </td>
+              </tr>
+            )}
 
-              {anunciosFiltrados.map((anuncio) => {
-                const primeiraImagem =
-                  anuncio.imagens && anuncio.imagens.length > 0
-                    ? anuncio.imagens[0]
-                    : null;
+            {anunciosFiltrados.map((anuncio) => {
+              const primeiraImagem =
+                anuncio.imagens?.[0] || null;
 
-                const nomeOuNegocio =
-                  anuncio.nome_negocio ||
-                  anuncio.nome_contato ||
-                  anuncio.imobiliaria ||
-                  anuncio.corretor ||
-                  "—";
+              const nomeOuNegocio =
+                anuncio.nome_negocio ||
+                anuncio.nome_contato ||
+                anuncio.imobiliaria ||
+                anuncio.corretor ||
+                "—";
 
-                return (
-                  <tr
-                    key={anuncio.id}
-                    className="border-b border-slate-100 hover:bg-slate-50/80"
-                  >
-                    {/* Anúncio */}
-                    <td className="py-3 pl-4 pr-2 align-top">
-                      <div className="flex items-center gap-3">
-                        {primeiraImagem ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={primeiraImagem}
-                            alt={anuncio.titulo || "Foto do anúncio"}
-                            className="h-12 w-16 rounded-lg object-cover border border-slate-200"
-                          />
-                        ) : (
-                          <div className="h-12 w-16 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
-                            sem foto
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-semibold text-slate-900 line-clamp-1">
-                            {anuncio.titulo || "Sem título"}
-                          </p>
-                          <p className="text-[11px] text-slate-500 line-clamp-1">
-                            {anuncio.descricao || "Sem descrição"}
-                          </p>
+              return (
+                <tr
+                  key={anuncio.id}
+                  className="border-b border-slate-100 hover:bg-slate-50/80"
+                >
+                  {/* Anúncio */}
+                  <td className="py-3 pl-4 pr-2">
+                    <div className="flex items-center gap-3">
+                      {primeiraImagem ? (
+                        <img
+                          src={primeiraImagem}
+                          alt={anuncio.titulo}
+                          className="h-12 w-16 rounded-lg object-cover border"
+                        />
+                      ) : (
+                        <div className="h-12 w-16 flex items-center justify-center border border-dashed text-[10px] text-slate-400">
+                          sem foto
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Categoria */}
-                    <td className="px-2 py-3 align-top text-xs text-slate-700">
-                      {anuncio.categoria || "—"}
-                      {anuncio.destaque && (
-                        <span className="ml-1 inline-flex items-center rounded-full bg-yellow-100 px-2 py-[2px] text-[10px] font-semibold text-yellow-800">
-                          Destaque
-                        </span>
                       )}
-                    </td>
-
-                    {/* Cidade */}
-                    <td className="px-2 py-3 align-top text-xs text-slate-700">
-                      {anuncio.cidade || "—"}
-                    </td>
-
-                    {/* Contato */}
-                    <td className="px-2 py-3 align-top text-xs text-slate-700">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-slate-800">
-                          {nomeOuNegocio}
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          {anuncio.telefone || anuncio.whatsapp || "—"}
-                        </span>
+                      <div>
+                        <p className="font-semibold line-clamp-1">
+                          {anuncio.titulo}
+                        </p>
+                        <p className="text-[11px] text-slate-500 line-clamp-1">
+                          {anuncio.descricao}
+                        </p>
                       </div>
-                    </td>
+                    </div>
+                  </td>
 
-                    {/* Status */}
-                    <td className="px-2 py-3 align-top text-xs text-slate-700">
-                      {anuncio.status || "—"}
-                    </td>
+                  {/* Categoria */}
+                  <td className="px-2 py-3 text-xs">
+                    {anuncio.categoria || "—"}
+                  </td>
 
-                    {/* Data */}
-                    <td className="px-2 py-3 align-top text-xs text-slate-700">
-                      {formatarData(anuncio.created_at)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  {/* Cidade */}
+                  <td className="px-2 py-3 text-xs">
+                    {anuncio.cidade || "—"}
+                  </td>
 
-        {/* Lista em cards (mobile) */}
-        <div className="md:hidden divide-y divide-slate-100">
-          {carregando && (
-            <div className="py-6 text-center text-sm text-slate-500">
-              Carregando anúncios…
-            </div>
-          )}
+                  {/* Contato */}
+                  <td className="px-2 py-3 text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-semibold">{nomeOuNegocio}</span>
+                      <span className="text-[11px] text-slate-500">
+                        {anuncio.telefone || anuncio.whatsapp || "—"}
+                      </span>
+                    </div>
+                  </td>
 
-          {!carregando && anunciosFiltrados.length === 0 && (
-            <div className="py-6 text-center text-sm text-slate-500">
-              Nenhum anúncio encontrado com os filtros atuais.
-            </div>
-          )}
+                  {/* Status */}
+                  <td className="px-2 py-3 text-xs">
+                    {anuncio.status || "—"}
+                  </td>
 
-          {anunciosFiltrados.map((anuncio) => {
-            const primeiraImagem =
-              anuncio.imagens && anuncio.imagens.length > 0
-                ? anuncio.imagens[0]
-                : null;
+                  {/* Data */}
+                  <td className="px-2 py-3 text-xs">
+                    {formatarData(anuncio.created_at)}
+                  </td>
 
-            const nomeOuNegocio =
-              anuncio.nome_negocio ||
-              anuncio.nome_contato ||
-              anuncio.imobiliaria ||
-              anuncio.corretor ||
-              "—";
+                  {/* Ações */}
+                  <td className="px-2 py-3 text-xs">
+                    <Link
+                      href={`/anuncios/${anuncio.id}`}
+                      target="_blank"
+                      className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
+                    >
+                      Ver anúncio
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-            return (
-              <div key={anuncio.id} className="p-3 flex gap-3">
-                {primeiraImagem ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={primeiraImagem}
-                    alt={anuncio.titulo || "Foto do anúncio"}
-                    className="h-16 w-20 rounded-lg object-cover border border-slate-200"
-                  />
-                ) : (
-                  <div className="h-16 w-20 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
-                    sem foto
-                  </div>
-                )}
+      {/* Cards mobile */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {carregando && (
+          <div className="py-6 text-center text-sm text-slate-500">
+            Carregando anúncios…
+          </div>
+        )}
 
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-semibold text-slate-900 line-clamp-2">
-                    {anuncio.titulo || "Sem título"}
-                  </p>
-                  <p className="text-[11px] text-slate-500 line-clamp-2">
-                    {anuncio.descricao || "Sem descrição"}
-                  </p>
-                  <div className="flex flex-wrap gap-1 items-center text-[10px] text-slate-500">
-                    <span>{anuncio.categoria || "—"}</span>
-                    <span>•</span>
-                    <span>{anuncio.cidade || "—"}</span>
-                    {anuncio.destaque && (
-                      <>
-                        <span>•</span>
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-[1px] text-[9px] font-semibold text-yellow-800">
-                          Destaque
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-slate-500">
-                    Criado em {formatarData(anuncio.created_at)}
-                  </div>
+        {!carregando && anunciosFiltrados.length === 0 && (
+          <div className="py-6 text-center text-sm text-slate-500">
+            Nenhum anúncio encontrado.
+          </div>
+        )}
+
+        {anunciosFiltrados.map((anuncio) => {
+          const primeiraImagem =
+            anuncio.imagens?.[0] || null;
+
+          return (
+            <div key={anuncio.id} className="p-3 flex gap-3">
+              {primeiraImagem ? (
+                <img
+                  src={primeiraImagem}
+                  alt={anuncio.titulo}
+                  className="h-16 w-20 rounded-lg object-cover border"
+                />
+              ) : (
+                <div className="h-16 w-20 border border-dashed flex items-center justify-center text-[10px] text-slate-400">
+                  sem foto
                 </div>
+              )}
+
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-semibold line-clamp-2">
+                  {anuncio.titulo}
+                </p>
+                <p className="text-[11px] text-slate-500 line-clamp-2">
+                  {anuncio.descricao}
+                </p>
+
+                <Link
+                  href={`/anuncios/${anuncio.id}`}
+                  className="inline-block mt-1 rounded-full border border-slate-300 px-2 py-[2px] text-[10px] font-medium text-slate-700"
+                >
+                  Ver anúncio
+                </Link>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
