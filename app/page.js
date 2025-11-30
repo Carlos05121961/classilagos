@@ -145,44 +145,42 @@ export default function Home() {
         </div>
       </section>
 
-  {/* CATEGORIAS – FUNDO DE PRAIA */}
-<section className="relative py-2">
-  {/* Fundo da praia */}
-  <div className="absolute inset-0 -z-10">
-    <Image
-      src="/fundobotoes.jpg"
-      alt="Praia da Região dos Lagos"
-      fill
-      priority
-      className="object-cover"
-      sizes="100vw"
-    />
-  </div>
+      {/* CATEGORIAS – FUNDO DE PRAIA */}
+      <section className="relative py-10">
+        {/* Fundo da praia */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/fundobotoes.jpg"
+            alt="Praia da Região dos Lagos ao fundo das categorias"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+          {/* Overlay bem levinho só para dar contraste (pode tirar se quiser) */}
+          <div className="absolute inset-0 bg-sky-900/10" />
+        </div>
 
-  {/* GRID DOS PILARES */}
-  <div className="relative max-w-7xl mx-auto px-4 mt-[-40px]">
-    {/* Aqui movemos apenas os botões! */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {categorias.map(([label, href]) => (
-        <Link
-          key={href}
-          href={href}
-          className="rounded-2xl bg-slate-900 text-center p-5 border border-pink-500
-                     hover:shadow-[0_0_20px_#ff50c8] transition"
-        >
-          <div className="text-lg font-bold bg-gradient-to-r 
-                          from-pink-300 to-cyan-300 bg-clip-text text-transparent">
-            {label}
+        <div className="relative max-w-7xl mx-auto px-4">
+          {/* REMOVIDO: título e texto "Explore por categoria" */}
+
+          {/* Só os 8 pilares sobem um pouco */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-[-24px] sm:mt-[-32px]">
+            {categorias.map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                className="rounded-2xl bg-slate-900 text-center p-5 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition"
+              >
+                <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
+                  {label}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-1">Abrir</div>
+              </Link>
+            ))}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Abrir</div>
-        </Link>
-      ))}
-    </div>
-  </div>
-</section>
-
-
-
+        </div>
+      </section>
 
       {/* DESTAQUES */}
       <section className="bg-white">
@@ -236,4 +234,3 @@ export default function Home() {
     </main>
   );
 }
-
