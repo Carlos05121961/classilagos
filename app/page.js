@@ -13,7 +13,6 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
-  // Agora categorias aponta para /icons/*.jpg (sem /pilares)
   const categorias = [
     {
       label: "Imóveis",
@@ -77,6 +76,9 @@ export default function Home() {
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
+          {/* overlay leve pra deixar o texto mais legível */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/10 to-slate-950/60" />
+
           <div className="absolute inset-0 flex flex-col">
             {/* TOPO DO HERO */}
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
@@ -108,11 +110,19 @@ export default function Home() {
             {/* TEXTO CENTRAL */}
             <div className="flex-1 flex items-center justify-center px-4 pb-10">
               <div className="text-center text-white drop-shadow max-w-2xl">
-                <p className="text-xs sm:text-sm md:text-base mb-2">
+                <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
                   O seu guia de compras, serviços, turismo e oportunidades em
                   toda a Região dos Lagos.
                 </p>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
+                <h1
+                  className="
+                    text-2xl sm:text-3xl md:text-4xl font-extrabold
+                    bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200
+                    bg-clip-text text-transparent
+                    tracking-[0.08em] uppercase
+                    drop-shadow-[0_0_20px_rgba(15,230,255,0.7)]
+                  "
+                >
                   Classilagos – Região dos Lagos em um só lugar
                 </h1>
               </div>
@@ -121,29 +131,49 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA */}
-      <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
-          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-6 py-5">
+      {/* BLOCO DE BUSCA – ESTILO NEON PARA COMBINAR COM OS BOTÕES */}
+      <section className="bg-slate-950">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
+          <div
+            className="
+              rounded-3xl
+              bg-slate-950/95
+              border border-slate-700/70
+              shadow-[0_0_30px_rgba(0,0,0,0.8)]
+              px-6 py-5
+            "
+          >
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
               {/* CAMPO BUSCA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   O que você procura?
                 </label>
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-200 px-3 py-2"
+                  className="
+                    w-full rounded-full border border-slate-600/80 px-3 py-2
+                    bg-slate-900/80 text-slate-50 placeholder:text-slate-400
+                    focus:outline-none focus:ring-2 focus:ring-pink-400/80 focus:border-pink-400
+                    transition
+                  "
                 />
               </div>
 
               {/* CATEGORIA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   Categoria
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-2">
+                <select
+                  className="
+                    w-full rounded-full border border-slate-600/80 px-3 py-2
+                    bg-slate-900/80 text-slate-50
+                    focus:outline-none focus:ring-2 focus:ring-cyan-400/80 focus:border-cyan-400
+                    transition
+                  "
+                >
                   {categorias.map((cat) => (
                     <option key={cat.label}>{cat.label}</option>
                   ))}
@@ -152,10 +182,17 @@ export default function Home() {
 
               {/* CIDADE */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-2">
+                <select
+                  className="
+                    w-full rounded-full border border-slate-600/80 px-3 py-2
+                    bg-slate-900/80 text-slate-50
+                    focus:outline-none focus:ring-2 focus:ring-emerald-400/80 focus:border-emerald-400
+                    transition
+                  "
+                >
                   {cidades.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
@@ -163,19 +200,79 @@ export default function Home() {
               </div>
 
               {/* BOTÃO */}
-              <button className="rounded-full bg-blue-600 text-white px-5 py-2 font-semibold">
+              <button
+                className="
+                  rounded-full
+                  bg-gradient-to-r from-pink-500 via-orange-400 to-cyan-400
+                  text-white px-6 py-2 font-semibold
+                  shadow-[0_0_20px_rgba(255,120,220,0.8)]
+                  hover:shadow-[0_0_26px_rgba(255,160,240,1)]
+                  hover:scale-[1.02]
+                  active:scale-[0.99]
+                  transition
+                  whitespace-nowrap
+                "
+              >
                 Buscar
               </button>
             </div>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">
+          <p className="mt-2 text-[11px] text-center text-slate-400">
             Em breve, essa busca estará totalmente integrada aos anúncios reais.
           </p>
         </div>
       </section>
 
-      {/* CATEGORIAS – FUNDO PRAIA DIRETO NO SECTION */}
+      {/* ESPECIAL DE NATAL – FAIXA ENTRE BUSCA E PILARES */}
+      <section className="bg-slate-950">
+        <div className="max-w-4xl mx-auto px-4 pb-6">
+          <div
+            className="
+              w-full rounded-3xl
+              bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950
+              border border-emerald-400/60
+              shadow-[0_0_30px_rgba(0,255,170,0.45)]
+              flex items-center gap-4 px-4 py-3
+            "
+          >
+            <div className="relative w-[72px] h-[72px] shrink-0">
+              <Image
+                src="/icons/especial-natal.jpg"
+                alt="Especial de Natal"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-sm md:text-base font-semibold text-emerald-200">
+                Especial de Natal Classilagos
+              </h2>
+              <p className="text-[11px] md:text-xs text-slate-200/90">
+                Descubra ofertas, ceias, passeios, presentes e serviços para o
+                fim de ano em toda a Região dos Lagos.
+              </p>
+            </div>
+            <Link
+              href="/lagolistas"
+              className="
+                text-[11px] md:text-xs font-semibold
+                rounded-full border border-emerald-300/70
+                px-3 py-1.5
+                text-emerald-100
+                hover:bg-emerald-400/15
+                hover:shadow-[0_0_18px_rgba(16,185,129,0.7)]
+                transition
+                whitespace-nowrap
+              "
+            >
+              Ver opções
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORIAS – FUNDO PRAIA + CARDS NEON */}
       <section
         className="
           py-12
@@ -184,7 +281,6 @@ export default function Home() {
         "
       >
         <div className="max-w-7xl mx-auto px-4 -mt-4">
-          {/* Linha com os 8 ícones em cards neon reduzidos */}
           <div className="flex items-center justify-center gap-3 overflow-x-auto scrollbar-none pb-2">
             {categorias.map((cat) => (
               <Link
@@ -205,7 +301,6 @@ export default function Home() {
                   backdrop-blur-sm
                 "
               >
-                {/* ÍCONE NEON */}
                 <div className="relative w-full h-[68%] flex items-center justify-center">
                   {cat.icon && (
                     <Image
@@ -217,7 +312,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* TEXTO DA CATEGORIA */}
                 <div className="mt-1 flex flex-col items-center">
                   <span className="text-[10px] font-semibold text-white text-center uppercase tracking-[0.15em]">
                     {cat.label}
