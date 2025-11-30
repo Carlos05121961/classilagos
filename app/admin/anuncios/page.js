@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { supabase } from "../../supabaseClient";
 import Link from "next/link";
+import { supabase } from "../../supabaseClient";
 
 const CATEGORIAS = [
   { value: "todas", label: "Todas as categorias" },
@@ -14,13 +14,6 @@ const CATEGORIAS = [
   { value: "servicos", label: "Serviços" },
   { value: "turismo", label: "Turismo" },
   { value: "lagolistas", label: "LagoListas" },
-];
-
-const STATUS_OPCOES = [
-  { value: "todos", label: "Todos os status" },
-  { value: "ativo", label: "Ativo" },
-  { value: "inativo", label: "Inativo" },
-  { value: "pendente", label: "Pendente" },
 ];
 
 function formatarData(dateString) {
@@ -40,10 +33,9 @@ export default function AdminAnunciosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [filtroCidade, setFiltroCidade] = useState("");
   const [buscaTexto, setBuscaTexto] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [alterandoId, setAlterandoId] = useState(null); // para mostrar loading no botão
+  const [processandoId, setProcessandoId] = useState(null);
 
-  // Carregar anúncios
+  // 🔹 Buscar anúncios no Supabase
   useEffect(() => {
     async function carregarAnuncios() {
       setCarregando(true);
@@ -67,39 +59,7 @@ export default function AdminAnunciosPage() {
     carregarAnuncios();
   }, []);
 
-  // Trocar status (ativo <-> inativo)
-  async function handleToggleStatus(anuncio) {
-    const statusAtual = (anuncio.status || "").toLowerCase();
-    const novoStatus = statusAtual === "ativo" ? "inativo" : "ativo";
-
-    const ok = window.confirm(
-      `Tem certeza que deseja marcar este anúncio como "${novoStatus}"?`
-    );
-    if (!ok) return;
-
-    setAlterandoId(anuncio.id);
-
-    const { error } = await supabase
-      .from("anuncios")
-      .update({ status: novoStatus })
-      .eq("id", anuncio.id);
-
-    if (error) {
-      console.error("Erro ao atualizar status:", error);
-      alert("Erro ao atualizar status do anúncio. Tente novamente.");
-    } else {
-      // Atualiza no estado local
-      setAnuncios((prev) =>
-        prev.map((item) =>
-          item.id === anuncio.id ? { ...item, status: novoStatus } : item
-        )
-      );
-    }
-
-    setAlterandoId(null);
-  }
-
-  // Filtros
+  // 🔹 Filtros em memória
   const anunciosFiltrados = useMemo(() => {
     return anuncios.filter((anuncio) => {
       // categoria
@@ -121,17 +81,11 @@ export default function AdminAnunciosPage() {
         return false;
       }
 
-      // status
-      if (
-        filtroStatus !== "todos" &&
-        (anuncio.status || "").toLowerCase() !== filtroStatus
-      ) {
-        return false;
-      }
-
-      // texto livre
+      // busca texto: título ou descrição
       if (buscaTexto) {
-        const texto = `${anuncio.titulo || ""} ${anuncio.descricao || ""}`.toLowerCase();
+        const texto = `${anuncio.titulo || ""} ${
+          anuncio.descricao || ""
+        }`.toLowerCase();
         if (!texto.includes(buscaTexto.trim().toLowerCase())) {
           return false;
         }
@@ -139,11 +93,91 @@ export default function AdminAnunciosPage() {
 
       return true;
     });
-  }, [anuncios, filtroCategoria, filtroCidade, filtroStatus, buscaTexto]);
+  }, [anuncios, filtroCategoria, filtroCidade, buscaTexto]);
+
+  // 🔹 Ações --------------------------------------------------------
+
+  async function handleToggleDestaque(anuncio) {
+    try {
+      setProcessandoId(anuncio.id);
+      const novoValor = !anuncio.destaque;
+
+      const { error } = await supabase
+        .from("anuncios")
+        .update({ destaque: novoValor })
+        .eq("id", anuncio.id);
+
+      if (error) throw error;
+
+      setAnuncios((prev) =>
+        prev.map((a) =>
+          a.id === anuncio.id ? { ...a, destaque: novoValor } : a
+        )
+      );
+    } catch (e) {
+      console.error("Erro ao alterar destaque:", e);
+      alert("Erro ao alterar destaque do anúncio.");
+    } finally {
+      setProcessandoId(null);
+    }
+  }
+
+  async function handleToggleStatus(anuncio) {
+    try {
+      setProcessandoId(anuncio.id);
+      const statusAtual = anuncio.status || "ativo";
+      const novoStatus = statusAtual === "ativo" ? "pausado" : "ativo";
+
+      const { error } = await supabase
+        .from("anuncios")
+        .update({ status: novoStatus })
+        .eq("id", anuncio.id);
+
+      if (error) throw error;
+
+      setAnuncios((prev) =>
+        prev.map((a) =>
+          a.id === anuncio.id ? { ...a, status: novoStatus } : a
+        )
+      );
+    } catch (e) {
+      console.error("Erro ao alterar status:", e);
+      alert("Erro ao alterar status do anúncio.");
+    } finally {
+      setProcessandoId(null);
+    }
+  }
+
+  async function handleExcluir(anuncio) {
+    const ok = window.confirm(
+      `Tem certeza que deseja excluir o anúncio:\n\n"${anuncio.titulo}"?`
+    );
+    if (!ok) return;
+
+    try {
+      setProcessandoId(anuncio.id);
+
+      const { error } = await supabase
+        .from("anuncios")
+        .delete()
+        .eq("id", anuncio.id);
+
+      if (error) throw error;
+
+      setAnuncios((prev) => prev.filter((a) => a.id !== anuncio.id));
+    } catch (e) {
+      console.error("Erro ao excluir anúncio:", e);
+      alert("Erro ao excluir anúncio.");
+    } finally {
+      setProcessandoId(null);
+    }
+  }
+
+  // ----------------------------------------------------------------
 
   return (
     <div className="space-y-4">
-      {/* Cabeçalho */}
+      {/* Título / descrição */}
       <div>
         <p className="text-[11px] text-slate-500 uppercase tracking-wide">
           Administração • Classilagos
@@ -152,22 +186,21 @@ export default function AdminAnunciosPage() {
           Gerenciar anúncios
         </h1>
         <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-          Visualize e administre todos os anúncios da plataforma. Use os filtros
-          para encontrar rapidamente o que precisa. Você pode ativar ou
-          desativar anúncios a qualquer momento.
+          Aqui você visualiza todos os anúncios publicados na plataforma, de
+          todas as categorias. Você pode destacar, pausar ou excluir anúncios.
         </p>
       </div>
 
       {/* Filtros */}
       <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex-1 grid gap-3 md:grid-cols-4">
+        <div className="flex-1 grid gap-3 md:grid-cols-3">
           {/* Categoria */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-600">
               Categoria
             </label>
             <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
             >
@@ -187,65 +220,53 @@ export default function AdminAnunciosPage() {
             <input
               type="text"
               placeholder="Ex.: Maricá, Cabo Frio..."
-              className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
               value={filtroCidade}
               onChange={(e) => setFiltroCidade(e.target.value)}
             />
           </div>
 
-          {/* Status */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-semibold text-slate-600">
-              Status
-            </label>
-            <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-              value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value)}
-            >
-              {STATUS_OPCOES.map((st) => (
-                <option key={st.value} value={st.value}>
-                  {st.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Texto */}
+          {/* Busca texto */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-600">
               Buscar por título / descrição
             </label>
             <input
               type="text"
-              placeholder="Ex.: casa com piscina..."
-              className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              placeholder="Ex.: casa com piscina, pousada, consultório..."
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/60"
               value={buscaTexto}
               onChange={(e) => setBuscaTexto(e.target.value)}
             />
           </div>
         </div>
 
+        {/* Contador */}
         <div className="text-right text-xs text-slate-500 mt-2 md:mt-0">
           {carregando ? (
             <span>Carregando anúncios…</span>
           ) : (
             <span>
-              Mostrando <b>{anunciosFiltrados.length}</b> de {anuncios.length}
+              Mostrando{" "}
+              <span className="font-semibold text-slate-800">
+                {anunciosFiltrados.length}
+              </span>{" "}
+              de {anuncios.length} anúncios
             </span>
           )}
         </div>
       </div>
 
+      {/* Erro */}
       {erro && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           {erro}
         </div>
       )}
 
-      {/* Tabela desktop */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200">
-        <table className="w-full text-sm">
+      {/* Tabela (desktop) */}
+      <div className="hidden md:block rounded-2xl bg-white border border-slate-200 overflow-hidden">
+        <table className="min-w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr className="text-xs text-slate-500">
               <th className="py-2 pl-4 pr-2 text-left">Anúncio</th>
@@ -257,10 +278,14 @@ export default function AdminAnunciosPage() {
               <th className="px-2 text-left">Ações</th>
             </tr>
           </thead>
+
           <tbody>
             {carregando && (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-slate-500">
+                <td
+                  colSpan={7}
+                  className="py-6 text-center text-sm text-slate-500"
+                >
                   Carregando anúncios…
                 </td>
               </tr>
@@ -268,32 +293,29 @@ export default function AdminAnunciosPage() {
 
             {!carregando && anunciosFiltrados.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-slate-500">
-                  Nenhum anúncio encontrado.
+                <td
+                  colSpan={7}
+                  className="py-6 text-center text-sm text-slate-500"
+                >
+                  Nenhum anúncio encontrado com os filtros atuais.
                 </td>
               </tr>
             )}
 
             {anunciosFiltrados.map((anuncio) => {
-              const primeiraImagem = anuncio.imagens?.[0] || null;
+              const primeiraImagem =
+                anuncio.imagens && anuncio.imagens.length > 0
+                  ? anuncio.imagens[0]
+                  : null;
+
               const nomeOuNegocio =
                 anuncio.nome_negocio ||
                 anuncio.nome_contato ||
                 anuncio.imobiliaria ||
                 anuncio.corretor ||
                 "—";
-              const statusLower = (anuncio.status || "").toLowerCase();
 
-              const statusClasse =
-                statusLower === "ativo"
-                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                  : statusLower === "pendente"
-                  ? "bg-amber-100 text-amber-800 border-amber-200"
-                  : statusLower === "inativo"
-                  ? "bg-slate-100 text-slate-700 border-slate-200"
-                  : "bg-slate-100 text-slate-700 border-slate-200";
-
-              const statusLabel = anuncio.status || "—";
+              const status = anuncio.status || "ativo";
 
               return (
                 <tr
@@ -301,44 +323,52 @@ export default function AdminAnunciosPage() {
                   className="border-b border-slate-100 hover:bg-slate-50/80"
                 >
                   {/* Anúncio */}
-                  <td className="py-3 pl-4 pr-2">
+                  <td className="py-3 pl-4 pr-2 align-top">
                     <div className="flex items-center gap-3">
                       {primeiraImagem ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={primeiraImagem}
-                          alt={anuncio.titulo}
-                          className="h-12 w-16 rounded-lg object-cover border"
+                          alt={anuncio.titulo || "Foto do anúncio"}
+                          className="h-12 w-16 rounded-lg object-cover border border-slate-200"
                         />
                       ) : (
-                        <div className="h-12 w-16 flex items-center justify-center border border-dashed text-[10px] text-slate-400">
+                        <div className="h-12 w-16 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
                           sem foto
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold line-clamp-1">
-                          {anuncio.titulo}
+                        <p className="font-semibold text-slate-900 line-clamp-1">
+                          {anuncio.titulo || "Sem título"}
                         </p>
                         <p className="text-[11px] text-slate-500 line-clamp-1">
-                          {anuncio.descricao}
+                          {anuncio.descricao || "Sem descrição"}
                         </p>
                       </div>
                     </div>
                   </td>
 
                   {/* Categoria */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     {anuncio.categoria || "—"}
+                    {anuncio.destaque && (
+                      <span className="ml-1 inline-flex items-center rounded-full bg-yellow-100 px-2 py-[2px] text-[10px] font-semibold text-yellow-800">
+                        Destaque
+                      </span>
+                    )}
                   </td>
 
                   {/* Cidade */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     {anuncio.cidade || "—"}
                   </td>
 
                   {/* Contato */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     <div className="flex flex-col">
-                      <span className="font-semibold">{nomeOuNegocio}</span>
+                      <span className="font-semibold text-slate-800">
+                        {nomeOuNegocio}
+                      </span>
                       <span className="text-[11px] text-slate-500">
                         {anuncio.telefone || anuncio.whatsapp || "—"}
                       </span>
@@ -346,45 +376,61 @@ export default function AdminAnunciosPage() {
                   </td>
 
                   {/* Status */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     <span
-                      className={`inline-flex items-center rounded-full border px-2 py-[2px] text-[11px] font-medium ${statusClasse}`}
+                      className={`inline-flex rounded-full px-2 py-[2px] text-[10px] font-semibold ${
+                        status === "ativo"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-slate-200 text-slate-700"
+                      }`}
                     >
-                      {statusLabel}
+                      {status}
                     </span>
                   </td>
 
                   {/* Data */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     {formatarData(anuncio.created_at)}
                   </td>
 
                   {/* Ações */}
-                  <td className="px-2 py-3 text-xs">
+                  <td className="px-2 py-3 align-top text-xs text-slate-700">
                     <div className="flex flex-col gap-1">
                       <Link
                         href={`/anuncios/${anuncio.id}`}
+                        className="text-[11px] text-blue-600 hover:underline"
                         target="_blank"
-                        className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
                       >
-                        Ver anúncio
+                        Ver no site
                       </Link>
 
                       <button
                         type="button"
-                        onClick={() => handleToggleStatus(anuncio)}
-                        disabled={alterandoId === anuncio.id}
-                        className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-medium ${
-                          statusLower === "ativo"
-                            ? "bg-slate-800 text-white hover:bg-slate-900"
-                            : "bg-emerald-600 text-white hover:bg-emerald-700"
-                        } disabled:opacity-60 disabled:cursor-not-allowed`}
+                        onClick={() => handleToggleDestaque(anuncio)}
+                        disabled={processandoId === anuncio.id}
+                        className="text-[11px] text-yellow-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed text-left"
                       >
-                        {alterandoId === anuncio.id
-                          ? "Atualizando..."
-                          : statusLower === "ativo"
-                          ? "Desativar"
-                          : "Ativar"}
+                        {anuncio.destaque
+                          ? "Remover destaque"
+                          : "Colocar em destaque"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(anuncio)}
+                        disabled={processandoId === anuncio.id}
+                        className="text-[11px] text-slate-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                      >
+                        {status === "ativo" ? "Pausar anúncio" : "Ativar anúncio"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleExcluir(anuncio)}
+                        disabled={processandoId === anuncio.id}
+                        className="text-[11px] text-red-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                      >
+                        Excluir anúncio
                       </button>
                     </div>
                   </td>
@@ -395,8 +441,8 @@ export default function AdminAnunciosPage() {
         </table>
       </div>
 
-      {/* Cards mobile */}
-      <div className="md:hidden divide-y divide-slate-100">
+      {/* Lista em cards (mobile) */}
+      <div className="md:hidden divide-y divide-slate-100 rounded-2xl bg-white border border-slate-200 overflow-hidden">
         {carregando && (
           <div className="py-6 text-center text-sm text-slate-500">
             Carregando anúncios…
@@ -405,80 +451,105 @@ export default function AdminAnunciosPage() {
 
         {!carregando && anunciosFiltrados.length === 0 && (
           <div className="py-6 text-center text-sm text-slate-500">
-            Nenhum anúncio encontrado.
+            Nenhum anúncio encontrado com os filtros atuais.
           </div>
         )}
 
         {anunciosFiltrados.map((anuncio) => {
-          const primeiraImagem = anuncio.imagens?.[0] || null;
-          const statusLower = (anuncio.status || "").toLowerCase();
-          const statusLabel = anuncio.status || "—";
+          const primeiraImagem =
+            anuncio.imagens && anuncio.imagens.length > 0
+              ? anuncio.imagens[0]
+              : null;
 
-          const statusClasse =
-            statusLower === "ativo"
-              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-              : statusLower === "pendente"
-              ? "bg-amber-100 text-amber-800 border-amber-200"
-              : statusLower === "inativo"
-              ? "bg-slate-100 text-slate-700 border-slate-200"
-              : "bg-slate-100 text-slate-700 border-slate-200";
+          const nomeOuNegocio =
+            anuncio.nome_negocio ||
+            anuncio.nome_contato ||
+            anuncio.imobiliaria ||
+            anuncio.corretor ||
+            "—";
+
+          const status = anuncio.status || "ativo";
 
           return (
             <div key={anuncio.id} className="p-3 flex gap-3">
               {primeiraImagem ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={primeiraImagem}
-                  alt={anuncio.titulo}
-                  className="h-16 w-20 rounded-lg object-cover border"
+                  alt={anuncio.titulo || "Foto do anúncio"}
+                  className="h-16 w-20 rounded-lg object-cover border border-slate-200"
                 />
               ) : (
-                <div className="h-16 w-20 border border-dashed flex items-center justify-center text-[10px] text-slate-400">
+                <div className="h-16 w-20 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-400">
                   sem foto
                 </div>
               )}
 
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-semibold line-clamp-2">
-                  {anuncio.titulo}
+                <p className="text-sm font-semibold text-slate-900 line-clamp-2">
+                  {anuncio.titulo || "Sem título"}
                 </p>
                 <p className="text-[11px] text-slate-500 line-clamp-2">
-                  {anuncio.descricao}
+                  {anuncio.descricao || "Sem descrição"}
                 </p>
 
-                <div className="flex items-center gap-2 text-[10px] mt-1">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-[1px] font-medium ${statusClasse}`}
-                  >
-                    {statusLabel}
-                  </span>
-                  <span className="text-slate-400">
-                    {formatarData(anuncio.created_at)}
+                <div className="flex flex-wrap gap-1 items-center text-[10px] text-slate-500">
+                  <span>{anuncio.categoria || "—"}</span>
+                  <span>•</span>
+                  <span>{anuncio.cidade || "—"}</span>
+                  {anuncio.destaque && (
+                    <>
+                      <span>•</span>
+                      <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-[1px] text-[9px] font-semibold text-yellow-800">
+                        Destaque
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-[10px] text-slate-500">
+                  <span>
+                    Criado em {formatarData(anuncio.created_at)} • {status}
                   </span>
                 </div>
 
-                <div className="flex gap-2 mt-2">
+                {/* Ações mobile */}
+                <div className="pt-1 flex flex-wrap gap-2">
                   <Link
                     href={`/anuncios/${anuncio.id}`}
-                    className="flex-1 inline-flex items-center justify-center rounded-full border border-slate-300 px-2 py-[4px] text-[11px] font-medium text-slate-700"
+                    target="_blank"
+                    className="text-[10px] text-blue-600 underline"
                   >
-                    Ver
+                    Ver no site
                   </Link>
 
                   <button
                     type="button"
-                    onClick={() => handleToggleStatus(anuncio)}
-                    disabled={alterandoId === anuncio.id}
-                    className={`flex-1 inline-flex items-center justify-center rounded-full px-2 py-[4px] text-[11px] font-medium ${
-                      statusLower === "ativo"
-                        ? "bg-slate-800 text-white"
-                        : "bg-emerald-600 text-white"
-                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                    onClick={() => handleToggleDestaque(anuncio)}
+                    disabled={processandoId === anuncio.id}
+                    className="text-[10px] text-yellow-700 underline disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {alterandoId === anuncio.id
-                      ? "Atualizando..."
-                      : statusLower === "ativo"
-                      ? "Desativar"
-                      : "Ativar"}
+                    {anuncio.destaque
+                      ? "Remover destaque"
+                      : "Colocar em destaque"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(anuncio)}
+                    disabled={processandoId === anuncio.id}
+                    className="text-[10px] text-slate-700 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {status === "ativo" ? "Pausar" : "Ativar"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExcluir(anuncio)}
+                    disabled={processandoId === anuncio.id}
+                    className="text-[10px] text-red-600 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Excluir
                   </button>
                 </div>
               </div>
