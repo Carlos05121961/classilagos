@@ -1,16 +1,13 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-
-// IMPORTS DOS FORMULÁRIOS
 import FormularioImoveis from "../../components/forms/FormularioImoveis";
 import FormularioVeiculos from "../../components/forms/FormularioVeiculos";
 import FormularioNautica from "../../components/forms/FormularioNautica";
 import FormularioPets from "../../components/forms/FormularioPets";
 
-export default function AnunciarFormularioPage() {
-  const searchParams = useSearchParams();
-  const tipo = searchParams.get("tipo");
+// ⬇️ NADA de "use client" aqui em cima
+// ⬇️ NADA de useSearchParams, só usamos searchParams da função
+
+export default function AnunciarFormularioPage({ searchParams }) {
+  const tipo = searchParams?.tipo; // vem da URL ?tipo=imoveis
 
   function renderFormulario() {
     switch (tipo) {
@@ -28,8 +25,17 @@ export default function AnunciarFormularioPage() {
             <h1 className="text-2xl font-bold text-slate-800 mb-4">
               Escolha uma categoria válida
             </h1>
-            <p className="text-slate-600 text-sm">
-              Volte ao menu “Anuncie grátis” e escolha uma seção válida.
+            <p className="text-sm text-slate-600 mb-2">
+              Esta página recebe a categoria pela URL, por exemplo:
+            </p>
+            <p className="text-xs text-slate-500 mb-4">
+              <code className="bg-slate-100 px-2 py-1 rounded">
+                /anunciar/formulario?tipo=imoveis
+              </code>
+            </p>
+            <p className="text-sm text-slate-600">
+              Volte à página <strong>Anuncie grátis</strong> e escolha uma
+              seção (Imóveis, Veículos, Náutica ou Pets) para continuar.
             </p>
           </div>
         );
@@ -44,3 +50,4 @@ export default function AnunciarFormularioPage() {
     </main>
   );
 }
+
