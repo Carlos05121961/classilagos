@@ -13,47 +13,47 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
-  // Agora categorias é um array de objetos (mais flexível, já preparado para ícones neon)
+  // Agora categorias aponta para /icons/*.jpg (sem /pilares)
   const categorias = [
     {
       label: "Imóveis",
       href: "/imoveis",
-      icon: "/icons/pilares/imoveis-neon.png",
+      icon: "/icons/imoveis-neon.jpg",
     },
     {
       label: "Veículos",
       href: "/veiculos",
-      icon: "/icons/pilares/veiculos-neon.png",
+      icon: "/icons/veiculos-neon.jpg",
     },
     {
       label: "Náutica",
       href: "/nautica",
-      icon: "/icons/pilares/nautica-neon.png",
+      icon: "/icons/nautica-neon.jpg",
     },
     {
       label: "Pets",
       href: "/pets",
-      icon: "/icons/pilares/pets-neon.png",
+      icon: "/icons/pets-neon.jpg",
     },
     {
       label: "Empregos",
       href: "/empregos",
-      icon: "/icons/pilares/empregos-neon.png",
+      icon: "/icons/empregos-neon.jpg",
     },
     {
       label: "Serviços",
       href: "/servicos",
-      icon: "/icons/pilares/servicos-neon.png",
+      icon: "/icons/servicos-neon.jpg",
     },
     {
       label: "Turismo",
       href: "/turismo",
-      icon: "/icons/pilares/turismo-neon.png",
+      icon: "/icons/turismo-neon.jpg",
     },
     {
       label: "LagoListas",
       href: "/lagolistas",
-      icon: "/icons/pilares/lagolistas-neon.png",
+      icon: "/icons/lagolistas-neon.jpg",
     },
   ];
 
@@ -205,7 +205,7 @@ export default function Home() {
                   backdrop-blur-sm
                 "
               >
-                {/* ÍCONE NEON – parte de cima do card */}
+                {/* ÍCONE NEON */}
                 <div className="relative w-full h-[68%] flex items-center justify-center">
                   {cat.icon && (
                     <Image
