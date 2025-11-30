@@ -145,48 +145,43 @@ export default function Home() {
         </div>
       </section>
 
-         {/* CATEGORIAS – FUNDO DE PRAIA */}
-      <section className="relative py-6 md:py-10 overflow-hidden">
-        {/* Fundo de praia */}
-        <Image
-          src="/fundobotoes.jpg"
-          alt="Praia da Região dos Lagos ao fundo das categorias"
-          fill
-          priority
-          className="absolute inset-0 w-full h-full object-cover"
-          sizes="100vw"
-        />
-        {/* Overlay leve pra dar contraste */}
-        <div className="absolute inset-0 bg-sky-900/20" />
+      {/* CATEGORIAS – FUNDO DE PRAIA */}
+<section className="relative py-4 md:py-6 overflow-hidden">
+  {/* Fundo de praia */}
+  <Image
+    src="/fundobotoes.jpg"
+    alt="Praia da Região dos Lagos ao fundo das categorias"
+    fill
+    priority
+    className="absolute inset-0 w-full h-full object-cover"
+    sizes="100vw"
+  />
 
-        {/* Conteúdo por cima do fundo */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 pb-4">
-          {/* Título bem discreto */}
-          <h2 className="text-sm md:text-base font-semibold text-white mb-1 drop-shadow">
-            Explore por categoria
-          </h2>
+  {/* Overlay leve para contraste */}
+  <div className="absolute inset-0 bg-sky-900/10" />
 
-          <p className="text-[10px] md:text-xs text-slate-100 mb-2 drop-shadow">
-            Clique e vá direto para a seção desejada.
-          </p>
-
-          {/* -mt-2 / -mt-4 = sobe os cards, aparecendo mais areia e onda */}
-          <div className="-mt-2 md:-mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {categorias.map(([label, href]) => (
-              <Link
-                key={href}
-                href={href}
-                className="rounded-2xl bg-slate-900/90 text-center p-5 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition"
-              >
-                <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
-                  {label}
-                </div>
-                <div className="text-[11px] text-slate-300 mt-1">Abrir</div>
-              </Link>
-            ))}
+  {/* CONTEÚDO */}
+  <div className="relative z-10 max-w-7xl mx-auto px-4">
+    
+    {/* Cards — levantados para aparecer mais areia/ondas */}
+    <div className="-mt-10 md:-mt-16 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      {categorias.map(([label, href]) => (
+        <Link
+          key={href}
+          href={href}
+          className="rounded-2xl bg-slate-900/90 text-center p-5 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition backdrop-blur-sm"
+        >
+          <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
+            {label}
           </div>
-        </div>
-      </section>
+          <div className="text-[11px] text-slate-300 mt-1">Abrir</div>
+        </Link>
+      ))}
+    </div>
+
+  </div>
+</section>
+
 
 
       {/* DESTAQUES */}
