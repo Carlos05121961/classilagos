@@ -16,6 +16,13 @@ const CATEGORIAS = [
   { value: "lagolistas", label: "LagoListas" },
 ];
 
+const STATUS_OPCOES = [
+  { value: "todos", label: "Todos os status" },
+  { value: "ativo", label: "Ativo" },
+  { value: "inativo", label: "Inativo" },
+  { value: "pendente", label: "Pendente" },
+];
+
 function formatarData(dateString) {
   if (!dateString) return "—";
   const d = new Date(dateString);
@@ -33,6 +40,8 @@ export default function AdminAnunciosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [filtroCidade, setFiltroCidade] = useState("");
   const [buscaTexto, setBuscaTexto] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [alterandoId, setAlterandoId] = useState(null); // para mostrar loading no botão
 
   // Carregar anúncios
   useEffect(() => {
@@ -58,9 +67,42 @@ export default function AdminAnunciosPage() {
     carregarAnuncios();
   }, []);
 
+  // Trocar status (ativo <-> inativo)
+  async function handleToggleStatus(anuncio) {
+    const statusAtual = (anuncio.status || "").toLowerCase();
+    const novoStatus = statusAtual === "ativo" ? "inativo" : "ativo";
+
+    const ok = window.confirm(
+      `Tem certeza que deseja marcar este anúncio como "${novoStatus}"?`
+    );
+    if (!ok) return;
+
+    setAlterandoId(anuncio.id);
+
+    const { error } = await supabase
+      .from("anuncios")
+      .update({ status: novoStatus })
+      .eq("id", anuncio.id);
+
+    if (error) {
+      console.error("Erro ao atualizar status:", error);
+      alert("Erro ao atualizar status do anúncio. Tente novamente.");
+    } else {
+      // Atualiza no estado local
+      setAnuncios((prev) =>
+        prev.map((item) =>
+          item.id === anuncio.id ? { ...item, status: novoStatus } : item
+        )
+      );
+    }
+
+    setAlterandoId(null);
+  }
+
   // Filtros
   const anunciosFiltrados = useMemo(() => {
     return anuncios.filter((anuncio) => {
+      // categoria
       if (
         filtroCategoria !== "todas" &&
         anuncio.categoria !== filtroCategoria
@@ -68,6 +110,7 @@ export default function AdminAnunciosPage() {
         return false;
       }
 
+      // cidade
       if (
         filtroCidade &&
         anuncio.cidade &&
@@ -78,6 +121,15 @@ export default function AdminAnunciosPage() {
         return false;
       }
 
+      // status
+      if (
+        filtroStatus !== "todos" &&
+        (anuncio.status || "").toLowerCase() !== filtroStatus
+      ) {
+        return false;
+      }
+
+      // texto livre
       if (buscaTexto) {
         const texto = `${anuncio.titulo || ""} ${anuncio.descricao || ""}`.toLowerCase();
         if (!texto.includes(buscaTexto.trim().toLowerCase())) {
@@ -87,7 +139,7 @@ export default function AdminAnunciosPage() {
 
       return true;
     });
-  }, [anuncios, filtroCategoria, filtroCidade, buscaTexto]);
+  }, [anuncios, filtroCategoria, filtroCidade, filtroStatus, buscaTexto]);
 
   return (
     <div className="space-y-4">
@@ -100,14 +152,15 @@ export default function AdminAnunciosPage() {
           Gerenciar anúncios
         </h1>
         <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-          Aqui você visualiza todos os anúncios publicados na plataforma.
-          Em breve vamos adicionar ações de edição, destaque e moderação.
+          Visualize e administre todos os anúncios da plataforma. Use os filtros
+          para encontrar rapidamente o que precisa. Você pode ativar ou
+          desativar anúncios a qualquer momento.
         </p>
       </div>
 
       {/* Filtros */}
       <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex-1 grid gap-3 md:grid-cols-3">
+        <div className="flex-1 grid gap-3 md:grid-cols-4">
           {/* Categoria */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-600">
@@ -138,6 +191,24 @@ export default function AdminAnunciosPage() {
               value={filtroCidade}
               onChange={(e) => setFiltroCidade(e.target.value)}
             />
+          </div>
+
+          {/* Status */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-semibold text-slate-600">
+              Status
+            </label>
+            <select
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              value={filtroStatus}
+              onChange={(e) => setFiltroStatus(e.target.value)}
+            >
+              {STATUS_OPCOES.map((st) => (
+                <option key={st.value} value={st.value}>
+                  {st.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Texto */}
@@ -172,10 +243,9 @@ export default function AdminAnunciosPage() {
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Tabela desktop */}
       <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-sm">
-          {/* HEADER */}
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr className="text-xs text-slate-500">
               <th className="py-2 pl-4 pr-2 text-left">Anúncio</th>
@@ -187,8 +257,6 @@ export default function AdminAnunciosPage() {
               <th className="px-2 text-left">Ações</th>
             </tr>
           </thead>
-
-          {/* BODY */}
           <tbody>
             {carregando && (
               <tr>
@@ -207,15 +275,25 @@ export default function AdminAnunciosPage() {
             )}
 
             {anunciosFiltrados.map((anuncio) => {
-              const primeiraImagem =
-                anuncio.imagens?.[0] || null;
-
+              const primeiraImagem = anuncio.imagens?.[0] || null;
               const nomeOuNegocio =
                 anuncio.nome_negocio ||
                 anuncio.nome_contato ||
                 anuncio.imobiliaria ||
                 anuncio.corretor ||
                 "—";
+              const statusLower = (anuncio.status || "").toLowerCase();
+
+              const statusClasse =
+                statusLower === "ativo"
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                  : statusLower === "pendente"
+                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                  : statusLower === "inativo"
+                  ? "bg-slate-100 text-slate-700 border-slate-200"
+                  : "bg-slate-100 text-slate-700 border-slate-200";
+
+              const statusLabel = anuncio.status || "—";
 
               return (
                 <tr
@@ -269,7 +347,11 @@ export default function AdminAnunciosPage() {
 
                   {/* Status */}
                   <td className="px-2 py-3 text-xs">
-                    {anuncio.status || "—"}
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-[2px] text-[11px] font-medium ${statusClasse}`}
+                    >
+                      {statusLabel}
+                    </span>
                   </td>
 
                   {/* Data */}
@@ -279,13 +361,32 @@ export default function AdminAnunciosPage() {
 
                   {/* Ações */}
                   <td className="px-2 py-3 text-xs">
-                    <Link
-                      href={`/anuncios/${anuncio.id}`}
-                      target="_blank"
-                      className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
-                    >
-                      Ver anúncio
-                    </Link>
+                    <div className="flex flex-col gap-1">
+                      <Link
+                        href={`/anuncios/${anuncio.id}`}
+                        target="_blank"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
+                      >
+                        Ver anúncio
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleStatus(anuncio)}
+                        disabled={alterandoId === anuncio.id}
+                        className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-medium ${
+                          statusLower === "ativo"
+                            ? "bg-slate-800 text-white hover:bg-slate-900"
+                            : "bg-emerald-600 text-white hover:bg-emerald-700"
+                        } disabled:opacity-60 disabled:cursor-not-allowed`}
+                      >
+                        {alterandoId === anuncio.id
+                          ? "Atualizando..."
+                          : statusLower === "ativo"
+                          ? "Desativar"
+                          : "Ativar"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -309,8 +410,18 @@ export default function AdminAnunciosPage() {
         )}
 
         {anunciosFiltrados.map((anuncio) => {
-          const primeiraImagem =
-            anuncio.imagens?.[0] || null;
+          const primeiraImagem = anuncio.imagens?.[0] || null;
+          const statusLower = (anuncio.status || "").toLowerCase();
+          const statusLabel = anuncio.status || "—";
+
+          const statusClasse =
+            statusLower === "ativo"
+              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+              : statusLower === "pendente"
+              ? "bg-amber-100 text-amber-800 border-amber-200"
+              : statusLower === "inativo"
+              ? "bg-slate-100 text-slate-700 border-slate-200"
+              : "bg-slate-100 text-slate-700 border-slate-200";
 
           return (
             <div key={anuncio.id} className="p-3 flex gap-3">
@@ -334,12 +445,42 @@ export default function AdminAnunciosPage() {
                   {anuncio.descricao}
                 </p>
 
-                <Link
-                  href={`/anuncios/${anuncio.id}`}
-                  className="inline-block mt-1 rounded-full border border-slate-300 px-2 py-[2px] text-[10px] font-medium text-slate-700"
-                >
-                  Ver anúncio
-                </Link>
+                <div className="flex items-center gap-2 text-[10px] mt-1">
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-[1px] font-medium ${statusClasse}`}
+                  >
+                    {statusLabel}
+                  </span>
+                  <span className="text-slate-400">
+                    {formatarData(anuncio.created_at)}
+                  </span>
+                </div>
+
+                <div className="flex gap-2 mt-2">
+                  <Link
+                    href={`/anuncios/${anuncio.id}`}
+                    className="flex-1 inline-flex items-center justify-center rounded-full border border-slate-300 px-2 py-[4px] text-[11px] font-medium text-slate-700"
+                  >
+                    Ver
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(anuncio)}
+                    disabled={alterandoId === anuncio.id}
+                    className={`flex-1 inline-flex items-center justify-center rounded-full px-2 py-[4px] text-[11px] font-medium ${
+                      statusLower === "ativo"
+                        ? "bg-slate-800 text-white"
+                        : "bg-emerald-600 text-white"
+                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                  >
+                    {alterandoId === anuncio.id
+                      ? "Atualizando..."
+                      : statusLower === "ativo"
+                      ? "Desativar"
+                      : "Ativar"}
+                  </button>
+                </div>
               </div>
             </div>
           );
