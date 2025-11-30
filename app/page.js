@@ -219,7 +219,7 @@ export default function Home() {
       </section>
 
       {/* ANÚNCIOS EM DESTAQUE (DINÂMICOS) */}
-      <section className="bg-white pb-16">
+      <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -305,7 +305,140 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* CHAMADAS INSTITUCIONAIS – TV / NOTÍCIAS / TURISMO */}
+      <section className="bg-white pb-10 -mt-4">
+        <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3">
+          <Link
+            href="/tv"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
+          >
+            <h3 className="font-semibold text-slate-900 mb-1">
+              Classilagos TV
+            </h3>
+            <p className="text-sm text-slate-600">
+              Reportagens, vídeos locais e transmissões especiais.
+            </p>
+          </Link>
+
+          <Link
+            href="/noticias"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
+          >
+            <h3 className="font-semibold text-slate-900 mb-1">Notícias</h3>
+            <p className="text-sm text-slate-600">
+              Últimas notícias da Região dos Lagos e do Brasil.
+            </p>
+          </Link>
+
+          <Link
+            href="/turismo"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
+          >
+            <h3 className="font-semibold text-slate-900 mb-1">Turismo</h3>
+            <p className="text-sm text-slate-600">
+              Pousadas, restaurantes, passeios e pontos turísticos.
+            </p>
+          </Link>
+        </div>
+      </section>
+
+      {/* PAINEL RÁPIDO – REGIÃO DOS LAGOS */}
+      <section className="bg-slate-900 py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-lg font-bold text-white mb-4">
+            Painel Rápido – Região dos Lagos
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
+              <p className="text-sm text-slate-300">Clima agora</p>
+              <p className="text-2xl font-bold text-white">27°C</p>
+              <p className="text-[12px] text-slate-400">
+                Parcialmente nublado
+              </p>
+            </div>
+
+            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
+              <p className="text-sm text-slate-300">Altura das ondas</p>
+              <p className="text-2xl font-bold text-white">1.2 m</p>
+              <p className="text-[12px] text-slate-400">Mar moderado</p>
+            </div>
+
+            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
+              <p className="text-sm text-slate-300">Trânsito</p>
+              <p className="text-xl font-bold text-white">Normal</p>
+              <p className="text-[12px] text-slate-400">RJ-106 fluindo bem</p>
+            </div>
+
+            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
+              <p className="text-sm text-slate-300">Índice UV</p>
+              <p className="text-xl font-bold text-white">8</p>
+              <p className="text-[12px] text-slate-400">
+                Muito alto – Protetor 50+
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* RODAPÉ – CLASSILAGOS */}
+      <footer className="bg-slate-950 text-slate-300 py-10">
+        <div className="max-w-7xl mx-auto px-4 grid gap-6 md:grid-cols-3">
+          <div>
+            <h4 className="font-semibold text-white mb-2">Classilagos</h4>
+            <p className="text-sm text-slate-400">
+              O seu guia de compras, serviços e turismo na Região dos Lagos.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-white mb-2">Navegação</h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <Link href="/quem-somos" className="hover:text-white">
+                  Quem somos
+                </Link>
+              </li>
+              <li>
+                <Link href="/como-anunciar" className="hover:text-white">
+                  Como anunciar
+                </Link>
+              </li>
+              <li>
+                <Link href="/fale-conosco" className="hover:text-white">
+                  Fale conosco
+                </Link>
+              </li>
+              <li>
+                <Link href="/termos-de-uso" className="hover:text-white">
+                  Termos de uso
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/politica-de-privacidade"
+                  className="hover:text-white"
+                >
+                  Política de privacidade
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-white mb-2">Redes sociais</h4>
+            <p className="text-sm text-slate-400">
+              Em breve, links oficiais do Classilagos nas redes sociais.
+            </p>
+          </div>
+        </div>
+
+        <p className="text-center text-[12px] text-slate-500 mt-6">
+          © {new Date().getFullYear()} Classilagos — Todos os direitos
+          reservados.
+        </p>
+      </footer>
     </main>
   );
 }
-
