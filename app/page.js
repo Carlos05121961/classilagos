@@ -145,28 +145,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CATEGORIAS – COM FUNDO DE PRAIA */}
-      <section className="relative py-10">
-        {/* Fundo de praia */}
+      {/* CATEGORIAS – PRAIA COM 8 PILARES */}
+      <section className="relative py-12">
+        {/* FUNDO COM PRAIA / ONDAS */}
         <div className="absolute inset-0 -z-10">
           <Image
             src="/fundobotoes.jpg"
             alt="Praia da Região dos Lagos ao fundo das categorias"
             fill
             priority
-            className="object-cover"
             sizes="100vw"
+            className="object-cover object-top"
           />
-          {/* Overlay bem leve só pra dar contraste, se quiser pode tirar depois */}
-          <div className="absolute inset-0 bg-sky-900/20" />
+          {/* Véu leve para dar contraste nos textos e cards */}
+          <div className="absolute inset-0 bg-sky-900/25" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 relative">
           <h2 className="text-xl font-semibold text-white mb-2 drop-shadow">
             Explore por categoria
           </h2>
 
-          <p className="text-xs md:text-sm text-slate-100 mb-6 drop-shadow">
+          <p className="text-xs md:text-sm text-slate-100/90 mb-6 drop-shadow">
             Clique e vá direto para a seção desejada.
           </p>
 
@@ -175,12 +175,12 @@ export default function Home() {
               <Link
                 key={href}
                 href={href}
-                className="rounded-2xl bg-slate-900 text-center p-5 border border-pink-500 hover:shadow-[0_0_20px_#ff50c8] transition"
+                className="rounded-2xl bg-slate-900/80 text-center p-5 border border-white/25 hover:bg-slate-900/95 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] transition"
               >
-                <div className="text-lg font-bold bg-gradient-to-r from-pink-300 to-cyan-300 bg-clip-text text-transparent">
+                <div className="text-lg font-bold text-white">
                   {label}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Abrir</div>
+                <div className="text-[11px] text-slate-200 mt-1">Abrir</div>
               </Link>
             ))}
           </div>
