@@ -23,14 +23,50 @@ export default function Home() {
     { label: "Empregos", href: "/empregos", icon: "/icons/empregos-neon.jpg" },
     { label: "Serviços", href: "/servicos", icon: "/icons/servicos-neon.jpg" },
     { label: "Turismo", href: "/turismo", icon: "/icons/turismo-neon.jpg" },
-    { label: "LagoListas", href: "/lagolistas", icon: "/icons/lagolistas-neon.jpg" },
+    {
+      label: "LagoListas",
+      href: "/lagolistas",
+      icon: "/icons/lagolistas-neon.jpg",
+    },
   ];
 
   const cidades = [
-    "Maricá", "Saquarema", "Araruama", "Iguaba Grande",
-    "São Pedro da Aldeia", "Arraial do Cabo", "Cabo Frio",
-    "Búzios", "Rio das Ostras",
+    "Maricá",
+    "Saquarema",
+    "Araruama",
+    "Iguaba Grande",
+    "São Pedro da Aldeia",
+    "Arraial do Cabo",
+    "Cabo Frio",
+    "Búzios",
+    "Rio das Ostras",
   ];
+
+  // helper pra mostrar nome bonitinho da categoria nos destaques
+  const formatCategoria = (cat) => {
+    switch (cat) {
+      case "imoveis":
+        return "Imóveis";
+      case "veiculos":
+        return "Veículos";
+      case "nautica":
+        return "Náutica";
+      case "pets":
+        return "Pets";
+      case "emprego":
+        return "Empregos";
+      case "curriculo":
+        return "Currículos";
+      case "servico":
+        return "Serviços";
+      case "turismo":
+        return "Turismo";
+      case "lagolistas":
+        return "LagoListas";
+      default:
+        return "Classificados";
+    }
+  };
 
   // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
   const [destaques, setDestaques] = useState([]);
@@ -53,8 +89,7 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-
-      {/* BANNER COMERCIAL */}
+      {/* BANNER COMERCIAL TOPO */}
       <BannerRotator />
 
       {/* HERO PRINCIPAL */}
@@ -62,8 +97,7 @@ export default function Home() {
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/10 to-slate-950/60" />
           <div className="absolute inset-0 flex flex-col">
-
-            {/* LOGO + MENU */}
+            {/* LOGO + MENU DESKTOP */}
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
               <Link href="/" className="flex items-center">
                 <Image
@@ -77,7 +111,9 @@ export default function Home() {
 
               <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white drop-shadow">
                 {categorias.map((c) => (
-                  <Link key={c.href} href={c.href}>{c.label}</Link>
+                  <Link key={c.href} href={c.href}>
+                    {c.label}
+                  </Link>
                 ))}
                 <Link href="/noticias">Notícias</Link>
                 <UserMenu />
@@ -88,14 +124,14 @@ export default function Home() {
             <div className="flex-1 flex items-center justify-center px-4 pb-10">
               <div className="text-center text-white drop-shadow max-w-2xl">
                 <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
-                  O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
+                  O seu guia de compras, serviços, turismo e oportunidades em
+                  toda a Região dos Lagos.
                 </p>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200 bg-clip-text text-transparent tracking-[0.08em] uppercase drop-shadow-[0_0_20px_rgba(15,230,255,0.7)]">
                   Classilagos – Região dos Lagos em um só lugar
                 </h1>
               </div>
             </div>
-
           </div>
         </HeroCarousel>
       </section>
@@ -105,10 +141,11 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
           <div className="rounded-3xl bg-slate-950/95 border border-slate-700/70 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
-
               {/* BUSCA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">O que você procura?</label>
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  O que você procura?
+                </label>
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
@@ -118,7 +155,9 @@ export default function Home() {
 
               {/* SELECT CATEGORIA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">Categoria</label>
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Categoria
+                </label>
                 <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
                   {categorias.map((c) => (
                     <option key={c.label}>{c.label}</option>
@@ -128,7 +167,9 @@ export default function Home() {
 
               {/* SELECT CIDADE */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">Cidade</label>
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Cidade
+                </label>
                 <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
                   {cidades.map((c) => (
                     <option key={c}>{c}</option>
@@ -136,7 +177,7 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* BOTÃO BUSCAR */}
+              {/* BOTÃO BUSCAR (ainda ilustrativo) */}
               <button className="rounded-full bg-gradient-to-r from-pink-500 via-orange-400 to-cyan-400 text-white px-6 py-2 font-semibold shadow-[0_0_20px_rgba(255,120,220,0.8)] hover:scale-105 transition">
                 Buscar
               </button>
@@ -149,7 +190,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES */}
+      {/* PILARES – ÍCONES NEON */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-7xl mx-auto px-4 -mt-4">
           <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-none">
@@ -157,7 +198,7 @@ export default function Home() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="w-[115px] h-[145px] rounded-xl flex flex-col items-center bg-black/85 border border-white/10 shadow-[0_0_22px_rgba(0,0,0,0.85)] hover:shadow-[0_0_26px_rgba(255,80,200,0.55)] transition pt-2 pb-2 px-2"
+                className="w-[115px] h-[145px] rounded-xl flex flex-col items-center bg-black/85 border border-white/10 shadow-[0_0_22px_rgba(0,0,0,0.85)] hover:shadow-[0_0_26px_rgba(255,80,200,0.55)] transition pt-2 pb-2 px-2 flex-shrink-0"
               >
                 <div className="relative w-full h-[68%]">
                   <Image
@@ -167,7 +208,7 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
-                <span className="text-[10px] font-semibold text-white uppercase tracking-[0.15em]">
+                <span className="text-[10px] font-semibold text-white uppercase tracking-[0.15em] text-center">
                   {cat.label}
                 </span>
                 <span className="text-[9px] text-pink-200/80">Abrir</span>
@@ -182,13 +223,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
+              <h2 className="text-lg font-bold text-slate-900">
+                Anúncios em destaque
+              </h2>
               <p className="text-xs text-slate-500">
                 Os anúncios mais vistos e marcados como destaque.
               </p>
             </div>
 
-            <Link href="/anunciar" className="hidden sm:inline-block text-xs font-semibold text-pink-600">
+            <Link
+              href="/anunciar"
+              className="hidden sm:inline-block text-xs font-semibold text-pink-600"
+            >
               Anuncie em destaque →
             </Link>
           </div>
@@ -196,43 +242,69 @@ export default function Home() {
           {loadingDestaques ? (
             <p className="text-center text-slate-500">Carregando...</p>
           ) : destaques.length === 0 ? (
-            <p className="text-center text-slate-500">Nenhum destaque ainda.</p>
+            <p className="text-center text-slate-500">
+              Nenhum destaque ainda. Seja o primeiro a anunciar!
+            </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {destaques.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] transition overflow-hidden">
-                  <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
-                    {item.imagens && item.imagens.length > 0 ? (
-                      <img
-                        src={item.imagens[0]}
-                        alt={item.titulo}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
-                    )}
-                  </div>
+              {destaques.map((item) => {
+                const imagensValidas = Array.isArray(item.imagens)
+                  ? item.imagens
+                  : [];
+                const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
 
-                  <div className="p-3">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
-                      • Destaque
-                    </span>
-                    <h3 className="text-sm font-semibold">{item.titulo}</h3>
-                    <p className="text-[11px] text-slate-600">{item.categoria} • {item.cidade}</p>
-                  </div>
-                </div>
-              ))}
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/anuncios/${item.id}`}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
+                  >
+                    <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt={item.titulo}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-[11px] text-slate-200">
+                          Imagem do anúncio
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-3 space-y-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
+                        • Destaque
+                      </span>
+                      <h3 className="text-sm font-semibold line-clamp-2">
+                        {item.titulo}
+                      </h3>
+                      <p className="text-[11px] text-slate-600">
+                        {formatCategoria(item.categoria)} • {item.cidade}
+                      </p>
+                      {item.preco && (
+                        <p className="text-[11px] font-semibold text-slate-900">
+                          R$ {item.preco}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
 
           <div className="mt-4 text-center sm:hidden">
-            <Link href="/anunciar" className="text-xs font-semibold text-pink-600">
+            <Link
+              href="/anunciar"
+              className="text-xs font-semibold text-pink-600"
+            >
               Quero anunciar em destaque →
             </Link>
           </div>
         </div>
       </section>
-
     </main>
   );
 }
