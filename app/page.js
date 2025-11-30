@@ -145,14 +145,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CATEGORIAS */}
-      <section className="bg-slate-950 py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-xl font-semibold text-white mb-2">
+      {/* CATEGORIAS – COM FUNDO DE PRAIA */}
+      <section className="relative py-10">
+        {/* Fundo de praia */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/fundobotoes.png"
+            alt="Praia da Região dos Lagos ao fundo das categorias"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+          {/* Overlay bem leve só pra dar contraste, se quiser pode tirar depois */}
+          <div className="absolute inset-0 bg-sky-900/20" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4">
+          <h2 className="text-xl font-semibold text-white mb-2 drop-shadow">
             Explore por categoria
           </h2>
 
-          <p className="text-xs md:text-sm text-slate-400 mb-6">
+          <p className="text-xs md:text-sm text-slate-100 mb-6 drop-shadow">
             Clique e vá direto para a seção desejada.
           </p>
 
@@ -225,3 +239,4 @@ export default function Home() {
     </main>
   );
 }
+
