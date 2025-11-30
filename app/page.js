@@ -68,6 +68,38 @@ export default function Home() {
     "Rio das Ostras",
   ];
 
+  // Anúncios em destaque – por enquanto estático
+  const destaques = [
+    {
+      id: 1,
+      titulo: "Casa de praia em Itaipuaçu",
+      categoria: "Imóveis",
+      cidade: "Maricá",
+      imagem: null, // ex.: "/imoveis/casa-praia-01.jpg"
+    },
+    {
+      id: 2,
+      titulo: "Passeio de barco em Arraial",
+      categoria: "Turismo / Náutica",
+      cidade: "Arraial do Cabo",
+      imagem: null,
+    },
+    {
+      id: 3,
+      titulo: "Ceia de Natal completa",
+      categoria: "Serviços / Gastronomia",
+      cidade: "Cabo Frio",
+      imagem: null,
+    },
+    {
+      id: 4,
+      titulo: "Pousada pé na areia",
+      categoria: "Turismo",
+      cidade: "Búzios",
+      imagem: null,
+    },
+  ];
+
   return (
     <main className="bg-white">
       {/* BANNER COMERCIAL */}
@@ -131,7 +163,7 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* BLOCO DE BUSCA – ESTILO NEON PARA COMBINAR COM OS BOTÕES */}
+      {/* BLOCO DE BUSCA – ESTILO NEON */}
       <section className="bg-slate-950">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
           <div
@@ -326,40 +358,75 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CHAMADAS */}
+      {/* ANÚNCIOS EM DESTAQUE */}
       <section className="bg-white pb-16">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-4">
-          <Link
-            href="#"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
-          >
-            <h3 className="font-semibold text-slate-900 mb-2">
-              Classilagos TV
-            </h3>
-            <p className="text-sm text-slate-600">
-              Pautas locais e vídeos da nossa região.
-            </p>
-          </Link>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                Anúncios em destaque
+              </h2>
+              <p className="text-xs md:text-sm text-slate-500">
+                Alguns dos anúncios que estão chamando atenção no Classilagos.
+              </p>
+            </div>
+            <Link
+              href="/anunciar"
+              className="hidden sm:inline-block text-xs md:text-sm font-semibold text-pink-600 hover:text-pink-700"
+            >
+              Anuncie em destaque →
+            </Link>
+          </div>
 
-          <Link
-            href="/turismo"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
-          >
-            <h3 className="font-semibold text-slate-900 mb-2">Turismo</h3>
-            <p className="text-sm text-slate-600">
-              Pousadas, passeios, bares e restaurantes.
-            </p>
-          </Link>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {destaques.map((item) => (
+              <div
+                key={item.id}
+                className="
+                  rounded-2xl border border-slate-200 bg-slate-50
+                  shadow-sm hover:shadow-md hover:-translate-y-[2px]
+                  transition cursor-pointer overflow-hidden
+                "
+              >
+                {/* IMAGEM / PLACEHOLDER */}
+                <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
+                  {item.imagem ? (
+                    <Image
+                      src={item.imagem}
+                      alt={item.titulo}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-[11px] text-slate-200">
+                      Imagem do anúncio
+                    </span>
+                  )}
+                </div>
 
-          <Link
-            href="/noticias"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100"
-          >
-            <h3 className="font-semibold text-slate-900 mb-2">Notícias</h3>
-            <p className="text-sm text-slate-600">
-              Acompanhe novidades e oportunidades.
-            </p>
-          </Link>
+                <div className="p-3 flex flex-col gap-1">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-600">
+                    • Destaque
+                  </span>
+                  <h3 className="text-sm font-semibold text-slate-900 leading-snug">
+                    {item.titulo}
+                  </h3>
+                  <p className="text-[11px] text-slate-600">
+                    {item.categoria} • {item.cidade}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 text-center sm:hidden">
+            <Link
+              href="/anunciar"
+              className="text-xs font-semibold text-pink-600 hover:text-pink-700"
+            >
+              Quero anunciar em destaque →
+            </Link>
+          </div>
         </div>
       </section>
     </main>
