@@ -187,24 +187,43 @@ export default function Home() {
           {/* Linha com os 8 ícones em cards 165x205 (neon) */}
           <div className="flex items-center justify-center gap-3 overflow-x-auto scrollbar-none pb-2">
             {categorias.map((cat) => (
-              <Link
-                key={cat.href}
-                href={cat.href}
-                className="
-                  w-[165px] h-[205px]
-                  rounded-2xl
-                  flex flex-col items-center
-                  bg-black/85
-                  border border-white/10
-                  shadow-[0_0_26px_rgba(0,0,0,0.9)]
-                  hover:shadow-[0_0_32px_rgba(255,80,200,0.6)]
-                  hover:border-pink-400/80
-                  transition-all duration-200
-                  shrink-0
-                  pt-3 pb-3 px-2
-                  backdrop-blur-sm
-                "
-              >
+             <Link
+  key={cat.href}
+  href={cat.href}
+  className="
+    w-[115px] h-[145px]
+    rounded-xl
+    flex flex-col items-center
+    bg-black/85
+    border border-white/10
+    shadow-[0_0_22px_rgba(0,0,0,0.85)]
+    hover:shadow-[0_0_26px_rgba(255,80,200,0.55)]
+    hover:border-pink-400/70
+    transition-all duration-200
+    shrink-0
+    pt-2 pb-2 px-2
+    backdrop-blur-sm
+  "
+>
+  <div className="relative w-full h-[68%] flex items-center justify-center">
+    {cat.icon && (
+      <Image
+        src={cat.icon}
+        alt={cat.label}
+        fill
+        className="object-contain pointer-events-none"
+      />
+    )}
+  </div>
+
+  <div className="mt-1 flex flex-col items-center">
+    <span className="text-[10px] font-semibold text-white text-center uppercase tracking-[0.15em]">
+      {cat.label}
+    </span>
+    <span className="text-[9px] text-pink-200/80 leading-none">Abrir</span>
+  </div>
+</Link>
+
                 {/* ÍCONE NEON – ocupa a parte de cima */}
                 <div className="relative w-full h-[75%] flex items-center justify-center">
                   {cat.icon && (
