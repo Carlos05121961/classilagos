@@ -150,7 +150,7 @@ export default function Home() {
         {/* Fundo de praia */}
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/fundobotoes.png"
+            src="/fundobotoes.jpg"
             alt="Praia da Região dos Lagos ao fundo das categorias"
             fill
             priority
