@@ -141,22 +141,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* === CATEGORIAS COM FUNDO DE PRAIA === */}
-      <section className="relative py-10">
-        {/* Fundo das ondas */}
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/fundobotoes.jpg"
-            alt="Praia da Região dos Lagos"
-            fill
-            priority
-            className="object-cover"
-            sizes="100vw"
-          />
-        </div>
-
-        {/* Conteúdo */}
-        <div className="relative max-w-7xl mx-auto px-4 -mt-6">
+        {/* CATEGORIAS – FUNDO PRAIA DIRETO NO SECTION */}
+      <section
+        className="
+          py-12
+          bg-[url('/fundobotoes.jpg')]
+          bg-cover bg-center bg-no-repeat
+        "
+      >
+        <div className="max-w-7xl mx-auto px-4 -mt-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {categorias.map(([label, href]) => (
               <Link
@@ -174,18 +167,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">
-            Anúncios em destaque
-          </h2>
-
-          <div className="rounded-2xl border border-slate-200 p-8 text-slate-600">
-            Em breve os destaques aparecerão aqui.
-          </div>
-        </div>
-      </section>
 
       {/* CHAMADAS */}
       <section className="bg-white pb-16">
