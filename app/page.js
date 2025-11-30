@@ -145,8 +145,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CATEGORIAS – FUNDO DE PRAIA */}
-      <section className="relative py-10 overflow-hidden">
+         {/* CATEGORIAS – FUNDO DE PRAIA */}
+      <section className="relative py-6 md:py-10 overflow-hidden">
         {/* Fundo de praia */}
         <Image
           src="/fundobotoes.jpg"
@@ -156,20 +156,22 @@ export default function Home() {
           className="absolute inset-0 w-full h-full object-cover"
           sizes="100vw"
         />
-        {/* Overlay leve pra dar contraste (pode ajustar ou remover depois) */}
+        {/* Overlay leve pra dar contraste */}
         <div className="absolute inset-0 bg-sky-900/20" />
 
         {/* Conteúdo por cima do fundo */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4">
-          <h2 className="text-xl font-semibold text-white mb-2 drop-shadow">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 pb-4">
+          {/* Título bem discreto */}
+          <h2 className="text-sm md:text-base font-semibold text-white mb-1 drop-shadow">
             Explore por categoria
           </h2>
 
-          <p className="text-xs md:text-sm text-slate-100 mb-6 drop-shadow">
+          <p className="text-[10px] md:text-xs text-slate-100 mb-2 drop-shadow">
             Clique e vá direto para a seção desejada.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {/* -mt-2 / -mt-4 = sobe os cards, aparecendo mais areia e onda */}
+          <div className="-mt-2 md:-mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {categorias.map(([label, href]) => (
               <Link
                 key={href}
@@ -185,6 +187,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
       {/* DESTAQUES */}
       <section className="bg-white">
