@@ -8,13 +8,12 @@ import UserMenu from "./UserMenu";
 export default function SiteHeader() {
   const pathname = usePathname();
 
-  // Não mostra header na HOME
-  if (pathname === "/") return null;
+  // 🔴 NÃO vamos mais esconder o header na HOME
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
 
-      {/* ---------- MOBILE (sempre visível) ---------- */}
+      {/* ---------- MOBILE ---------- */}
       <div className="flex md:hidden w-full px-4 py-3 items-center justify-between">
         {/* LOGO */}
         <Link href="/" className="flex items-center">
@@ -36,8 +35,6 @@ export default function SiteHeader() {
           >
             Anuncie grátis
           </Link>
-
-          {/* User menu aparece no mobile também */}
           <UserMenu />
         </div>
       </div>
@@ -77,4 +74,5 @@ export default function SiteHeader() {
     </header>
   );
 }
+
 
