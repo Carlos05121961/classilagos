@@ -1,151 +1,106 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import UserMenu from "./UserMenu";
-import { supabase } from "../supabaseClient";
-
-// Hook para descobrir se o usuário logado é admin
-function useIsAdmin() {
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    let cancelado = false;
-
-    async function verificarAdmin() {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user || cancelado) return;
-
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!cancelado && !error && profile?.role === "admin") {
-        setIsAdmin(true);
-      }
-    }
-
-    verificarAdmin();
-
-    return () => {
-      cancelado = true;
-    };
-  }, []);
-
-  return isAdmin;
-}
 
 export default function SiteHeader() {
-  const pathname = usePathname();
-  const isAdmin = useIsAdmin();
+  const [open, setOpen] = useState(false);
 
-  // 🔴 NÃO vamos mais esconder o header na HOME
+  const categorias = [
+    { label: "Imóveis", href: "/imoveis" },
+    { label: "Veículos", href: "/veiculos" },
+    { label: "Náutica", href: "/nautica" },
+    { label: "Pets", href: "/pets" },
+    { label: "Empregos", href: "/empregos" },
+    { label: "Serviços", href: "/servicos" },
+    { label: "Turismo", href: "/turismo" },
+    { label: "LagoListas", href: "/lagolistas" },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
-      {/* ---------- MOBILE ---------- */}
-      <div className="flex md:hidden w-full px-4 py-3 items-center justify-between">
+    <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+
         {/* LOGO */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/logo-classilagos.png"
             alt="Classilagos"
-            width={120}
-            height={120}
-            className="h-9 w-auto"
-            priority
+            width={55}
+            height={55}
+            className="drop-shadow-[0_0_10px_rgba(0,200,255,0.5)]"
           />
         </Link>
 
-        {/* BOTÕES + USER */}
-        <div className="flex items-center gap-2">
-          {isAdmin && (
+        {/* MENU DESKTOP */}
+        <nav className="hidden md:flex items-center gap-6 text-sm text-slate-200 font-medium">
+          {categorias.map((c) => (
             <Link
-              href="/admin"
-              className="text-[11px] px-2 py-1 rounded-full border border-blue-200 text-blue-700 font-semibold"
+              key={c.href}
+              href={c.href}
+              className="hover:text-cyan-300 transition"
             >
-              Admin
+              {c.label}
             </Link>
-          )}
+          ))}
 
-          <Link
-            href="/anunciar"
-            className="rounded-full bg-blue-600 text-white text-xs px-3 py-1.5 font-semibold"
-          >
-            Anuncie grátis
+          <Link href="/noticias" className="hover:text-cyan-300 transition">
+            Notícias
           </Link>
 
           <UserMenu />
-        </div>
+
+          <Link
+            href="/anunciar"
+            className="ml-2 rounded-full px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-cyan-400 to-pink-500 text-white shadow-[0_0_10px_rgba(255,120,220,0.7)] hover:scale-105 transition"
+          >
+            Anuncie Grátis
+          </Link>
+        </nav>
+
+        {/* BOTÃO MOBILE */}
+        <button
+          className="md:hidden text-slate-200 text-xl"
+          onClick={() => setOpen(!open)}
+        >
+          ☰
+        </button>
       </div>
 
-      {/* ---------- DESKTOP ---------- */}
-      <div className="hidden md:flex max-w-7xl mx-auto px-4 py-3 items-center justify-between gap-4">
-        {/* LOGO */}
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/logo-classilagos.png"
-            alt="Classilagos"
-            width={130}
-            height={130}
-            priority
-            className="h-10 w-auto md:h-12"
-          />
-        </Link>
+      {/* MENU MOBILE */}
+      {open && (
+        <div className="md:hidden bg-slate-900 border-t border-slate-700 p-4 space-y-3 text-slate-200 text-sm">
 
-        {/* MENU + USERMENU */}
-        <div className="flex items-center gap-6">
-          <nav className="flex items-center gap-5 text-xs md:text-sm font-medium text-slate-700 leading-none">
-            <Link href="/imoveis" className="hover:text-cyan-700">
-              Imóveis
-            </Link>
-            <Link href="/veiculos" className="hover:text-cyan-700">
-              Veículos
-            </Link>
-            <Link href="/nautica" className="hover:text-cyan-700">
-              Náutica
-            </Link>
-            <Link href="/pets" className="hover:text-cyan-700">
-              Pets
-            </Link>
-            <Link href="/empregos" className="hover:text-cyan-700">
-              Empregos
-            </Link>
-            <Link href="/servicos" className="hover:text-cyan-700">
-              Serviços
-            </Link>
-            <Link href="/turismo" className="hover:text-cyan-700">
-              Turismo
-            </Link>
-            <Link href="/lagolistas" className="hover:text-cyan-700">
-              LagoListas
-            </Link>
-            <Link href="/noticias" className="hover:text-cyan-700">
-              Notícias
-            </Link>
-          </nav>
-
-          {/* Botão do painel admin – só você vê */}
-          {isAdmin && (
+          {categorias.map((c) => (
             <Link
-              href="/admin"
-              className="text-xs md:text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+              key={c.href}
+              href={c.href}
+              onClick={() => setOpen(false)}
+              className="block py-1 hover:text-cyan-300"
             >
-              Painel do admin
+              {c.label}
             </Link>
-          )}
+          ))}
 
-          <UserMenu />
+          <Link
+            href="/noticias"
+            onClick={() => setOpen(false)}
+            className="block py-1 hover:text-cyan-300"
+          >
+            Notícias
+          </Link>
+
+          <Link
+            href="/anunciar"
+            onClick={() => setOpen(false)}
+            className="block mt-4 text-center rounded-full px-4 py-2 text-xs font-semibold bg-gradient-to-r from-cyan-400 to-pink-500 text-white shadow-[0_0_10px_rgba(255,120,220,0.7)]"
+          >
+            Anuncie Grátis
+          </Link>
         </div>
-      </div>
+      )}
     </header>
   );
 }
