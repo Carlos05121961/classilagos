@@ -110,9 +110,10 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-     {/* CAIXA DE BUSCA – FAIXA TURQUESA (INVERTIDA) */}
+  {/* CAIXA DE BUSCA – FAIXA DEGRADÊ INVERTIDA */}
 <section className="bg-gradient-to-b from-slate-950 via-cyan-800 to-cyan-500">
   <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
+
     <div className="rounded-3xl bg-slate-950/85 border border-cyan-300/40 shadow-[0_0_30px_rgba(0,0,0,0.6)] px-6 py-5 backdrop-blur-sm">
       <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
 
@@ -128,7 +129,7 @@ export default function Home() {
           />
         </div>
 
-        {/* SELECT CATEGORIA */}
+        {/* CATEGORIA */}
         <div className="flex flex-col">
           <label className="text-[11px] font-semibold text-slate-100 mb-1">
             Categoria
@@ -140,7 +141,7 @@ export default function Home() {
           </select>
         </div>
 
-        {/* SELECT CIDADE */}
+        {/* CIDADE */}
         <div className="flex flex-col">
           <label className="text-[11px] font-semibold text-slate-100 mb-1">
             Cidade
@@ -166,6 +167,7 @@ export default function Home() {
 
   </div>
 </section>
+
 
 
           <p className="mt-2 text-[11px] text-center text-cyan-100/90">
