@@ -4,18 +4,24 @@ import Link from "next/link";
 
 export default function SiteFooter() {
   return (
-    <footer
-      className="mt-12 text-slate-200 border-t border-slate-700"
-      style={{
-        backgroundImage: "url('/footer-oceano.jpg')",
-        backgroundSize: "100% 140px",   // <<< reduzido pela metade
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "top",
-      }}
-    >
-      <div className="pt-40 pb-10 bg-slate-900/95"> 
-        {/* A faixa superior agora fica proporcional */}
+    <footer className="mt-12 text-slate-200 border-t border-slate-700 relative">
 
+      {/* IMAGEM DE FUNDO DO OCEANO */}
+      <div
+        className="absolute inset-0 opacity-25 pointer-events-none"
+        style={{
+          backgroundImage: "url('/footer-oceano.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+
+      {/* CAMADA ESCURA ACIMA DA IMAGEM */}
+      <div className="absolute inset-0 bg-slate-900/88" />
+
+      {/* CONTEÚDO DO FOOTER */}
+      <div className="relative z-10 pt-40 pb-10">
         <div className="max-w-6xl mx-auto px-4">
 
           {/* LINKS SUPERIORES */}
@@ -46,9 +52,7 @@ export default function SiteFooter() {
 
           {/* MARCA */}
           <div className="text-center">
-            <p className="text-sm font-semibold text-white">
-              Classilagos
-            </p>
+            <p className="text-sm font-semibold text-white">Classilagos</p>
 
             <p className="text-[11px] text-slate-400">
               O seu guia de compras, serviços, turismo e oportunidades na Região dos Lagos.
