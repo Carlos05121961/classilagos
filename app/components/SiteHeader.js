@@ -19,8 +19,8 @@ export default function SiteHeader() {
     { label: "LagoListas", href: "/lagolistas" },
   ];
 
-  return (
-    <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800">
+  return (<header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-300 shadow-md">
+
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 
         {/* LOGO */}
