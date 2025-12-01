@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
+import SmartSelect from "./components/SmartSelect";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -70,6 +71,11 @@ export default function Home() {
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
+  // estado da busca (para o SmartSelect)
+  const [categoriaBusca, setCategoriaBusca] = useState(categorias[0].label);
+  const [cidadeBusca, setCidadeBusca] = useState(cidades[0]);
+  const [textoBusca, setTextoBusca] = useState("");
+
   useEffect(() => {
     async function carregarDestaques() {
       const { data, error } = await supabase
@@ -85,6 +91,15 @@ export default function Home() {
     carregarDestaques();
   }, []);
 
+  const handleBuscar = () => {
+    // por enquanto apenas loga – depois integrarmos a busca real
+    console.log("Busca:", {
+      texto: textoBusca,
+      categoria: categoriaBusca,
+      cidade: cidadeBusca,
+    });
+  };
+
   return (
     <main className="bg-white">
       {/* BANNER COMERCIAL TOPO */}
@@ -93,8 +108,8 @@ export default function Home() {
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
-          {/* Overlay mais suave */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-900/5 to-slate-950/45 pointer-events-none" />
+          {/* overlay menos “fumacento” */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-900/10 to-slate-950/70" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
@@ -110,12 +125,12 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA – TARJA DEGRADÊ ESCURO → TURQUESA */}
-      <section className="bg-gradient-to-b from-slate-900 via-cyan-800 to-cyan-600 py-6">
-        <div className="max-w-4xl mx-auto px-4 relative z-10">
-          <div className="rounded-3xl bg-slate-950/95 border border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
+      {/* CAIXA DE BUSCA – TARJA INVERTIDA (ESCURO EM CIMA, AZUL EMBAIXO) */}
+      <section className="bg-gradient-to-b from-slate-950 via-slate-950 to-cyan-700">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-6">
+          <div className="rounded-3xl bg-slate-950/95 border border-slate-700/80 shadow-[0_0_30px_rgba(0,0,0,0.85)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
-              {/* BUSCA */}
+              {/* BUSCA TEXTO LIVRE */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   O que você procura?
@@ -123,38 +138,38 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
+                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition text-xs md:text-sm"
+                  value={textoBusca}
+                  onChange={(e) => setTextoBusca(e.target.value)}
                 />
               </div>
 
-              {/* SELECT CATEGORIA */}
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
-                  Categoria
-                </label>
-                <select className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50">
-                  {categorias.map((c) => (
-                    <option key={c.label}>{c.label}</option>
-                  ))}
-                </select>
-              </div>
+              {/* SELECT CATEGORIA – componente novo */}
+              <SmartSelect
+                label="Categoria"
+                value={categoriaBusca}
+                onChange={setCategoriaBusca}
+                options={categorias.map((c) => c.label)}
+              />
 
-              {/* SELECT CIDADE */}
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
-                  Cidade
-                </label>
-                <select className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50">
-                  {cidades.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
+              {/* SELECT CIDADE – componente novo */}
+              <SmartSelect
+                label="Cidade"
+                value={cidadeBusca}
+                onChange={setCidadeBusca}
+                options={cidades}
+              />
 
-              {/* BOTÃO */}
-              <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
-                Buscar
-              </button>
+              {/* BOTÃO BUSCAR */}
+              <div className="flex md:block">
+                <button
+                  type="button"
+                  onClick={handleBuscar}
+                  className="w-full md:w-auto rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition text-xs md:text-sm"
+                >
+                  Buscar
+                </button>
+              </div>
             </div>
           </div>
 
@@ -355,3 +370,4 @@ export default function Home() {
     </main>
   );
 }
+
