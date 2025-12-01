@@ -66,14 +66,15 @@ export default function Home() {
     }
   };
 
-  // URL da playlist/canal da Classilagos TV no YouTube
-  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
-  const tvEmbedUrl =
-    "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
-
-  // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
+  // 🔥 Destaques automáticos do Supabase
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
+
+  // 📰 Última notícia
+  const [ultimaNoticia, setUltimaNoticia] = useState(null);
+
+  // 🧭 Destaque de turismo
+  const [turismoDestaque, setTurismoDestaque] = useState(null);
 
   useEffect(() => {
     async function carregarDestaques() {
@@ -90,6 +91,36 @@ export default function Home() {
     carregarDestaques();
   }, []);
 
+  useEffect(() => {
+    async function carregarUltimaNoticia() {
+      const { data, error } = await supabase
+        .from("noticias")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        setUltimaNoticia(data[0]);
+      }
+    }
+
+    async function carregarTurismo() {
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .eq("categoria", "turismo")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        setTurismoDestaque(data[0]);
+      }
+    }
+
+    carregarUltimaNoticia();
+    carregarTurismo();
+  }, []);
+
   return (
     <main className="bg-white">
       {/* BANNER COMERCIAL TOPO */}
@@ -98,8 +129,7 @@ export default function Home() {
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
-          {/* sobreposição mais suave */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/10 to-slate-950/60" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
@@ -115,29 +145,29 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA – FAIXA TURQUESA + CARTÃO ESCURO */}
-      <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
-          <div className="rounded-3xl bg-slate-950/95 border border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
+      {/* CAIXA DE BUSCA – TARJA AZUL TURQUESA EM DEGRADÊ */}
+      <section className="bg-gradient-to-b from-cyan-700 via-cyan-800 to-slate-950">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-6">
+          <div className="rounded-3xl bg-slate-950/95 border border-cyan-400/40 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
               {/* BUSCA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-cyan-100 mb-1">
                   O que você procura?
                 </label>
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
+                  className="w-full rounded-full border border-cyan-400/60 px-3 py-2 bg-slate-950/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/80 transition"
                 />
               </div>
 
               {/* SELECT CATEGORIA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-cyan-100 mb-1">
                   Categoria
                 </label>
-                <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
+                <select className="w-full rounded-full border border-cyan-400/60 px-3 py-2 bg-slate-950/80 text-slate-50 text-xs">
                   {categorias.map((c) => (
                     <option key={c.label}>{c.label}</option>
                   ))}
@@ -146,17 +176,17 @@ export default function Home() {
 
               {/* SELECT CIDADE */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-cyan-100 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
+                <select className="w-full rounded-full border border-cyan-400/60 px-3 py-2 bg-slate-950/80 text-slate-50 text-xs">
                   {cidades.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
-              {/* BOTÃO */}
+              {/* BOTÃO BUSCAR (ainda ilustrativo) */}
               <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
                 Buscar
               </button>
@@ -285,61 +315,88 @@ export default function Home() {
       {/* CHAMADAS INSTITUCIONAIS – TV / NOTÍCIAS / TURISMO */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3">
-          {/* CLASSILAGOS TV – COM PLAYER YOUTUBE */}
-          <div className="rounded-2xl border border-slate-200 p-4 sm:p-6 bg-slate-50 shadow-sm flex flex-col">
-            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
-            <p className="text-xs sm:text-sm text-slate-600 mb-3">
+          {/* TV CLASSILAGOS – POR ENQUANTO SÓ LINKANDO O CANAL */}
+          <div className="rounded-2xl border border-slate-200 p-6 bg-slate-50 shadow-sm flex flex-col">
+            <h3 className="font-semibold text-slate-900 mb-1">
+              Classilagos TV
+            </h3>
+            <p className="text-sm text-slate-600 mb-3">
               Reportagens, vídeos locais, clipes e transmissões especiais da
               Região dos Lagos.
             </p>
 
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900/80">
-              <iframe
-                src={tvEmbedUrl}
-                title="Classilagos TV"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full border-0"
-              />
-            </div>
-
-            <Link
-              href="/tv"
-              className="mt-3 inline-flex items-center text-xs sm:text-sm font-semibold text-cyan-700 hover:text-cyan-900"
+            <a
+              href="https://www.youtube.com/@classilagostv1370"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-auto inline-flex items-center text-sm font-semibold text-cyan-700 hover:text-cyan-800"
             >
-              Ver mais vídeos →
-            </Link>
+              Assistir no YouTube →
+            </a>
           </div>
 
-          {/* NOTÍCIAS */}
-          <Link
-            href="/noticias"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
-          >
-            <h3 className="font-semibold text-slate-900 mb-1">Notícias</h3>
-            <p className="text-sm text-slate-600">
-              Últimas notícias da Região dos Lagos e do Brasil.
-            </p>
-            <span className="mt-3 text-xs font-semibold text-cyan-700">
-              Acessar portal de notícias →
-            </span>
-          </Link>
+          {/* NOTÍCIA MAIS RECENTE */}
+          {ultimaNoticia ? (
+            <Link
+              href={`/noticias/${ultimaNoticia.id}`}
+              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
+            >
+              <h3 className="font-semibold text-slate-900 mb-2">
+                {ultimaNoticia.titulo}
+              </h3>
+              <p className="text-sm text-slate-600 line-clamp-3">
+                {ultimaNoticia.resumo || "Clique para ler a matéria completa."}
+              </p>
+              <span className="mt-auto text-xs font-semibold text-cyan-700 pt-3">
+                Ler notícia completa →
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/noticias"
+              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
+            >
+              <h3 className="font-semibold text-slate-900 mb-1">Notícias</h3>
+              <p className="text-sm text-slate-600">
+                Últimas notícias da Região dos Lagos e do Brasil.
+              </p>
+              <span className="mt-auto text-xs font-semibold text-cyan-700 pt-3">
+                Acessar portal de notícias →
+              </span>
+            </Link>
+          )}
 
-          {/* TURISMO */}
-          <Link
-            href="/turismo"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
-          >
-            <h3 className="font-semibold text-slate-900 mb-1">Turismo</h3>
-            <p className="text-sm text-slate-600">
-              Pousadas, restaurantes, passeios e cartões-postais da Região dos
-              Lagos.
-            </p>
-            <span className="mt-3 text-xs font-semibold text-cyan-700">
-              Explorar guia de turismo →
-            </span>
-          </Link>
+          {/* TURISMO – ANÚNCIO EM DESTAQUE */}
+          {turismoDestaque ? (
+            <Link
+              href={`/anuncios/${turismoDestaque.id}`}
+              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
+            >
+              <h3 className="font-semibold text-slate-900 mb-2">
+                {turismoDestaque.titulo}
+              </h3>
+              <p className="text-sm text-slate-600 line-clamp-3">
+                {turismoDestaque.descricao ||
+                  "Clique para ver mais detalhes deste anúncio de turismo."}
+              </p>
+              <span className="mt-auto text-xs font-semibold text-cyan-700 pt-3">
+                Ver anúncio de turismo →
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/turismo"
+              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
+            >
+              <h3 className="font-semibold text-slate-900 mb-1">Turismo</h3>
+              <p className="text-sm text-slate-600">
+                Pousadas, restaurantes, passeios e pontos turísticos.
+              </p>
+              <span className="mt-auto text-xs font-semibold text-cyan-700 pt-3">
+                Explorar guia de turismo →
+              </span>
+            </Link>
+          )}
         </div>
       </section>
 
@@ -384,5 +441,4 @@ export default function Home() {
     </main>
   );
 }
-
 
