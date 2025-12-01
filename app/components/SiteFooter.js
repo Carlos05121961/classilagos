@@ -1,20 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 
 export default function SiteFooter() {
   return (
     <footer className="mt-16 bg-[#001f3f] text-slate-200">
-      {/* Faixa com o fundo oceânico */}
-      <div className="relative w-full h-32 overflow-hidden">
-        <Image
-          src="/footer-oceano.jpg"
-          alt="Fundo marinho Classilagos"
-          fill
-          className="object-cover object-bottom pointer-events-none select-none"
-        />
-      </div>
+      {/* Faixa com o fundo oceânico, igual ao fundo de praia dos pilares */}
+      <div className="w-full h-32 bg-[url('/footer-oceano.jpg')] bg-cover bg-bottom bg-no-repeat" />
 
       {/* Conteúdo principal do footer */}
       <div className="max-w-6xl mx-auto px-4 pb-10">
