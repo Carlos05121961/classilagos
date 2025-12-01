@@ -92,9 +92,14 @@ export default function Home() {
 
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
-        <HeroCarousel images={heroImages} interval={6000}>
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/10 to-slate-950/60" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
+       <HeroCarousel images={heroImages} interval={6000}>
+  {/* Overlay bem mais leve, só pra dar contraste no texto */}
+  <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-900/5 to-slate-950/55" />
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
+    ...
+  </div>
+</HeroCarousel>
+
             {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
               <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
