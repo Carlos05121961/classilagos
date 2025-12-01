@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
-import UserMenu from "./components/UserMenu";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -42,7 +41,6 @@ export default function Home() {
     "Rio das Ostras",
   ];
 
-  // helper pra mostrar nome bonitinho da categoria nos destaques
   const formatCategoria = (cat) => {
     switch (cat) {
       case "imoveis":
@@ -96,47 +94,22 @@ export default function Home() {
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/10 to-slate-950/60" />
-          <div className="absolute inset-0 flex flex-col">
-            {/* LOGO + MENU DESKTOP */}
-            <div className="max-w-7xl mx-auto flex items-center justify-between px-4 pt-4">
-              <Link href="/" className="flex items-center">
-                <Image
-                  src="/logo-classilagos.png"
-                  alt="Classilagos"
-                  width={150}
-                  height={150}
-                  priority
-                />
-              </Link>
-
-              <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white drop-shadow">
-                {categorias.map((c) => (
-                  <Link key={c.href} href={c.href}>
-                    {c.label}
-                  </Link>
-                ))}
-                <Link href="/noticias">Notícias</Link>
-                <UserMenu />
-              </nav>
-            </div>
-
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
-            <div className="flex-1 flex items-center justify-center px-4 pb-10">
-              <div className="text-center text-white drop-shadow max-w-2xl">
-                <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
-                  O seu guia de compras, serviços, turismo e oportunidades em
-                  toda a Região dos Lagos.
-                </p>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200 bg-clip-text text-transparent tracking-[0.08em] uppercase drop-shadow-[0_0_20px_rgba(15,230,255,0.7)]">
-                  Classilagos – Região dos Lagos em um só lugar
-                </h1>
-              </div>
+            <div className="text-center text-white drop-shadow max-w-2xl">
+              <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
+                O seu guia de compras, serviços, turismo e oportunidades em toda
+                a Região dos Lagos.
+              </p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200 bg-clip-text text-transparent tracking-[0.08em] uppercase">
+                Classilagos – Região dos Lagos em um só lugar
+              </h1>
             </div>
           </div>
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA – NEON */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-slate-950">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
           <div className="rounded-3xl bg-slate-950/95 border border-slate-700/70 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
@@ -149,7 +122,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/80 transition"
+                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
                 />
               </div>
 
@@ -178,7 +151,7 @@ export default function Home() {
               </div>
 
               {/* BOTÃO BUSCAR (ainda ilustrativo) */}
-              <button className="rounded-full bg-gradient-to-r from-pink-500 via-orange-400 to-cyan-400 text-white px-6 py-2 font-semibold shadow-[0_0_20px_rgba(255,120,220,0.8)] hover:scale-105 transition">
+              <button className="rounded-full bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
                 Buscar
               </button>
             </div>
@@ -190,17 +163,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – ÍCONES NEON */}
+      {/* PILARES – FUNDO PRAIA + CARDS CLEAN */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
-        <div className="max-w-7xl mx-auto px-4 -mt-4">
-          <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {categorias.map((cat) => (
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="w-[115px] h-[145px] rounded-xl flex flex-col items-center bg-black/85 border border-white/10 shadow-[0_0_22px_rgba(0,0,0,0.85)] hover:shadow-[0_0_26px_rgba(255,80,200,0.55)] transition pt-2 pb-2 px-2 flex-shrink-0"
+                className="rounded-2xl bg-white/90 border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between p-3"
               >
-                <div className="relative w-full h-[68%]">
+                <div className="relative w-14 h-14 mb-2">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -208,10 +181,10 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
-                <span className="text-[10px] font-semibold text-white uppercase tracking-[0.15em] text-center">
+                <span className="text-[11px] font-semibold text-slate-800 uppercase tracking-[0.12em] text-center">
                   {cat.label}
                 </span>
-                <span className="text-[9px] text-pink-200/80">Abrir</span>
+                <span className="text-[10px] text-slate-500">Abrir</span>
               </Link>
             ))}
           </div>
@@ -233,7 +206,7 @@ export default function Home() {
 
             <Link
               href="/anunciar"
-              className="hidden sm:inline-block text-xs font-semibold text-pink-600"
+              className="hidden sm:inline-block text-xs font-semibold text-cyan-700"
             >
               Anuncie em destaque →
             </Link>
@@ -251,7 +224,8 @@ export default function Home() {
                 const imagensValidas = Array.isArray(item.imagens)
                   ? item.imagens
                   : [];
-                const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
+                const thumb =
+                  imagensValidas.length > 0 ? imagensValidas[0] : "";
 
                 return (
                   <Link
@@ -298,7 +272,7 @@ export default function Home() {
           <div className="mt-4 text-center sm:hidden">
             <Link
               href="/anunciar"
-              className="text-xs font-semibold text-pink-600"
+              className="text-xs font-semibold text-cyan-700"
             >
               Quero anunciar em destaque →
             </Link>
@@ -381,64 +355,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* RODAPÉ – CLASSILAGOS */}
-      <footer className="bg-slate-950 text-slate-300 py-10">
-        <div className="max-w-7xl mx-auto px-4 grid gap-6 md:grid-cols-3">
-          <div>
-            <h4 className="font-semibold text-white mb-2">Classilagos</h4>
-            <p className="text-sm text-slate-400">
-              O seu guia de compras, serviços e turismo na Região dos Lagos.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-2">Navegação</h4>
-            <ul className="text-sm space-y-1">
-              <li>
-                <Link href="/quem-somos" className="hover:text-white">
-                  Quem somos
-                </Link>
-              </li>
-              <li>
-                <Link href="/como-anunciar" className="hover:text-white">
-                  Como anunciar
-                </Link>
-              </li>
-              <li>
-                <Link href="/fale-conosco" className="hover:text-white">
-                  Fale conosco
-                </Link>
-              </li>
-              <li>
-                <Link href="/termos-de-uso" className="hover:text-white">
-                  Termos de uso
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/politica-de-privacidade"
-                  className="hover:text-white"
-                >
-                  Política de privacidade
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-2">Redes sociais</h4>
-            <p className="text-sm text-slate-400">
-              Em breve, links oficiais do Classilagos nas redes sociais.
-            </p>
-          </div>
-        </div>
-
-        <p className="text-center text-[12px] text-slate-500 mt-6">
-          © {new Date().getFullYear()} Classilagos — Todos os direitos
-          reservados.
-        </p>
-      </footer>
     </main>
   );
 }
