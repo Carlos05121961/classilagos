@@ -2,11 +2,47 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UserMenu from "./UserMenu";
+import { supabase } from "../supabaseClient";
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+
+  // controla se o usuário logado é admin
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    async function carregarPerfil() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          setIsAdmin(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (!error && data?.role === "admin") {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar perfil:", e);
+        setIsAdmin(false);
+      }
+    }
+
+    carregarPerfil();
+  }, []);
 
   const categorias = [
     { label: "Imóveis", href: "/imoveis" },
@@ -49,6 +85,16 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
+          {/* Link extra só para administradores */}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="hover:text-slate-600 transition"
+            >
+              Administração
+            </Link>
+          )}
+
           {/* Aqui o UserMenu já traz o "Anuncie grátis" + perfil */}
           <UserMenu />
         </nav>
@@ -83,6 +129,17 @@ export default function SiteHeader() {
           >
             Notícias
           </Link>
+
+          {/* Link Admin também no mobile, só para admin */}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="block py-1 hover:text-cyan-300"
+            >
+              Administração
+            </Link>
+          )}
 
           <Link
             href="/anunciar"
