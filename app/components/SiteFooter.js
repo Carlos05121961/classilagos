@@ -1,22 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SiteFooter() {
   return (
-    <footer className="mt-16 bg-[#001f3f] text-slate-200 relative">
-
+    <footer className="mt-16 bg-[#001f3f] text-slate-200">
       {/* Faixa com o fundo oceânico */}
-      <div
-        className="w-full h-32 bg-no-repeat bg-cover bg-bottom"
-        style={{
-          backgroundImage: "url('/footer-oceano.jpg')",
-        }}
-      />
+      <div className="relative w-full h-32 overflow-hidden">
+        <Image
+          src="/footer-oceano.jpg"
+          alt="Fundo marinho Classilagos"
+          fill
+          className="object-cover object-bottom pointer-events-none select-none"
+        />
+      </div>
 
       {/* Conteúdo principal do footer */}
       <div className="max-w-6xl mx-auto px-4 pb-10">
-
         {/* Links superiores */}
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] text-slate-300 mt-6 mb-6">
           <Link href="/quem-somos" className="hover:text-cyan-300 transition">
@@ -35,7 +36,10 @@ export default function SiteFooter() {
             Termos de uso
           </Link>
 
-          <Link href="/politica-de-privacidade" className="hover:text-cyan-300 transition">
+          <Link
+            href="/politica-de-privacidade"
+            className="hover:text-cyan-300 transition"
+          >
             Política de privacidade
           </Link>
         </div>
@@ -47,7 +51,8 @@ export default function SiteFooter() {
           </p>
 
           <p className="text-[11px] text-slate-400 mt-1">
-            O seu guia de compras, serviços, turismo e oportunidades na Região dos Lagos
+            O seu guia de compras, serviços, turismo e oportunidades na Região
+            dos Lagos
           </p>
         </div>
 
