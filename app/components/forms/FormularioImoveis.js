@@ -280,7 +280,7 @@ export default function FormularioImoveis() {
               Finalidade *
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={finalidade}
               onChange={(e) => setFinalidade(e.target.value)}
               required
@@ -299,7 +299,7 @@ export default function FormularioImoveis() {
               Tipo de imóvel *
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={tipoImovel}
               onChange={(e) => setTipoImovel(e.target.value)}
               required
@@ -363,7 +363,7 @@ export default function FormularioImoveis() {
               Cidade *
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
@@ -504,7 +504,7 @@ export default function FormularioImoveis() {
               Imóvel mobiliado?
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={mobiliado}
               onChange={(e) => setMobiliado(e.target.value)}
             >
@@ -570,7 +570,7 @@ export default function FormularioImoveis() {
             Aceita financiamento?
           </label>
           <select
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm max-w-xs"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm max-w-xs bg-white text-slate-900"
             value={aceitaFinanciamento}
             onChange={(e) => setAceitaFinanciamento(e.target.value)}
           >
