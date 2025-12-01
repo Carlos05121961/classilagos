@@ -24,18 +24,16 @@ export default function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 
         {/* LOGO */}
-      <Link href="/" className="flex items-center">
-  <div className="bg-white/95 rounded-full px-4 py-1 shadow-md flex items-center">
-    <Image
-      src="/logo-classilagos.png"
-      alt="Classilagos"
-      width={140}
-      height={140}
-      className="h-auto w-auto"
-      priority
-    />
-  </div>
+<Link href="/" className="flex items-center">
+  <Image
+    src="/logo-classilagos.png"
+    alt="Classilagos"
+    width={140}
+    height={140}
+    priority
+  />
 </Link>
+
 
         {/* MENU DESKTOP */}
         <nav className="hidden md:flex items-center gap-6 text-sm text-slate-200 font-medium">
