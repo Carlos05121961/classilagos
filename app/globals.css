@@ -3,6 +3,31 @@
 @tailwind utilities;
 
 /* ajustes simples */
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+}
+
+/* ==== AJUSTE GLOBAL DOS FORMULÁRIOS CLASSILAGOS ==== */
+
+/* Campos de texto, selects e áreas de texto: texto escuro + fundo branco */
+input,
+select,
+textarea {
+  color: #0f172a !important;        /* texto tipo slate-900 (preto azulado) */
+  background-color: #ffffff !important;
+}
+
+/* Opções dos <select> (lista que abre) */
+select option {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+/* Placeholders (texto clarinho dentro do campo) */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;        /* tipo slate-400 */
+}
+
 
 
