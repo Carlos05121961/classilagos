@@ -163,7 +163,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + CARDS CLEAN */}
+          {/* PILARES – FUNDO PRAIA + CARDS MAIS ENXUTOS */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -171,9 +171,9 @@ export default function Home() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="rounded-2xl bg-white/90 border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between p-3"
+                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white/92 border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
-                <div className="relative w-14 h-14 mb-2">
+                <div className="relative w-12 h-12 mb-2">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -190,6 +190,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
       {/* ANÚNCIOS EM DESTAQUE (DINÂMICOS) */}
       <section className="bg-white pb-10">
