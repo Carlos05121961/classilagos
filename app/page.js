@@ -92,14 +92,10 @@ export default function Home() {
 
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
-       <HeroCarousel images={heroImages} interval={6000}>
-  {/* Overlay bem mais leve, só pra dar contraste no texto */}
-  <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-900/5 to-slate-950/55" />
-  <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
-    ...
-  </div>
-</HeroCarousel>
-
+        <HeroCarousel images={heroImages} interval={6000}>
+          {/* Overlay mais suave */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-900/5 to-slate-950/45 pointer-events-none" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
               <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
@@ -114,26 +110,26 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA */}
-      <section className="bg-slate-950">
+      {/* CAIXA DE BUSCA – FAIXA TURQUESA */}
+      <section className="bg-gradient-to-b from-cyan-600 via-cyan-700 to-slate-950">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
-          <div className="rounded-3xl bg-slate-950/95 border border-slate-700/70 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
+          <div className="rounded-3xl bg-slate-950/85 border border-cyan-300/40 shadow-[0_0_30px_rgba(0,0,0,0.6)] px-6 py-5 backdrop-blur-sm">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
               {/* BUSCA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-slate-100 mb-1">
                   O que você procura?
                 </label>
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
+                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/90 transition"
                 />
               </div>
 
               {/* SELECT CATEGORIA */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-slate-100 mb-1">
                   Categoria
                 </label>
                 <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
@@ -145,7 +141,7 @@ export default function Home() {
 
               {/* SELECT CIDADE */}
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                <label className="text-[11px] font-semibold text-slate-100 mb-1">
                   Cidade
                 </label>
                 <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
@@ -155,20 +151,20 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* BOTÃO BUSCAR (ainda ilustrativo) */}
-              <button className="rounded-full bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
+              {/* BOTÃO BUSCAR */}
+              <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
                 Buscar
               </button>
             </div>
           </div>
 
-          <p className="mt-2 text-[11px] text-center text-slate-400">
+          <p className="mt-2 text-[11px] text-center text-cyan-100/90">
             Em breve, essa busca estará totalmente integrada aos anúncios reais.
           </p>
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONE PRONTO */}
+      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONES NOVOS */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -176,10 +172,9 @@ export default function Home() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex items-center justify-center py-3 px-2"
+                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
-                {/* só a imagem, que já inclui ícone + texto */}
-                <div className="relative w-24 h-24">
+                <div className="relative w-24 h-24 mb-1">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -360,4 +355,3 @@ export default function Home() {
     </main>
   );
 }
-
