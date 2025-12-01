@@ -4,11 +4,21 @@ import Link from "next/link";
 
 export default function SiteFooter() {
   return (
-    <footer className="mt-12 bg-slate-950 border-t border-slate-800 py-10">
-      <div className="max-w-6xl mx-auto px-4">
+    <footer className="mt-16 bg-[#001f3f] text-slate-200 relative">
+
+      {/* Faixa com o fundo oceânico */}
+      <div
+        className="w-full h-32 bg-no-repeat bg-cover bg-bottom"
+        style={{
+          backgroundImage: "url('/footer-oceano.jpg')",
+        }}
+      />
+
+      {/* Conteúdo principal do footer */}
+      <div className="max-w-6xl mx-auto px-4 pb-10">
 
         {/* Links superiores */}
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] text-slate-300 mb-6">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] text-slate-300 mt-6 mb-6">
           <Link href="/quem-somos" className="hover:text-cyan-300 transition">
             Quem somos
           </Link>
@@ -32,11 +42,11 @@ export default function SiteFooter() {
 
         {/* Marca e frase */}
         <div className="text-center">
-          <p className="text-sm font-semibold text-slate-50">
+          <p className="text-sm font-semibold text-white tracking-wide">
             Classilagos
           </p>
 
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-400 mt-1">
             O seu guia de compras, serviços, turismo e oportunidades na Região dos Lagos
           </p>
         </div>
@@ -45,7 +55,6 @@ export default function SiteFooter() {
         <p className="text-[10px] text-center text-slate-500 mt-6">
           © {new Date().getFullYear()} Classilagos. Todos os direitos reservados.
         </p>
-
       </div>
     </footer>
   );
