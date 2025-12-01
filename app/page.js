@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
@@ -230,7 +232,7 @@ export default function Home() {
                 return (
                   <Link
                     key={item.id}
-                    href={/anuncios/${item.id}}
+                    href={`/anuncios/${item.id}`}
                     className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
                   >
                     <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
