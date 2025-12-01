@@ -19,35 +19,33 @@ export default function SiteHeader() {
     { label: "LagoListas", href: "/lagolistas" },
   ];
 
-  return (<header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-300 shadow-md">
-
+  return (
+    <header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-300 shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-
         {/* LOGO */}
-<Link href="/" className="flex items-center">
-  <Image
-    src="/logo-classilagos.png"
-    alt="Classilagos"
-    width={140}
-    height={140}
-    priority
-  />
-</Link>
-
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo-classilagos.png"
+            alt="Classilagos"
+            width={140}
+            height={140}
+            priority
+          />
+        </Link>
 
         {/* MENU DESKTOP */}
-        <nav className="hidden md:flex items-center gap-6 text-sm text-slate-200 font-medium">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {categorias.map((c) => (
             <Link
               key={c.href}
               href={c.href}
-              className="hover:text-cyan-300 transition"
+              className="hover:text-slate-600 transition"
             >
               {c.label}
             </Link>
           ))}
 
-          <Link href="/noticias" className="hover:text-cyan-300 transition">
+          <Link href="/noticias" className="hover:text-slate-600 transition">
             Notícias
           </Link>
 
@@ -63,7 +61,7 @@ export default function SiteHeader() {
 
         {/* BOTÃO MOBILE */}
         <button
-          className="md:hidden text-slate-200 text-xl"
+          className="md:hidden text-slate-900 text-2xl"
           onClick={() => setOpen(!open)}
         >
           ☰
@@ -73,7 +71,6 @@ export default function SiteHeader() {
       {/* MENU MOBILE */}
       {open && (
         <div className="md:hidden bg-slate-900 border-t border-slate-700 p-4 space-y-3 text-slate-200 text-sm">
-
           {categorias.map((c) => (
             <Link
               key={c.href}
@@ -105,6 +102,5 @@ export default function SiteHeader() {
     </header>
   );
 }
-
 
 
