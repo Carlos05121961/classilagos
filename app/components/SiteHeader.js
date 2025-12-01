@@ -49,17 +49,11 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
+          {/* Aqui o UserMenu já traz o "Anuncie grátis" + perfil */}
           <UserMenu />
-
-          <Link
-            href="/anunciar"
-            className="ml-2 rounded-full px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-cyan-400 to-pink-500 text-white shadow-[0_0_10px_rgba(255,120,220,0.7)] hover:scale-105 transition"
-          >
-            Anuncie Grátis
-          </Link>
         </nav>
 
-        {/* BOTÃO MOBILE */}
+        {/* BOTÃO MOBILE (abre o menu lateral escuro) */}
         <button
           className="md:hidden text-slate-900 text-2xl"
           onClick={() => setOpen(!open)}
@@ -102,5 +96,4 @@ export default function SiteHeader() {
     </header>
   );
 }
-
 
