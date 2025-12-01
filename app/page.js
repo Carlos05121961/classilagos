@@ -14,20 +14,21 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
-  const categorias = [
-    { label: "Imóveis", href: "/imoveis", icon: "/icons/imoveis-neon.jpg" },
-    { label: "Veículos", href: "/veiculos", icon: "/icons/veiculos-neon.jpg" },
-    { label: "Náutica", href: "/nautica", icon: "/icons/nautica-neon.jpg" },
-    { label: "Pets", href: "/pets", icon: "/icons/pets-neon.jpg" },
-    { label: "Empregos", href: "/empregos", icon: "/icons/empregos-neon.jpg" },
-    { label: "Serviços", href: "/servicos", icon: "/icons/servicos-neon.jpg" },
-    { label: "Turismo", href: "/turismo", icon: "/icons/turismo-neon.jpg" },
-    {
-      label: "LagoListas",
-      href: "/lagolistas",
-      icon: "/icons/lagolistas-neon.jpg",
-    },
-  ];
+ const categorias = [
+  { label: "Imóveis",   href: "/imoveis",    icon: "/icons/imoveis.png" },
+  { label: "Veículos",  href: "/veiculos",   icon: "/icons/veiculos.png" },
+  { label: "Náutica",   href: "/nautica",    icon: "/icons/nautica.png" },
+  { label: "Pets",      href: "/pets",       icon: "/icons/pets.png" },
+  { label: "Empregos",  href: "/empregos",   icon: "/icons/empregos.png" },
+  { label: "Serviços",  href: "/servicos",   icon: "/icons/servicos.png" },
+  { label: "Turismo",   href: "/turismo",    icon: "/icons/turismo.png" },
+  {
+    label: "LagoListas",
+    href: "/lagolistas",
+    icon: "/icons/lagolistas.png",
+  },
+];
+
 
   const cidades = [
     "Maricá",
