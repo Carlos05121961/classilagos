@@ -171,7 +171,8 @@ export default function Home() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white/92 border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
+                  className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
+
               >
                 <div className="relative w-12 h-12 mb-2">
                   <Image
