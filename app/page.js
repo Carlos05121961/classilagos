@@ -110,65 +110,53 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-  {/* CAIXA DE BUSCA – FAIXA DEGRADÊ INVERTIDA */}
-<section className="bg-gradient-to-b from-slate-950 via-cyan-800 to-cyan-500">
-  <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
+      {/* CAIXA DE BUSCA – TARJA DEGRADÊ ESCURO → TURQUESA */}
+      <section className="bg-gradient-to-b from-slate-900 via-cyan-800 to-cyan-600 py-6">
+        <div className="max-w-4xl mx-auto px-4 relative z-10">
+          <div className="rounded-3xl bg-slate-950/95 border border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
+              {/* BUSCA */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  O que você procura?
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
+                  className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
+                />
+              </div>
 
-    <div className="rounded-3xl bg-slate-950/85 border border-cyan-300/40 shadow-[0_0_30px_rgba(0,0,0,0.6)] px-6 py-5 backdrop-blur-sm">
-      <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
+              {/* SELECT CATEGORIA */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Categoria
+                </label>
+                <select className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50">
+                  {categorias.map((c) => (
+                    <option key={c.label}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
 
-        {/* BUSCA */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-100 mb-1">
-            O que você procura?
-          </label>
-          <input
-            type="text"
-            placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-            className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/90 transition"
-          />
-        </div>
+              {/* SELECT CIDADE */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full rounded-full border border-slate-700 px-3 py-2 bg-slate-900 text-slate-50">
+                  {cidades.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
 
-        {/* CATEGORIA */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-100 mb-1">
-            Categoria
-          </label>
-          <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
-            {categorias.map((c) => (
-              <option key={c.label}>{c.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* CIDADE */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-100 mb-1">
-            Cidade
-          </label>
-          <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
-            {cidades.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* BOTÃO */}
-        <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
-          Buscar
-        </button>
-
-      </div>
-    </div>
-
-    <p className="mt-2 text-[11px] text-center text-cyan-100/90">
-      Em breve, essa busca estará totalmente integrada aos anúncios reais.
-    </p>
-
-  </div>
-</section>
-
-
+              {/* BOTÃO */}
+              <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
+                Buscar
+              </button>
+            </div>
+          </div>
 
           <p className="mt-2 text-[11px] text-center text-cyan-100/90">
             Em breve, essa busca estará totalmente integrada aos anúncios reais.
