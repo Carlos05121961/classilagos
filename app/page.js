@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
-import SmartSelect from "./components/SmartSelect";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -67,14 +66,14 @@ export default function Home() {
     }
   };
 
+  // URL da playlist/canal da Classilagos TV no YouTube
+  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
+  const tvEmbedUrl =
+    "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
+
   // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
-
-  // estado da busca (para o SmartSelect)
-  const [categoriaBusca, setCategoriaBusca] = useState(categorias[0].label);
-  const [cidadeBusca, setCidadeBusca] = useState(cidades[0]);
-  const [textoBusca, setTextoBusca] = useState("");
 
   useEffect(() => {
     async function carregarDestaques() {
@@ -91,15 +90,6 @@ export default function Home() {
     carregarDestaques();
   }, []);
 
-  const handleBuscar = () => {
-    // por enquanto apenas loga – depois integrarmos a busca real
-    console.log("Busca:", {
-      texto: textoBusca,
-      categoria: categoriaBusca,
-      cidade: cidadeBusca,
-    });
-  };
-
   return (
     <main className="bg-white">
       {/* BANNER COMERCIAL TOPO */}
@@ -108,8 +98,8 @@ export default function Home() {
       {/* HERO PRINCIPAL */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
-          {/* overlay menos “fumacento” */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-900/10 to-slate-950/70" />
+          {/* sobreposição mais suave */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
@@ -125,12 +115,12 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA – TARJA INVERTIDA (ESCURO EM CIMA, AZUL EMBAIXO) */}
-      <section className="bg-gradient-to-b from-slate-950 via-slate-950 to-cyan-700">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-6">
-          <div className="rounded-3xl bg-slate-950/95 border border-slate-700/80 shadow-[0_0_30px_rgba(0,0,0,0.85)] px-6 py-5">
+      {/* CAIXA DE BUSCA – FAIXA TURQUESA + CARTÃO ESCURO */}
+      <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
+          <div className="rounded-3xl bg-slate-950/95 border border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
-              {/* BUSCA TEXTO LIVRE */}
+              {/* BUSCA */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   O que você procura?
@@ -138,38 +128,38 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
-                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition text-xs md:text-sm"
-                  value={textoBusca}
-                  onChange={(e) => setTextoBusca(e.target.value)}
+                  className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition"
                 />
               </div>
 
-              {/* SELECT CATEGORIA – componente novo */}
-              <SmartSelect
-                label="Categoria"
-                value={categoriaBusca}
-                onChange={setCategoriaBusca}
-                options={categorias.map((c) => c.label)}
-              />
-
-              {/* SELECT CIDADE – componente novo */}
-              <SmartSelect
-                label="Cidade"
-                value={cidadeBusca}
-                onChange={setCidadeBusca}
-                options={cidades}
-              />
-
-              {/* BOTÃO BUSCAR */}
-              <div className="flex md:block">
-                <button
-                  type="button"
-                  onClick={handleBuscar}
-                  className="w-full md:w-auto rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition text-xs md:text-sm"
-                >
-                  Buscar
-                </button>
+              {/* SELECT CATEGORIA */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Categoria
+                </label>
+                <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
+                  {categorias.map((c) => (
+                    <option key={c.label}>{c.label}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* SELECT CIDADE */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-200 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
+                  {cidades.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* BOTÃO */}
+              <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
+                Buscar
+              </button>
             </div>
           </div>
 
@@ -295,36 +285,60 @@ export default function Home() {
       {/* CHAMADAS INSTITUCIONAIS – TV / NOTÍCIAS / TURISMO */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3">
-          <Link
-            href="/tv"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
-          >
-            <h3 className="font-semibold text-slate-900 mb-1">
-              Classilagos TV
-            </h3>
-            <p className="text-sm text-slate-600">
-              Reportagens, vídeos locais e transmissões especiais.
+          {/* CLASSILAGOS TV – COM PLAYER YOUTUBE */}
+          <div className="rounded-2xl border border-slate-200 p-4 sm:p-6 bg-slate-50 shadow-sm flex flex-col">
+            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
+            <p className="text-xs sm:text-sm text-slate-600 mb-3">
+              Reportagens, vídeos locais, clipes e transmissões especiais da
+              Região dos Lagos.
             </p>
-          </Link>
 
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900/80">
+              <iframe
+                src={tvEmbedUrl}
+                title="Classilagos TV"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+
+            <Link
+              href="/tv"
+              className="mt-3 inline-flex items-center text-xs sm:text-sm font-semibold text-cyan-700 hover:text-cyan-900"
+            >
+              Ver mais vídeos →
+            </Link>
+          </div>
+
+          {/* NOTÍCIAS */}
           <Link
             href="/noticias"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
           >
             <h3 className="font-semibold text-slate-900 mb-1">Notícias</h3>
             <p className="text-sm text-slate-600">
               Últimas notícias da Região dos Lagos e do Brasil.
             </p>
+            <span className="mt-3 text-xs font-semibold text-cyan-700">
+              Acessar portal de notícias →
+            </span>
           </Link>
 
+          {/* TURISMO */}
           <Link
             href="/turismo"
-            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm"
+            className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
           >
             <h3 className="font-semibold text-slate-900 mb-1">Turismo</h3>
             <p className="text-sm text-slate-600">
-              Pousadas, restaurantes, passeios e pontos turísticos.
+              Pousadas, restaurantes, passeios e cartões-postais da Região dos
+              Lagos.
             </p>
+            <span className="mt-3 text-xs font-semibold text-cyan-700">
+              Explorar guia de turismo →
+            </span>
           </Link>
         </div>
       </section>
@@ -370,4 +384,5 @@ export default function Home() {
     </main>
   );
 }
+
 
