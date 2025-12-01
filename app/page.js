@@ -14,21 +14,20 @@ export default function Home() {
     "/banners/barra.png",
   ];
 
- const categorias = [
-  { label: "Imóveis",   href: "/imoveis",    icon: "/icons/imoveis.png" },
-  { label: "Veículos",  href: "/veiculos",   icon: "/icons/veiculos.png" },
-  { label: "Náutica",   href: "/nautica",    icon: "/icons/nautica.png" },
-  { label: "Pets",      href: "/pets",       icon: "/icons/pets.png" },
-  { label: "Empregos",  href: "/empregos",   icon: "/icons/empregos.png" },
-  { label: "Serviços",  href: "/servicos",   icon: "/icons/servicos.png" },
-  { label: "Turismo",   href: "/turismo",    icon: "/icons/turismo.png" },
-  {
-    label: "LagoListas",
-    href: "/lagolistas",
-    icon: "/icons/lagolistas.png",
-  },
-];
-
+  const categorias = [
+    { label: "Imóveis", href: "/imoveis", icon: "/icons/imoveis.png" },
+    { label: "Veículos", href: "/veiculos", icon: "/icons/veiculos.png" },
+    { label: "Náutica", href: "/nautica", icon: "/icons/nautica.png" },
+    { label: "Pets", href: "/pets", icon: "/icons/pets.png" },
+    { label: "Empregos", href: "/empregos", icon: "/icons/empregos.png" },
+    { label: "Serviços", href: "/servicos", icon: "/icons/servicos.png" },
+    { label: "Turismo", href: "/turismo", icon: "/icons/turismo.png" },
+    {
+      label: "LagoListas",
+      href: "/lagolistas",
+      icon: "/icons/lagolistas.png",
+    },
+  ];
 
   const cidades = [
     "Maricá",
@@ -164,7 +163,7 @@ export default function Home() {
         </div>
       </section>
 
-          {/* PILARES – FUNDO PRAIA + CARDS MAIS ENXUTOS */}
+      {/* PILARES – FUNDO PRAIA + CARDS MAIS ENXUTOS */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -172,10 +171,9 @@ export default function Home() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                  className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
-
+                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-center py-3 px-2"
               >
-                <div className="relative w-12 h-12 mb-2">
+                <div className="relative w-12 h-12">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -183,16 +181,17 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
+                {/* REMOVIDOS OS TEXTOS EXTERNOS PARA NÃO DUPLICAR
                 <span className="text-[11px] font-semibold text-slate-800 uppercase tracking-[0.12em] text-center">
                   {cat.label}
                 </span>
                 <span className="text-[10px] text-slate-500">Abrir</span>
+                */}
               </Link>
             ))}
           </div>
         </div>
       </section>
-
 
       {/* ANÚNCIOS EM DESTAQUE (DINÂMICOS) */}
       <section className="bg-white pb-10">
@@ -361,3 +360,4 @@ export default function Home() {
     </main>
   );
 }
+
