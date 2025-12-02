@@ -56,6 +56,7 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-300 shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+
         {/* LOGO */}
         <Link href="/" className="flex items-center">
           <Image
@@ -92,13 +93,13 @@ export default function SiteHeader() {
             </Link>
           )}
 
-          {/* UserMenu (Login/Cadastro/Perfil + Anuncie grátis) */}
+          {/* Aqui entra o botão ANUNCIE GRÁTIS, mas ele está dentro do UserMenu */}
           <UserMenu />
         </nav>
 
         {/* MOBILE: UserMenu + botão hambúrguer */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* aqui o UserMenu aparece SEMPRE no celular */}
+          {/* O UserMenu no celular já aparece sempre */}
           <UserMenu />
 
           <button
@@ -111,7 +112,7 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* MENU MOBILE (apenas links de navegação) */}
+      {/* MENU MOBILE */}
       {open && (
         <div className="md:hidden bg-slate-900 border-t border-slate-700 p-4 space-y-3 text-slate-200 text-sm">
           {categorias.map((c) => (
