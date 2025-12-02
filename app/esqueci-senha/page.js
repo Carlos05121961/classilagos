@@ -22,22 +22,23 @@ export default function EsqueciSenhaPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/resetar-senha`,
-    });
+    // 👉 por enquanto, sem redirectTo para evitar bloqueio de URL
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     setLoading(false);
 
     if (error) {
       console.error("Erro ao enviar recuperação de senha:", error);
+      // mostra a mensagem real que vem do Supabase
       setErro(
-        "Não foi possível enviar o link de redefinição. Tente novamente em instantes."
+        error.message ||
+          "Não foi possível enviar o link de redefinição. Tente novamente em instantes."
       );
       return;
     }
 
     setMensagem(
-      "Se este e-mail estiver cadastrado, você receberá uma mensagem com o link para redefinir a senha."
+      "Se este e-mail estiver cadastrado, você receberá uma mensagem com o link para redefinir sua senha."
     );
   }
 
