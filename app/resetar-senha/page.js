@@ -12,7 +12,6 @@ export default function ResetarSenhaPage() {
   const [loading, setLoading] = useState(false);
   const [temSessaoRecuperacao, setTemSessaoRecuperacao] = useState(false);
 
-  // Verifica se existe sessão de recuperação ativa (link válido)
   useEffect(() => {
     async function checarSessao() {
       try {
@@ -22,7 +21,6 @@ export default function ResetarSenhaPage() {
           setTemSessaoRecuperacao(false);
           return;
         }
-        // se vier user, é porque o link de recuperação criou uma sessão temporária
         setTemSessaoRecuperacao(!!data?.user);
       } catch (e) {
         console.error("Erro inesperado ao checar sessão:", e);
@@ -54,7 +52,7 @@ export default function ResetarSenhaPage() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.updateUser({
+    const { error } = await supabase.auth.updateUser({
       password: novaSenha,
     });
 
@@ -75,7 +73,6 @@ export default function ResetarSenhaPage() {
     setConfirmarSenha("");
   }
 
-  // Se não tiver sessão de recuperação, mostra aviso
   if (!temSessaoRecuperacao) {
     return (
       <main className="min-h-screen bg-slate-50 py-8">
