@@ -15,14 +15,47 @@ export default function ResetarSenhaPage() {
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 1) Quando a pessoa cai aqui pelo link do e-mail,
-  // o Supabase manda o token na URL (hash).
-  // A gente troca esse token por uma sessão válida.
   useEffect(() => {
     async function prepararSessao() {
       if (typeof window === "undefined") return;
 
+      setErro("");
+      setMensagem("");
+      setTokenStatus("checking");
+
+      // 1) Primeiro: ver se já existe sessão ativa
+      const { data: { session }, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (session && !sessionError) {
+        // Já existe sessão válida (inclusive de recuperação)
+        setTokenStatus("ok");
+        return;
+      }
+
+      // 2) Se não tem sessão ainda, tentamos usar o token da URL (hash)
       const hash = window.location.hash || "";
+
+      // Se o Supabase devolveu erro no hash (ex: otp_expired)
+      if (hash.includes("error=")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const errorCode = params.get("error_code");
+
+        if (errorCode === "otp_expired") {
+          setErro(
+            "Este link de redefinição já foi utilizado ou expirou. Peça um novo link em “Esqueci minha senha”."
+          );
+        } else {
+          setErro(
+            "Este link de redefinição é inválido. Peça um novo link em “Esqueci minha senha”."
+          );
+        }
+
+        setTokenStatus("error");
+        return;
+      }
+
+      // Se não tem access_token no hash, também não conseguimos continuar
       if (!hash.includes("access_token")) {
         setErro(
           "Link de redefinição inválido ou já utilizado. Peça um novo link em “Esqueci minha senha”."
@@ -31,6 +64,7 @@ export default function ResetarSenhaPage() {
         return;
       }
 
+      // 3) Trocar o código do link por uma sessão válida
       const { error } = await supabase.auth.exchangeCodeForSession(
         window.location.href
       );
@@ -44,7 +78,7 @@ export default function ResetarSenhaPage() {
         return;
       }
 
-      // Tudo certo, podemos mostrar o formulário de nova senha
+      // Agora temos sessão e podemos mostrar o formulário
       setTokenStatus("ok");
     }
 
@@ -123,7 +157,7 @@ export default function ResetarSenhaPage() {
           </div>
         )}
 
-        {/* Se o token é válido e ainda não mostramos mensagem final, exibe o formulário */}
+        {/* Se o token/sessão está ok e ainda não mostramos mensagem final, exibe o formulário */}
         {!carregandoToken && tokenStatus === "ok" && !mensagem && (
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div>
