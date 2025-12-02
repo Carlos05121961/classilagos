@@ -47,8 +47,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Login OK → vai para o painel
-    window.location.href = "/painel";
+    // Login OK → agora vai para a PÁGINA INICIAL
+    window.location.href = "/";
   }
 
   return (
