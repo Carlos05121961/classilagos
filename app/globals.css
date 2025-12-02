@@ -29,5 +29,24 @@ textarea::placeholder {
   color: #9ca3af;        /* tipo slate-400 */
 }
 
+/* =============================== */
+/* 🔥 ANIMAÇÃO PREMIUM DO ANUNCIE GRÁTIS */
+/* =============================== */
+
+@keyframes pulse-strong {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0, 190, 255, 0);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(0, 190, 255, 0.45);
+  }
+}
+
+.pulse-strong {
+  animation: pulse-strong 1.8s infinite;
+}
+
 
 
