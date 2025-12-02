@@ -4,6 +4,25 @@ import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
+// Tenta descobrir o webmail a partir do domínio do e-mail
+function getWebmailUrl(email) {
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (!domain) return null;
+
+  const map = {
+    "gmail.com": "https://mail.google.com",
+    "outlook.com": "https://outlook.live.com/mail",
+    "hotmail.com": "https://outlook.live.com/mail",
+    "live.com": "https://outlook.live.com/mail",
+    "yahoo.com": "https://mail.yahoo.com",
+    "uol.com.br": "https://email.uol.com.br",
+    "bol.com.br": "https://email.bol.uol.com.br",
+    "icloud.com": "https://www.icloud.com/mail",
+  };
+
+  return map[domain] || `https://${domain}`;
+}
+
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
@@ -17,11 +36,13 @@ export default function CadastroPage() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
     setSucesso("");
+    setShowModal(false);
 
     // validações básicas
     const partesNome = nome.trim().split(" ").filter(Boolean);
@@ -93,19 +114,27 @@ export default function CadastroPage() {
       return;
     }
 
-    // deu certo: mostra mensagem amigável
+    // deu certo: mostra mensagem amigável + abre modal
     setSucesso(
       "Enviamos um e-mail para você. Abra a caixa de entrada (e também Spam ou Promoções), procure pelo Classilagos e clique no botão para confirmar e ativar sua conta."
     );
+    setShowModal(true);
 
     // limpa os campos de senha
     setSenha("");
     setConfirmarSenha("");
   }
 
+  function handleAbrirEmail() {
+    const url = getWebmailUrl(email);
+    if (url) {
+      window.open(url, "_blank");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6">
+      <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 relative">
         <h1 className="text-2xl font-semibold text-slate-900 mb-1">
           Criar conta
         </h1>
@@ -123,12 +152,8 @@ export default function CadastroPage() {
           <div className="mb-4 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-3 text-sm text-emerald-900 flex gap-2">
             <span className="mt-[2px]">✅</span>
             <div>
-              <p className="font-semibold">
-                Conta criada com sucesso!
-              </p>
-              <p className="text-xs md:text-sm mt-1">
-                {sucesso}
-              </p>
+              <p className="font-semibold">Conta criada com sucesso!</p>
+              <p className="text-xs md:text-sm mt-1">{sucesso}</p>
             </div>
           </div>
         )}
@@ -298,6 +323,50 @@ export default function CadastroPage() {
             </Link>
           </p>
         </form>
+
+        {/* MODAL de confirmação */}
+        {showModal && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+            <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">
+                Conta criada com sucesso! 🎉
+              </h2>
+              <p className="text-xs text-slate-600 mb-3">
+                Agora é só abrir seu e-mail, encontrar a mensagem do{" "}
+                <strong>Classilagos</strong> e clicar no botão de confirmação
+                para ativar a sua conta.
+              </p>
+              <p className="text-[11px] text-slate-500 mb-4">
+                Dica: se não aparecer na caixa de entrada, confira também as
+                pastas <strong>Spam</strong> e <strong>Promoções</strong>.
+              </p>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleAbrirEmail}
+                  className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
+                >
+                  Abrir meu e-mail
+                </button>
+                <Link
+                  href="/login"
+                  className="w-full rounded-full border border-slate-300 text-slate-700 text-sm font-semibold py-2 text-center hover:bg-slate-50"
+                  onClick={() => setShowModal(false)}
+                >
+                  Ir para o login
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-full text-[11px] text-slate-500 mt-1"
+                >
+                  Fechar esta janela
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
