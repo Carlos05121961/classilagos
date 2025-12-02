@@ -131,6 +131,12 @@ export default function CadastroPage() {
     }
   }
 
+  // NOVO → ao fechar o modal, redireciona para o index
+  function handleFecharModal() {
+    setShowModal(false);
+    window.location.href = "/"; // REDIRECIONA PARA A PÁGINA INICIAL
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 relative">
@@ -234,7 +240,7 @@ export default function CadastroPage() {
             />
           </div>
 
-          {/* Senha */}
+          {/* Senhas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label
@@ -314,7 +320,7 @@ export default function CadastroPage() {
             </button>
           </div>
 
-          {/* Link para login (para quem já tem conta) */}
+          {/* Link para login */}
           <p className="text-xs text-slate-600 text-center mt-2">
             Já tem uma conta?{" "}
             <Link href="/login" className="text-cyan-600 font-semibold">
@@ -323,7 +329,7 @@ export default function CadastroPage() {
           </p>
         </form>
 
-        {/* MODAL de confirmação – só com "Abrir meu e-mail" e "Fechar" */}
+        {/* MODAL */}
         {showModal && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
             <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
@@ -350,7 +356,7 @@ export default function CadastroPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleFecharModal}
                   className="w-full text-[11px] text-slate-500 mt-1"
                 >
                   Fechar esta janela
