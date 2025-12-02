@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
 export default function PainelPage() {
-  const router = useRouter();
-
   const [carregando, setCarregando] = useState(true);
+  const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState(null);
 
@@ -21,36 +19,31 @@ export default function PainelPage() {
           console.error("Erro ao buscar usuário:", error);
         }
 
-        const user = data?.user ?? null;
+        const userAtual = data?.user ?? null;
+        setUser(userAtual);
 
-        // Se não estiver logado, manda pro login
-        if (!user) {
-          setIsAdmin(false);
-          setUserName(null);
-          setCarregando(false);
-          router.push("/login");
-          return;
-        }
+        if (userAtual) {
+          const nomeMeta =
+            userAtual.user_metadata?.nome ||
+            userAtual.user_metadata?.name ||
+            (userAtual.email ? userAtual.email.split("@")[0] : null);
 
-        // Nome pra mostrar no topo do painel
-        const nomeMeta =
-          user.user_metadata?.nome ||
-          user.user_metadata?.name ||
-          (user.email ? user.email.split("@")[0] : null);
+          setUserName(nomeMeta);
 
-        setUserName(nomeMeta);
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", userAtual.id)
+            .single();
 
-        // Verifica se é admin na tabela profiles
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        if (!profileError && profile?.role === "admin") {
-          setIsAdmin(true);
+          if (!profileError && profile?.role === "admin") {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
         } else {
           setIsAdmin(false);
+          setUserName(null);
         }
       } catch (e) {
         console.error("Erro ao carregar usuário no painel:", e);
@@ -61,8 +54,9 @@ export default function PainelPage() {
     }
 
     carregarUsuario();
-  }, [router]);
+  }, []);
 
+  // Enquanto está carregando a info do usuário
   if (carregando) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -71,6 +65,38 @@ export default function PainelPage() {
     );
   }
 
+  // Se NÃO estiver logado
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 text-center">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">
+            Você precisa fazer login
+          </h1>
+          <p className="text-sm text-slate-600 mb-4">
+            Para acessar o painel do Classilagos, entre com sua conta ou crie
+            um cadastro grátis.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Link
+              href="/login"
+              className="inline-flex justify-center rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold px-5 py-2"
+            >
+              Fazer login
+            </Link>
+            <Link
+              href="/cadastro"
+              className="inline-flex justify-center rounded-full border border-cyan-500 text-cyan-600 text-sm font-semibold px-5 py-2 hover:bg-cyan-50"
+            >
+              Criar conta
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Se ESTIVER logado → mostra o painel normal
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -157,4 +183,5 @@ export default function PainelPage() {
     </main>
   );
 }
+
 
