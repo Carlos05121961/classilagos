@@ -9,7 +9,7 @@ export default function PainelPage() {
   const router = useRouter();
   const [carregando, setCarregando] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
+  const [userName, setUserName] = useState(null);
 
   useEffect(() => {
     async function carregarUsuario() {
@@ -28,8 +28,8 @@ export default function PainelPage() {
         const nomeMeta =
           user.user_metadata?.nome ||
           user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
-          null;
+          (user.email ? user.email.split("@")[0] : null);
+
         setUserName(nomeMeta);
 
         // checa se é admin na tabela profiles
@@ -108,8 +108,8 @@ export default function PainelPage() {
                   Importar notícias
                 </h2>
                 <p className="text-sm text-slate-600 mb-3">
-                  Busque automaticamente notícias do G1 Região dos Lagos e
-                  RC24h para o banco de dados.
+                  Busque automaticamente notícias do G1 Região dos Lagos e RC24h
+                  para o banco de dados.
                 </p>
                 <Link
                   href="/painel/importar-noticias"
