@@ -1,33 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
 export default function ResetarSenhaPage() {
-  const [novaSenha, setNovaSenha] = useState("");
+  const [status, setStatus] = useState("checking"); // checking | invalid | ready | success
+  const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(false);
-  const [temSessaoRecuperacao, setTemSessaoRecuperacao] = useState(false);
 
   useEffect(() => {
-    async function checarSessao() {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error) {
-          console.error("Erro ao verificar recuperação de senha:", error);
-          setTemSessaoRecuperacao(false);
-          return;
-        }
-        setTemSessaoRecuperacao(!!data?.user);
-      } catch (e) {
-        console.error("Erro inesperado ao checar sessão:", e);
-        setTemSessaoRecuperacao(false);
-      }
+    // 1) Verifica se o Supabase mandou algum erro no hash da URL
+    const hash = window.location.hash || "";
+    const params = new URLSearchParams(hash.replace(/^#/, ""));
+    const errorCode = params.get("error_code");
+
+    if (errorCode) {
+      setStatus("invalid");
+      setErro(
+        "Este link de redefinição parece inválido ou expirado. Peça um novo link em 'Esqueci minha senha'."
+      );
+      return;
     }
-    checarSessao();
+
+    // 2) Checa se existe usuário autenticado pela recuperação
+    async function checkUser() {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error || !data?.user) {
+        console.error("Erro ao validar link de recuperação:", error);
+        setStatus("invalid");
+        setErro(
+          "Não foi possível validar este link de redefinição. Peça um novo link em 'Esqueci minha senha'."
+        );
+        return;
+      }
+
+      setStatus("ready");
+    }
+
+    checkUser();
   }, []);
 
   async function handleSubmit(e) {
@@ -35,17 +50,12 @@ export default function ResetarSenhaPage() {
     setErro("");
     setMensagem("");
 
-    if (!novaSenha || !confirmarSenha) {
-      setErro("Preencha a nova senha e a confirmação.");
+    if (senha.length < 6) {
+      setErro("A nova senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
-    if (novaSenha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
-
-    if (novaSenha !== confirmarSenha) {
+    if (senha !== confirmarSenha) {
       setErro("A confirmação de senha não confere.");
       return;
     }
@@ -53,44 +63,55 @@ export default function ResetarSenhaPage() {
     setLoading(true);
 
     const { error } = await supabase.auth.updateUser({
-      password: novaSenha,
+      password: senha,
     });
 
     setLoading(false);
 
     if (error) {
-      console.error("Erro ao redefinir senha:", error);
+      console.error("Erro ao atualizar senha:", error);
       setErro(
-        "Não foi possível redefinir a senha. O link pode estar expirado. Peça uma nova recuperação."
+        "Não foi possível atualizar sua senha. Tente novamente em instantes."
       );
       return;
     }
 
-    setMensagem(
-      "Sua senha foi redefinida com sucesso! Você já pode fazer login novamente com a nova senha."
-    );
-    setNovaSenha("");
+    setStatus("success");
+    setMensagem("Senha redefinida com sucesso! Agora você já pode fazer login.");
+    setSenha("");
     setConfirmarSenha("");
   }
 
-  if (!temSessaoRecuperacao) {
+  // --- TELAS POR ESTADO ---
+
+  // Enquanto valida o link
+  if (status === "checking") {
     return (
       <main className="min-h-screen bg-slate-50 py-8">
         <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 text-center">
           <h1 className="text-xl font-semibold text-slate-900 mb-2">
             Redefinir senha - Classilagos
           </h1>
-          <p className="text-sm text-slate-600 mb-4">
-            Este link de redefinição parece inválido ou expirado.
+          <p className="text-sm text-slate-600">
+            Validando seu link de redefinição. Aguarde um instante...
           </p>
-          <p className="text-xs text-slate-500 mb-4">
-            Peça um novo link acessando{" "}
-            <span className="font-semibold">Esqueci minha senha</span> na tela
-            de login do Classilagos.
-          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // Link inválido / expirado
+  if (status === "invalid") {
+    return (
+      <main className="min-h-screen bg-slate-50 py-8">
+        <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 text-center">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">
+            Redefinir senha - Classilagos
+          </h1>
+          <p className="text-sm text-red-700 mb-4">{erro}</p>
           <Link
             href="/esqueci-senha"
-            className="inline-flex justify-center rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold px-5 py-2"
+            className="inline-flex items-center justify-center rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold px-5 py-2.5 shadow-md"
           >
             Ir para recuperar senha
           </Link>
@@ -99,6 +120,29 @@ export default function ResetarSenhaPage() {
     );
   }
 
+  // Senha redefinida com sucesso
+  if (status === "success") {
+    return (
+      <main className="min-h-screen bg-slate-50 py-8">
+        <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 text-center">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">
+            Senha redefinida
+          </h1>
+          {mensagem && (
+            <p className="text-sm text-emerald-700 mb-4">{mensagem}</p>
+          )}
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold px-5 py-2.5 shadow-md"
+          >
+            Ir para o login
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // status === "ready"  → formulário para nova senha
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6">
@@ -106,7 +150,7 @@ export default function ResetarSenhaPage() {
           Redefinir senha - Classilagos
         </h1>
         <p className="text-sm text-slate-600 mb-4">
-          Defina uma nova senha para acessar sua conta no Classilagos.
+          Crie uma nova senha para acessar sua conta.
         </p>
 
         {erro && (
@@ -115,29 +159,20 @@ export default function ResetarSenhaPage() {
           </div>
         )}
 
-        {mensagem && (
-          <div className="mb-4 rounded-md bg-emerald-100 border border-emerald-300 px-3 py-2 text-sm text-emerald-800">
-            {mensagem}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
-              htmlFor="novaSenha"
+              htmlFor="senha"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
               Nova senha
             </label>
             <input
-              id="novaSenha"
+              id="senha"
               type="password"
-              value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              autoComplete="new-password"
-              autoCapitalize="none"
-              autoCorrect="off"
               required
             />
           </div>
@@ -155,9 +190,6 @@ export default function ResetarSenhaPage() {
               value={confirmarSenha}
               onChange={(e) => setConfirmarSenha(e.target.value)}
               className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              autoComplete="new-password"
-              autoCapitalize="none"
-              autoCorrect="off"
               required
             />
           </div>
@@ -167,18 +199,11 @@ export default function ResetarSenhaPage() {
             disabled={loading}
             className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Redefinindo..." : "Salvar nova senha"}
+            {loading ? "Salvando..." : "Salvar nova senha"}
           </button>
         </form>
-
-        <p className="text-xs text-slate-600 text-center mt-4">
-          Após redefinir, você pode voltar à tela de{" "}
-          <Link href="/login" className="text-cyan-600 font-semibold">
-            login do Classilagos
-          </Link>
-          .
-        </p>
       </div>
     </main>
   );
 }
+
