@@ -30,9 +30,20 @@ export default function UserMenu() {
         <Link href="/cadastro" className="hover:text-cyan-700">
           Cadastro
         </Link>
+
+        {/* 🔵 ANUNCIE GRÁTIS - AGORA PULSANDO */}
         <Link
           href="/anunciar"
-          className="rounded-full bg-cyan-500 px-4 py-2 text-white font-semibold hover:bg-cyan-600"
+          className="
+            rounded-full 
+            bg-cyan-500 
+            px-4 
+            py-2 
+            text-white 
+            font-semibold 
+            hover:bg-cyan-600
+            animate-pulse     /* 💥 PULSO SUAVE */
+          "
         >
           Anuncie grátis
         </Link>
@@ -49,10 +60,22 @@ export default function UserMenu() {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Botão ANUNCIE GRÁTIS continua aparecendo mesmo logado */}
+
+      {/* 🔵 ANUNCIE GRÁTIS LOGADO - AGORA PULSANDO */}
       <Link
         href="/anunciar"
-        className="rounded-full bg-cyan-500 px-4 py-2 text-white text-xs md:text-sm font-semibold hover:bg-cyan-600"
+        className="
+          rounded-full 
+          bg-cyan-500 
+          px-4 
+          py-2 
+          text-white 
+          text-xs 
+          md:text-sm 
+          font-semibold 
+          hover:bg-cyan-600
+          animate-pulse     /* 💥 MESMO PULSO */
+        "
       >
         Anuncie grátis
       </Link>
@@ -70,7 +93,7 @@ export default function UserMenu() {
         </button>
 
         {open && (
-  <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white shadow-lg p-1 text-xs md:text-sm z-50 text-slate-700">
+          <div className="absolute right-0 mt-2 w-44 rounded-xl border bg-white shadow-lg p-1 text-xs md:text-sm z-50 text-slate-700">
             <Link
               href="/painel"
               className="block px-3 py-2 rounded-lg hover:bg-slate-100"
@@ -78,13 +101,14 @@ export default function UserMenu() {
             >
               Meu painel
             </Link>
+
             <Link
-  href="/painel/meus-anuncios"
-  className="block px-3 py-2 rounded-lg hover:bg-slate-100"
-  onClick={() => setOpen(false)}
->
-  Meus anúncios
-</Link>
+              href="/painel/meus-anuncios"
+              className="block px-3 py-2 rounded-lg hover:bg-slate-100"
+              onClick={() => setOpen(false)}
+            >
+              Meus anúncios
+            </Link>
 
             <Link
               href="/editar-perfil"
@@ -93,6 +117,7 @@ export default function UserMenu() {
             >
               Editar cadastro
             </Link>
+
             <button
               onClick={handleLogout}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 mt-1"
