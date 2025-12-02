@@ -61,9 +61,7 @@ export default function CadastroPage() {
     }
 
     if (!aceitaTermos) {
-      setErro(
-        "Você precisa aceitar os Termos de Uso e a Política de Privacidade."
-      );
+      setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
       return;
     }
 
@@ -74,7 +72,7 @@ export default function CadastroPage() {
       password: senha,
       options: {
         data: {
-          nome, // vai para user_metadata.nome
+          nome,
           cidade,
           whatsapp,
         },
@@ -87,37 +85,20 @@ export default function CadastroPage() {
     if (error) {
       console.error("Erro ao criar conta:", error);
 
-      const raw = error.message?.toLowerCase() || "";
-      let msg = "";
-
-      if (raw.includes("already registered")) {
-        msg = "Este e-mail já está cadastrado. Tente fazer login.";
-      } else if (raw.includes("signup disabled")) {
-        msg =
-          "No momento novos cadastros estão desativados nas configurações de autenticação.";
-      } else if (raw.includes("invalid email")) {
-        msg = "E-mail inválido. Confira se digitou corretamente.";
-      } else if (raw.includes("rate limit") || raw.includes("too many")) {
-        msg =
-          "Muitas tentativas em pouco tempo. Aguarde alguns instantes e tente novamente.";
+      if (error.message?.toLowerCase().includes("already registered")) {
+        setErro("Este e-mail já está cadastrado. Tente fazer login.");
       } else {
-        msg = "Erro ao criar conta. Tente novamente em alguns instantes.";
+        setErro("Erro ao criar conta. Tente novamente em alguns instantes.");
       }
-
-      setErro(
-        raw
-          ? `${msg}\n\nDetalhes técnicos: ${error.message}`
-          : msg
-      );
       return;
     }
 
     // deu certo: mostra mensagem amigável
     setSucesso(
-      "Conta criada com sucesso! Verifique seu e-mail e clique no link de confirmação para ativar sua conta."
+      "Enviamos um e-mail para você. Abra a caixa de entrada (e também Spam ou Promoções), procure pelo Classilagos e clique no botão para confirmar e ativar sua conta."
     );
 
-    // limpa os campos principais
+    // limpa os campos de senha
     setSenha("");
     setConfirmarSenha("");
   }
@@ -133,14 +114,22 @@ export default function CadastroPage() {
         </p>
 
         {erro && (
-          <div className="mb-4 whitespace-pre-line rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
+          <div className="mb-4 rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
             {erro}
           </div>
         )}
 
         {sucesso && (
-          <div className="mb-4 rounded-md bg-emerald-100 border border-emerald-300 px-3 py-2 text-sm text-emerald-800">
-            {sucesso}
+          <div className="mb-4 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-3 text-sm text-emerald-900 flex gap-2">
+            <span className="mt-[2px]">✅</span>
+            <div>
+              <p className="font-semibold">
+                Conta criada com sucesso!
+              </p>
+              <p className="text-xs md:text-sm mt-1">
+                {sucesso}
+              </p>
+            </div>
           </div>
         )}
 
@@ -313,3 +302,4 @@ export default function CadastroPage() {
     </main>
   );
 }
+
