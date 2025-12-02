@@ -61,7 +61,9 @@ export default function CadastroPage() {
     }
 
     if (!aceitaTermos) {
-      setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
+      setErro(
+        "Você precisa aceitar os Termos de Uso e a Política de Privacidade."
+      );
       return;
     }
 
@@ -72,7 +74,7 @@ export default function CadastroPage() {
       password: senha,
       options: {
         data: {
-          nome,      // 👈 vai para .Data.nome no e-mail
+          nome, // vai para user_metadata.nome
           cidade,
           whatsapp,
         },
@@ -85,11 +87,28 @@ export default function CadastroPage() {
     if (error) {
       console.error("Erro ao criar conta:", error);
 
-      if (error.message?.toLowerCase().includes("already registered")) {
-        setErro("Este e-mail já está cadastrado. Tente fazer login.");
+      const raw = error.message?.toLowerCase() || "";
+      let msg = "";
+
+      if (raw.includes("already registered")) {
+        msg = "Este e-mail já está cadastrado. Tente fazer login.";
+      } else if (raw.includes("signup disabled")) {
+        msg =
+          "No momento novos cadastros estão desativados nas configurações de autenticação.";
+      } else if (raw.includes("invalid email")) {
+        msg = "E-mail inválido. Confira se digitou corretamente.";
+      } else if (raw.includes("rate limit") || raw.includes("too many")) {
+        msg =
+          "Muitas tentativas em pouco tempo. Aguarde alguns instantes e tente novamente.";
       } else {
-        setErro("Erro ao criar conta. Tente novamente em alguns instantes.");
+        msg = "Erro ao criar conta. Tente novamente em alguns instantes.";
       }
+
+      setErro(
+        raw
+          ? `${msg}\n\nDetalhes técnicos: ${error.message}`
+          : msg
+      );
       return;
     }
 
@@ -114,7 +133,7 @@ export default function CadastroPage() {
         </p>
 
         {erro && (
-          <div className="mb-4 rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
+          <div className="mb-4 whitespace-pre-line rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
             {erro}
           </div>
         )}
