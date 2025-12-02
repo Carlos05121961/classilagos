@@ -27,16 +27,43 @@ export default function MobileAnunciarBar() {
   if (hiddenPaths.includes(pathname)) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-slate-200 bg-white/95 backdrop-blur">
+    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-lg shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
-        <span className="text-[11px] text-slate-600 leading-tight">
-          Divulgue seu negócio na Região dos Lagos
-        </span>
+
+        {/* Texto da barra */}
+        <div className="flex flex-col leading-tight max-w-[60%]">
+          <span className="text-[11px] font-semibold text-slate-800">
+            Divulgue seu negócio
+          </span>
+          <span className="text-[10px] text-slate-500">
+            Alcance milhares de pessoas na Região dos Lagos.
+          </span>
+        </div>
+
+        {/* BOTÃO ANUNCIE GRÁTIS — GRADIENTE + ÍCONE + PULSE PREMIUM */}
         <Link
           href="/anunciar"
-          className="rounded-full bg-blue-600 text-white text-xs px-4 py-1.5 font-semibold"
+          className="
+            inline-flex
+            items-center
+            gap-1.5
+            rounded-full
+            bg-gradient-to-r
+            from-cyan-500
+            to-sky-500
+            text-white
+            text-[11px]
+            px-4
+            py-1.5
+            font-semibold
+            shadow-md
+            hover:from-cyan-600
+            hover:to-sky-600
+            pulse-strong
+          "
         >
-          Anuncie grátis
+          <span className="text-sm">📣</span>
+          <span>Anuncie grátis</span>
         </Link>
       </div>
     </div>
