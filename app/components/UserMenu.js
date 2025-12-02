@@ -31,7 +31,7 @@ export default function UserMenu() {
           Cadastro
         </Link>
 
-        {/* 🔵 ANUNCIE GRÁTIS - AGORA PULSANDO */}
+        {/* ANUNCIE GRÁTIS — EFEITO PREMIUM */}
         <Link
           href="/anunciar"
           className="
@@ -42,7 +42,7 @@ export default function UserMenu() {
             text-white 
             font-semibold 
             hover:bg-cyan-600
-            animate-pulse     /* 💥 PULSO SUAVE */
+            pulse-strong        /* animação top */
           "
         >
           Anuncie grátis
@@ -61,7 +61,7 @@ export default function UserMenu() {
   return (
     <div className="flex items-center gap-3">
 
-      {/* 🔵 ANUNCIE GRÁTIS LOGADO - AGORA PULSANDO */}
+      {/* ANUNCIE GRÁTIS — LOGADO COM O MESMO PULSO PREMIUM */}
       <Link
         href="/anunciar"
         className="
@@ -70,17 +70,16 @@ export default function UserMenu() {
           px-4 
           py-2 
           text-white 
-          text-xs 
-          md:text-sm 
+          text-xs md:text-sm 
           font-semibold 
           hover:bg-cyan-600
-          animate-pulse     /* 💥 MESMO PULSO */
+          pulse-strong
         "
       >
         Anuncie grátis
       </Link>
 
-      {/* Botão com o nome + dropdown */}
+      {/* MENU DO PERFIL */}
       <div className="relative">
         <button
           onClick={() => setOpen((prev) => !prev)}
@@ -130,3 +129,4 @@ export default function UserMenu() {
     </div>
   );
 }
+
