@@ -114,13 +114,12 @@ export default function CadastroPage() {
       return;
     }
 
-    // deu certo: mostra mensagem amigável + abre modal
+    // deu certo: mensagem + modal
     setSucesso(
       "Enviamos um e-mail para você. Abra a caixa de entrada (e também Spam ou Promoções), procure pelo Classilagos e clique no botão para confirmar e ativar sua conta."
     );
     setShowModal(true);
 
-    // limpa os campos de senha
     setSenha("");
     setConfirmarSenha("");
   }
@@ -315,7 +314,7 @@ export default function CadastroPage() {
             </button>
           </div>
 
-          {/* Link para login */}
+          {/* Link para login (para quem já tem conta) */}
           <p className="text-xs text-slate-600 text-center mt-2">
             Já tem uma conta?{" "}
             <Link href="/login" className="text-cyan-600 font-semibold">
@@ -324,7 +323,7 @@ export default function CadastroPage() {
           </p>
         </form>
 
-        {/* MODAL de confirmação */}
+        {/* MODAL de confirmação – só com "Abrir meu e-mail" e "Fechar" */}
         {showModal && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
             <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
@@ -349,13 +348,6 @@ export default function CadastroPage() {
                 >
                   Abrir meu e-mail
                 </button>
-                <Link
-                  href="/login"
-                  className="w-full rounded-full border border-slate-300 text-slate-700 text-sm font-semibold py-2 text-center hover:bg-slate-50"
-                  onClick={() => setShowModal(false)}
-                >
-                  Ir para o login
-                </Link>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
