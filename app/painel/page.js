@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../supabaseClient";
 import Link from "next/link";
+import { supabase } from "../supabaseClient";
 
 export default function PainelPage() {
   const router = useRouter();
+
   const [carregando, setCarregando] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState(null);
@@ -14,17 +15,24 @@ export default function PainelPage() {
   useEffect(() => {
     async function carregarUsuario() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data, error } = await supabase.auth.getUser();
 
-        // não logado → manda pro login
+        if (error) {
+          console.error("Erro ao buscar usuário:", error);
+        }
+
+        const user = data?.user ?? null;
+
+        // Se não estiver logado, manda pro login
         if (!user) {
+          setIsAdmin(false);
+          setUserName(null);
+          setCarregando(false);
           router.push("/login");
           return;
         }
 
-        // guarda nome pra exibir no painel
+        // Nome pra mostrar no topo do painel
         const nomeMeta =
           user.user_metadata?.nome ||
           user.user_metadata?.name ||
@@ -32,14 +40,14 @@ export default function PainelPage() {
 
         setUserName(nomeMeta);
 
-        // checa se é admin na tabela profiles
-        const { data, error } = await supabase
+        // Verifica se é admin na tabela profiles
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .single();
 
-        if (!error && data?.role === "admin") {
+        if (!profileError && profile?.role === "admin") {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);
@@ -69,20 +77,21 @@ export default function PainelPage() {
         <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-2">
           Painel Classilagos
         </h1>
+
         <p className="text-sm text-slate-600 mb-6">
-          Bem-vindo ao seu painel interno.
+          Bem-vindo ao seu painel interno
           {userName && (
             <>
-              {" "}
-              <span className="font-semibold">{userName}</span>,
+              {", "}
+              <span className="font-semibold">{userName}</span>
             </>
-          )}{" "}
-          aqui você gerencia seus anúncios
-          {isAdmin && " e as áreas administrativas do portal"}.
+          )}
+          . Aqui você gerencia seus anúncios
+          {isAdmin && " e as áreas administrativas do portal."}
         </p>
 
         <div className="space-y-4">
-          {/* CARD: MEUS ANÚNCIOS (todos os usuários) */}
+          {/* TODOS OS USUÁRIOS */}
           <section className="rounded-2xl bg-white shadow-sm border border-slate-200 px-4 py-4">
             <h2 className="text-lg font-semibold text-slate-900 mb-1">
               Meus anúncios
@@ -99,17 +108,16 @@ export default function PainelPage() {
             </Link>
           </section>
 
-          {/* ÁREA ADMIN – APENAS PARA ADMIN */}
+          {/* APENAS ADMIN */}
           {isAdmin && (
             <>
-              {/* Importar notícias */}
               <section className="rounded-2xl bg-white shadow-sm border border-emerald-100 px-4 py-4">
                 <h2 className="text-lg font-semibold text-slate-900 mb-1">
                   Importar notícias
                 </h2>
                 <p className="text-sm text-slate-600 mb-3">
                   Busque automaticamente notícias do G1 Região dos Lagos e RC24h
-                  para o banco de dados.
+                  para o banco de dados interno.
                 </p>
                 <Link
                   href="/painel/importar-noticias"
@@ -119,14 +127,13 @@ export default function PainelPage() {
                 </Link>
               </section>
 
-              {/* Notícias importadas */}
               <section className="rounded-2xl bg-white shadow-sm border border-amber-100 px-4 py-4">
                 <h2 className="text-lg font-semibold text-slate-900 mb-1">
                   Notícias importadas
                 </h2>
                 <p className="text-sm text-slate-600 mb-3">
-                  Veja as notícias trazidas das fontes externas, publique,
-                  refine ou exclua o que não for interessante.
+                  Veja as notícias trazidas das fontes externas, publique, refine
+                  ou exclua o que não for interessante para o portal.
                 </p>
                 <Link
                   href="/painel/noticias-importadas"
@@ -150,3 +157,4 @@ export default function PainelPage() {
     </main>
   );
 }
+
