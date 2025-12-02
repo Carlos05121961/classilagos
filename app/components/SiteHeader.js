@@ -8,8 +8,6 @@ import { supabase } from "../supabaseClient";
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
-
-  // controla se o usuário logado é admin
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -69,7 +67,7 @@ export default function SiteHeader() {
           />
         </Link>
 
-        {/* MENU DESKTOP */}
+        {/* DESKTOP: menu + user */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {categorias.map((c) => (
             <Link
@@ -85,7 +83,6 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
-          {/* Link extra só para administradores */}
           {isAdmin && (
             <Link
               href="/admin"
@@ -95,20 +92,26 @@ export default function SiteHeader() {
             </Link>
           )}
 
-          {/* Aqui o UserMenu já traz o "Anuncie grátis" + perfil */}
+          {/* UserMenu (Login/Cadastro/Perfil + Anuncie grátis) */}
           <UserMenu />
         </nav>
 
-        {/* BOTÃO MOBILE (abre o menu lateral escuro) */}
-        <button
-          className="md:hidden text-slate-900 text-2xl"
-          onClick={() => setOpen(!open)}
-        >
-          ☰
-        </button>
+        {/* MOBILE: UserMenu + botão hambúrguer */}
+        <div className="flex items-center gap-2 md:hidden">
+          {/* aqui o UserMenu aparece SEMPRE no celular */}
+          <UserMenu />
+
+          <button
+            className="text-slate-900 text-2xl"
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label="Abrir menu"
+          >
+            ☰
+          </button>
+        </div>
       </div>
 
-      {/* MENU MOBILE */}
+      {/* MENU MOBILE (apenas links de navegação) */}
       {open && (
         <div className="md:hidden bg-slate-900 border-t border-slate-700 p-4 space-y-3 text-slate-200 text-sm">
           {categorias.map((c) => (
@@ -130,7 +133,6 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
-          {/* Link Admin também no mobile, só para admin */}
           {isAdmin && (
             <Link
               href="/admin"
@@ -140,14 +142,6 @@ export default function SiteHeader() {
               Administração
             </Link>
           )}
-
-          <Link
-            href="/anunciar"
-            onClick={() => setOpen(false)}
-            className="block mt-4 text-center rounded-full px-4 py-2 text-xs font-semibold bg-gradient-to-r from-cyan-400 to-pink-500 text-white shadow-[0_0_10px_rgba(255,120,220,0.7)]"
-          >
-            Anuncie Grátis
-          </Link>
         </div>
       )}
     </header>
