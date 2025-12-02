@@ -1,139 +1,125 @@
 "use client";
 
-import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "../supabaseClient";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function PainelPage() {
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setErro("");
+  useEffect(() => {
+    async function checarAdmin() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
 
-    if (!email.trim() || !senha.trim()) {
-      setErro("Informe o e-mail e a senha.");
-      return;
-    }
+        if (error) {
+          console.error("Erro ao buscar usuário no painel:", error);
+          setIsAdmin(false);
+          return;
+        }
 
-    setLoading(true);
+        const user = data?.user;
+        if (!user) {
+          setIsAdmin(false);
+          return;
+        }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    });
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-    setLoading(false);
-
-    if (error) {
-      console.error("Erro no login:", error);
-
-      const msg = error.message.toLowerCase();
-
-      if (msg.includes("invalid login credentials")) {
-        setErro("E-mail ou senha incorretos. Confira os dados e tente novamente.");
-      } else if (msg.includes("email not confirmed")) {
-        setErro(
-          "E-mail ainda não confirmado. Verifique sua caixa de entrada e clique no link de confirmação."
-        );
-      } else {
-        setErro("Não foi possível fazer login agora. Tente novamente em instantes.");
+        if (!profileError && profile?.role === "admin") {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (e) {
+        console.error("Erro ao checar perfil admin:", e);
+        setIsAdmin(false);
       }
-
-      return;
     }
 
-    // Login OK → vai para o painel
-    window.location.href = "/painel";
-  }
+    checarAdmin();
+  }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">
-          Fazer login
+    <main className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          Painel Classilagos
         </h1>
-        <p className="text-sm text-slate-600 mb-4">
-          Acesse sua conta para gerenciar seus anúncios no Classilagos.
+        <p className="text-sm text-slate-600 mb-6">
+          Bem-vindo ao seu painel interno. Aqui você gerencia seus anúncios
+          {isAdmin
+            ? ", notícias e outras áreas administrativas do portal."
+            : " no Classilagos."}
         </p>
 
-        {erro && (
-          <div className="mb-4 rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
-            {erro}
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Card Meus anúncios – TODOS OS USUÁRIOS */}
+          <Link
+            href="/painel/meus-anuncios"
+            className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
+          >
+            <h2 className="text-sm font-semibold text-slate-900 mb-1">
+              Meus anúncios
+            </h2>
+            <p className="text-xs text-slate-600 mb-3">
+              Veja e gerencie todos os anúncios que você já publicou
+              no Classilagos.
+            </p>
+            <span className="inline-flex text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1">
+              Abrir painel de anúncios
+            </span>
+          </Link>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* E-mail */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              E-mail
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@exemplo.com"
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              required
-            />
-          </div>
-
-          {/* Senha */}
-          <div>
-            <label
-              htmlFor="senha"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Senha
-            </label>
-            <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              autoComplete="current-password"
-              autoCapitalize="none"
-              autoCorrect="off"
-              required
-            />
-            <div className="mt-1 text-xs text-right">
-              <Link href="/esqueci-senha" className="text-cyan-600 hover:underline">
-                Esqueci minha senha
+          {/* Cards de notícias – APENAS PARA ADMIN */}
+          {isAdmin && (
+            <>
+              {/* Card Importar notícias */}
+              <Link
+                href="/painel/importar-noticias"
+                className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
+              >
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">
+                  Importar notícias
+                </h2>
+                <p className="text-xs text-slate-600 mb-3">
+                  Busque automaticamente notícias do G1 Região dos Lagos e RC24h
+                  para o banco de dados.
+                </p>
+                <span className="inline-flex text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1">
+                  Abrir importador de notícias
+                </span>
               </Link>
-            </div>
-          </div>
 
-          {/* Botão */}
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? "Entrando..." : "Entrar"}
-            </button>
-          </div>
+              {/* Card Notícias importadas */}
+              <Link
+                href="/painel/noticias-importadas"
+                className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition p-4"
+              >
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">
+                  Notícias importadas
+                </h2>
+                <p className="text-xs text-slate-600 mb-3">
+                  Veja as notícias trazidas das fontes externas, publique, refine
+                  ou exclua o que não for interessante.
+                </p>
+                <span className="inline-flex text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1">
+                  Gerenciar notícias importadas
+                </span>
+              </Link>
+            </>
+          )}
+        </div>
 
-          {/* Link para cadastro */}
-          <p className="text-xs text-slate-600 text-center mt-2">
-            Ainda não tem conta?{" "}
-            <Link href="/cadastro" className="text-cyan-600 font-semibold">
-              Criar conta grátis
-            </Link>
-          </p>
-        </form>
+        <p className="mt-6 text-xs text-slate-500">
+          Dica: a parte pública do portal de notícias fica em{" "}
+          <strong>/noticias</strong>. Este painel é apenas para você gerenciar
+          o conteúdo interno.
+        </p>
       </div>
     </main>
   );
