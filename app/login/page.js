@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👈 NOVO
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -36,7 +37,9 @@ export default function LoginPage() {
       if (msg.includes("invalid login credentials")) {
         setErro("E-mail ou senha incorretos. Confira os dados e tente novamente.");
       } else if (msg.includes("email not confirmed")) {
-        setErro("E-mail ainda não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.");
+        setErro(
+          "E-mail ainda não confirmado. Verifique sua caixa de entrada e clique no link de confirmação."
+        );
       } else {
         setErro("Não foi possível fazer login agora. Tente novamente em instantes.");
       }
@@ -85,7 +88,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Senha */}
+          {/* Senha com olho */}
           <div>
             <label
               htmlFor="senha"
@@ -93,18 +96,32 @@ export default function LoginPage() {
             >
               Senha
             </label>
-            <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              autoComplete="current-password"
-              required
-            />
+
+            <div className="relative">
+              <input
+                id="senha"
+                type={showPassword ? "text" : "password"}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-2 flex items-center text-slate-500 text-xs"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+
             <div className="mt-1 text-xs text-right">
-              {/* Quando criar a página de redefinição, ajuste esse href */}
-              <Link href="/esqueci-senha" className="text-cyan-600 hover:underline">
+              <Link
+                href="/esqueci-senha"
+                className="text-cyan-600 hover:underline"
+              >
                 Esqueci minha senha
               </Link>
             </div>
