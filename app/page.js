@@ -102,12 +102,23 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
-            <div className="text-center text-white drop-shadow max-w-2xl">
-              <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
+            <div className="text-center max-w-3xl text-white">
+              <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.65)]">
                 O seu guia de compras, serviços, turismo e oportunidades em toda
                 a Região dos Lagos.
               </p>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200 bg-clip-text text-transparent tracking-[0.08em] uppercase">
+              <h1
+                className="
+                  mt-1
+                  text-2xl sm:text-3xl md:text-5xl 
+                  font-extrabold 
+                  uppercase
+                  tracking-[0.12em]
+                  bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-200 
+                  bg-clip-text text-transparent
+                  drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
+                "
+              >
                 Classilagos – Região dos Lagos em um só lugar
               </h1>
             </div>
@@ -403,5 +414,4 @@ export default function Home() {
     </main>
   );
 }
-
 
