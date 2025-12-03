@@ -67,6 +67,7 @@ export default function Home() {
   };
 
   // URL da playlist/canal da Classilagos TV no YouTube
+  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
   const tvEmbedUrl =
     "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
 
@@ -94,51 +95,25 @@ export default function Home() {
       {/* BANNER COMERCIAL TOPO */}
       <BannerRotator />
 
-  
-{/* HERO PRINCIPAL */}
-<section className="relative w-full">
-  <HeroCarousel images={heroImages} interval={6000}>
-    {/* sobreposição mais suave */}
-    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
-    <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
-      {/* TEXTO HERO */}
-      <div className="text-center max-w-3xl text-white">
-        
-        {/* TÍTULO PRINCIPAL - NÃO ALTERAR */}
-        <h1
-          className="
-            mt-1
-            text-2xl sm:text-3xl md:text-5xl 
-            font-extrabold 
-            uppercase
-            tracking-[0.12em]
-            bg-gradient-to-r from-amber-200 via-orange-300 to-rose-400
-            bg-clip-text text-transparent
-            drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
-          "
-        >
-          CLASSILAGOS
-        </h1>
-
-        {/* FRASE SECUNDÁRIA - AGORA EM UMA LINHA SÓ */}
-        <p
-          className="
-            mt-1
-            font-semibold
-            uppercase
-            text-slate-50
-            drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]
-            tracking-[0.15em]
-            text-xs sm:text-sm md:text-base lg:text-lg
-            whitespace-nowrap
-          "
-        >
-          A REGIÃO DOS LAGOS EM UM SÓ LUGAR
-        </p>
-      </div>
-    </div>
-  </HeroCarousel>
-</section> 
+      {/* HERO PRINCIPAL */}
+      <section className="relative w-full">
+        <HeroCarousel images={heroImages} interval={6000}>
+          {/* sobreposição mais suave */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
+            {/* TEXTO HERO */}
+            <div className="text-center text-white drop-shadow max-w-2xl">
+              <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
+                O seu guia de compras, serviços, turismo e oportunidades em toda
+                a Região dos Lagos.
+              </p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-200 via-emerald-200 to-amber-200 bg-clip-text text-transparent tracking-[0.08em] uppercase">
+                Classilagos – Região dos Lagos em um só lugar
+              </h1>
+            </div>
+          </div>
+        </HeroCarousel>
+      </section>
 
       {/* CAIXA DE BUSCA – FAIXA TURQUESA + CARTÃO ESCURO */}
       <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
@@ -194,26 +169,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==== PILARES - FUNDO DA PRAIA + CARDS MODERNOS ==== */}
-      <section className="py-10 bg-[url('/fundobotoes.jpg')] bg-cover bg-center bg-no-repeat">
-        <div className="max-w-6xl mx-auto px-4">
+      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONES NOVOS */}
+      <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
+        <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {categorias.map((cat) => (
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="
-                  max-w-[150px] w-full mx-auto
-                  rounded-2xl bg-white 
-                  border border-slate-200
-                  shadow-md hover:shadow-xl hover:-translate-y-1
-                  transition-all duration-200
-                  flex flex-col items-center justify-between
-                  py-4 px-3
-                "
+                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
-                {/* Ícone */}
-                <div className="relative w-20 h-20 mb-2">
+                <div className="relative w-24 h-24 mb-1">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -221,16 +187,6 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
-
-                {/* Nome da categoria */}
-                <p className="text-center text-[13px] font-semibold text-slate-700">
-                  {cat.label}
-                </p>
-
-                {/* “Abrir” */}
-                <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
-                  Abrir
-                </span>
               </Link>
             ))}
           </div>
@@ -428,4 +384,3 @@ export default function Home() {
     </main>
   );
 }
-
