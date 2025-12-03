@@ -37,8 +37,8 @@ export default function FormularioTurismo() {
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
 
-  // FOTO
-  const [fotoCapa, setFotoCapa] = useState(null);
+  // FOTOS (AGORA VÁRIAS)
+  const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   // ESTADO
@@ -106,6 +106,12 @@ export default function FormularioTurismo() {
   ];
   const exibirBlocoPasseios = tiposQueSaoPasseio.includes(tipoLugar);
 
+  // handler para até 8 fotos
+  const handleArquivosChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setArquivos(files.slice(0, 8));
+  };
+
   async function enviarFormulario(e) {
     e.preventDefault();
     setErro("");
@@ -141,29 +147,36 @@ export default function FormularioTurismo() {
       return;
     }
 
-    let fotoUrl = null;
+    // UPLOAD DE TODAS AS FOTOS (igual outros formulários)
+    let urlsUpload = [];
 
     try {
-      setUploading(true);
+      if (arquivos.length > 0) {
+        setUploading(true);
 
-      // upload da foto de capa (opcional)
-      if (fotoCapa) {
-        const ext = fotoCapa.name.split(".").pop();
-        const path = `${user.id}/turismo-capa-${Date.now()}.${ext}`;
+        const uploads = await Promise.all(
+          arquivos.map(async (file, index) => {
+            const ext = file.name.split(".").pop();
+            const path = `${user.id}/turismo-${Date.now()}-${index}.${ext}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("anuncios")
-          .upload(path, fotoCapa);
+            const { error: uploadError } = await supabase.storage
+              .from("anuncios")
+              .upload(path, file);
 
-        if (uploadError) {
-          console.error("Erro ao fazer upload da foto:", uploadError);
-        } else {
-          const { data } = supabase.storage.from("anuncios").getPublicUrl(path);
-          fotoUrl = data.publicUrl;
-        }
+            if (uploadError) throw uploadError;
+
+            const { data: publicData } = supabase.storage
+              .from("anuncios")
+              .getPublicUrl(path);
+
+            return publicData.publicUrl;
+          })
+        );
+
+        urlsUpload = uploads;
       }
 
-      // Montar descrição final com extras (mantendo seu padrão)
+      // Montar descrição final com extras
       let descricaoFinal = descricao || "";
       descricaoFinal += `\n\nTipo de lugar: ${tipoLugar}`;
       if (site) descricaoFinal += `\nSite: ${site}`;
@@ -184,7 +197,7 @@ export default function FormularioTurismo() {
         whatsapp,
         email,
         contato: contatoPrincipal,
-        imagens: fotoUrl ? [fotoUrl] : null,
+        imagens: urlsUpload.length ? urlsUpload : null,
         status: "ativo",
 
         // CAMPOS DE TURISMO ESPECÍFICOS
@@ -221,7 +234,7 @@ export default function FormularioTurismo() {
       }, 1800);
     } catch (err) {
       console.error(err);
-      setErro("Erro inesperado. Tente de novo.");
+      setErro("Erro ao enviar as imagens ou salvar o anúncio. Tente de novo.");
     } finally {
       setUploading(false);
     }
@@ -457,19 +470,25 @@ export default function FormularioTurismo() {
         </p>
       </div>
 
-      {/* BLOCO 6 – FOTO */}
+      {/* BLOCO 6 – FOTOS */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Foto de capa (opcional)
+          Fotos do local / passeio (opcional)
         </h2>
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setFotoCapa(e.target.files[0] || null)}
+          multiple
+          onChange={handleArquivosChange}
           className="text-sm"
         />
+        {arquivos.length > 0 && (
+          <p className="text-[11px] text-slate-500">
+            {arquivos.length} arquivo(s) selecionado(s). (máx. 8)
+          </p>
+        )}
         <p className="text-[11px] text-slate-500">
-          Imagens em JPG ou PNG, tamanho máximo recomendado 1 MB.
+          Imagens em JPG ou PNG, tamanho máximo recomendado 1 MB cada.
         </p>
       </div>
 
@@ -564,4 +583,3 @@ export default function FormularioTurismo() {
     </form>
   );
 }
-
