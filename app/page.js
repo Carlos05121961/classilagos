@@ -66,10 +66,8 @@ export default function Home() {
     }
   };
 
-  // URL da playlist/canal da Classilagos TV no YouTube
-  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
-  const tvEmbedUrl =
-    "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
+  // URL do canal Classilagos / Guia Nativo Búzios no YouTube
+  const tvEmbedUrl = "https://www.youtube.com/@guianativobuzios";
 
   // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
   const [destaques, setDestaques] = useState([]);
@@ -215,6 +213,10 @@ export default function Home() {
               <p className="text-xs text-slate-500">
                 Os anúncios mais vistos e marcados como destaque.
               </p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Anúncios marcados como <strong>destaque</strong> aparecem aqui
+                na página principal da Classilagos.
+              </p>
             </div>
 
             <Link
@@ -354,7 +356,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PAINEL RÁPIDO – REGIÃO DOS LAGOS */}
+      {/* PAINEL RÁPIDO – REGIÃO DOS LAGOS (ATALHOS ÚTEIS) */}
       <section className="bg-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-lg font-bold text-white mb-4">
@@ -362,37 +364,80 @@ export default function Home() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
-              <p className="text-sm text-slate-300">Clima agora</p>
-              <p className="text-2xl font-bold text-white">27°C</p>
-              <p className="text-[12px] text-slate-400">
-                Parcialmente nublado
-              </p>
-            </div>
+            {/* Empregos */}
+            <Link
+              href="/empregos"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-100">
+                  Empregos na Região
+                </p>
+                <p className="text-[12px] text-slate-300 mt-1">
+                  Vagas de trabalho nas 9 cidades da Região dos Lagos.
+                </p>
+              </div>
+              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+                Ver vagas →
+              </span>
+            </Link>
 
-            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
-              <p className="text-sm text-slate-300">Altura das ondas</p>
-              <p className="text-2xl font-bold text-white">1.2 m</p>
-              <p className="text-[12px] text-slate-400">Mar moderado</p>
-            </div>
+            {/* Pousadas & Hotéis */}
+            <Link
+              href="/turismo"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-100">
+                  Pousadas &amp; Hotéis
+                </p>
+                <p className="text-[12px] text-slate-300 mt-1">
+                  Hospedagem na Região dos Lagos para todos os estilos.
+                </p>
+              </div>
+              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+                Ver opções de hospedagem →
+              </span>
+            </Link>
 
-            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
-              <p className="text-sm text-slate-300">Trânsito</p>
-              <p className="text-xl font-bold text-white">Normal</p>
-              <p className="text-[12px] text-slate-400">RJ-106 fluindo bem</p>
-            </div>
+            {/* Guia Comercial / LagoListas */}
+            <Link
+              href="/lagolistas"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-100">
+                  Guia Comercial – LagoListas
+                </p>
+                <p className="text-[12px] text-slate-300 mt-1">
+                  Comércio, serviços e profissionais em toda a região.
+                </p>
+              </div>
+              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+                Buscar empresas →
+              </span>
+            </Link>
 
-            <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md">
-              <p className="text-sm text-slate-300">Índice UV</p>
-              <p className="text-xl font-bold text-white">8</p>
-              <p className="text-[12px] text-slate-400">
-                Muito alto – Protetor 50+
-              </p>
-            </div>
+            {/* Anuncie Grátis */}
+            <Link
+              href="/anunciar"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-100">
+                  Anuncie Grátis
+                </p>
+                <p className="text-[12px] text-slate-300 mt-1">
+                  Divulgue seu produto, serviço ou imóvel em poucos minutos.
+                </p>
+              </div>
+              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+                Criar meu anúncio →
+              </span>
+            </Link>
           </div>
         </div>
       </section>
     </main>
   );
 }
-
