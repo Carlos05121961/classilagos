@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
+import { useSearchParams } from "next/navigation";
 
 const heroImages = [
   "/imoveis/imovel-01.jpg",
@@ -15,6 +16,10 @@ export default function ImoveisPage() {
   const [currentHero, setCurrentHero] = useState(0);
   const [destaques, setDestaques] = useState([]);
 
+  // lê ?tipo= da URL (ex.: casas-venda, temporada etc.)
+  const searchParams = useSearchParams();
+  const tipoSelecionado = searchParams.get("tipo");
+
   // Rotação das imagens do hero
   useEffect(() => {
     const interval = setInterval(
@@ -24,15 +29,21 @@ export default function ImoveisPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Busca os anúncios da categoria "imoveis"
+  // Busca os anúncios da categoria "imoveis" (com filtro opcional por tipo_imovel)
   useEffect(() => {
     const fetchDestaques = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("anuncios")
         .select("*")
         .eq("categoria", "imoveis")
         .order("created_at", { ascending: false })
         .limit(8);
+
+      if (tipoSelecionado) {
+        query = query.eq("tipo_imovel", tipoSelecionado);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Erro ao buscar anúncios de imóveis:", error);
@@ -42,7 +53,7 @@ export default function ImoveisPage() {
     };
 
     fetchDestaques();
-  }, []);
+  }, [tipoSelecionado]);
 
   const categoriasLinha1 = [
     { nome: "Casas à venda", slug: "casas-venda" },
@@ -270,44 +281,47 @@ export default function ImoveisPage() {
             imóvel na Região dos Lagos.
           </p>
 
-     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-    <h3 className="text-sm font-semibold text-white mb-1">
-      IPTU e tributos
-    </h3>
-    <p className="text-[11px] text-slate-300">
-      Em breve, links diretos para consultar IPTU, taxas municipais e informações das prefeituras da região.
-    </p>
-  </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                IPTU e tributos
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, links diretos para consultar IPTU, taxas municipais e
+                informações das prefeituras da região.
+              </p>
+            </div>
 
-  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-    <h3 className="text-sm font-semibold text-white mb-1">
-      Financiamento imobiliário
-    </h3>
-    <p className="text-[11px] text-slate-300">
-      Dicas básicas sobre crédito, simulações e contato com bancos para financiar seu imóvel.
-    </p>
-  </div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Financiamento imobiliário
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Dicas básicas sobre crédito, simulações e contato com bancos
+                para financiar seu imóvel.
+              </p>
+            </div>
 
-  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-    <h3 className="text-sm font-semibold text-white mb-1">
-      Regularização e documentos
-    </h3>
-    <p className="text-[11px] text-slate-300">
-      Orientações sobre escritura, registro em cartório, habite-se e outros documentos essenciais.
-    </p>
-  </div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Regularização e documentos
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Orientações sobre escritura, registro em cartório, habite-se e
+                outros documentos essenciais.
+              </p>
+            </div>
 
-  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-    <h3 className="text-sm font-semibold text-white mb-1">
-      Serviços para o seu imóvel
-    </h3>
-    <p className="text-[11px] text-slate-300">
-      Em breve, integração com o LagoListas para você encontrar arquitetos, pedreiros, eletricistas e outros profissionais.
-    </p>
-  </div>
-</div>
-
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Serviços para o seu imóvel
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, integração com o LagoListas para você encontrar
+                arquitetos, pedreiros, eletricistas e outros profissionais.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
