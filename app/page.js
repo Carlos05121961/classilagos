@@ -67,7 +67,6 @@ export default function Home() {
   };
 
   // URL da playlist/canal da Classilagos TV no YouTube
-  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
   const tvEmbedUrl =
     "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
 
@@ -103,24 +102,22 @@ export default function Home() {
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             {/* TEXTO HERO */}
             <div className="text-center max-w-3xl text-white">
-              <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.65)]">
-                O seu guia de compras, serviços, turismo e oportunidades em toda
-                a Região dos Lagos.
-              </p>
               <h1
                 className="
-                  mt-1
-                  text-2xl sm:text-3xl md:text-5xl 
+                  text-3xl sm:text-4xl md:text-5xl 
                   font-extrabold 
                   uppercase
-                  tracking-[0.12em]
+                  tracking-[0.14em]
                   bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-200 
                   bg-clip-text text-transparent
                   drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
                 "
               >
-                Classilagos – Região dos Lagos em um só lugar
+                Classilagos
               </h1>
+              <p className="mt-2 text-sm sm:text-base md:text-lg font-semibold text-slate-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                A Região dos Lagos em um só lugar.
+              </p>
             </div>
           </div>
         </HeroCarousel>
