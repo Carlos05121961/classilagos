@@ -179,6 +179,7 @@ export default function Home() {
                 href={cat.href}
                 className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
+                {/* Ícone */}
                 <div className="relative w-24 h-24 mb-1">
                   <Image
                     src={cat.icon}
@@ -187,6 +188,16 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
+
+                {/* Nome da categoria */}
+                <p className="text-center text-[13px] font-semibold text-slate-700">
+                  {cat.label}
+                </p>
+
+                {/* “Abrir” */}
+                <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
+                  Abrir
+                </span>
               </Link>
             ))}
           </div>
@@ -384,3 +395,4 @@ export default function Home() {
     </main>
   );
 }
+
