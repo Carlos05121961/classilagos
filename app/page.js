@@ -67,6 +67,7 @@ export default function Home() {
   };
 
   // URL da playlist/canal da Classilagos TV no YouTube
+  // ⇨ TROQUE esse link pela playlist/canal oficial que você quer usar
   const tvEmbedUrl =
     "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
 
@@ -168,19 +169,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + BOTÕES NO TAMANHO EXATO DAS IMAGENS */}
+      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONES NOVOS */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 place-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {categorias.map((cat) => (
-              <Link key={cat.href} href={cat.href} className="block">
-                <Image
-                  src={cat.icon}
-                  alt={cat.label}
-                  width={230}   // ajusta o tamanho geral do botão
-                  height={230}
-                  className="rounded-[32px] shadow-[0_6px_18px_rgba(15,23,42,0.22)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.30)] hover:-translate-y-1.5 transition-transform"
-                />
+              <Link
+                key={cat.href}
+                href={cat.href}
+                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
+              >
+                <div className="relative w-24 h-24 mb-1">
+                  <Image
+                    src={cat.icon}
+                    alt={cat.label}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
               </Link>
             ))}
           </div>
