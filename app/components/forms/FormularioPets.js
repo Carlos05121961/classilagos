@@ -60,9 +60,16 @@ export default function FormularioPets() {
     });
   }, [router]);
 
+  // ✅ NOVA VERSÃO – ACUMULA ARQUIVOS ATÉ 8, NÃO APAGA OS ANTERIORES
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 8));
+    if (files.length === 0) return;
+
+    setArquivos((prev) => {
+      const combinado = [...prev, ...files]; // junta o que já tinha com os novos
+      const limitado = combinado.slice(0, 8); // garante no máximo 8
+      return limitado;
+    });
   };
 
   const enviarAnuncio = async (e) => {
