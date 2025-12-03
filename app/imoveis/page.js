@@ -45,17 +45,17 @@ export default function ImoveisPage() {
   }, []);
 
   const categoriasLinha1 = [
-    { nome: "Casas à venda" },
-    { nome: "Apartamentos à venda" },
-    { nome: "Lançamentos" },
-    { nome: "Oportunidades" },
+    { nome: "Casas à venda", slug: "casas-venda" },
+    { nome: "Apartamentos à venda", slug: "apartamentos-venda" },
+    { nome: "Lançamentos", slug: "lancamentos" },
+    { nome: "Oportunidades", slug: "oportunidades" },
   ];
 
   const categoriasLinha2 = [
-    { nome: "Aluguel residencial" },
-    { nome: "Aluguel comercial" },
-    { nome: "Temporada" },
-    { nome: "Terrenos & Lotes" },
+    { nome: "Aluguel residencial", slug: "aluguel-residencial" },
+    { nome: "Aluguel comercial", slug: "aluguel-comercial" },
+    { nome: "Temporada", slug: "temporada" },
+    { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
   ];
 
   return (
@@ -175,30 +175,32 @@ export default function ImoveisPage() {
         {/* CATEGORIAS LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => (
-            <div
-              key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100"
+            <Link
+              key={cat.slug}
+              href={`/imoveis?tipo=${encodeURIComponent(cat.slug)}`}
+              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
             >
               <div className="h-32 md:h-36 w-full bg-slate-300" />
               <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
                 {cat.nome}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* CATEGORIAS LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => (
-            <div
-              key={cat.nome}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100"
+            <Link
+              key={cat.slug}
+              href={`/imoveis?tipo=${encodeURIComponent(cat.slug)}`}
+              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
             >
               <div className="h-32 md:h-36 w-full bg-slate-400" />
               <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
                 {cat.nome}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -220,8 +222,6 @@ export default function ImoveisPage() {
                   ? anuncio.imagens
                   : [];
 
-                // 👇 AQUI ENTRA A MUDANÇA:
-                // se não tiver imagem, usa /imoveis/sem-foto.jpg
                 const capa =
                   imagens.length > 0 ? imagens[0] : "/imoveis/sem-foto.jpg";
 
