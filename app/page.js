@@ -168,27 +168,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + CARDS MAIORES COM GRADIENTE COLANDO NO MAR */}
-      <section className="relative bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
-        {/* Tarja / degradê que desce da faixa escura até o mar */}
-        <div className="absolute inset-x-0 top-0 h-16 sm:h-20 bg-gradient-to-b from-slate-950 via-cyan-900/70 to-transparent pointer-events-none" />
-
-        <div className="relative max-w-5xl mx-auto px-4 pt-10 pb-12">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
+      {/* PILARES – FUNDO PRAIA + BOTÕES NO TAMANHO EXATO DAS IMAGENS */}
+      <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 place-items-center">
             {categorias.map((cat) => (
-              <Link
-                key={cat.href}
-                href={cat.href}
-                className="max-w-[180px] sm:max-w-[200px] w-full mx-auto rounded-[28px] bg-white border border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.18)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.28)] hover:-translate-y-1.5 transition flex flex-col items-center justify-center py-4 px-3"
-              >
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 mb-1">
-                  <Image
-                    src={cat.icon}
-                    alt={cat.label}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
+              <Link key={cat.href} href={cat.href} className="block">
+                <Image
+                  src={cat.icon}
+                  alt={cat.label}
+                  width={230}   // ajusta o tamanho geral do botão
+                  height={230}
+                  className="rounded-[32px] shadow-[0_6px_18px_rgba(15,23,42,0.22)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.30)] hover:-translate-y-1.5 transition-transform"
+                />
               </Link>
             ))}
           </div>
@@ -386,4 +378,5 @@ export default function Home() {
     </main>
   );
 }
+
 
