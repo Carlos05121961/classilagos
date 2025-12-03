@@ -114,12 +114,6 @@ export default function PainelPage() {
             </>
           )}
         </div>
-
-        <p className="mt-6 text-xs text-slate-500">
-          Dica: a parte pública do portal de notícias fica em{" "}
-          <strong>/noticias</strong>. Este painel é apenas para você gerenciar
-          o conteúdo interno.
-        </p>
       </div>
     </main>
   );
