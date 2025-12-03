@@ -104,20 +104,20 @@ export default function Home() {
             <div className="text-center max-w-3xl text-white">
               <h1
                 className="
-                  text-3xl sm:text-4xl md:text-5xl 
+                  mt-1
+                  text-2xl sm:text-3xl md:text-5xl 
                   font-extrabold 
                   uppercase
-                  tracking-[0.14em]
-                  bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-200 
+                  tracking-[0.12em]
+                  bg-gradient-to-r from-amber-200 via-orange-300 to-rose-400
                   bg-clip-text text-transparent
                   drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
                 "
               >
-                Classilagos
+                CLASSILAGOS
+                <br />
+                A REGIÃO DOS LAGOS EM UM SÓ LUGAR
               </h1>
-              <p className="mt-2 text-sm sm:text-base md:text-lg font-semibold text-slate-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                A Região dos Lagos em um só lugar.
-              </p>
             </div>
           </div>
         </HeroCarousel>
