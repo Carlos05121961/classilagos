@@ -87,17 +87,18 @@ export default function ImoveisPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-black/25" />
+        </div>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-sm md:text-base font-medium drop-shadow">
-              Encontre casas, apartamentos, terrenos e oportunidades
-              imobiliárias em toda a Região dos Lagos.
-            </p>
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-              Classilagos – Imóveis
-            </h1>
-          </div>
+        <div className="absolute inset-0 bg-black/25" />
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+          <p className="text-sm md:text-base font-medium drop-shadow">
+            Encontre casas, apartamentos, terrenos e oportunidades
+            imobiliárias em toda a Região dos Lagos.
+          </p>
+          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+            Classilagos – Imóveis
+          </h1>
         </div>
       </section>
 
@@ -257,8 +258,62 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* Aqui você pode manter/voltar a ter Notícias, Links úteis e chamada final,
-          como já existia antes, se quiser. */}
+      {/* NOVA FAIXA – SERVIÇOS E INFORMAÇÕES PARA IMÓVEIS */}
+      <section className="bg-slate-900 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-sm font-semibold text-white mb-1">
+            Serviços e informações para imóveis
+          </h2>
+          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+            Use o Classilagos também como guia para entender tributos, documentos
+            e serviços importantes na hora de comprar, vender ou alugar um
+            imóvel na Região dos Lagos.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                IPTU e tributos
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, links diretos para consultar IPTU, taxas municipais e
+                informações das prefeituras da região.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Financiamento imobiliário
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Dicas básicas sobre crédito, simulações e contato com bancos
+                para financiar seu imóvel.
+              </p>
+            </div">
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Regularização e documentos
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Orientações sobre escritura, registro em cartório, habite-se e
+                outros documentos essenciais.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Serviços para o seu imóvel
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, integração com o LagoListas para você encontrar
+                arquitetos, pedreiros, eletricistas e outros profissionais.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
+
