@@ -7,12 +7,11 @@ import { supabase } from "../../supabaseClient";
 export default function FormularioVeiculos() {
   const router = useRouter();
 
-  // Classificação / condição
-  const [condicao, setCondicao] = useState(""); // usado / seminovo / 0km
-  const [classZeroKm, setClassZeroKm] = useState(false);
-  const [classConsignado, setClassConsignado] = useState(false);
-  const [classFinanciado, setClassFinanciado] = useState(false);
-  const [classLojaRevenda, setClassLojaRevenda] = useState(false);
+  // Classificação do anúncio
+  const [condicaoVeiculo, setCondicaoVeiculo] = useState(""); // usado / seminovo / 0km
+  const [isFinanciado, setIsFinanciado] = useState(false);
+  const [isConsignado, setIsConsignado] = useState(false);
+  const [isLojaRevenda, setIsLojaRevenda] = useState(false);
 
   // Campos básicos
   const [titulo, setTitulo] = useState("");
@@ -39,7 +38,6 @@ export default function FormularioVeiculos() {
   const [portas, setPortas] = useState("");
   const [ipvaPago, setIpvaPago] = useState("nao");
   const [licenciado, setLicenciado] = useState("nao");
-  const [financiado, setFinanciado] = useState("nao");
   const [aceitaTroca, setAceitaTroca] = useState("nao");
 
   // Valores
@@ -80,8 +78,6 @@ export default function FormularioVeiculos() {
     "Carro",
     "Moto",
     "Caminhonete",
-    "SUV",
-    "Utilitário",
     "Caminhão",
     "Van",
     "Ônibus",
@@ -102,8 +98,6 @@ export default function FormularioVeiculos() {
   ];
 
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
-
-  const condicoes = ["Usado", "Seminovo", "0 km"];
 
   // Garante login
   useEffect(() => {
@@ -135,13 +129,6 @@ export default function FormularioVeiculos() {
       return;
     }
 
-    if (!condicao) {
-      setErro(
-        "Selecione a condição do veículo (usado, seminovo ou 0 km)."
-      );
-      return;
-    }
-
     const contatoPrincipal = whatsapp || telefone || email;
 
     if (!contatoPrincipal) {
@@ -153,6 +140,11 @@ export default function FormularioVeiculos() {
 
     if (!finalidade || !tipoVeiculo) {
       setErro("Selecione a finalidade e o tipo de veículo.");
+      return;
+    }
+
+    if (!condicaoVeiculo) {
+      setErro("Informe a condição do veículo (usado, seminovo ou 0 km).");
       return;
     }
 
@@ -211,7 +203,7 @@ export default function FormularioVeiculos() {
     // Monta um bloco com os detalhes do veículo para guardar dentro da descrição
     const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
-Condição: ${condicao || "-"}
+Condição: ${condicaoVeiculo || "-"}
 Finalidade: ${finalidade || "-"}
 Tipo de veículo: ${tipoVeiculo || "-"}
 Marca: ${marca || "-"}
@@ -224,12 +216,10 @@ Câmbio: ${cambio || "-"}
 Portas: ${portas || "-"}
 IPVA pago: ${ipvaPago === "sim" ? "Sim" : "Não"}
 Licenciamento em dia: ${licenciado === "sim" ? "Sim" : "Não"}
-Financiado: ${financiado === "sim" ? "Sim" : "Não"}
+Financiado: ${isFinanciado ? "Sim" : "Não"}
+Consignado: ${isConsignado ? "Sim" : "Não"}
+Loja / Revenda: ${isLojaRevenda ? "Sim" : "Não"}
 Aceita troca: ${aceitaTroca === "sim" ? "Sim" : "Não"}
-0 km (classificação): ${classZeroKm ? "Sim" : "Não"}
-Consignado: ${classConsignado ? "Sim" : "Não"}
-Financiado (classificação): ${classFinanciado ? "Sim" : "Não"}
-Loja / Revenda: ${classLojaRevenda ? "Sim" : "Não"}
 `.trim();
 
     const descricaoFinal = `${descricao.trim()}
@@ -237,35 +227,43 @@ Loja / Revenda: ${classLojaRevenda ? "Sim" : "Não"}
 ${detalhesVeiculoTexto}
 `.trim();
 
-// Grava no Supabase usando a mesma tabela "anuncios"
-const { data, error } = await supabase
-  .from("anuncios")
-  .insert({
-    user_id: user.id,
-    categoria: "veiculos",
-    titulo,
-    descricao: descricaoFinal, // já inclui os detalhes (condição, 0km, financiado etc.)
-    cidade,
-    bairro,
-    endereco,
-    cep,
-    preco,
-    imagens,
-    video_url: videoUrl,
-    telefone,
-    whatsapp,
-    email,
-    contato: contatoPrincipal,
-    // reutilizando campos genéricos já existentes
-    tipo_imovel: tipoVeiculo, // aqui vai o tipo de veículo
-    finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
-    nome_contato: nomeContato,
-    status: "ativo",
-    destaque: false,
-  })
-  .select("id")
-  .single();
+    // Grava no Supabase usando a mesma tabela "anuncios"
+    const { data, error } = await supabase
+      .from("anuncios")
+      .insert({
+        user_id: user.id,
+        categoria: "veiculos",
+        titulo,
+        descricao: descricaoFinal,
+        cidade,
+        bairro,
+        endereco,
+        cep,
+        preco,
+        imagens,
+        video_url: videoUrl,
+        telefone,
+        whatsapp,
+        email,
+        contato: contatoPrincipal,
 
+        // campos "genéricos" reutilizados
+        tipo_imovel: tipoVeiculo, // aqui vai o tipo de veículo
+        finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
+        nome_contato: nomeContato,
+
+        // NOVOS CAMPOS PARA OS CARDS
+        condicao_veiculo: condicaoVeiculo, // "usado", "seminovo" ou "0km"
+        zero_km: condicaoVeiculo === "0km",
+        financiado: isFinanciado,
+        consignado: isConsignado,
+        loja_revenda: isLojaRevenda,
+
+        status: "ativo",
+        destaque: false,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error(error);
@@ -280,12 +278,11 @@ const { data, error } = await supabase
       router.push(`/anuncios/${data.id}`);
     }, 1500);
 
-    // Limpa formulário
-    setCondicao("");
-    setClassZeroKm(false);
-    setClassConsignado(false);
-    setClassFinanciado(false);
-    setClassLojaRevenda(false);
+    // Limpa o formulário
+    setCondicaoVeiculo("");
+    setIsFinanciado(false);
+    setIsConsignado(false);
+    setIsLojaRevenda(false);
 
     setTitulo("");
     setDescricao("");
@@ -305,7 +302,6 @@ const { data, error } = await supabase
     setPortas("");
     setIpvaPago("nao");
     setLicenciado("nao");
-    setFinanciado("nao");
     setAceitaTroca("nao");
     setPreco("");
     setArquivos([]);
@@ -331,7 +327,7 @@ const { data, error } = await supabase
       )}
 
       {/* BLOCO: CLASSIFICAÇÃO DO ANÚNCIO */}
-      <div className="space-y-4 border-b border-slate-100 pb-4">
+      <div className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Classificação do anúncio
         </h2>
@@ -343,46 +339,27 @@ const { data, error } = await supabase
             </label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={condicao}
-              onChange={(e) => setCondicao(e.target.value)}
+              value={condicaoVeiculo}
+              onChange={(e) => setCondicaoVeiculo(e.target.value)}
               required
             >
               <option value="">Selecione...</option>
-              {condicoes.map((c) => (
-                <option key={c} value={c.toLowerCase()}>
-                  {c}
-                </option>
-              ))}
+              <option value="usado">Usado</option>
+              <option value="seminovo">Seminovo</option>
+              <option value="0km">0 km (zero quilômetro)</option>
             </select>
             <p className="mt-1 text-[11px] text-slate-500">
-              Ex.: A maioria dos anúncios será de veículos usados ou seminovos.
+              Essa informação ajuda a destacar o anúncio nas listas de 0 km e
+              seminovos.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs text-slate-700 mt-1">
+          <div className="flex flex-col gap-2 pt-5 text-xs text-slate-700">
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={classZeroKm}
-                onChange={(e) => setClassZeroKm(e.target.checked)}
-              />
-              <span>0 KM (Zero Quilômetro)</span>
-            </label>
-
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={classConsignado}
-                onChange={(e) => setClassConsignado(e.target.checked)}
-              />
-              <span>Consignado</span>
-            </label>
-
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={classFinanciado}
-                onChange={(e) => setClassFinanciado(e.target.checked)}
+                checked={isFinanciado}
+                onChange={(e) => setIsFinanciado(e.target.checked)}
               />
               <span>Financiado</span>
             </label>
@@ -390,8 +367,17 @@ const { data, error } = await supabase
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={classLojaRevenda}
-                onChange={(e) => setClassLojaRevenda(e.target.checked)}
+                checked={isConsignado}
+                onChange={(e) => setIsConsignado(e.target.checked)}
+              />
+              <span>Consignado</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isLojaRevenda}
+                onChange={(e) => setIsLojaRevenda(e.target.checked)}
               />
               <span>Loja / Revenda</span>
             </label>
@@ -400,7 +386,7 @@ const { data, error } = await supabase
       </div>
 
       {/* BLOCO: TIPO DO ANÚNCIO */}
-      <div className="space-y-4">
+      <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Tipo de anúncio
         </h2>
@@ -694,20 +680,6 @@ const { data, error } = await supabase
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={licenciado}
               onChange={(e) => setLicenciado(e.target.value)}
-            >
-              <option value="nao">Não</option>
-              <option value="sim">Sim</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Financiado?
-            </label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={financiado}
-              onChange={(e) => setFinanciado(e.target.value)}
             >
               <option value="nao">Não</option>
               <option value="sim">Sim</option>
