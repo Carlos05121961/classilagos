@@ -66,9 +66,16 @@ export default function Home() {
     }
   };
 
-  // TV EMBED — Playlist automática (Uploads)
-  const tvEmbedUrl =
-    "https://www.youtube.com/embed/videoseries?list=UU5ynZDdD7IU2QYdLVXqQ9CA";
+  // CLASSILAGOS TV
+  // Neste momento estamos usando UM VÍDEO específico do canal,
+  // porque é 100% garantido no iframe.
+  //
+  // Se quiser trocar por uma PLAYLIST:
+  // 1. Vá no YouTube, abra a playlist.
+  // 2. Clique em COMPARTILHAR → INCORPORAR.
+  // 3. Copie o valor de src="https://www.youtube.com/embed/...."
+  // 4. Cole aqui em tvEmbedUrl.
+  const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
 
   // DESTAQUES
   const [destaques, setDestaques] = useState([]);
