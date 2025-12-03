@@ -66,13 +66,11 @@ export default function Home() {
     }
   };
 
-  // URL EMBED DO YOUTUBE
-  // → Vá na playlist do canal (ou num vídeo), clique em COMPARTILHAR > INCORPORAR
-  // → copie o src="https://www.youtube.com/embed/..." e cole aqui:
+  // TV EMBED — Playlist automática (Uploads)
   const tvEmbedUrl =
-    "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
+    "https://www.youtube.com/embed/videoseries?list=UU5ynZDdD7IU2QYdLVXqQ9CA";
 
-  // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
+  // DESTAQUES
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -93,16 +91,14 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER COMERCIAL TOPO */}
+      {/* BANNER COMERCIAL */}
       <BannerRotator />
 
-      {/* HERO PRINCIPAL */}
+      {/* HERO */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
-          {/* sobreposição mais suave */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
-            {/* TEXTO HERO */}
             <div className="text-center text-white drop-shadow max-w-2xl">
               <p className="text-xs sm:text-sm md:text-base mb-3 text-slate-100/90">
                 O seu guia de compras, serviços, turismo e oportunidades em toda
@@ -116,12 +112,11 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA – FAIXA TURQUESA + CARTÃO ESCURO */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
           <div className="rounded-3xl bg-slate-950/95 border border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
-              {/* BUSCA */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   O que você procura?
@@ -133,7 +128,7 @@ export default function Home() {
                 />
               </div>
 
-              {/* SELECT CATEGORIA */}
+              {/* Categoria */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   Categoria
@@ -145,7 +140,7 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* SELECT CIDADE */}
+              {/* Cidade */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-200 mb-1">
                   Cidade
@@ -157,7 +152,6 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* BOTÃO */}
               <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
                 Buscar
               </button>
@@ -170,7 +164,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONES NOVOS */}
+      {/* PILARES */}
       <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -180,7 +174,6 @@ export default function Home() {
                 href={cat.href}
                 className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
-                {/* Ícone */}
                 <div className="relative w-24 h-24 mb-1">
                   <Image
                     src={cat.icon}
@@ -190,12 +183,10 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Nome da categoria */}
                 <p className="text-center text-[13px] font-semibold text-slate-700">
                   {cat.label}
                 </p>
 
-                {/* “Abrir” */}
                 <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
                   Abrir
                 </span>
@@ -205,7 +196,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ANÚNCIOS EM DESTAQUE (DINÂMICOS) */}
+      {/* DESTAQUES */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
@@ -298,10 +289,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CHAMADAS INSTITUCIONAIS – TV / NOTÍCIAS / TURISMO */}
+      {/* TV, NOTÍCIAS, TURISMO */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3">
-          {/* CLASSILAGOS TV – COM PLAYER YOUTUBE */}
+          {/* TV */}
           <div className="rounded-2xl border border-slate-200 p-4 sm:p-6 bg-slate-50 shadow-sm flex flex-col">
             <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
             <p className="text-xs sm:text-sm text-slate-600 mb-3">
@@ -328,7 +319,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* NOTÍCIAS */}
+          {/* Notícias */}
           <Link
             href="/noticias"
             className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
@@ -342,7 +333,7 @@ export default function Home() {
             </span>
           </Link>
 
-          {/* TURISMO */}
+          {/* Turismo */}
           <Link
             href="/turismo"
             className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
@@ -359,7 +350,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PAINEL RÁPIDO – REGIÃO DOS LAGOS (ATALHOS ÚTEIS) */}
+      {/* PAINEL RÁPIDO */}
       <section className="bg-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-lg font-bold text-white mb-4">
@@ -370,72 +361,72 @@ export default function Home() {
             {/* Empregos */}
             <Link
               href="/empregos"
-              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-100">
+                <p className="text-sm font-semibold text-white">
                   Empregos na Região
                 </p>
                 <p className="text-[12px] text-slate-300 mt-1">
-                  Vagas de trabalho nas 9 cidades da Região dos Lagos.
+                  Vagas de trabalho nas 9 cidades.
                 </p>
               </div>
-              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+              <span className="mt-3 text-[11px] text-cyan-300 font-semibold">
                 Ver vagas →
               </span>
             </Link>
 
-            {/* Pousadas & Hotéis */}
+            {/* Hotéis */}
             <Link
               href="/turismo"
-              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-100">
-                  Pousadas &amp; Hotéis
+                <p className="text-sm font-semibold text-white">
+                  Pousadas & Hotéis
                 </p>
                 <p className="text-[12px] text-slate-300 mt-1">
-                  Hospedagem na Região dos Lagos para todos os estilos.
+                  Hospedagem para todos os estilos.
                 </p>
               </div>
-              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
-                Ver opções de hospedagem →
+              <span className="mt-3 text-[11px] text-cyan-300 font-semibold">
+                Ver opções →
               </span>
             </Link>
 
-            {/* Guia Comercial / LagoListas */}
+            {/* LagoListas */}
             <Link
               href="/lagolistas"
-              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-100">
+                <p className="text-sm font-semibold text-white">
                   Guia Comercial – LagoListas
                 </p>
                 <p className="text-[12px] text-slate-300 mt-1">
-                  Comércio, serviços e profissionais em toda a região.
+                  Comércio, serviços e profissionais.
                 </p>
               </div>
-              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
+              <span className="mt-3 text-[11px] text-cyan-300 font-semibold">
                 Buscar empresas →
               </span>
             </Link>
 
-            {/* Anuncie Grátis */}
+            {/* Anuncie */}
             <Link
               href="/anunciar"
-              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 hover:shadow-lg transition flex flex-col justify-between"
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-100">
+                <p className="text-sm font-semibold text-white">
                   Anuncie Grátis
                 </p>
                 <p className="text-[12px] text-slate-300 mt-1">
-                  Divulgue seu produto, serviço ou imóvel em poucos minutos.
+                  Divulgue seu serviço ou produto em minutos.
                 </p>
               </div>
-              <span className="mt-3 text-[11px] font-semibold text-cyan-300">
-                Criar meu anúncio →
+              <span className="mt-3 text-[11px] text-cyan-300 font-semibold">
+                Criar anúncio →
               </span>
             </Link>
           </div>
@@ -444,3 +435,4 @@ export default function Home() {
     </main>
   );
 }
+
