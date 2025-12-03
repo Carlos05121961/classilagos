@@ -66,8 +66,11 @@ export default function Home() {
     }
   };
 
-  // URL do canal Classilagos / Guia Nativo Búzios no YouTube
-  const tvEmbedUrl = "https://www.youtube.com/@guianativobuzios";
+  // URL EMBED DO YOUTUBE
+  // → Vá na playlist do canal (ou num vídeo), clique em COMPARTILHAR > INCORPORAR
+  // → copie o src="https://www.youtube.com/embed/..." e cole aqui:
+  const tvEmbedUrl =
+    "https://www.youtube.com/embed/videoseries?list=SEU_ID_DE_PLAYLIST_AQUI";
 
   // 🔥 DESTAQUES AUTOMÁTICOS DO SUPABASE
   const [destaques, setDestaques] = useState([]);
