@@ -270,47 +270,44 @@ export default function ImoveisPage() {
             imóvel na Região dos Lagos.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                IPTU e tributos
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultar IPTU, taxas municipais e
-                informações das prefeituras da região.
-              </p>
-            </div>
+     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+    <h3 className="text-sm font-semibold text-white mb-1">
+      IPTU e tributos
+    </h3>
+    <p className="text-[11px] text-slate-300">
+      Em breve, links diretos para consultar IPTU, taxas municipais e informações das prefeituras da região.
+    </p>
+  </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Financiamento imobiliário
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Dicas básicas sobre crédito, simulações e contato com bancos
-                para financiar seu imóvel.
-              </p>
-            </div">
+  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+    <h3 className="text-sm font-semibold text-white mb-1">
+      Financiamento imobiliário
+    </h3>
+    <p className="text-[11px] text-slate-300">
+      Dicas básicas sobre crédito, simulações e contato com bancos para financiar seu imóvel.
+    </p>
+  </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Regularização e documentos
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Orientações sobre escritura, registro em cartório, habite-se e
-                outros documentos essenciais.
-              </p>
-            </div>
+  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+    <h3 className="text-sm font-semibold text-white mb-1">
+      Regularização e documentos
+    </h3>
+    <p className="text-[11px] text-slate-300">
+      Orientações sobre escritura, registro em cartório, habite-se e outros documentos essenciais.
+    </p>
+  </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Serviços para o seu imóvel
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para você encontrar
-                arquitetos, pedreiros, eletricistas e outros profissionais.
-              </p>
-            </div>
-          </div>
+  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+    <h3 className="text-sm font-semibold text-white mb-1">
+      Serviços para o seu imóvel
+    </h3>
+    <p className="text-[11px] text-slate-300">
+      Em breve, integração com o LagoListas para você encontrar arquitetos, pedreiros, eletricistas e outros profissionais.
+    </p>
+  </div>
+</div>
+
         </div>
       </section>
     </main>
