@@ -169,17 +169,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PILARES – FUNDO PRAIA + CARDS COM ÍCONES NOVOS */}
-      <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
-        <div className="max-w-5xl mx-auto px-4">
+      {/* ==== PILARES - FUNDO DA PRAIA + CARDS MODERNOS ==== */}
+      <section className="py-10 bg-[url('/fundobotoes.jpg')] bg-cover bg-center bg-no-repeat">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {categorias.map((cat) => (
               <Link
                 key={cat.href}
                 href={cat.href}
-                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
+                className="
+                  max-w-[150px] w-full mx-auto
+                  rounded-2xl bg-white 
+                  border border-slate-200
+                  shadow-md hover:shadow-xl hover:-translate-y-1
+                  transition-all duration-200
+                  flex flex-col items-center justify-between
+                  py-4 px-3
+                "
               >
-                <div className="relative w-24 h-24 mb-1">
+                {/* Ícone */}
+                <div className="relative w-20 h-20 mb-2">
                   <Image
                     src={cat.icon}
                     alt={cat.label}
@@ -187,6 +196,16 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
+
+                {/* Nome da categoria */}
+                <p className="text-center text-[13px] font-semibold text-slate-700">
+                  {cat.label}
+                </p>
+
+                {/* “Abrir” */}
+                <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
+                  Abrir
+                </span>
               </Link>
             ))}
           </div>
