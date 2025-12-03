@@ -94,34 +94,51 @@ export default function Home() {
       {/* BANNER COMERCIAL TOPO */}
       <BannerRotator />
 
-      {/* HERO PRINCIPAL */}
-      <section className="relative w-full">
-        <HeroCarousel images={heroImages} interval={6000}>
-          {/* sobreposição mais suave */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
-            {/* TEXTO HERO */}
-            <div className="text-center max-w-3xl text-white">
-              <h1
-                className="
-                  mt-1
-                  text-2xl sm:text-3xl md:text-5xl 
-                  font-extrabold 
-                  uppercase
-                  tracking-[0.12em]
-                  bg-gradient-to-r from-amber-200 via-orange-300 to-rose-400
-                  bg-clip-text text-transparent
-                  drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
-                "
-              >
-                CLASSILAGOS
-                <br />
-                A REGIÃO DOS LAGOS EM UM SÓ LUGAR
-              </h1>
-            </div>
-          </div>
-        </HeroCarousel>
-      </section>
+  
+{/* HERO PRINCIPAL */}
+<section className="relative w-full">
+  <HeroCarousel images={heroImages} interval={6000}>
+    {/* sobreposição mais suave */}
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/0 to-slate-950/75" />
+    <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
+      {/* TEXTO HERO */}
+      <div className="text-center max-w-3xl text-white">
+        
+        {/* TÍTULO PRINCIPAL - NÃO ALTERAR */}
+        <h1
+          className="
+            mt-1
+            text-2xl sm:text-3xl md:text-5xl 
+            font-extrabold 
+            uppercase
+            tracking-[0.12em]
+            bg-gradient-to-r from-amber-200 via-orange-300 to-rose-400
+            bg-clip-text text-transparent
+            drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
+          "
+        >
+          CLASSILAGOS
+        </h1>
+
+        {/* FRASE SECUNDÁRIA - AGORA EM UMA LINHA SÓ */}
+        <p
+          className="
+            mt-1
+            font-semibold
+            uppercase
+            text-slate-50
+            drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]
+            tracking-[0.15em]
+            text-xs sm:text-sm md:text-base lg:text-lg
+            whitespace-nowrap
+          "
+        >
+          A REGIÃO DOS LAGOS EM UM SÓ LUGAR
+        </p>
+      </div>
+    </div>
+  </HeroCarousel>
+</section> 
 
       {/* CAIXA DE BUSCA – FAIXA TURQUESA + CARTÃO ESCURO */}
       <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
