@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
-import { useSearchParams } from "next/navigation";
 
 const heroImages = [
   "/imoveis/imovel-01.jpg",
@@ -15,10 +14,16 @@ const heroImages = [
 export default function ImoveisPage() {
   const [currentHero, setCurrentHero] = useState(0);
   const [destaques, setDestaques] = useState([]);
+  const [tipoSelecionado, setTipoSelecionado] = useState(null);
 
-  // lê ?tipo= da URL (ex.: casas-venda, temporada etc.)
-  const searchParams = useSearchParams();
-  const tipoSelecionado = searchParams.get("tipo");
+  // Lê ?tipo= da URL no lado do cliente
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const tipo = params.get("tipo"); // ex.: "casas-venda"
+    setTipoSelecionado(tipo);
+  }, []);
 
   // Rotação das imagens do hero
   useEffect(() => {
@@ -224,7 +229,9 @@ export default function ImoveisPage() {
 
           {destaques.length === 0 ? (
             <p className="text-xs text-slate-500">
-              Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!
+              {tipoSelecionado
+                ? "Nenhum imóvel encontrado para esta categoria."
+                : "Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!"}
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
@@ -327,4 +334,3 @@ export default function ImoveisPage() {
     </main>
   );
 }
-
