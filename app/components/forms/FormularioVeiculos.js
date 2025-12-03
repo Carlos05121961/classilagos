@@ -237,43 +237,35 @@ Loja / Revenda: ${classLojaRevenda ? "Sim" : "Não"}
 ${detalhesVeiculoTexto}
 `.trim();
 
-    // Grava no Supabase usando a mesma tabela "anuncios"
-    const { data, error } = await supabase
-      .from("anuncios")
-      .insert({
-        user_id: user.id,
-        categoria: "veiculos",
-        titulo,
-        descricao: descricaoFinal,
-        cidade,
-        bairro,
-        endereco,
-        cep,
-        preco,
-        imagens,
-        video_url: videoUrl,
-        telefone,
-        whatsapp,
-        email,
-        contato: contatoPrincipal,
+// Grava no Supabase usando a mesma tabela "anuncios"
+const { data, error } = await supabase
+  .from("anuncios")
+  .insert({
+    user_id: user.id,
+    categoria: "veiculos",
+    titulo,
+    descricao: descricaoFinal, // já inclui os detalhes (condição, 0km, financiado etc.)
+    cidade,
+    bairro,
+    endereco,
+    cep,
+    preco,
+    imagens,
+    video_url: videoUrl,
+    telefone,
+    whatsapp,
+    email,
+    contato: contatoPrincipal,
+    // reutilizando campos genéricos já existentes
+    tipo_imovel: tipoVeiculo, // aqui vai o tipo de veículo
+    finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
+    nome_contato: nomeContato,
+    status: "ativo",
+    destaque: false,
+  })
+  .select("id")
+  .single();
 
-        // campos genéricos reaproveitados
-        tipo_imovel: tipoVeiculo, // aqui vai o tipo de veículo
-        finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
-        nome_contato: nomeContato,
-
-        // NOVOS CAMPOS DE CLASSIFICAÇÃO (colunas criadas no Supabase)
-        condicao: condicao.toLowerCase(), // "usado" | "seminovo" | "0 km" (ajuste no SQL se precisar)
-        zero_km: classZeroKm,
-        consignado: classConsignado,
-        financiado: classFinanciado,
-        loja_revenda: classLojaRevenda,
-
-        status: "ativo",
-        destaque: false,
-      })
-      .select("id")
-      .single();
 
     if (error) {
       console.error(error);
