@@ -7,6 +7,13 @@ import { supabase } from "../../supabaseClient";
 export default function FormularioVeiculos() {
   const router = useRouter();
 
+  // Classificação / condição
+  const [condicao, setCondicao] = useState(""); // usado / seminovo / 0km
+  const [classZeroKm, setClassZeroKm] = useState(false);
+  const [classConsignado, setClassConsignado] = useState(false);
+  const [classFinanciado, setClassFinanciado] = useState(false);
+  const [classLojaRevenda, setClassLojaRevenda] = useState(false);
+
   // Campos básicos
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -18,8 +25,8 @@ export default function FormularioVeiculos() {
   const [cep, setCep] = useState("");
 
   // Tipo / finalidade
-  const [finalidade, setFinalidade] = useState("");
-  const [tipoVeiculo, setTipoVeiculo] = useState("");
+  const [finalidade, setFinalidade] = useState(""); // venda / troca / aluguel
+  const [tipoVeiculo, setTipoVeiculo] = useState(""); // carro / moto / etc.
 
   // Detalhes do veículo
   const [marca, setMarca] = useState("");
@@ -35,18 +42,14 @@ export default function FormularioVeiculos() {
   const [financiado, setFinanciado] = useState("nao");
   const [aceitaTroca, setAceitaTroca] = useState("nao");
 
-  // 🚀 NOVOS CAMPOS
-  const [zeroKm, setZeroKm] = useState(false);
-  const [consignado, setConsignado] = useState(false);
-  const [lojaRevenda, setLojaRevenda] = useState(false);
-
   // Valores
   const [preco, setPreco] = useState("");
 
-  // Uploads
+  // Upload de arquivos (fotos)
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  // Vídeo (URL – apenas YouTube)
   const [videoUrl, setVideoUrl] = useState("");
 
   // Contatos
@@ -55,7 +58,9 @@ export default function FormularioVeiculos() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
+  // Termos de responsabilidade
   const [aceitoTermos, setAceitoTermos] = useState(false);
+
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -74,6 +79,9 @@ export default function FormularioVeiculos() {
   const tiposVeiculo = [
     "Carro",
     "Moto",
+    "Caminhonete",
+    "SUV",
+    "Utilitário",
     "Caminhão",
     "Van",
     "Ônibus",
@@ -83,18 +91,32 @@ export default function FormularioVeiculos() {
   ];
 
   const finalidades = ["Venda", "Troca", "Aluguel"];
-  const combustiveis = ["Gasolina", "Etanol", "Flex", "Diesel", "GNV", "Elétrico"];
+
+  const combustiveis = [
+    "Gasolina",
+    "Etanol",
+    "Flex",
+    "Diesel",
+    "GNV",
+    "Elétrico",
+  ];
+
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
 
-  // Garantir login
+  const condicoes = ["Usado", "Seminovo", "0 km"];
+
+  // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
+      if (!data.user) {
+        router.push("/login");
+      }
     });
   }, [router]);
 
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
+    // máximo 8 fotos
     setArquivos(files.slice(0, 8));
   };
 
@@ -109,57 +131,75 @@ export default function FormularioVeiculos() {
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
-      return router.push("/login");
+      router.push("/login");
+      return;
+    }
+
+    if (!condicao) {
+      setErro(
+        "Selecione a condição do veículo (usado, seminovo ou 0 km)."
+      );
+      return;
     }
 
     const contatoPrincipal = whatsapp || telefone || email;
+
     if (!contatoPrincipal) {
-      setErro("Informe ao menos um meio de contato.");
+      setErro(
+        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
       return;
     }
 
     if (!finalidade || !tipoVeiculo) {
-      setErro("Selecione finalidade e tipo de veículo.");
+      setErro("Selecione a finalidade e o tipo de veículo.");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro("Você precisa aceitar os termos.");
+      setErro(
+        "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio."
+      );
       return;
     }
 
-    // Upload de imagens
     let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
         setUploading(true);
 
-        const bucket = "anuncios";
+        const bucketName = "anuncios";
 
         const uploads = await Promise.all(
-          arquivos.map(async (file, i) => {
-            const ext = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-${i}.${ext}`;
+          arquivos.map(async (file, index) => {
+            const fileExt = file.name.split(".").pop();
+            const filePath = `${user.id}/${Date.now()}-${index}.${fileExt}`;
 
-            const { error: uploadErr } = await supabase.storage
-              .from(bucket)
+            const { error: uploadError } = await supabase.storage
+              .from(bucketName)
               .upload(filePath, file);
 
-            if (uploadErr) throw uploadErr;
+            if (uploadError) {
+              console.error("Erro ao subir imagem:", uploadError);
+              throw uploadError;
+            }
 
-            const { data: pub } = supabase.storage
-              .from(bucket)
+            const { data: publicData } = supabase.storage
+              .from(bucketName)
               .getPublicUrl(filePath);
 
-            return pub.publicUrl;
+            return publicData.publicUrl;
           })
         );
 
         urlsUpload = uploads;
       }
     } catch (err) {
-      setErro("Erro ao enviar imagens.");
+      console.error(err);
+      setErro(
+        "Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes."
+      );
       setUploading(false);
       return;
     } finally {
@@ -168,26 +208,36 @@ export default function FormularioVeiculos() {
 
     const imagens = urlsUpload;
 
-    const detalhes = `
+    // Monta um bloco com os detalhes do veículo para guardar dentro da descrição
+    const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
-Finalidade: ${finalidade}
-Tipo: ${tipoVeiculo}
-Marca: ${marca}
-Modelo: ${modelo}
-Ano: ${ano}
-KM: ${km}
-Cor: ${cor}
-Combustível: ${combustivel}
-Câmbio: ${cambio}
-Portas: ${portas}
-IPVA pago: ${ipvaPago}
-Licenciado: ${licenciado}
-Financiado: ${financiado}
-Aceita troca: ${aceitaTroca}
+Condição: ${condicao || "-"}
+Finalidade: ${finalidade || "-"}
+Tipo de veículo: ${tipoVeiculo || "-"}
+Marca: ${marca || "-"}
+Modelo: ${modelo || "-"}
+Ano: ${ano || "-"}
+Quilometragem: ${km || "-"}
+Cor: ${cor || "-"}
+Combustível: ${combustivel || "-"}
+Câmbio: ${cambio || "-"}
+Portas: ${portas || "-"}
+IPVA pago: ${ipvaPago === "sim" ? "Sim" : "Não"}
+Licenciamento em dia: ${licenciado === "sim" ? "Sim" : "Não"}
+Financiado: ${financiado === "sim" ? "Sim" : "Não"}
+Aceita troca: ${aceitaTroca === "sim" ? "Sim" : "Não"}
+0 km (classificação): ${classZeroKm ? "Sim" : "Não"}
+Consignado: ${classConsignado ? "Sim" : "Não"}
+Financiado (classificação): ${classFinanciado ? "Sim" : "Não"}
+Loja / Revenda: ${classLojaRevenda ? "Sim" : "Não"}
 `.trim();
 
-    const descricaoFinal = `${descricao}\n\n${detalhes}`;
+    const descricaoFinal = `${descricao.trim()}
 
+${detalhesVeiculoTexto}
+`.trim();
+
+    // Grava no Supabase usando a mesma tabela "anuncios"
     const { data, error } = await supabase
       .from("anuncios")
       .insert({
@@ -202,21 +252,23 @@ Aceita troca: ${aceitaTroca}
         preco,
         imagens,
         video_url: videoUrl,
-
         telefone,
         whatsapp,
         email,
         contato: contatoPrincipal,
 
-        tipo_imovel: tipoVeiculo,
-        finalidade: finalidade.toLowerCase(),
-
-        zero_km: zeroKm,
-        consignado,
-        loja_revenda: lojaRevenda,
-        financiado: financiado === "sim",
-
+        // campos genéricos reaproveitados
+        tipo_imovel: tipoVeiculo, // aqui vai o tipo de veículo
+        finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
         nome_contato: nomeContato,
+
+        // NOVOS CAMPOS DE CLASSIFICAÇÃO (colunas criadas no Supabase)
+        condicao: condicao.toLowerCase(), // "usado" | "seminovo" | "0 km" (ajuste no SQL se precisar)
+        zero_km: classZeroKm,
+        consignado: classConsignado,
+        financiado: classFinanciado,
+        loja_revenda: classLojaRevenda,
+
         status: "ativo",
         destaque: false,
       })
@@ -224,80 +276,137 @@ Aceita troca: ${aceitaTroca}
       .single();
 
     if (error) {
-      setErro("Erro ao salvar anúncio.");
+      console.error(error);
+      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
       return;
     }
 
-    setSucesso("Anúncio enviado com sucesso!");
+    setSucesso("Anúncio enviado com sucesso! Redirecionando…");
 
+    // Redireciona para a página do anúncio
     setTimeout(() => {
       router.push(`/anuncios/${data.id}`);
     }, 1500);
+
+    // Limpa formulário
+    setCondicao("");
+    setClassZeroKm(false);
+    setClassConsignado(false);
+    setClassFinanciado(false);
+    setClassLojaRevenda(false);
+
+    setTitulo("");
+    setDescricao("");
+    setCidade("");
+    setBairro("");
+    setEndereco("");
+    setCep("");
+    setFinalidade("");
+    setTipoVeiculo("");
+    setMarca("");
+    setModelo("");
+    setAno("");
+    setKm("");
+    setCor("");
+    setCombustivel("");
+    setCambio("");
+    setPortas("");
+    setIpvaPago("nao");
+    setLicenciado("nao");
+    setFinanciado("nao");
+    setAceitaTroca("nao");
+    setPreco("");
+    setArquivos([]);
+    setVideoUrl("");
+    setNomeContato("");
+    setTelefone("");
+    setWhatsapp("");
+    setEmail("");
+    setAceitoTermos(false);
   };
 
   return (
     <form onSubmit={enviarAnuncio} className="space-y-6">
-      
-      {/* ALERTAS */}
       {erro && (
-        <p className="text-red-600 text-xs bg-red-50 border border-red-200 rounded px-3 py-2">
+        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
           {erro}
         </p>
       )}
       {sucesso && (
-        <p className="text-green-600 text-xs bg-green-50 border border-green-200 rounded px-3 py-2">
+        <p className="text-green-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
           {sucesso}
         </p>
       )}
 
-      {/* NOVO BLOCO: CLASSIFICAÇÃO */}
-      <div className="border-t border-slate-200 pt-4">
+      {/* BLOCO: CLASSIFICAÇÃO DO ANÚNCIO */}
+      <div className="space-y-4 border-b border-slate-100 pb-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Classificação do anúncio
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 text-xs text-slate-700">
-          
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={zeroKm}
-              onChange={(e) => setZeroKm(e.target.checked)}
-            />
-            0 KM (Zero Quilômetro)
-          </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Condição do veículo *
+            </label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              value={condicao}
+              onChange={(e) => setCondicao(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {condicoes.map((c) => (
+                <option key={c} value={c.toLowerCase()}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Ex.: A maioria dos anúncios será de veículos usados ou seminovos.
+            </p>
+          </div>
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={financiado === "sim"}
-              onChange={(e) => setFinanciado(e.target.checked ? "sim" : "nao")}
-            />
-            Financiado
-          </label>
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-700 mt-1">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={classZeroKm}
+                onChange={(e) => setClassZeroKm(e.target.checked)}
+              />
+              <span>0 KM (Zero Quilômetro)</span>
+            </label>
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={consignado}
-              onChange={(e) => setConsignado(e.target.checked)}
-            />
-            Consignado
-          </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={classConsignado}
+                onChange={(e) => setClassConsignado(e.target.checked)}
+              />
+              <span>Consignado</span>
+            </label>
 
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={lojaRevenda}
-              onChange={(e) => setLojaRevenda(e.target.checked)}
-            />
-            Loja / Revenda
-          </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={classFinanciado}
+                onChange={(e) => setClassFinanciado(e.target.checked)}
+              />
+              <span>Financiado</span>
+            </label>
 
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={classLojaRevenda}
+                onChange={(e) => setClassLojaRevenda(e.target.checked)}
+              />
+              <span>Loja / Revenda</span>
+            </label>
+          </div>
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: TIPO DO ANÚNCIO */}
       <div className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900">
@@ -345,7 +454,6 @@ Aceita troca: ${aceitaTroca}
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: INFORMAÇÕES PRINCIPAIS */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
@@ -372,18 +480,17 @@ Aceita troca: ${aceitaTroca}
           </label>
           <textarea
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
-            placeholder="Descreva o estado geral, manutenção, pneus, documentação..."
+            placeholder="Descreva o estado geral, manutenção, pneus, documentação, histórico do veículo..."
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
             required
           />
           <p className="mt-1 text-[11px] text-slate-500">
-            Quanto mais detalhes, mais contatos você recebe.
+            Dica: informações claras e honestas geram mais confiança e contatos.
           </p>
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: LOCALIZAÇÃO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
@@ -430,7 +537,7 @@ Aceita troca: ${aceitaTroca}
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Rua, número..."
+              placeholder="Rua, número, complemento..."
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
             />
@@ -450,10 +557,11 @@ Aceita troca: ${aceitaTroca}
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: DETALHES DO VEÍCULO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Detalhes</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Detalhes do veículo
+        </h2>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
@@ -467,7 +575,6 @@ Aceita troca: ${aceitaTroca}
               onChange={(e) => setMarca(e.target.value)}
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Modelo
@@ -479,7 +586,6 @@ Aceita troca: ${aceitaTroca}
               onChange={(e) => setModelo(e.target.value)}
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Ano
@@ -500,8 +606,8 @@ Aceita troca: ${aceitaTroca}
             </label>
             <input
               type="text"
-              placeholder="Ex: 65.000 km"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Ex: 65.000 km"
               value={km}
               onChange={(e) => setKm(e.target.value)}
             />
@@ -534,7 +640,6 @@ Aceita troca: ${aceitaTroca}
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Combustível
@@ -546,7 +651,9 @@ Aceita troca: ${aceitaTroca}
             >
               <option value="">Selecione...</option>
               {combustiveis.map((c) => (
-                <option key={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
@@ -562,29 +669,31 @@ Aceita troca: ${aceitaTroca}
             >
               <option value="">Selecione...</option>
               {cambios.map((c) => (
-                <option key={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-700">
-              IPVA pago?
-            </label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={ipvaPago}
-              onChange={(e) => setIpvaPago(e.target.value)}
-            >
-              <option value="nao">Não</option>
-              <option value="sim">Sim</option>
-            </select>
+          <div className="grid gap-2 text-xs text-slate-700">
+            <div>
+              <label className="block text-xs font-medium text-slate-700">
+                IPVA pago?
+              </label>
+              <select
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                value={ipvaPago}
+                onChange={(e) => setIpvaPago(e.target.value)}
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
           </div>
-
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-
           <div>
             <label className="block text-xs font-medium text-slate-700">
               Licenciamento em dia?
@@ -626,11 +735,9 @@ Aceita troca: ${aceitaTroca}
               <option value="sim">Sim</option>
             </select>
           </div>
-
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: VALORES */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Valores</h2>
@@ -650,14 +757,13 @@ Aceita troca: ${aceitaTroca}
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: FOTOS */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Fotos do veículo</h2>
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
-            Enviar fotos (até 8)
+            Enviar fotos (upload) – até 8 imagens
           </label>
           <input
             type="file"
@@ -666,97 +772,129 @@ Aceita troca: ${aceitaTroca}
             onChange={handleArquivosChange}
             className="mt-1 w-full text-xs"
           />
-
           {arquivos.length > 0 && (
-            <p className="text-[11px] text-slate-500 mt-1">
+            <p className="mt-1 text-[11px] text-slate-500">
               {arquivos.length} arquivo(s) selecionado(s).
             </p>
           )}
+          <p className="mt-1 text-[11px] text-slate-500">
+            Formatos recomendados: JPG ou PNG, até 2MB cada.
+          </p>
         </div>
       </div>
 
-      {/* --------------------------------------------- */}
       {/* BLOCO: VÍDEO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Vídeo (YouTube)</h2>
-
-        <input
-          type="text"
-          className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="Link do vídeo (opcional)"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-        />
-      </div>
-
-      {/* --------------------------------------------- */}
-      {/* BLOCO: CONTATO */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Dados de contato
+          Vídeo do veículo (opcional)
         </h2>
 
-        <input
-          type="text"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="Nome de contato"
-          value={nomeContato}
-          onChange={(e) => setNomeContato(e.target.value)}
-        />
-
-        <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            URL do vídeo (YouTube)
+          </label>
           <input
             type="text"
-            className="w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Telefone"
-            value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
           />
+        </div>
+      </div>
 
+      {/* BLOCO: CONTATO */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Nome de contato
+          </label>
           <input
             type="text"
-            className="w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="WhatsApp"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Nome do proprietário, lojista ou revenda"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
           />
         </div>
 
-        <input
-          type="email"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Telefone
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="Telefone para contato"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              WhatsApp
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              placeholder="DDD + número"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            E-mail
+          </label>
+          <input
+            type="email"
+            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <p className="text-[11px] text-slate-500">
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
+          exibido para as pessoas entrarem em contato com você.
+        </p>
       </div>
 
-      {/* --------------------------------------------- */}
-      {/* BLOCO: TERMOS */}
+      {/* BLOCO: TERMOS DE RESPONSABILIDADE */}
       <div className="space-y-2 border-t border-slate-100 pt-4 text-xs text-slate-700">
         <label className="flex items-start gap-2">
           <input
             type="checkbox"
             checked={aceitoTermos}
             onChange={(e) => setAceitoTermos(e.target.checked)}
+            className="mt-0.5"
           />
           <span>
-            Declaro que as informações são verdadeiras e aceito os{" "}
+            Declaro que todas as informações deste anúncio são verdadeiras e
+            estou de acordo com os{" "}
             <a
               href="/termos-de-uso"
-              className="underline"
               target="_blank"
+              rel="noreferrer"
+              className="underline"
             >
-              Termos de Uso
-            </a>.
+              Termos de Uso do Classilagos
+            </a>
+            .
           </span>
         </label>
       </div>
 
-      {/* --------------------------------------------- */}
       <button
         type="submit"
-        className="mt-2 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700"
+        className="mt-2 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
         disabled={uploading}
       >
         {uploading ? "Enviando anúncio..." : "Enviar anúncio"}
