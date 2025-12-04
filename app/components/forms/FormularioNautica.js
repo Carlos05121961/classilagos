@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
+function parseNumberOrNull(value) {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed.replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
 export default function FormularioNautica() {
   const router = useRouter();
 
@@ -152,6 +160,12 @@ export default function FormularioNautica() {
       return;
     }
 
+    // Converte campos numéricos vazios para null (evita erro no Supabase)
+    const qtdMotoresNumber = parseNumberOrNull(qtdMotores);
+    const capacidadePessoasNumber = parseNumberOrNull(capacidadePessoas);
+    const qtdCabinesNumber = parseNumberOrNull(qtdCabines);
+    const qtdBanheirosNumber = parseNumberOrNull(qtdBanheiros);
+
     // Upload de imagens
     let urlsUpload = [];
 
@@ -223,13 +237,13 @@ export default function FormularioNautica() {
 
         marca_motor: marcaMotor,
         potencia_motor_hp: potenciaMotorHp,
-        qtd_motores: qtdMotores,
+        qtd_motores: qtdMotoresNumber,
         horas_motor: horasMotor,
         combustivel,
 
-        capacidade_pessoas: capacidadePessoas,
-        qtd_cabines: qtdCabines,
-        qtd_banheiros: qtdBanheiros,
+        capacidade_pessoas: capacidadePessoasNumber,
+        qtd_cabines: qtdCabinesNumber,
+        qtd_banheiros: qtdBanheirosNumber,
 
         tipo_passeio: tipoPasseio,
         duracao_passeio: duracaoPasseio,
