@@ -1,12 +1,14 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-export default function ListaVeiculosPage() {
+// componente interno que usa useSearchParams
+function ListaVeiculosContent() {
   const searchParams = useSearchParams();
 
   const [anuncios, setAnuncios] = useState([]);
@@ -73,6 +75,7 @@ export default function ListaVeiculosPage() {
 
   return (
     <main className="bg-white min-h-screen">
+      {/* TOPO / BARRA DE TÍTULO */}
       <section className="border-b bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
@@ -104,6 +107,7 @@ export default function ListaVeiculosPage() {
         </div>
       </section>
 
+      {/* LISTA DE ANÚNCIOS */}
       <section className="max-w-6xl mx-auto px-4 py-6">
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -186,3 +190,19 @@ export default function ListaVeiculosPage() {
   );
 }
 
+// componente principal com Suspense
+export default function ListaVeiculosPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="bg-white min-h-screen">
+          <section className="max-w-6xl mx-auto px-4 py-10">
+            <p className="text-sm text-slate-600">Carregando veículos...</p>
+          </section>
+        </main>
+      }
+    >
+      <ListaVeiculosContent />
+    </Suspense>
+  );
+}
