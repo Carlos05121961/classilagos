@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
+// Converte campo de texto para número ou null (para colunas numeric do Supabase)
 function parseNumberOrNull(value) {
   if (!value) return null;
   const trimmed = String(value).trim();
