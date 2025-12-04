@@ -100,11 +100,10 @@ export default function NauticaPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, tipo_imovel, finalidade, destaque"
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, tipo_imovel, finalidade"
         )
         .eq("categoria", "nautica")
         .eq("status", "ativo")
-        .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -201,17 +200,11 @@ export default function NauticaPage() {
     }
 
     if (filtrados.length === 0) return null;
-    const emDestaque = filtrados.find((a) => a.destaque === true);
-    return emDestaque || filtrados[0];
+    return filtrados[0];
   }
 
-  // Lista de destaques (igual Imóveis / Veículos)
-  const destaques = (() => {
-    if (!anuncios || anuncios.length === 0) return [];
-    const soDestaques = anuncios.filter((a) => a.destaque === true);
-    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
-    return anuncios.slice(0, 8);
-  })();
+  // 👉 AGORA: destaques = últimos anúncios (sem depender de "destaque")
+  const destaques = anuncios ? anuncios.slice(0, 8) : [];
 
   return (
     <main className="bg-white min-h-screen">
@@ -424,19 +417,19 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* EMBARCAÇÕES EM DESTAQUE */}
+      {/* EMBARCAÇÕES EM DESTAQUE (AGORA: ÚLTIMOS ANÚNCIOS) */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              Embarcações e anúncios náuticos em destaque
+              Embarcações e anúncios náuticos
             </h2>
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
                 ? "Carregando anúncios..."
                 : destaques.length === 0
                 ? "Nenhum anúncio cadastrado ainda."
-                : `${destaques.length} em destaque`}
+                : `${destaques.length} anúncio(s)`}
             </span>
           </div>
 
@@ -446,7 +439,7 @@ export default function NauticaPage() {
 
           {!loadingAnuncios && destaques.length === 0 && (
             <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
-              Ainda não há anúncios de náutica em destaque.
+              Ainda não há anúncios de náutica cadastrados.
               <br />
               <Link
                 href="/anunciar"
