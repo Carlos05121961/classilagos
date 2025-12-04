@@ -93,6 +93,7 @@ export default function FormularioNautica() {
     "Stand-up / Caiaque",
     "Vaga em marina",
     "Serviços náuticos",
+    "Peças e acessórios",
     "Outros",
   ];
 
@@ -192,55 +193,11 @@ export default function FormularioNautica() {
 
     const imagens = urlsUpload;
 
-    // 🔹 Monta um bloco de detalhes para anexar à descrição
-    const detalhesNauticaTexto = `
-=== Detalhes da embarcação / serviço ===
-Subcategoria: ${subcategoria || "-"}
-Finalidade: ${finalidade || "-"}
-
---- Embarcação ---
-Marca: ${marcaEmbarcacao || "-"}
-Modelo: ${modeloEmbarcacao || "-"}
-Ano: ${anoEmbarcacao || "-"}
-Comprimento (pés): ${comprimentoPes || "-"}
-Material do casco: ${materialCasco || "-"}
-
---- Motor ---
-Marca do motor: ${marcaMotor || "-"}
-Potência total (HP): ${potenciaMotorHp || "-"}
-Quantidade de motores: ${qtdMotores || "-"}
-Horas de motor: ${horasMotor || "-"}
-Combustível: ${combustivel || "-"}
-
---- Capacidade ---
-Capacidade (pessoas): ${capacidadePessoas || "-"}
-Cabines: ${qtdCabines || "-"}
-Banheiros: ${qtdBanheiros || "-"}
-
---- Passeios (se aplicável) ---
-Tipo de passeio: ${tipoPasseio || "-"}
-Duração média: ${duracaoPasseio || "-"}
-Valor por pessoa: ${valorPessoa || "-"}
-Valor passeio fechado: ${valorFechado || "-"}
-Itens inclusos: ${itensInclusos || "-"}
-
---- Vaga em marina / guardaria (se aplicável) ---
-Tipo de vaga: ${tipoVaga || "-"}
-Comprimento máximo (pés): ${comprimentoMaximoPes || "-"}
-Estrutura disponível: ${estruturaDisponivel || "-"}
-`.trim();
-
-    const descricaoFinal = `${descricao.trim()}
-
-${detalhesNauticaTexto}
-`.trim();
-
-    // Grava somente campos "seguros" na tabela (o resto foi para a descrição)
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "nautica",
       titulo,
-      descricao: descricaoFinal,
+      descricao,
       cidade,
       bairro,
       ponto_embarque: pontoEmbarque,
@@ -255,13 +212,39 @@ ${detalhesNauticaTexto}
       subcategoria_nautica: subcategoria,
       finalidade_nautica: finalidade,
 
+      marca_embarcacao: marcaEmbarcacao,
+      modelo_embarcacao: modeloEmbarcacao,
+      ano_embarcacao: anoEmbarcacao,
+      comprimento_pes: comprimentoPes,
+      material_casco: materialCasco,
+
+      marca_motor: marcaMotor,
+      potencia_motor_hp: potenciaMotorHp,
+      qtd_motores: qtdMotores,
+      horas_motor: horasMotor,
+      combustivel,
+
+      capacidade_pessoas: capacidadePessoas,
+      qtd_cabines: qtdCabines,
+      qtd_banheiros: qtdBanheiros,
+
+      tipo_passeio: tipoPasseio,
+      duracao_passeio: duracaoPasseio,
+      valor_passeio_pessoa: valorPessoa,
+      valor_passeio_fechado: valorFechado,
+      itens_inclusos: itensInclusos,
+
+      tipo_vaga: tipoVaga,
+      comprimento_maximo_pes: comprimentoMaximoPes,
+      estrutura_disponivel: estruturaDisponivel,
+
       status: "ativo",
       destaque: false,
       nome_contato: nomeContato,
     });
 
     if (error) {
-      console.error("Erro ao salvar anúncio:", error);
+      console.error(error);
       setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
       return;
     }
@@ -312,7 +295,11 @@ ${detalhesNauticaTexto}
   };
 
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
+    <form
+      onSubmit={enviarAnuncio}
+      className="space-y-6 text-xs md:text-sm"
+      autoComplete="off"
+    >
       {erro && (
         <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
           {erro}
@@ -458,7 +445,7 @@ ${detalhesNauticaTexto}
         </div>
       </div>
 
-      {/* BLOCO: DETALHES (venda / aluguel) */}
+      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
       {(finalidade === "venda" || finalidade === "aluguel") && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">
@@ -496,7 +483,9 @@ ${detalhesNauticaTexto}
                 Ano
               </label>
               <input
-                type="text"
+                type="number"
+                min="1900"
+                max="2100"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={anoEmbarcacao}
                 onChange={(e) => setAnoEmbarcacao(e.target.value)}
@@ -507,7 +496,8 @@ ${detalhesNauticaTexto}
                 Comprimento (pés)
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={comprimentoPes}
                 onChange={(e) => setComprimentoPes(e.target.value)}
@@ -543,7 +533,8 @@ ${detalhesNauticaTexto}
                 Potência total (HP)
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={potenciaMotorHp}
                 onChange={(e) => setPotenciaMotorHp(e.target.value)}
@@ -554,7 +545,8 @@ ${detalhesNauticaTexto}
                 Qtde. de motores
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={qtdMotores}
                 onChange={(e) => setQtdMotores(e.target.value)}
@@ -568,7 +560,8 @@ ${detalhesNauticaTexto}
                 Horas de motor
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={horasMotor}
                 onChange={(e) => setHorasMotor(e.target.value)}
@@ -590,7 +583,8 @@ ${detalhesNauticaTexto}
                 Capacidade (pessoas)
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={capacidadePessoas}
                 onChange={(e) => setCapacidadePessoas(e.target.value)}
@@ -604,7 +598,8 @@ ${detalhesNauticaTexto}
                 Cabines
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={qtdCabines}
                 onChange={(e) => setQtdCabines(e.target.value)}
@@ -615,7 +610,8 @@ ${detalhesNauticaTexto}
                 Banheiros
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={qtdBanheiros}
                 onChange={(e) => setQtdBanheiros(e.target.value)}
@@ -663,7 +659,8 @@ ${detalhesNauticaTexto}
                 Valor por pessoa
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={valorPessoa}
                 onChange={(e) => setValorPessoa(e.target.value)}
@@ -676,7 +673,8 @@ ${detalhesNauticaTexto}
               Valor passeio fechado
             </label>
             <input
-              type="text"
+              type="number"
+              min="0"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={valorFechado}
               onChange={(e) => setValorFechado(e.target.value)}
@@ -722,7 +720,8 @@ ${detalhesNauticaTexto}
                 Comprimento máximo (pés)
               </label>
               <input
-                type="text"
+                type="number"
+                min="0"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={comprimentoMaximoPes}
                 onChange={(e) => setComprimentoMaximoPes(e.target.value)}
