@@ -54,7 +54,7 @@ export default function FormularioNautica() {
   const [preco, setPreco] = useState("");
 
   // Upload
-  const [arquivos, setArquivos] = useState<File[]>([]);
+  const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   // Vídeo
@@ -113,19 +113,18 @@ export default function FormularioNautica() {
     });
   }, [router]);
 
-  const handleArquivosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
     setArquivos(files.slice(0, 8));
   };
 
-  const enviarAnuncio = async (e: React.FormEvent) => {
+  const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
@@ -154,7 +153,7 @@ export default function FormularioNautica() {
     }
 
     // Upload de imagens
-    let urlsUpload: string[] = [];
+    let urlsUpload = [];
 
     try {
       if (arquivos.length > 0) {
@@ -213,7 +212,7 @@ export default function FormularioNautica() {
 
         subcategoria_nautica: subcategoria,
         finalidade_nautica: finalidade,
-        // também preenche a coluna genérica
+        // coluna genérica (se existir na tabela)
         finalidade,
 
         marca_embarcacao: marcaEmbarcacao,
@@ -252,9 +251,7 @@ export default function FormularioNautica() {
     if (error) {
       console.error("Erro ao salvar anúncio de náutica:", error);
       setErro(
-        `Erro ao salvar anúncio: ${
-          (error as any).message || "Tente novamente em instantes."
-        }`
+        `Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`
       );
       return;
     }
@@ -300,7 +297,7 @@ export default function FormularioNautica() {
     setAceitoTermos(false);
 
     setTimeout(() => {
-      if (data?.id) {
+      if (data && data.id) {
         router.push(`/anuncios/${data.id}`);
       } else {
         router.push("/painel/meus-anuncios");
@@ -322,11 +319,10 @@ export default function FormularioNautica() {
       )}
 
       {/* BLOCO: TIPO */}
-      {/* (daqui para baixo mantém igual ao seu, só copiei do seu código) */}
-
-      {/* BLOCO: TIPO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio náutico</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Tipo de anúncio náutico
+        </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
@@ -783,7 +779,9 @@ export default function FormularioNautica() {
 
       {/* BLOCO: VÍDEO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Vídeo (opcional)
+        </h2>
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             URL do vídeo (YouTube)
@@ -800,7 +798,9 @@ export default function FormularioNautica() {
 
       {/* BLOCO: CONTATO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Dados de contato
+        </h2>
 
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
@@ -893,4 +893,3 @@ export default function FormularioNautica() {
     </form>
   );
 }
-
