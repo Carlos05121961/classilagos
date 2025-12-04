@@ -49,18 +49,43 @@ export default function VeiculosPage() {
     fetchVeiculos();
   }, []);
 
+  // CATEGORIAS QUE VÃO APONTAR PARA /veiculos/lista
   const categoriasLinha1 = [
-    { nome: "Carros à venda", slug: "carros-venda" },
-    { nome: "Motos à venda", slug: "motos-venda" },
-    { nome: "Seminovos", slug: "seminovos" },
-    { nome: "Oportunidades", slug: "oportunidades" },
+    {
+      nome: "Carros à venda",
+      href: "/veiculos/lista?tipo=Carro",
+    },
+    {
+      nome: "Motos à venda",
+      href: "/veiculos/lista?tipo=Moto",
+    },
+    {
+      nome: "Seminovos",
+      href: "/veiculos/lista?condicao=seminovo",
+    },
+    {
+      nome: "Oportunidades",
+      href: "/veiculos/lista", // por enquanto mostra todos
+    },
   ];
 
   const categoriasLinha2 = [
-    { nome: "0 km", slug: "zero-km" },
-    { nome: "Financiados", slug: "financiados" },
-    { nome: "Consignados", slug: "consignados" },
-    { nome: "Loja / Revenda", slug: "lojas-revendas" },
+    {
+      nome: "0 km",
+      href: "/veiculos/lista?condicao=0km",
+    },
+    {
+      nome: "Financiados",
+      href: "/veiculos/lista?financiado=1",
+    },
+    {
+      nome: "Consignados",
+      href: "/veiculos/lista?consignado=1",
+    },
+    {
+      nome: "Loja / Revenda",
+      href: "/veiculos/lista?loja=1",
+    },
   ];
 
   return (
@@ -96,8 +121,8 @@ export default function VeiculosPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-sm md:text-base font-medium drop-shadow">
-              Encontre carros, motos, caminhões e oportunidades em toda a
-              Região dos Lagos.
+              Encontre carros, motos, caminhões e oportunidades em toda a Região
+              dos Lagos.
             </p>
             <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
               Classilagos – Veículos
@@ -175,17 +200,17 @@ export default function VeiculosPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS + VEÍCULOS EM DESTAQUE */}
+      {/* CATEGORIAS */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
-        {/* CATEGORIAS LINHA 1 */}
+        {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => (
             <Link
-              key={cat.slug}
-              href={`/veiculos?tipo=${encodeURIComponent(cat.slug)}`}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
             >
-              <div className="h-32 md:h-36 w-full bg-slate-300" />
+              <div className="h-32 md:h-36 w-full bg-slate-300 group-hover:bg-slate-200 transition" />
               <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
                 {cat.nome}
               </div>
@@ -193,15 +218,15 @@ export default function VeiculosPage() {
           ))}
         </div>
 
-        {/* CATEGORIAS LINHA 2 */}
+        {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => (
             <Link
-              key={cat.slug}
-              href={`/veiculos?tipo=${encodeURIComponent(cat.slug)}`}
-              className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
             >
-              <div className="h-32 md:h-36 w-full bg-slate-400" />
+              <div className="h-32 md:h-36 w-full bg-slate-400 group-hover:bg-slate-300 transition" />
               <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
                 {cat.nome}
               </div>
@@ -216,8 +241,8 @@ export default function VeiculosPage() {
           </h2>
         </div>
 
+        {/* GRID DE CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {/* Skeletons enquanto carrega */}
           {loadingVeiculos && veiculos.length === 0 && (
             <>
               {[1, 2, 3, 4].map((i) => (
@@ -234,7 +259,6 @@ export default function VeiculosPage() {
             </>
           )}
 
-          {/* Nenhum veículo ainda */}
           {!loadingVeiculos && veiculos.length === 0 && (
             <>
               {[1, 2, 3, 4].map((i) => (
@@ -251,7 +275,6 @@ export default function VeiculosPage() {
             </>
           )}
 
-          {/* Veículos reais */}
           {veiculos.length > 0 &&
             veiculos.map((carro) => {
               const img =
@@ -298,61 +321,6 @@ export default function VeiculosPage() {
                 </Link>
               );
             })}
-        </div>
-      </section>
-
-      {/* NOVA FAIXA – SERVIÇOS E INFORMAÇÕES PARA VEÍCULOS */}
-      <section className="bg-slate-900 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">
-            Serviços e informações para veículos
-          </h2>
-          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para cuidar da documentação,
-            impostos, proteção e manutenção do seu veículo na Região dos Lagos.
-          </p>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Detran e documentos
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultas de veículo, multas,
-                licenciamento e outros serviços do Detran.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                IPVA e tributos
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Informações básicas sobre IPVA, taxas anuais e como acompanhar
-                pagamentos em dia.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Seguros &amp; proteção
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Dicas sobre seguro tradicional, proteção veicular e assistência
-                24h para rodar com mais tranquilidade.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Manutenção &amp; revisão
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para encontrar oficinas,
-                borracharias e centros automotivos na região.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
     </main>
