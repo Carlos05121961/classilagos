@@ -11,6 +11,77 @@ const heroImages = [
   "/veiculos/carro-03.jpg",
 ];
 
+// Cidades padrão
+const cidades = [
+  "Maricá",
+  "Saquarema",
+  "Araruama",
+  "Iguaba Grande",
+  "São Pedro da Aldeia",
+  "Arraial do Cabo",
+  "Cabo Frio",
+  "Búzios",
+  "Rio das Ostras",
+];
+
+// Tipos de veículos (para a busca do topo)
+const tiposVeiculo = [
+  "Carro",
+  "Moto",
+  "Caminhonete",
+  "Caminhão",
+  "Utilitário",
+  "Outros",
+];
+
+// CATEGORIAS LINHA 1 – com slug para filtragem dos cards
+const categoriasLinha1 = [
+  {
+    nome: "Carros à venda",
+    slug: "carros-venda",
+    href: "/veiculos/lista?tipo=Carro",
+  },
+  {
+    nome: "Motos à venda",
+    slug: "motos-venda",
+    href: "/veiculos/lista?tipo=Moto",
+  },
+  {
+    nome: "Seminovos",
+    slug: "seminovos",
+    href: "/veiculos/lista?condicao=seminovo",
+  },
+  {
+    nome: "Oportunidades",
+    slug: "oportunidades",
+    href: "/veiculos/lista",
+  },
+];
+
+// CATEGORIAS LINHA 2
+const categoriasLinha2 = [
+  {
+    nome: "0 km",
+    slug: "zero-km",
+    href: "/veiculos/lista?condicao=0km",
+  },
+  {
+    nome: "Financiados",
+    slug: "financiados",
+    href: "/veiculos/lista?financiado=1",
+  },
+  {
+    nome: "Consignados",
+    slug: "consignados",
+    href: "/veiculos/lista?consignado=1",
+  },
+  {
+    nome: "Loja / Revenda",
+    slug: "loja-revenda",
+    href: "/veiculos/lista?loja=1",
+  },
+];
+
 export default function VeiculosPage() {
   const [currentHero, setCurrentHero] = useState(0);
   const [veiculos, setVeiculos] = useState([]);
@@ -27,66 +98,95 @@ export default function VeiculosPage() {
   // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE
   useEffect(() => {
     const fetchVeiculos = async () => {
-      setLoadingVeiculos(true);
+      try {
+        setLoadingVeiculos(true);
 
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("id, titulo, cidade, bairro, preco, imagens")
-        .eq("categoria", "veiculos")
-        .order("created_at", { ascending: false })
-        .limit(8);
+        const { data, error } = await supabase
+          .from("anuncios")
+          .select("*")
+          .eq("categoria", "veiculos")
+          .order("destaque", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(40);
 
-      if (error) {
-        console.error("Erro ao buscar veículos:", error);
+        if (error) {
+          console.error("Erro ao buscar veículos:", error);
+          setVeiculos([]);
+        } else {
+          setVeiculos(data || []);
+        }
+      } catch (e) {
+        console.error("Erro inesperado ao buscar veículos:", e);
         setVeiculos([]);
-      } else {
-        setVeiculos(data || []);
+      } finally {
+        setLoadingVeiculos(false);
       }
-
-      setLoadingVeiculos(false);
     };
 
     fetchVeiculos();
   }, []);
 
-  // CATEGORIAS QUE VÃO APONTAR PARA /veiculos/lista
-  const categoriasLinha1 = [
-    {
-      nome: "Carros à venda",
-      href: "/veiculos/lista?tipo=Carro",
-    },
-    {
-      nome: "Motos à venda",
-      href: "/veiculos/lista?tipo=Moto",
-    },
-    {
-      nome: "Seminovos",
-      href: "/veiculos/lista?condicao=seminovo",
-    },
-    {
-      nome: "Oportunidades",
-      href: "/veiculos/lista", // por enquanto mostra todos
-    },
-  ];
+  // ESCOLHE 1 ANÚNCIO PARA REPRESENTAR CADA CARD DE CATEGORIA
+  function escolherAnuncioParaCard(slug) {
+    if (!veiculos || veiculos.length === 0) return null;
 
-  const categoriasLinha2 = [
-    {
-      nome: "0 km",
-      href: "/veiculos/lista?condicao=0km",
-    },
-    {
-      nome: "Financiados",
-      href: "/veiculos/lista?financiado=1",
-    },
-    {
-      nome: "Consignados",
-      href: "/veiculos/lista?consignado=1",
-    },
-    {
-      nome: "Loja / Revenda",
-      href: "/veiculos/lista?loja=1",
-    },
-  ];
+    let filtrados = [...veiculos];
+
+    switch (slug) {
+      case "carros-venda":
+        filtrados = filtrados.filter((a) => {
+          const tipo = (a.tipo_imovel || "").toLowerCase();
+          return tipo === "carro";
+        });
+        break;
+
+      case "motos-venda":
+        filtrados = filtrados.filter((a) => {
+          const tipo = (a.tipo_imovel || "").toLowerCase();
+          return tipo === "moto";
+        });
+        break;
+
+      case "seminovos":
+        filtrados = filtrados.filter((a) => {
+          const c = (a.condicao_veiculo || "").toLowerCase();
+          return c === "seminovo";
+        });
+        break;
+
+      case "oportunidades":
+        // por enquanto: usa o campo destaque como "oportunidade"
+        filtrados = filtrados.filter((a) => a.destaque === true);
+        break;
+
+      case "zero-km":
+        filtrados = filtrados.filter((a) => {
+          const c = (a.condicao_veiculo || "").toLowerCase();
+          return c === "0km" || a.zero_km === true;
+        });
+        break;
+
+      case "financiados":
+        filtrados = filtrados.filter((a) => a.financiado === true);
+        break;
+
+      case "consignados":
+        filtrados = filtrados.filter((a) => a.consignado === true);
+        break;
+
+      case "loja-revenda":
+        filtrados = filtrados.filter((a) => a.loja_revenda === true);
+        break;
+
+      default:
+        break;
+    }
+
+    if (filtrados.length === 0) return null;
+
+    const emDestaque = filtrados.find((a) => a.destaque === true);
+    return emDestaque || filtrados[0];
+  }
 
   return (
     <main className="bg-white min-h-screen">
@@ -154,11 +254,12 @@ export default function VeiculosPage() {
                   Tipo
                 </label>
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Carro</option>
-                  <option>Moto</option>
-                  <option>Caminhonete</option>
-                  <option>Caminhão</option>
-                  <option>Utilitário</option>
+                  <option value="">Todos</option>
+                  {tiposVeiculo.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -168,15 +269,12 @@ export default function VeiculosPage() {
                   Cidade
                 </label>
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Maricá</option>
-                  <option>Saquarema</option>
-                  <option>Araruama</option>
-                  <option>Iguaba Grande</option>
-                  <option>São Pedro da Aldeia</option>
-                  <option>Arraial do Cabo</option>
-                  <option>Cabo Frio</option>
-                  <option>Búzios</option>
-                  <option>Rio das Ostras</option>
+                  <option value="">Todas</option>
+                  {cidades.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -200,38 +298,92 @@ export default function VeiculosPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS */}
+      {/* CATEGORIAS + CARDS DINÂMICOS */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
         {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          {categoriasLinha1.map((cat) => (
-            <Link
-              key={cat.nome}
-              href={cat.href}
-              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
-            >
-              <div className="h-32 md:h-36 w-full bg-slate-300 group-hover:bg-slate-200 transition" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
-              </div>
-            </Link>
-          ))}
+          {categoriasLinha1.map((cat) => {
+            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const imagensValidas = Array.isArray(anuncio?.imagens)
+              ? anuncio.imagens
+              : [];
+            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
+
+            return (
+              <Link
+                key={cat.slug}
+                href={cat.href}
+                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+              >
+                <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
+                  {capa ? (
+                    <img
+                      src={capa}
+                      alt={anuncio?.titulo || cat.nome}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
+                      Em breve, veículos aqui
+                    </div>
+                  )}
+                </div>
+                <div className="bg-slate-900 text-white px-3 py-2">
+                  <p className="text-xs md:text-sm font-semibold">
+                    {cat.nome}
+                  </p>
+                  {anuncio && (
+                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
+                      {anuncio.titulo} • {anuncio.cidade}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
         {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {categoriasLinha2.map((cat) => (
-            <Link
-              key={cat.nome}
-              href={cat.href}
-              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
-            >
-              <div className="h-32 md:h-36 w-full bg-slate-400 group-hover:bg-slate-300 transition" />
-              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
-                {cat.nome}
-              </div>
-            </Link>
-          ))}
+          {categoriasLinha2.map((cat) => {
+            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const imagensValidas = Array.isArray(anuncio?.imagens)
+              ? anuncio.imagens
+              : [];
+            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
+
+            return (
+              <Link
+                key={cat.slug}
+                href={cat.href}
+                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+              >
+                <div className="relative h-32 md:h-36 w-full bg-slate-400 overflow-hidden">
+                  {capa ? (
+                    <img
+                      src={capa}
+                      alt={anuncio?.titulo || cat.nome}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-700">
+                      Em breve, veículos aqui
+                    </div>
+                  )}
+                </div>
+                <div className="bg-slate-900 text-white px-3 py-2">
+                  <p className="text-xs md:text-sm font-semibold">
+                    {cat.nome}
+                  </p>
+                  {anuncio && (
+                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
+                      {anuncio.titulo} • {anuncio.cidade}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
         {/* VEÍCULOS EM DESTAQUE (DINÂMICO DO SUPABASE) */}
@@ -324,7 +476,7 @@ export default function VeiculosPage() {
         </div>
       </section>
 
-      {/* NOVA FAIXA – SERVIÇOS E INFORMAÇÕES PARA VEÍCULOS */}
+      {/* FAIXA – SERVIÇOS E INFORMAÇÕES PARA VEÍCULOS */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-sm font-semibold text-white mb-1">
@@ -384,3 +536,4 @@ export default function VeiculosPage() {
     </main>
   );
 }
+
