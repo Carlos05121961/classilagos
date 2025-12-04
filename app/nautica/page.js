@@ -102,7 +102,7 @@ export default function NauticaPage() {
           "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque"
         )
         .eq("categoria", "nautica")
-        .eq("status", "ativo")
+        // <<< REMOVEMOS o filtro .eq("status", "ativo")
         .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(40);
@@ -212,7 +212,7 @@ export default function NauticaPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Lista de destaques (padrão Classilagos, AGORA COM 12 ITENS)
+  // Lista de destaques – até 12 anúncios
   const destaques = (() => {
     if (!anuncios || anuncios.length === 0) return [];
     const soDestaques = anuncios.filter((a) => a.destaque === true);
@@ -514,7 +514,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – ÚLTIMA SEÇÃO (rodapé padrão) */}
+      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – rodapé da página */}
       <section className="bg-slate-950 text-white py-10">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-base md:text-lg font-semibold mb-2">
@@ -561,7 +561,6 @@ export default function NauticaPage() {
           </div>
         </div>
       </section>
-      {/* Depois daqui já vem o footer geral do site (padrão imóveis / veículos) */}
     </main>
   );
 }
