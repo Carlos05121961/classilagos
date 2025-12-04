@@ -1,292 +1,201 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-const cidades = [
-  "Maricá",
-  "Saquarema",
-  "Araruama",
-  "Iguaba Grande",
-  "São Pedro da Aldeia",
-  "Arraial do Cabo",
-  "Cabo Frio",
-  "Búzios",
-  "Rio das Ostras",
-];
+// Componente que usa useSearchParams (deve ficar separadinho)
+function ListaNauticaContent() {
+  const params = useSearchParams();
 
-const tiposEmbarcacao = [
-  "Lancha",
-  "Veleiro",
-  "Jetski",
-  "Barco de pesca",
-  "Stand-up / Caiaque",
-  "Vaga em marina",
-  "Serviços náuticos",
-  "Outros",
-];
-
-const finalidades = [
-  { label: "Qualquer", value: "" },
-  { label: "Venda", value: "venda" },
-  { label: "Aluguel", value: "aluguel" },
-  { label: "Passeio", value: "passeio" },
-];
-
-export default function ListaNauticaPage() {
   const [anuncios, setAnuncios] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const [filtros, setFiltros] = useState({
-    finalidade: "",
-    tipo: "",
-    cidade: "",
-  });
+  // 🔍 FILTROS CAPTURADOS DA URL
+  const tipo = params.get("tipo") || "";
+  const finalidade = params.get("finalidade") || "";
+  const subcategoria = params.get("subcategoria") || "";
 
-  // Ler query params da URL (sem useSearchParams)
+  // 🔎 TÍTULO DA LISTA
+  let tituloPagina = "Anúncios náuticos";
+
+  if (finalidade) tituloPagina = `Náutica — ${finalidade}`;
+  if (tipo) tituloPagina = `Náutica — ${tipo}`;
+  if (subcategoria) tituloPagina = `Náutica — ${subcategoria}`;
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const carregar = async () => {
+      setLoading(true);
 
-    const params = new URLSearchParams(window.location.search);
+      let query = supabase
+        .from("anuncios")
+        .select(
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, categoria"
+        )
+        .eq("categoria", "nautica")
+        .order("created_at", { ascending: false });
 
-    const finalidade =
-      (params.get("finalidade") || "").toLowerCase() || "";
-    const tipo = params.get("tipo") || "";
-    const cidade = params.get("cidade") || "";
+      // Aplica filtros reais
+      if (tipo) query = query.eq("subcategoria_nautica", tipo);
+      if (subcategoria) query = query.eq("subcategoria_nautica", subcategoria);
+      if (finalidade) query = query.eq("finalidade_nautica", finalidade);
 
-    setFiltros({ finalidade, tipo, cidade });
-  }, []);
+      const { data, error } = await query;
 
-  // Buscar anúncios quando filtros mudarem
-  useEffect(() => {
-    async function carregar() {
-      try {
-        setCarregando(true);
-        setErro("");
-
-        let query = supabase
-          .from("anuncios")
-          .select(
-            "id, titulo, cidade, bairro, preco, imagens, tipo_imovel, finalidade, subcategoria_nautica, finalidade_nautica"
-          )
-          .eq("categoria", "nautica")
-          .eq("status", "ativo")
-          .order("destaque", { ascending: false })
-          .order("created_at", { ascending: false });
-
-        if (filtros.finalidade) {
-          // tenta filtrar tanto por finalidade "genérica" quanto por finalidade_nautica
-          query = query.or(
-            `finalidade.eq.${filtros.finalidade},finalidade_nautica.eq.${filtros.finalidade}`
-          );
-        }
-
-        if (filtros.tipo) {
-          query = query.eq("tipo_imovel", filtros.tipo);
-        }
-
-        if (filtros.cidade) {
-          query = query.eq("cidade", filtros.cidade);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
+      if (error) {
+        console.error("Erro ao carregar anúncios de náutica:", error);
+        setAnuncios([]);
+      } else {
         setAnuncios(data || []);
-      } catch (e) {
-        console.error("Erro ao carregar náutica:", e);
-        setErro("Não foi possível carregar os anúncios agora.");
-      } finally {
-        setCarregando(false);
       }
-    }
+
+      setLoading(false);
+    };
 
     carregar();
-  }, [filtros]);
-
-  function atualizarFiltro(campo, valor) {
-    setFiltros((prev) => ({
-      ...prev,
-      [campo]: valor,
-    }));
-  }
-
-  const descricaoFiltro = (() => {
-    const partes = [];
-    if (filtros.finalidade) {
-      const f = finalidades.find((x) => x.value === filtros.finalidade);
-      if (f) partes.push(f.label.toLowerCase());
-    }
-    if (filtros.tipo) partes.push(filtros.tipo.toLowerCase());
-    if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
-    if (partes.length === 0) return "Todos os anúncios de náutica cadastrados";
-    return "Filtrando: " + partes.join(" ") + ".";
-  })();
+  }, [tipo, finalidade, subcategoria]);
 
   return (
-    <main className="bg-slate-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-          Náutica – Lista de anúncios
-        </h1>
-        <p className="text-xs md:text-sm text-slate-600 mb-1">
-          Anúncios publicados pelos usuários em toda a Região dos Lagos.
-        </p>
-        <p className="text-[11px] md:text-xs text-slate-500 mb-4">
-          {descricaoFiltro}
-        </p>
+    <main className="bg-white min-h-screen">
+      {/* TOPO */}
+      <section className="border-b bg-slate-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] text-slate-500 mb-1">
+              Classilagos &gt; Náutica
+            </p>
+            <h1 className="text-lg md:text-2xl font-bold text-slate-900">
+              {tituloPagina}
+            </h1>
+            <p className="text-xs md:text-sm text-slate-600 mt-1">
+              Embarcações, motores, serviços e equipamentos náuticos na
+              Região dos Lagos.
+            </p>
+          </div>
 
-        {/* FILTROS RÁPIDOS */}
-        <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
-          <div className="grid gap-3 md:grid-cols-4 items-end">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Finalidade
-              </label>
-              <select
-                className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
-                value={filtros.finalidade}
-                onChange={(e) =>
-                  atualizarFiltro("finalidade", e.target.value.toLowerCase())
-                }
-              >
-                {finalidades.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Tipo de embarcação
-              </label>
-              <select
-                className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
-                value={filtros.tipo}
-                onChange={(e) => atualizarFiltro("tipo", e.target.value)}
-              >
-                <option value="">Todas</option>
-                {tiposEmbarcacao.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Cidade
-              </label>
-              <select
-                className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
-                value={filtros.cidade}
-                onChange={(e) => atualizarFiltro("cidade", e.target.value)}
-              >
-                <option value="">Todas</option>
-                {cidades.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="w-full md:w-auto rounded-full bg-slate-900 text-white px-4 py-2 text-xs md:text-sm font-semibold hover:bg-slate-800"
-                onClick={() =>
-                  setFiltros({ finalidade: "", tipo: "", cidade: "" })
-                }
-              >
-                Limpar filtros
-              </button>
-            </div>
+          <div className="hidden sm:flex flex-col items-end">
+            <Link href="/nautica" className="text-xs text-slate-600 underline">
+              &larr; Voltar para Náutica
+            </Link>
+            <Link
+              href="/anunciar?tipo=nautica"
+              className="inline-flex mt-2 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700"
+            >
+              Anunciar na Náutica
+            </Link>
           </div>
         </div>
+      </section>
 
-        {/* LISTA DE ANÚNCIOS */}
-        {erro && (
-          <p className="text-xs text-red-600 mb-3 border border-red-100 rounded-md px-3 py-2 bg-red-50">
-            {erro}
-          </p>
+      {/* LISTA */}
+      <section className="max-w-6xl mx-auto px-4 py-6">
+        {loading && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-slate-200 overflow-hidden"
+              >
+                <div className="h-28 md:h-32 bg-slate-200 animate-pulse" />
+                <div className="bg-slate-900 text-white text-xs px-3 py-2">
+                  Carregando...
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
-        {carregando ? (
-          <p className="text-xs text-slate-500">Carregando anúncios...</p>
-        ) : anuncios.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            Nenhum anúncio encontrado com esses filtros.
-          </p>
-        ) : (
-          <div className="grid gap-3">
-            {anuncios.map((item) => {
-              const imagens = Array.isArray(item.imagens)
-                ? item.imagens
-                : [];
-              const capa =
-                imagens.length > 0 ? imagens[0] : "/nautica/sem-foto.jpg";
+        {!loading && anuncios.length === 0 && (
+          <div className="text-center py-10 text-sm text-slate-600">
+            Nenhum anúncio encontrado.
+            <div className="mt-4">
+              <Link className="text-sky-600 underline" href="/nautica">
+                Voltar para Náutica
+              </Link>
+            </div>
+          </div>
+        )}
 
-              const finalidadeLabel =
-                (item.finalidade_nautica || item.finalidade || "") ?? "";
+        {!loading && anuncios.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {anuncios.map((item) => {
+              const img =
+                Array.isArray(item.imagens) && item.imagens.length > 0
+                  ? item.imagens[0]
+                  : null;
 
               return (
                 <Link
                   key={item.id}
                   href={`/anuncios/${item.id}`}
-                  className="group rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-[1px] transition overflow-hidden flex flex-col md:flex-row"
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 transition"
                 >
-                  {/* Imagem */}
-                  <div className="relative w-full md:w-56 h-40 md:h-32 bg-slate-100 overflow-hidden">
-                    <img
-                      src={capa}
-                      alt={item.titulo || "Embarcação"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
+                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                    {img ? (
+                      <Image
+                        src={img}
+                        alt={item.titulo}
+                        fill
+                        sizes="300px"
+                        className="object-cover group-hover:scale-105 transition"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-white bg-sky-900">
+                        Sem foto
+                      </div>
+                    )}
                   </div>
 
-                  {/* Texto */}
-                  <div className="flex-1 px-3 py-2 md:px-4 md:py-3 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-sm font-semibold text-slate-900 line-clamp-2">
-                        {item.titulo}
-                      </h2>
-                      <p className="mt-1 text-[11px] text-slate-600">
-                        {item.cidade}
-                        {item.bairro ? ` • ${item.bairro}` : ""}
-                      </p>
-                      {(item.tipo_imovel || finalidadeLabel) && (
-                        <p className="mt-1 text-[11px] text-slate-500">
-                          {item.tipo_imovel}
-                          {finalidadeLabel
-                            ? ` • ${finalidadeLabel.toLowerCase()}`
-                            : ""}
-                        </p>
-                      )}
-                    </div>
+                  <div className="bg-slate-900 text-white px-3 py-2 space-y-1">
+                    <p className="text-[11px] font-semibold uppercase line-clamp-2">
+                      {item.titulo}
+                    </p>
 
-                    <div className="mt-2 flex items-center justify-between">
-                      {item.preco && (
-                        <span className="text-xs font-semibold text-emerald-700">
-                          {item.preco}
-                        </span>
-                      )}
-                      <span className="text-[11px] text-slate-500 group-hover:text-slate-700">
-                        Ver detalhes →
-                      </span>
-                    </div>
+                    <p className="text-[10px] text-slate-300">
+                      {item.subcategoria_nautica
+                        ? `${item.subcategoria_nautica} • `
+                        : ""}
+                      {item.cidade}
+                      {item.bairro ? ` • ${item.bairro}` : ""}
+                    </p>
+
+                    {item.preco && (
+                      <p className="text-[11px] font-bold text-emerald-300">
+                        {item.preco}
+                      </p>
+                    )}
+
+                    {item.finalidade_nautica && (
+                      <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                        {item.finalidade_nautica}
+                      </p>
+                    )}
                   </div>
                 </Link>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
     </main>
+  );
+}
+
+// Página com Suspense
+export default function ListaNauticaPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="bg-white min-h-screen">
+          <section className="max-w-6xl mx-auto px-4 py-10">
+            <p className="text-sm text-slate-600">Carregando anúncios...</p>
+          </section>
+        </main>
+      }
+    >
+      <ListaNauticaContent />
+    </Suspense>
   );
 }
