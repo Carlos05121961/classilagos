@@ -11,77 +11,6 @@ const heroImages = [
   "/veiculos/carro-03.jpg",
 ];
 
-// Cidades (mesmo padrão dos outros pilares)
-const cidades = [
-  "Maricá",
-  "Saquarema",
-  "Araruama",
-  "Iguaba Grande",
-  "São Pedro da Aldeia",
-  "Arraial do Cabo",
-  "Cabo Frio",
-  "Búzios",
-  "Rio das Ostras",
-];
-
-// Tipos de veículos
-const tiposVeiculo = [
-  "Carro",
-  "Moto",
-  "Caminhonete",
-  "Caminhão",
-  "Utilitário",
-  "Outros",
-];
-
-// CATEGORIAS LINHA 1 – com slug + href para a lista
-const categoriasLinha1 = [
-  {
-    nome: "Carros à venda",
-    slug: "carros-venda",
-    href: "/veiculos/lista?tipo=Carro",
-  },
-  {
-    nome: "Motos à venda",
-    slug: "motos-venda",
-    href: "/veiculos/lista?tipo=Moto",
-  },
-  {
-    nome: "Seminovos",
-    slug: "seminovos",
-    href: "/veiculos/lista?condicao=seminovo",
-  },
-  {
-    nome: "Oportunidades",
-    slug: "oportunidades",
-    href: "/veiculos/lista", // mostra tudo (prioriza destaque)
-  },
-];
-
-// CATEGORIAS LINHA 2
-const categoriasLinha2 = [
-  {
-    nome: "0 km",
-    slug: "zero-km",
-    href: "/veiculos/lista?condicao=0km",
-  },
-  {
-    nome: "Financiados",
-    slug: "financiados",
-    href: "/veiculos/lista?financiado=1",
-  },
-  {
-    nome: "Consignados",
-    slug: "consignados",
-    href: "/veiculos/lista?consignado=1",
-  },
-  {
-    nome: "Loja / Revenda",
-    slug: "loja-revenda",
-    href: "/veiculos/lista?loja=1",
-  },
-];
-
 export default function VeiculosPage() {
   const [currentHero, setCurrentHero] = useState(0);
   const [veiculos, setVeiculos] = useState([]);
@@ -95,112 +24,69 @@ export default function VeiculosPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE (para cards + destaques)
+  // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE
   useEffect(() => {
     const fetchVeiculos = async () => {
-      try {
-        setLoadingVeiculos(true);
+      setLoadingVeiculos(true);
 
-        const { data, error } = await supabase
-          .from("anuncios")
-          .select(
-            "*"
-            // id, titulo, cidade, bairro, preco, imagens,
-            // tipo_imovel, condicao_veiculo, zero_km,
-            // financiado, consignado, loja_revenda, destaque, created_at...
-          )
-          .eq("categoria", "veiculos")
-          .order("destaque", { ascending: false })
-          .order("created_at", { ascending: false })
-          .limit(40);
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, preco, imagens")
+        .eq("categoria", "veiculos")
+        .order("created_at", { ascending: false })
+        .limit(8);
 
-        if (error) {
-          console.error("Erro ao buscar veículos:", error);
-          setVeiculos([]);
-        } else {
-          setVeiculos(data || []);
-        }
-      } catch (e) {
-        console.error("Erro inesperado ao buscar veículos:", e);
+      if (error) {
+        console.error("Erro ao buscar veículos:", error);
         setVeiculos([]);
-      } finally {
-        setLoadingVeiculos(false);
+      } else {
+        setVeiculos(data || []);
       }
+
+      setLoadingVeiculos(false);
     };
 
     fetchVeiculos();
   }, []);
 
-  // Escolhe um anúncio para representar cada CARD de categoria
-  function escolherAnuncioParaCard(slug) {
-    if (!veiculos || veiculos.length === 0) return null;
+  // CATEGORIAS QUE VÃO APONTAR PARA /veiculos/lista
+  const categoriasLinha1 = [
+    {
+      nome: "Carros à venda",
+      href: "/veiculos/lista?tipo=Carro",
+    },
+    {
+      nome: "Motos à venda",
+      href: "/veiculos/lista?tipo=Moto",
+    },
+    {
+      nome: "Seminovos",
+      href: "/veiculos/lista?condicao=seminovo",
+    },
+    {
+      nome: "Oportunidades",
+      href: "/veiculos/lista", // por enquanto mostra todos
+    },
+  ];
 
-    let filtrados = [...veiculos];
-
-    switch (slug) {
-      case "carros-venda":
-        filtrados = filtrados.filter((a) => {
-          const tipo = (a.tipo_imovel || "").toLowerCase();
-          return tipo === "carro";
-        });
-        break;
-
-      case "motos-venda":
-        filtrados = filtrados.filter((a) => {
-          const tipo = (a.tipo_imovel || "").toLowerCase();
-          return tipo === "moto";
-        });
-        break;
-
-      case "seminovos":
-        filtrados = filtrados.filter((a) => {
-          const c = (a.condicao_veiculo || "").toLowerCase();
-          return c === "seminovo";
-        });
-        break;
-
-      case "oportunidades":
-        // por enquanto, usamos o campo destaque como "oportunidade"
-        filtrados = filtrados.filter((a) => a.destaque === true);
-        break;
-
-      case "zero-km":
-        filtrados = filtrados.filter((a) => {
-          const c = (a.condicao_veiculo || "").toLowerCase();
-          return c === "0km" || a.zero_km === true;
-        });
-        break;
-
-      case "financiados":
-        filtrados = filtrados.filter((a) => a.financiado === true);
-        break;
-
-      case "consignados":
-        filtrados = filtrados.filter((a) => a.consignado === true);
-        break;
-
-      case "loja-revenda":
-        filtrados = filtrados.filter((a) => a.loja_revenda === true);
-        break;
-
-      default:
-        break;
-    }
-
-    if (filtrados.length === 0) return null;
-
-    // se dentro da categoria tiver algum em destaque, prioriza
-    const emDestaque = filtrados.find((a) => a.destaque === true);
-    return emDestaque || filtrados[0];
-  }
-
-  // Lista de veículos em destaque (para a faixa "Veículos em destaque")
-  const listaDestaques = (() => {
-    if (!veiculos || veiculos.length === 0) return [];
-    const soDestaques = veiculos.filter((a) => a.destaque === true);
-    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
-    return veiculos.slice(0, 8);
-  })();
+  const categoriasLinha2 = [
+    {
+      nome: "0 km",
+      href: "/veiculos/lista?condicao=0km",
+    },
+    {
+      nome: "Financiados",
+      href: "/veiculos/lista?financiado=1",
+    },
+    {
+      nome: "Consignados",
+      href: "/veiculos/lista?consignado=1",
+    },
+    {
+      nome: "Loja / Revenda",
+      href: "/veiculos/lista?loja=1",
+    },
+  ];
 
   return (
     <main className="bg-white min-h-screen">
@@ -219,7 +105,7 @@ export default function VeiculosPage() {
         </div>
       </section>
 
-      {/* HERO */}
+      {/* HERO – SÓ FOTO + TEXTO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -245,7 +131,7 @@ export default function VeiculosPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (ainda estática, padrão igual Imóveis) */}
+      {/* CAIXA DE BUSCA FORA DA FOTO */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -268,12 +154,11 @@ export default function VeiculosPage() {
                   Tipo
                 </label>
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Todos</option>
-                  {tiposVeiculo.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
+                  <option>Carro</option>
+                  <option>Moto</option>
+                  <option>Caminhonete</option>
+                  <option>Caminhão</option>
+                  <option>Utilitário</option>
                 </select>
               </div>
 
@@ -283,12 +168,15 @@ export default function VeiculosPage() {
                   Cidade
                 </label>
                 <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                  <option>Maricá</option>
+                  <option>Saquarema</option>
+                  <option>Araruama</option>
+                  <option>Iguaba Grande</option>
+                  <option>São Pedro da Aldeia</option>
+                  <option>Arraial do Cabo</option>
+                  <option>Cabo Frio</option>
+                  <option>Búzios</option>
+                  <option>Rio das Ostras</option>
                 </select>
               </div>
 
@@ -312,155 +200,185 @@ export default function VeiculosPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS + DESTAQUES */}
+      {/* CATEGORIAS */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
-        {/* LINHA 1 – com foto do anúncio representando o card */}
+        {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          {categoriasLinha1.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
-            const imagensValidas = Array.isArray(anuncio?.imagens)
-              ? anuncio.imagens
-              : [];
-            const capa =
-              imagensValidas.length > 0 ? imagensValidas[0] : null;
-
-            return (
-              <Link
-                key={cat.slug}
-                href={cat.href}
-                className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
-              >
-                <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
-                  {capa ? (
-                    <img
-                      src={capa}
-                      alt={anuncio?.titulo || cat.nome}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
-                      Em breve, veículos aqui
-                    </div>
-                  )}
-                </div>
-                <div className="bg-slate-900 text-white px-3 py-2">
-                  <p className="text-xs md:text-sm font-semibold">
-                    {cat.nome}
-                  </p>
-                  {anuncio && (
-                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
-                      {anuncio.titulo} • {anuncio.cidade}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+          {categoriasLinha1.map((cat) => (
+            <Link
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+            >
+              <div className="h-32 md:h-36 w-full bg-slate-300 group-hover:bg-slate-200 transition" />
+              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                {cat.nome}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* LINHA 2 – também com mini-fotos */}
+        {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {categoriasLinha2.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
-            const imagensValidas = Array.isArray(anuncio?.imagens)
-              ? anuncio.imagens
-              : [];
-            const capa =
-              imagensValidas.length > 0 ? imagensValidas[0] : null;
-
-            return (
-              <Link
-                key={cat.slug}
-                href={cat.href}
-                className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
-              >
-                <div className="relative h-32 md:h-36 w-full bg-slate-400 overflow-hidden">
-                  {capa ? (
-                    <img
-                      src={capa}
-                      alt={anuncio?.titulo || cat.nome}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-700">
-                      Em breve, veículos aqui
-                    </div>
-                  )}
-                </div>
-                <div className="bg-slate-900 text-white px-3 py-2">
-                  <p className="text-xs md:text-sm font-semibold">
-                    {cat.nome}
-                  </p>
-                  {anuncio && (
-                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
-                      {anuncio.titulo} • {anuncio.cidade}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+          {categoriasLinha2.map((cat) => (
+            <Link
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+            >
+              <div className="h-32 md:h-36 w-full bg-slate-400 group-hover:bg-slate-300 transition" />
+              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                {cat.nome}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* VEÍCULOS EM DESTAQUE – anúncios reais do Supabase */}
-        <div className="mt-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">
+        {/* VEÍCULOS EM DESTAQUE (DINÂMICO DO SUPABASE) */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
             Veículos em destaque
           </h2>
+        </div>
 
-          {loadingVeiculos ? (
-            <p className="text-xs text-slate-500">
-              Carregando veículos em destaque...
-            </p>
-          ) : listaDestaques.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Ainda não há veículos cadastrados. Seja o primeiro a anunciar!
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              {listaDestaques.map((carro) => {
-                const href = `/anuncios/${carro.id}`;
-                const imagens = Array.isArray(carro.imagens)
-                  ? carro.imagens
-                  : [];
-                const capa =
-                  imagens.length > 0
-                    ? imagens[0]
-                    : "/veiculos/sem-foto.jpg";
-
-                return (
-                  <Link
-                    key={carro.id}
-                    href={href}
-                    className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
-                  >
-                    <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
-                      <img
-                        src={capa}
-                        alt={carro.titulo || "Veículo"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2 uppercase">
-                        {carro.titulo}
-                      </p>
-                      <p className="text-[11px] text-slate-300">
-                        {carro.cidade}{" "}
-                        {carro.bairro ? `• ${carro.bairro}` : ""}
-                      </p>
-                      {carro.preco && (
-                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
-                          R$ {carro.preco}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+        {/* GRID DE CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-slate-200 animate-pulse" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Carregando...
+                  </div>
+                </div>
+              ))}
+            </>
           )}
+
+          {!loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-emerald-800" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Veículo destaque
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {veiculos.length > 0 &&
+            veiculos.map((carro) => {
+              const img =
+                Array.isArray(carro.imagens) && carro.imagens.length > 0
+                  ? carro.imagens[0]
+                  : null;
+
+              return (
+                <Link
+                  key={carro.id}
+                  href={`/anuncios/${carro.id}`}
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
+                >
+                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                    {img ? (
+                      <Image
+                        src={img}
+                        alt={carro.titulo}
+                        fill
+                        sizes="300px"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                        Sem foto
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-900 text-white px-3 py-2">
+                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">
+                      {carro.titulo}
+                    </p>
+                    <p className="mt-1 text-[10px] text-slate-200">
+                      {carro.cidade}
+                      {carro.bairro ? ` • ${carro.bairro}` : ""}
+                    </p>
+                    {carro.preco && (
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">
+                        R$ {carro.preco}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+        </div>
+      </section>
+
+      {/* NOVA FAIXA – SERVIÇOS E INFORMAÇÕES PARA VEÍCULOS */}
+      <section className="bg-slate-900 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-sm font-semibold text-white mb-1">
+            Serviços e informações para veículos
+          </h2>
+          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+            Use o Classilagos também como guia para entender documentos, custos
+            e serviços importantes na hora de comprar, vender ou trocar seu
+            veículo na Região dos Lagos.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                IPVA, multas e documentação
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, links diretos para consultar IPVA, multas,
+                documentação, licenciamento e serviços do Detran das cidades da
+                região.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Financiamento e consórcio
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Informações básicas sobre financiamento, consórcios,
+                simulações e contato com bancos e financeiras parceiras.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Vistoria e laudos
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Dicas sobre vistorias, laudos cautelares, transferência e
+                cuidados ao comprar veículos usados ou seminovos.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Serviços para o seu veículo
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, integração com o LagoListas para você encontrar
+                oficinas, autoelétricas, borracharias, lava-jatos e outros
+                serviços automotivos na região.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
