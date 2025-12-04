@@ -99,10 +99,11 @@ export default function NauticaPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque"
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, status, categoria"
         )
         .eq("categoria", "nautica")
-        // <<< REMOVEMOS o filtro .eq("status", "ativo")
+        // ✅ mostra tanto status = 'ativo' quanto status NULL
+        .or("status.eq.ativo,status.is.null")
         .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(40);
@@ -194,11 +195,7 @@ export default function NauticaPage() {
       case "pecas-acessorios":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return (
-            sub.includes("peça") ||
-            sub.includes("peca") ||
-            sub.includes("acess")
-          );
+          return sub.includes("peça") || sub.includes("peca") || sub.includes("acess");
         });
         break;
 
@@ -212,12 +209,12 @@ export default function NauticaPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Lista de destaques – até 12 anúncios
+  // Lista de destaques (igual Imóveis / Veículos)
   const destaques = (() => {
     if (!anuncios || anuncios.length === 0) return [];
     const soDestaques = anuncios.filter((a) => a.destaque === true);
     if (soDestaques.length > 0) return soDestaques.slice(0, 12);
-    return anuncios.slice(0, 12);
+    return anuncios.slice(0, 12); // ✅ limite de 12, como combinamos
   })();
 
   return (
@@ -323,7 +320,8 @@ export default function NauticaPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
+            Em breve, essa busca estará ligada aos anúncios reais da
+            plataforma.
           </p>
         </div>
       </section>
@@ -421,7 +419,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* EMBARCAÇÕES EM DESTAQUE – até 12 anúncios */}
+      {/* EMBARCAÇÕES EM DESTAQUE */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
@@ -514,7 +512,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – rodapé da página */}
+      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – PADRÃO IGUAL IMÓVEIS/VEÍCULOS */}
       <section className="bg-slate-950 text-white py-10">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-base md:text-lg font-semibold mb-2">
@@ -558,6 +556,29 @@ export default function NauticaPage() {
                 serviços especializados próximos a você.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CHAMADA FINAL (CTA) */}
+      <section className="bg-slate-50 pb-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="rounded-3xl bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 border border-slate-800 px-6 py-7 text-center text-white">
+            <p className="text-sm font-semibold mb-1">
+              Quer anunciar sua embarcação ou serviço náutico?
+            </p>
+            <p className="text-xs text-sky-100 mb-4">
+              Divulgue sua lancha, veleiro, jetski, motores, vagas em marinas
+              ou serviços especializados no Classilagos. Anúncios gratuitos na
+              fase de lançamento.
+            </p>
+
+            <Link
+              href="/anunciar?tipo=nautica"
+              className="inline-flex items-center justify-center rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white hover:bg-sky-400"
+            >
+              Anuncie na Náutica grátis
+            </Link>
           </div>
         </div>
       </section>
