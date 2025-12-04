@@ -16,10 +16,10 @@ export default function FormularioNautica() {
   const [pontoEmbarque, setPontoEmbarque] = useState("");
 
   // Categoria / finalidade
-  const [subcategoria, setSubcategoria] = useState(""); // Lancha, Veleiro, Jetski...
-  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / passeio / servico / vaga_marina
+  const [subcategoria, setSubcategoria] = useState("");
+  const [finalidade, setFinalidade] = useState("");
 
-  // Informações técnicas básicas
+  // Informações técnicas
   const [marcaEmbarcacao, setMarcaEmbarcacao] = useState("");
   const [modeloEmbarcacao, setModeloEmbarcacao] = useState("");
   const [anoEmbarcacao, setAnoEmbarcacao] = useState("");
@@ -50,7 +50,7 @@ export default function FormularioNautica() {
   const [comprimentoMaximoPes, setComprimentoMaximoPes] = useState("");
   const [estruturaDisponivel, setEstruturaDisponivel] = useState("");
 
-  // Valor geral
+  // Valor
   const [preco, setPreco] = useState("");
 
   // Upload
@@ -141,16 +141,12 @@ export default function FormularioNautica() {
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
-      );
+      setErro("Para publicar, você precisa aceitar os termos.");
       return;
     }
 
@@ -184,148 +180,109 @@ export default function FormularioNautica() {
       }
     } catch (err) {
       console.error(err);
-      setErro("Erro ao enviar as imagens. Tente novamente.");
+      setErro("Erro ao enviar as imagens.");
       setUploading(false);
       return;
     } finally {
       setUploading(false);
     }
 
-    const imagens = urlsUpload;
-
+    // Montagem do objeto (corrigido com null nos campos numéricos)
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "nautica",
+
       titulo,
       descricao,
       cidade,
       bairro,
       ponto_embarque: pontoEmbarque,
-      preco,
-      imagens,
+
+      preco: preco || null,
+
+      imagens: urlsUpload,
       video_url: videoUrl,
-      telefone,
-      whatsapp,
-      email,
-      contato: contatoPrincipal,
 
       subcategoria_nautica: subcategoria,
       finalidade_nautica: finalidade,
 
       marca_embarcacao: marcaEmbarcacao,
       modelo_embarcacao: modeloEmbarcacao,
-      ano_embarcacao: anoEmbarcacao,
-      comprimento_pes: comprimentoPes,
+      ano_embarcacao: anoEmbarcacao || null,
+      comprimento_pes: comprimentoPes || null,
       material_casco: materialCasco,
 
       marca_motor: marcaMotor,
-      potencia_motor_hp: potenciaMotorHp,
-      qtd_motores: qtdMotores,
-      horas_motor: horasMotor,
+      potencia_motor_hp: potenciaMotorHp || null,
+      qtd_motores: qtdMotores || null,
+      horas_motor: horasMotor || null,
       combustivel,
 
-      capacidade_pessoas: capacidadePessoas,
-      qtd_cabines: qtdCabines,
-      qtd_banheiros: qtdBanheiros,
+      capacidade_pessoas: capacidadePessoas || null,
+      qtd_cabines: qtdCabines || null,
+      qtd_banheiros: qtdBanheiros || null,
 
       tipo_passeio: tipoPasseio,
       duracao_passeio: duracaoPasseio,
-      valor_passeio_pessoa: valorPessoa,
-      valor_passeio_fechado: valorFechado,
+      valor_passeio_pessoa: valorPessoa || null,
+      valor_passeio_fechado: valorFechado || null,
       itens_inclusos: itensInclusos,
 
       tipo_vaga: tipoVaga,
-      comprimento_maximo_pes: comprimentoMaximoPes,
+      comprimento_maximo_pes: comprimentoMaximoPes || null,
       estrutura_disponivel: estruturaDisponivel,
+
+      telefone,
+      whatsapp,
+      email,
+      contato: contatoPrincipal,
+
+      nome_contato: nomeContato,
 
       status: "ativo",
       destaque: false,
-      nome_contato: nomeContato,
     });
 
     if (error) {
       console.error(error);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+      setErro("Erro ao salvar anúncio. Verifique os campos.");
       return;
     }
 
     setSucesso("Anúncio náutico enviado com sucesso!");
 
-    // Limpa formulário
-    setTitulo("");
-    setDescricao("");
-    setCidade("");
-    setBairro("");
-    setPontoEmbarque("");
-    setSubcategoria("");
-    setFinalidade("");
-    setMarcaEmbarcacao("");
-    setModeloEmbarcacao("");
-    setAnoEmbarcacao("");
-    setComprimentoPes("");
-    setMaterialCasco("");
-    setMarcaMotor("");
-    setPotenciaMotorHp("");
-    setQtdMotores("");
-    setHorasMotor("");
-    setCombustivel("");
-    setCapacidadePessoas("");
-    setQtdCabines("");
-    setQtdBanheiros("");
-    setTipoPasseio("");
-    setDuracaoPasseio("");
-    setValorPessoa("");
-    setValorFechado("");
-    setItensInclusos("");
-    setTipoVaga("");
-    setComprimentoMaximoPes("");
-    setEstruturaDisponivel("");
-    setPreco("");
-    setArquivos([]);
-    setVideoUrl("");
-    setNomeContato("");
-    setTelefone("");
-    setWhatsapp("");
-    setEmail("");
-    setAceitoTermos(false);
-
     setTimeout(() => {
       router.push("/painel/meus-anuncios");
-    }, 2000);
+    }, 1800);
   };
 
   return (
-    <form
-      onSubmit={enviarAnuncio}
-      className="space-y-6 text-xs md:text-sm"
-      autoComplete="off"
-    >
+    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
+
       {erro && (
-        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
+        <p className="text-red-600 border px-3 py-2 bg-red-50 rounded-md">
           {erro}
         </p>
       )}
+
       {sucesso && (
-        <p className="text-emerald-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
+        <p className="text-emerald-600 border px-3 py-2 bg-emerald-50 rounded-md">
           {sucesso}
         </p>
       )}
 
-      {/* BLOCO: TIPO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Tipo de anúncio náutico
-        </h2>
+      {/* ====== TIPO ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Tipo de anúncio náutico</h2>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Subcategoria *
-            </label>
+            <label className="text-[11px] font-medium">Subcategoria *</label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={subcategoria}
               onChange={(e) => setSubcategoria(e.target.value)}
               required
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             >
               <option value="">Selecione...</option>
               {subcategoriasNautica.map((s) => (
@@ -337,14 +294,12 @@ export default function FormularioNautica() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Finalidade *
-            </label>
+            <label className="text-[11px] font-medium">Finalidade *</label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={finalidade}
               onChange={(e) => setFinalidade(e.target.value)}
               required
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             >
               <option value="">Selecione...</option>
               {finalidadesNautica.map((f) => (
@@ -357,56 +312,46 @@ export default function FormularioNautica() {
         </div>
       </div>
 
-      {/* BLOCO: TÍTULO / DESCRIÇÃO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações principais
-        </h2>
+      {/* ====== TÍTULO / DESCRIÇÃO ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Informações principais</h2>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Título do anúncio *
-          </label>
+          <label className="text-[11px] font-medium">Título *</label>
           <input
             type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: Lancha 30 pés com 2 motores Mercury"
+            autoComplete="off"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             required
+            className="mt-1 w-full border rounded-lg px-3 py-2"
           />
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Descrição detalhada *
-          </label>
+          <label className="text-[11px] font-medium">Descrição *</label>
           <textarea
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
-            placeholder="Descreva os principais detalhes da embarcação ou serviço..."
+            autoComplete="off"
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
             required
+            className="mt-1 w-full border rounded-lg px-3 py-2 h-28"
           />
         </div>
       </div>
 
-      {/* BLOCO: LOCALIZAÇÃO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Localização / ponto de embarque
-        </h2>
+      {/* ====== LOCALIZAÇÃO ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Localização</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Cidade *
-            </label>
+            <label className="text-[11px] font-medium">Cidade *</label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             >
               <option value="">Selecione...</option>
               {cidades.map((c) => (
@@ -418,484 +363,392 @@ export default function FormularioNautica() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Bairro / região
-            </label>
+            <label className="text-[11px] font-medium">Bairro</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Ex.: Centro, Praia do Forte..."
+              autoComplete="off"
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Ponto de embarque (opcional)
-          </label>
+          <label className="text-[11px] font-medium">Ponto de embarque</label>
           <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: Marina X, píer da Praia Y..."
+            autoComplete="off"
             value={pontoEmbarque}
             onChange={(e) => setPontoEmbarque(e.target.value)}
+            className="mt-1 w-full border rounded-lg px-3 py-2"
           />
         </div>
       </div>
 
-      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
+      {/* ====== DETALHES ====== */}
       {(finalidade === "venda" || finalidade === "aluguel") && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Detalhes da embarcação
-          </h2>
+        <div className="space-y-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Detalhes da embarcação</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca
-              </label>
+              <label className="text-[11px] font-medium">Marca</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={marcaEmbarcacao}
                 onChange={(e) => setMarcaEmbarcacao(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Modelo
-              </label>
+              <label className="text-[11px] font-medium">Modelo</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={modeloEmbarcacao}
                 onChange={(e) => setModeloEmbarcacao(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Ano
-              </label>
+              <label className="text-[11px] font-medium">Ano</label>
               <input
                 type="number"
-                min="1900"
-                max="2100"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={anoEmbarcacao}
                 onChange={(e) => setAnoEmbarcacao(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Comprimento (pés)
-              </label>
+              <label className="text-[11px] font-medium">Comprimento (pés)</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={comprimentoPes}
                 onChange={(e) => setComprimentoPes(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Material do casco
-              </label>
+              <label className="text-[11px] font-medium">Material do casco</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={materialCasco}
                 onChange={(e) => setMaterialCasco(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
+          {/* MOTOR */}
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca do motor
-              </label>
+              <label className="text-[11px] font-medium">Marca do motor</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={marcaMotor}
                 onChange={(e) => setMarcaMotor(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Potência total (HP)
-              </label>
+              <label className="text-[11px] font-medium">Potência (HP)</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={potenciaMotorHp}
                 onChange={(e) => setPotenciaMotorHp(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Qtde. de motores
-              </label>
+              <label className="text-[11px] font-medium">Qtde. de motores</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={qtdMotores}
                 onChange={(e) => setQtdMotores(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
+          {/* OUTROS MOTOR */}
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Horas de motor
-              </label>
+              <label className="text-[11px] font-medium">Horas de motor</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={horasMotor}
                 onChange={(e) => setHorasMotor(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Combustível
-              </label>
+              <label className="text-[11px] font-medium">Combustível</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={combustivel}
                 onChange={(e) => setCombustivel(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Capacidade (pessoas)
-              </label>
+              <label className="text-[11px] font-medium">Capacidade (pessoas)</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={capacidadePessoas}
                 onChange={(e) => setCapacidadePessoas(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Cabines
-              </label>
+              <label className="text-[11px] font-medium">Cabines</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={qtdCabines}
                 onChange={(e) => setQtdCabines(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Banheiros
-              </label>
+              <label className="text-[11px] font-medium">Banheiros</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={qtdBanheiros}
                 onChange={(e) => setQtdBanheiros(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* BLOCO: PASSEIOS */}
+      {/* ====== PASSEIOS ====== */}
       {finalidade === "passeio" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações do passeio
-          </h2>
+        <div className="space-y-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Informações do passeio</h2>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Tipo de passeio
-            </label>
+            <label className="text-[11px] font-medium">Tipo de passeio</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Ex.: passeio de lancha exclusivo, escuna, mergulho..."
+              autoComplete="off"
               value={tipoPasseio}
               onChange={(e) => setTipoPasseio(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Duração média
-              </label>
+              <label className="text-[11px] font-medium">Duração</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: 3h, 6h, dia inteiro"
+                autoComplete="off"
                 value={duracaoPasseio}
                 onChange={(e) => setDuracaoPasseio(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Valor por pessoa
-              </label>
+              <label className="text-[11px] font-medium">Valor por pessoa</label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={valorPessoa}
                 onChange={(e) => setValorPessoa(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Valor passeio fechado
-            </label>
+            <label className="text-[11px] font-medium">Valor fechado</label>
             <input
               type="number"
-              min="0"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              autoComplete="off"
               value={valorFechado}
               onChange={(e) => setValorFechado(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Itens inclusos
-            </label>
+            <label className="text-[11px] font-medium">Itens inclusos</label>
             <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
-              placeholder="Ex.: bebidas, coletes, máscara, churrasco..."
               value={itensInclusos}
               onChange={(e) => setItensInclusos(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 h-24"
             />
           </div>
         </div>
       )}
 
-      {/* BLOCO: VAGA EM MARINA */}
+      {/* ====== VAGA EM MARINA ====== */}
       {finalidade === "vaga_marina" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações da vaga em marina / guardaria
-          </h2>
+        <div className="space-y-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Vaga em marina</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Tipo de vaga
-              </label>
+              <label className="text-[11px] font-medium">Tipo de vaga</label>
               <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: seca, molhada..."
+                autoComplete="off"
                 value={tipoVaga}
                 onChange={(e) => setTipoVaga(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
+              <label className="text-[11px] font-medium">
                 Comprimento máximo (pés)
               </label>
               <input
                 type="number"
-                min="0"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                autoComplete="off"
                 value={comprimentoMaximoPes}
                 onChange={(e) => setComprimentoMaximoPes(e.target.value)}
+                className="mt-1 w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Estrutura disponível
-            </label>
+            <label className="text-[11px] font-medium">Estrutura disponível</label>
             <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
-              placeholder="Ex.: água, luz, banheiro, segurança 24h..."
               value={estruturaDisponivel}
               onChange={(e) => setEstruturaDisponivel(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 h-24"
             />
           </div>
         </div>
       )}
 
-      {/* BLOCO: VALOR */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Preço (R$)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: R$ 250.000, R$ 800 / passeio..."
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-          />
-        </div>
+      {/* ====== VALOR ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Valor</h2>
+
+        <label className="text-[11px] font-medium">Preço</label>
+        <input
+          type="number"
+          autoComplete="off"
+          value={preco}
+          onChange={(e) => setPreco(e.target.value)}
+          className="mt-1 w-full border rounded-lg px-3 py-2"
+        />
       </div>
 
-      {/* BLOCO: FOTOS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Enviar fotos (upload) – até 8 imagens
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-1 w-full text-xs"
-          />
-          {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              {arquivos.length} arquivo(s) selecionado(s).
-            </p>
-          )}
-        </div>
+      {/* ====== FOTOS ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Fotos</h2>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleArquivosChange}
+          className="mt-1 w-full text-xs"
+        />
       </div>
 
-      {/* BLOCO: VÍDEO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Vídeo (opcional)
-        </h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            URL do vídeo (YouTube)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-        </div>
+      {/* ====== VIDEO ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Vídeo (opcional)</h2>
+        <input
+          type="text"
+          autoComplete="off"
+          placeholder="URL do vídeo"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+          className="mt-1 w-full border rounded-lg px-3 py-2"
+        />
       </div>
 
-      {/* BLOCO: CONTATO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Dados de contato
-        </h2>
+      {/* ====== CONTATO ====== */}
+      <div className="space-y-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Contato</h2>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Nome de contato
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Nome do proprietário ou empresa"
-            value={nomeContato}
-            onChange={(e) => setNomeContato(e.target.value)}
-          />
-        </div>
+        <label className="text-[11px] font-medium">Nome</label>
+        <input
+          autoComplete="off"
+          value={nomeContato}
+          onChange={(e) => setNomeContato(e.target.value)}
+          className="mt-1 w-full border rounded-lg px-3 py-2"
+        />
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="text-[11px] font-medium">Telefone</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Telefone para contato"
+              autoComplete="off"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="text-[11px] font-medium">WhatsApp</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="DDD + número"
+              autoComplete="off"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2"
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            E-mail
-          </label>
-          <input
-            type="email"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Seu e-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <label className="text-[11px] font-medium">E-mail</label>
+        <input
+          type="email"
+          autoComplete="off"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1 w-full border rounded-lg px-3 py-2"
+        />
       </div>
 
-      {/* BLOCO: TERMOS */}
-      <div className="space-y-2 border-t border-slate-100 pt-4">
-        <label className="flex items-start gap-2 text-[11px] text-slate-600">
+      {/* ====== TERMOS ====== */}
+      <div className="space-y-2 border-t pt-4">
+        <label className="flex gap-2 text-[11px]">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-slate-300"
             checked={aceitoTermos}
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que
-            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
-            e de acordo com os{" "}
-            <a
-              href="/termos-de-uso"
-              className="text-cyan-700 underline hover:text-cyan-800"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Termos de uso do Classilagos
-            </a>
-            .
+            Declaro que as informações são verdadeiras e aceito os{" "}
+            <a className="text-cyan-700 underline" href="/termos-de-uso" target="_blank">
+              termos de uso
+            </a>.
           </span>
         </label>
       </div>
 
       <button
         type="submit"
-        className="mt-2 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
         disabled={uploading}
+        className="w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold"
       >
-        {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
+        {uploading ? "Enviando..." : "Publicar anúncio em Náutica"}
       </button>
     </form>
   );
 }
-
