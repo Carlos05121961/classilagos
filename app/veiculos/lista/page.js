@@ -1,77 +1,102 @@
-
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-// componente interno que usa useSearchParams
-function ListaVeiculosContent() {
-  const searchParams = useSearchParams();
-
+export default function ListaVeiculosPage() {
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const tipo = searchParams.get("tipo") || "";
-  const condicao = searchParams.get("condicao") || "";
-  const isFinanciado = searchParams.get("financiado") === "1";
-  const isConsignado = searchParams.get("consignado") === "1";
-  const isLoja = searchParams.get("loja") === "1";
+  const [filtros, setFiltros] = useState({
+    tipo: "",
+    condicao: "",
+    financiado: false,
+    consignado: false,
+    loja: false,
+  });
 
-  let tituloPagina = "Veículos em destaque";
-  if (tipo === "Carro") tituloPagina = "Carros à venda";
-  if (tipo === "Moto") tituloPagina = "Motos à venda";
-  if (condicao === "seminovo") tituloPagina = "Veículos seminovos";
-  if (condicao === "usado") tituloPagina = "Veículos usados";
-  if (condicao === "0km") tituloPagina = "Veículos 0 km";
-  if (isFinanciado) tituloPagina = "Veículos financiados";
-  if (isConsignado) tituloPagina = "Veículos consignados";
-  if (isLoja) tituloPagina = "Veículos de loja / revenda";
-
+  // Lê os parâmetros da URL (tipo, condicao, financiado, consignado, loja)
   useEffect(() => {
-    const carregar = async () => {
-      setLoading(true);
+    if (typeof window === "undefined") return;
 
-      let query = supabase
-        .from("anuncios")
-        .select(
-          "id, titulo, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade"
-        )
-        .eq("categoria", "veiculos")
-        .order("created_at", { ascending: false });
+    const params = new URLSearchParams(window.location.search);
 
-      if (tipo) {
-        query = query.eq("tipo_imovel", tipo);
-      }
-      if (condicao) {
-        query = query.eq("condicao_veiculo", condicao);
-      }
-      if (isFinanciado) {
-        query = query.eq("financiado", true);
-      }
-      if (isConsignado) {
-        query = query.eq("consignado", true);
-      }
-      if (isLoja) {
-        query = query.eq("loja_revenda", true);
-      }
+    const tipo = params.get("tipo") || "";
+    const condicao = params.get("condicao") || "";
+    const financiado = params.get("financiado") === "1";
+    const consignado = params.get("consignado") === "1";
+    const loja = params.get("loja") === "1";
 
-      const { data, error } = await query;
+    setFiltros({ tipo, condicao, financiado, consignado, loja });
+  }, []);
 
-      if (error) {
-        console.error("Erro ao carregar veículos:", error);
+  // Buscar anúncios de veículos conforme os filtros
+  useEffect(() => {
+    async function carregar() {
+      try {
+        setLoading(true);
+
+        let query = supabase
+          .from("anuncios")
+          .select(
+            "id, titulo, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade"
+          )
+          .eq("categoria", "veiculos")
+          .order("created_at", { ascending: false });
+
+        if (filtros.tipo) {
+          query = query.eq("tipo_imovel", filtros.tipo);
+        }
+        if (filtros.condicao) {
+          query = query.eq("condicao_veiculo", filtros.condicao);
+        }
+        if (filtros.financiado) {
+          query = query.eq("financiado", true);
+        }
+        if (filtros.consignado) {
+          query = query.eq("consignado", true);
+        }
+        if (filtros.loja) {
+          query = query.eq("loja_revenda", true);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Erro ao carregar veículos:", error);
+          setAnuncios([]);
+        } else {
+          setAnuncios(data || []);
+        }
+      } catch (e) {
+        console.error("Erro inesperado ao carregar veículos:", e);
         setAnuncios([]);
-      } else {
-        setAnuncios(data || []);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-    };
+    }
 
     carregar();
-  }, [tipo, condicao, isFinanciado, isConsignado, isLoja]);
+  }, [filtros]);
+
+  const tituloPagina = (() => {
+    let titulo = "Veículos em destaque";
+
+    if (filtros.tipo === "Carro") titulo = "Carros à venda";
+    else if (filtros.tipo === "Moto") titulo = "Motos à venda";
+
+    if (filtros.condicao === "seminovo") titulo = "Veículos seminovos";
+    else if (filtros.condicao === "usado") titulo = "Veículos usados";
+    else if (filtros.condicao === "0km") titulo = "Veículos 0 km";
+
+    if (filtros.financiado) titulo = "Veículos financiados";
+    if (filtros.consignado) titulo = "Veículos consignados";
+    if (filtros.loja) titulo = "Veículos de loja / revenda";
+
+    return titulo;
+  })();
 
   return (
     <main className="bg-white min-h-screen">
@@ -187,22 +212,5 @@ function ListaVeiculosContent() {
         )}
       </section>
     </main>
-  );
-}
-
-// componente principal com Suspense
-export default function ListaVeiculosPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="bg-white min-h-screen">
-          <section className="max-w-6xl mx-auto px-4 py-10">
-            <p className="text-sm text-slate-600">Carregando veículos...</p>
-          </section>
-        </main>
-      }
-    >
-      <ListaVeiculosContent />
-    </Suspense>
   );
 }
