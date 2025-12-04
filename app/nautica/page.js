@@ -33,7 +33,7 @@ const tiposEmbarcacao = [
   "Serviços náuticos",
 ];
 
-// CATEGORIAS -> AGORA COM slug + href (para /nautica/lista)
+// CATEGORIAS -> slug + href (para /nautica/lista)
 const categoriasLinha1 = [
   {
     nome: "Lanchas e veleiros à venda",
@@ -87,10 +87,9 @@ export default function NauticaPage() {
 
   // Troca de foto do hero
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
+    const interval = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -100,10 +99,11 @@ export default function NauticaPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, tipo_imovel, finalidade"
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque"
         )
         .eq("categoria", "nautica")
         .eq("status", "ativo")
+        .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -119,52 +119,54 @@ export default function NauticaPage() {
     fetchAnuncios();
   }, []);
 
-  // Escolhe um anúncio para representar cada card
+  // Escolhe um anúncio para representar cada card de categoria
   function escolherAnuncioParaCard(slug) {
     if (!anuncios || anuncios.length === 0) return null;
+
     let filtrados = [...anuncios];
 
     switch (slug) {
       case "lanchas-veleiros-venda":
         filtrados = filtrados.filter((a) => {
-          const tipo = (a.tipo_imovel || "").toLowerCase();
-          const fin = (a.finalidade || a.finalidade_nautica || "").toLowerCase();
+          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const fin = (a.finalidade_nautica || "").toLowerCase();
           return (
             fin === "venda" &&
-            (tipo.includes("lancha") || tipo.includes("veleiro"))
+            (sub.includes("lancha") || sub.includes("veleiro"))
           );
         });
         break;
 
       case "jetski-caiaques":
         filtrados = filtrados.filter((a) => {
-          const tipo = (a.tipo_imovel || "").toLowerCase();
+          const sub = (a.subcategoria_nautica || "").toLowerCase();
           return (
-            tipo.includes("jet") ||
-            tipo.includes("ski") ||
-            tipo.includes("stand-up") ||
-            tipo.includes("caiaque")
+            sub.includes("jet") ||
+            sub.includes("ski") ||
+            sub.includes("stand-up") ||
+            sub.includes("stand up") ||
+            sub.includes("caiaque")
           );
         });
         break;
 
       case "barcos-pesca":
         filtrados = filtrados.filter((a) => {
-          const tipo = (a.tipo_imovel || "").toLowerCase();
-          return tipo.includes("pesca");
+          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          return sub.includes("pesca");
         });
         break;
 
       case "motores-equipamentos":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return sub.includes("motor") || sub.includes("equipamento");
+          return sub.includes("motor") || sub.includes("equip");
         });
         break;
 
       case "aluguel-embarcacoes":
         filtrados = filtrados.filter((a) => {
-          const fin = (a.finalidade || a.finalidade_nautica || "").toLowerCase();
+          const fin = (a.finalidade_nautica || "").toLowerCase();
           return fin === "aluguel";
         });
         break;
@@ -183,6 +185,7 @@ export default function NauticaPage() {
             sub.includes("serviço") ||
             sub.includes("servico") ||
             sub.includes("manutenção") ||
+            sub.includes("manutencao") ||
             sub.includes("reforma")
           );
         });
@@ -191,7 +194,7 @@ export default function NauticaPage() {
       case "pecas-acessorios":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return sub.includes("peça") || sub.includes("acessório");
+          return sub.includes("peça") || sub.includes("peca") || sub.includes("acess");
         });
         break;
 
@@ -200,11 +203,18 @@ export default function NauticaPage() {
     }
 
     if (filtrados.length === 0) return null;
-    return filtrados[0];
+
+    const emDestaque = filtrados.find((a) => a.destaque === true);
+    return emDestaque || filtrados[0];
   }
 
-  // 👉 AGORA: destaques = últimos anúncios (sem depender de "destaque")
-  const destaques = anuncios ? anuncios.slice(0, 8) : [];
+  // Lista de destaques (igual Imóveis / Veículos)
+  const destaques = (() => {
+    if (!anuncios || anuncios.length === 0) return [];
+    const soDestaques = anuncios.filter((a) => a.destaque === true);
+    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
+    return anuncios.slice(0, 8);
+  })();
 
   return (
     <main className="bg-white min-h-screen">
@@ -237,22 +247,12 @@ export default function NauticaPage() {
           />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p
-              className="
-                text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl
-                drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]
-              "
-            >
+            <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               Encontre lanchas, veleiros, jetski, motores e serviços náuticos
               em toda a Região dos Lagos.
             </p>
 
-            <h1
-              className="
-                mt-1 text-3xl md:text-4xl font-extrabold tracking-tight
-                drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]
-              "
-            >
+            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]">
               Classilagos – Náutica
             </h1>
           </div>
@@ -417,7 +417,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* EMBARCAÇÕES EM DESTAQUE (AGORA: ÚLTIMOS ANÚNCIOS) */}
+      {/* EMBARCAÇÕES EM DESTAQUE */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
@@ -442,7 +442,7 @@ export default function NauticaPage() {
               Ainda não há anúncios de náutica cadastrados.
               <br />
               <Link
-                href="/anunciar"
+                href="/anunciar?tipo=nautica"
                 className="inline-flex mt-3 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700"
               >
                 Seja o primeiro a anunciar sua embarcação
@@ -458,8 +458,7 @@ export default function NauticaPage() {
                     ? item.imagens[0]
                     : null;
 
-                const finalidadeLabel =
-                  item.finalidade_nautica || item.finalidade || "";
+                const finalidadeLabel = item.finalidade_nautica || "";
 
                 return (
                   <Link
@@ -511,48 +510,55 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS */}
-      <section className="bg-slate-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 space-y-4">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Links úteis para quem navega
+      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – PADRÃO IGUAL IMÓVEIS/VEÍCULOS */}
+      <section className="bg-slate-950 text-white py-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-base md:text-lg font-semibold mb-2">
+            Serviços e informações para náutica
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Capitania dos Portos
-              </p>
-              <p className="text-[12px] text-slate-600">
-                Normas de navegação, segurança e documentação de embarcações.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Previsão do tempo &amp; maré
-              </p>
-              <p className="text-[12px] text-slate-600">
-                Consulte vento, ondas e condições do mar antes de sair.
+          <p className="text-xs md:text-sm text-slate-300 mb-6 max-w-3xl">
+            Use o Classilagos também como guia para entender documentação,
+            segurança, marinas e serviços importantes na hora de comprar,
+            manter ou alugar uma embarcação na Região dos Lagos.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs md:text-sm">
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
+              <p className="font-semibold mb-1">Documentação da embarcação</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Em breve, links para Capitania dos Portos, registro de
+                embarcações, vistoria e normas de segurança.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="font-semibold text-slate-900 text-sm">
-                Passeios turísticos
+
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
+              <p className="font-semibold mb-1">Habilitação náutica</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Informações sobre Arrais, Mestre e Motonauta, cursos e
+                procedimentos para obter a carteira.
               </p>
-              <p className="text-[12px] text-slate-600 mb-1">
-                Escunas, mergulho e passeios regulares estão na área de Turismo.
+            </div>
+
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
+              <p className="font-semibold mb-1">Marinas e estrutura</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Em breve, integração com LagoListas para encontrar marinas,
+                guardarias, vagas secas e molhadas em toda a região.
               </p>
-              <Link
-                href="/turismo"
-                className="text-[12px] text-sky-700 font-semibold hover:underline"
-              >
-                Ver seção de Turismo &rarr;
-              </Link>
+            </div>
+
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
+              <p className="font-semibold mb-1">Serviços para sua embarcação</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Oficinas mecânicas, elétrica náutica, lavagem, pintura e outros
+                serviços especializados próximos a você.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CHAMADA FINAL */}
+      {/* CHAMADA FINAL (CTA) */}
       <section className="bg-slate-50 pb-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="rounded-3xl bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 border border-slate-800 px-6 py-7 text-center text-white">
