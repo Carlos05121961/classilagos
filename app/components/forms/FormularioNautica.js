@@ -140,7 +140,9 @@ export default function FormularioNautica() {
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
+      setErro(
+        "Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail)."
+      );
       return;
     }
 
@@ -190,55 +192,63 @@ export default function FormularioNautica() {
 
     const imagens = urlsUpload;
 
-    const { error } = await supabase.from("anuncios").insert({
-      user_id: user.id,
-      categoria: "nautica",
-      titulo,
-      descricao,
-      cidade,
-      bairro,
-      ponto_embarque: pontoEmbarque,
-      preco,
-      imagens,
-      video_url: videoUrl,
-      telefone,
-      whatsapp,
-      email,
-      contato: contatoPrincipal,
+    // INSERÇÃO NO SUPABASE (agora pegando o id)
+    const { data, error } = await supabase
+      .from("anuncios")
+      .insert({
+        user_id: user.id,
+        categoria: "nautica",
+        titulo,
+        descricao,
+        cidade,
+        bairro,
+        ponto_embarque: pontoEmbarque,
+        preco,
+        imagens,
+        video_url: videoUrl,
+        telefone,
+        whatsapp,
+        email,
+        contato: contatoPrincipal,
 
-      subcategoria_nautica: subcategoria,
-      finalidade_nautica: finalidade,
+        // Campos específicos de náutica
+        subcategoria_nautica: subcategoria,
+        finalidade_nautica: finalidade,
+        // campo genérico de finalidade (padrão do resto do site)
+        finalidade,
 
-      marca_embarcacao: marcaEmbarcacao,
-      modelo_embarcacao: modeloEmbarcacao,
-      ano_embarcacao: anoEmbarcacao,
-      comprimento_pes: comprimentoPes,
-      material_casco: materialCasco,
+        marca_embarcacao: marcaEmbarcacao,
+        modelo_embarcacao: modeloEmbarcacao,
+        ano_embarcacao: anoEmbarcacao,
+        comprimento_pes: comprimentoPes,
+        material_casco: materialCasco,
 
-      marca_motor: marcaMotor,
-      potencia_motor_hp: potenciaMotorHp,
-      qtd_motores: qtdMotores,
-      horas_motor: horasMotor,
-      combustivel,
+        marca_motor: marcaMotor,
+        potencia_motor_hp: potenciaMotorHp,
+        qtd_motores: qtdMotores,
+        horas_motor: horasMotor,
+        combustivel,
 
-      capacidade_pessoas: capacidadePessoas,
-      qtd_cabines: qtdCabines,
-      qtd_banheiros: qtdBanheiros,
+        capacidade_pessoas: capacidadePessoas,
+        qtd_cabines: qtdCabines,
+        qtd_banheiros: qtdBanheiros,
 
-      tipo_passeio: tipoPasseio,
-      duracao_passeio: duracaoPasseio,
-      valor_passeio_pessoa: valorPessoa,
-      valor_passeio_fechado: valorFechado,
-      itens_inclusos: itensInclusos,
+        tipo_passeio: tipoPasseio,
+        duracao_passeio: duracaoPasseio,
+        valor_passeio_pessoa: valorPessoa,
+        valor_passeio_fechado: valorFechado,
+        itens_inclusos: itensInclusos,
 
-      tipo_vaga: tipoVaga,
-      comprimento_maximo_pes: comprimentoMaximoPes,
-      estrutura_disponivel: estruturaDisponivel,
+        tipo_vaga: tipoVaga,
+        comprimento_maximo_pes: comprimentoMaximoPes,
+        estrutura_disponivel: estruturaDisponivel,
 
-      status: "ativo",
-      destaque: false,
-      nome_contato: nomeContato,
-    });
+        status: "ativo",
+        destaque: false,
+        nome_contato: nomeContato,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error(error);
@@ -246,7 +256,7 @@ export default function FormularioNautica() {
       return;
     }
 
-    setSucesso("Anúncio náutico enviado com sucesso!");
+    setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
 
     // Limpa formulário
     setTitulo("");
@@ -286,9 +296,10 @@ export default function FormularioNautica() {
     setEmail("");
     setAceitoTermos(false);
 
+    // Vai direto para o anúncio
     setTimeout(() => {
-      router.push("/painel/meus-anuncios");
-    }, 2000);
+      router.push(`/anuncios/${data.id}`);
+    }, 1500);
   };
 
   return (
@@ -306,7 +317,9 @@ export default function FormularioNautica() {
 
       {/* BLOCO: TIPO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio náutico</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Tipo de anúncio náutico
+        </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
@@ -436,7 +449,7 @@ export default function FormularioNautica() {
         </div>
       </div>
 
-      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
+      {/* BLOCO: DETALHES (venda / aluguel) */}
       {(finalidade === "venda" || finalidade === "aluguel") && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">
@@ -763,7 +776,9 @@ export default function FormularioNautica() {
 
       {/* BLOCO: VÍDEO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Vídeo (opcional)
+        </h2>
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             URL do vídeo (YouTube)
@@ -780,7 +795,9 @@ export default function FormularioNautica() {
 
       {/* BLOCO: CONTATO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Dados de contato
+        </h2>
 
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
