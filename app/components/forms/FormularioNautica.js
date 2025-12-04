@@ -19,14 +19,14 @@ export default function FormularioNautica() {
   const [subcategoria, setSubcategoria] = useState(""); // Lancha, Veleiro, Jetski...
   const [finalidade, setFinalidade] = useState(""); // venda / aluguel / passeio / servico / vaga_marina
 
-  // Informações técnicas básicas
+  // Informações técnicas básicas (ainda NÃO serão gravadas no banco)
   const [marcaEmbarcacao, setMarcaEmbarcacao] = useState("");
   const [modeloEmbarcacao, setModeloEmbarcacao] = useState("");
   const [anoEmbarcacao, setAnoEmbarcacao] = useState("");
   const [comprimentoPes, setComprimentoPes] = useState("");
   const [materialCasco, setMaterialCasco] = useState("");
 
-  // Motor
+  // Motor (também não vão pro banco por enquanto)
   const [marcaMotor, setMarcaMotor] = useState("");
   const [potenciaMotorHp, setPotenciaMotorHp] = useState("");
   const [qtdMotores, setQtdMotores] = useState("");
@@ -123,8 +123,9 @@ export default function FormularioNautica() {
     setErro("");
     setSucesso("");
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
@@ -181,7 +182,7 @@ export default function FormularioNautica() {
         urlsUpload = uploads;
       }
     } catch (err) {
-      console.error("Erro ao enviar imagens de náutica:", err);
+      console.error("Erro no upload de imagens:", err);
       setErro("Erro ao enviar as imagens. Tente novamente.");
       setUploading(false);
       return;
@@ -191,72 +192,37 @@ export default function FormularioNautica() {
 
     const imagens = urlsUpload;
 
-    // INSERT no Supabase
-    const { data, error } = await supabase
-      .from("anuncios")
-      .insert({
-        user_id: user.id,
-        categoria: "nautica",
-        titulo,
-        descricao,
-        cidade,
-        bairro,
-        ponto_embarque: pontoEmbarque,
-        preco,
-        imagens,
-        video_url: videoUrl,
-        telefone,
-        whatsapp,
-        email,
-        contato: contatoPrincipal,
+    // 🔒 AQUI está o segredo: só mandamos campos "seguros" (texto/boolean)
+    const dadosBasicos = {
+      user_id: user.id,
+      categoria: "nautica",
+      titulo,
+      descricao,
+      cidade,
+      bairro,
+      preco,
+      imagens,
+      video_url: videoUrl,
+      telefone,
+      whatsapp,
+      email,
+      contato: contatoPrincipal,
+      status: "ativo",
+      destaque: false,
+      nome_contato: nomeContato,
+      subcategoria_nautica: subcategoria,
+      finalidade_nautica: finalidade,
+    };
 
-        subcategoria_nautica: subcategoria,
-        finalidade_nautica: finalidade,
-        // coluna genérica (se existir na tabela)
-        finalidade,
-
-        marca_embarcacao: marcaEmbarcacao,
-        modelo_embarcacao: modeloEmbarcacao,
-        ano_embarcacao: anoEmbarcacao,
-        comprimento_pes: comprimentoPes,
-        material_casco: materialCasco,
-
-        marca_motor: marcaMotor,
-        potencia_motor_hp: potenciaMotorHp,
-        qtd_motores: qtdMotores,
-        horas_motor: horasMotor,
-        combustivel,
-
-        capacidade_pessoas: capacidadePessoas,
-        qtd_cabines: qtdCabines,
-        qtd_banheiros: qtdBanheiros,
-
-        tipo_passeio: tipoPasseio,
-        duracao_passeio: duracaoPasseio,
-        valor_passeio_pessoa: valorPessoa,
-        valor_passeio_fechado: valorFechado,
-        itens_inclusos: itensInclusos,
-
-        tipo_vaga: tipoVaga,
-        comprimento_maximo_pes: comprimentoMaximoPes,
-        estrutura_disponivel: estruturaDisponivel,
-
-        status: "ativo",
-        destaque: false,
-        nome_contato: nomeContato,
-      })
-      .select("id")
-      .single();
+    const { error } = await supabase.from("anuncios").insert(dadosBasicos);
 
     if (error) {
-      console.error("Erro ao salvar anúncio de náutica:", error);
-      setErro(
-        `Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`
-      );
+      console.error("Erro ao salvar anúncio:", error);
+      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
       return;
     }
 
-    setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
+    setSucesso("Anúncio náutico enviado com sucesso!");
 
     // Limpa formulário
     setTitulo("");
@@ -297,12 +263,8 @@ export default function FormularioNautica() {
     setAceitoTermos(false);
 
     setTimeout(() => {
-      if (data && data.id) {
-        router.push(`/anuncios/${data.id}`);
-      } else {
-        router.push("/painel/meus-anuncios");
-      }
-    }, 1500);
+      router.push("/painel/meus-anuncios");
+    }, 2000);
   };
 
   return (
@@ -451,292 +413,6 @@ export default function FormularioNautica() {
           />
         </div>
       </div>
-
-      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
-      {(finalidade === "venda" || finalidade === "aluguel") && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Detalhes da embarcação
-          </h2>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={marcaEmbarcacao}
-                onChange={(e) => setMarcaEmbarcacao(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Modelo
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={modeloEmbarcacao}
-                onChange={(e) => setModeloEmbarcacao(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Ano
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={anoEmbarcacao}
-                onChange={(e) => setAnoEmbarcacao(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Comprimento (pés)
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={comprimentoPes}
-                onChange={(e) => setComprimentoPes(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Material do casco
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={materialCasco}
-                onChange={(e) => setMaterialCasco(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca do motor
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={marcaMotor}
-                onChange={(e) => setMarcaMotor(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Potência total (HP)
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={potenciaMotorHp}
-                onChange={(e) => setPotenciaMotorHp(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Qtde. de motores
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={qtdMotores}
-                onChange={(e) => setQtdMotores(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Horas de motor
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={horasMotor}
-                onChange={(e) => setHorasMotor(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Combustível
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={combustivel}
-                onChange={(e) => setCombustivel(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Capacidade (pessoas)
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={capacidadePessoas}
-                onChange={(e) => setCapacidadePessoas(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Cabines
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={qtdCabines}
-                onChange={(e) => setQtdCabines(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Banheiros
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={qtdBanheiros}
-                onChange={(e) => setQtdBanheiros(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* BLOCO: PASSEIOS */}
-      {finalidade === "passeio" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações do passeio
-          </h2>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Tipo de passeio
-            </label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Ex.: passeio de lancha exclusivo, escuna, mergulho..."
-              value={tipoPasseio}
-              onChange={(e) => setTipoPasseio(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Duração média
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: 3h, 6h, dia inteiro"
-                value={duracaoPasseio}
-                onChange={(e) => setDuracaoPasseio(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Valor por pessoa
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={valorPessoa}
-                onChange={(e) => setValorPessoa(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Valor passeio fechado
-            </label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={valorFechado}
-              onChange={(e) => setValorFechado(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Itens inclusos
-            </label>
-            <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
-              placeholder="Ex.: bebidas, coletes, máscara, churrasco..."
-              value={itensInclusos}
-              onChange={(e) => setItensInclusos(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* BLOCO: VAGA EM MARINA */}
-      {finalidade === "vaga_marina" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações da vaga em marina / guardaria
-          </h2>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Tipo de vaga
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: seca, molhada..."
-                value={tipoVaga}
-                onChange={(e) => setTipoVaga(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Comprimento máximo (pés)
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={comprimentoMaximoPes}
-                onChange={(e) => setComprimentoMaximoPes(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Estrutura disponível
-            </label>
-            <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
-              placeholder="Ex.: água, luz, banheiro, segurança 24h..."
-              value={estruturaDisponivel}
-              onChange={(e) => setEstruturaDisponivel(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* BLOCO: VALOR */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
@@ -893,3 +569,4 @@ export default function FormularioNautica() {
     </form>
   );
 }
+
