@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -213,7 +212,7 @@ export default function FormularioNautica() {
 
         subcategoria_nautica: subcategoria,
         finalidade_nautica: finalidade,
-        // coluna genérica (se existir na tabela)
+        // coluna genérica
         finalidade,
 
         marca_embarcacao: marcaEmbarcacao,
@@ -252,7 +251,9 @@ export default function FormularioNautica() {
     if (error) {
       console.error("Erro ao salvar anúncio de náutica:", error);
       setErro(
-        `Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`
+        `Erro ao salvar anúncio: ${
+          error.message || "Tente novamente em instantes."
+        }`
       );
       return;
     }
