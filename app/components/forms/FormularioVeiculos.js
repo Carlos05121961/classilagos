@@ -1,474 +1,329 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../supabaseClient";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { supabase } from "../supabaseClient";
 
-export default function FormularioNautica() {
-  const router = useRouter();
+const heroImages = [
+  "/veiculos/carro-01.jpg",
+  "/veiculos/carro-02.jpg",
+  "/veiculos/carro-03.jpg",
+];
 
-  // Campos principais
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [bairro, setBairro] = useState("");
+export default function VeiculosPage() {
+  const [currentHero, setCurrentHero] = useState(0);
+  const [veiculos, setVeiculos] = useState([]);
+  const [loadingVeiculos, setLoadingVeiculos] = useState(true);
 
-  // Tipo de anúncio
-  const [subcategoria, setSubcategoria] = useState("");
-  const [finalidade, setFinalidade] = useState("");
-
-  // Dados da embarcação
-  const [marca, setMarca] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [ano, setAno] = useState("");
-  const [comprimento, setComprimento] = useState("");
-  const [material, setMaterial] = useState("");
-
-  // Motor
-  const [marcaMotor, setMarcaMotor] = useState("");
-  const [potenciaMotor, setPotenciaMotor] = useState("");
-  const [qtdMotores, setQtdMotores] = useState("");
-  const [horasMotor, setHorasMotor] = useState("");
-
-  // Capacidade
-  const [capacidade, setCapacidade] = useState("");
-  const [cabines, setCabines] = useState("");
-  const [banheiros, setBanheiros] = useState("");
-
-  // Passeio
-  const [tipoPasseio, setTipoPasseio] = useState("");
-  const [duracaoPasseio, setDuracaoPasseio] = useState("");
-  const [valorPessoa, setValorPessoa] = useState("");
-  const [valorFechado, setValorFechado] = useState("");
-  const [itensInclusos, setItensInclusos] = useState("");
-
-  // Vaga marina
-  const [tipoVaga, setTipoVaga] = useState("");
-  const [comprimentoMaximo, setComprimentoMaximo] = useState("");
-  const [estrutura, setEstrutura] = useState("");
-
-  // Fotos
-  const [arquivos, setArquivos] = useState([]);
-  const [uploading, setUploading] = useState(false);
-
-  // Vídeo
-  const [videoUrl, setVideoUrl] = useState("");
-
-  // Contato
-  const [nomeContato, setNomeContato] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-
-  // Termos
-  const [aceitoTermos, setAceitoTermos] = useState(false);
-
-  // Mensagens
-  const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState("");
-
-  const cidades = [
-    "Maricá",
-    "Saquarema",
-    "Araruama",
-    "Iguaba Grande",
-    "São Pedro da Aldeia",
-    "Arraial do Cabo",
-    "Cabo Frio",
-    "Búzios",
-    "Rio das Ostras",
-  ];
-
-  const subcategoriasNautica = [
-    "Lancha",
-    "Veleiro",
-    "Jetski",
-    "Barco de pesca",
-    "Stand-up / Caiaque",
-    "Vaga em marina",
-    "Serviços náuticos",
-    "Passeio turístico",
-    "Outros",
-  ];
-
-  const finalidadesNautica = ["Venda", "Aluguel", "Passeio", "Serviço", "Vaga em marina"];
-
+  // ROTATIVO DO HERO
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
+    const interval = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const handleArquivosChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 8));
-  };
+  // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE
+  useEffect(() => {
+    const fetchVeiculos = async () => {
+      setLoadingVeiculos(true);
 
-  const enviarAnuncio = async (e) => {
-    e.preventDefault();
-    setErro("");
-    setSucesso("");
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, preco, imagens")
+        .eq("categoria", "veiculos")
+        .order("created_at", { ascending: false })
+        .limit(8);
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-
-    if (!contatoPrincipal) {
-      setErro("Informe pelo menos um contato.");
-      return;
-    }
-
-    if (!finalidade || !subcategoria) {
-      setErro("Selecione finalidade e subcategoria.");
-      return;
-    }
-
-    if (!aceitoTermos) {
-      setErro("Você precisa aceitar os termos.");
-      return;
-    }
-
-    let urlsUpload = [];
-
-    try {
-      if (arquivos.length > 0) {
-        setUploading(true);
-
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-nautica-${index}.${ext}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from("anuncios")
-              .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: publicData } = supabase.storage
-              .from("anuncios")
-              .getPublicUrl(filePath);
-
-            return publicData.publicUrl;
-          })
-        );
-
-        urlsUpload = uploads;
+      if (error) {
+        console.error("Erro ao buscar veículos:", error);
+        setVeiculos([]);
+      } else {
+        setVeiculos(data || []);
       }
-    } catch (err) {
-      setErro("Erro ao enviar imagens.");
-      return;
-    } finally {
-      setUploading(false);
-    }
 
-    const imagens = urlsUpload;
+      setLoadingVeiculos(false);
+    };
 
-    const { data, error } = await supabase
-      .from("anuncios")
-      .insert({
-        user_id: user.id,
-        categoria: "nautica",
+    fetchVeiculos();
+  }, []);
 
-        titulo,
-        descricao,
+  // CATEGORIAS QUE VÃO APONTAR PARA /veiculos/lista
+  const categoriasLinha1 = [
+    {
+      nome: "Carros à venda",
+      href: "/veiculos/lista?tipo=Carro",
+    },
+    {
+      nome: "Motos à venda",
+      href: "/veiculos/lista?tipo=Moto",
+    },
+    {
+      nome: "Seminovos",
+      href: "/veiculos/lista?condicao=seminovo",
+    },
+    {
+      nome: "Oportunidades",
+      href: "/veiculos/lista", // por enquanto mostra todos
+    },
+  ];
 
-        cidade,
-        bairro,
-
-        subcategoria,
-        finalidade: finalidade.toLowerCase(),
-
-        marca_embarcacao: marca,
-        modelo_embarcacao: modelo,
-        ano_embarcacao: ano,
-        comprimento_pes: comprimento,
-        material_casco: material,
-
-        marca_motor: marcaMotor,
-        potencia_motor_hp: potenciaMotor,
-        qtd_motores: qtdMotores,
-        horas_motor: horasMotor,
-
-        capacidade_pessoas: capacidade,
-        qtd_cabines: cabines,
-        qtd_banheiros: banheiros,
-
-        tipo_passeio: tipoPasseio,
-        duracao_passeio: duracaoPasseio,
-        valor_passeio_pessoa: valorPessoa,
-        valor_passeio_fechado: valorFechado,
-        itens_inclusos: itensInclusos,
-
-        tipo_vaga: tipoVaga,
-        comprimento_maximo_pes: comprimentoMaximo,
-        estrutura_disponivel: estrutura,
-
-        imagens,
-        video_url: videoUrl,
-
-        telefone,
-        whatsapp,
-        email,
-        contato: contatoPrincipal,
-        nome_contato: nomeContato,
-
-        status: "ativo",
-        destaque: false,
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      setErro("Erro ao salvar anúncio.");
-      return;
-    }
-
-    setSucesso("Anúncio enviado! Redirecionando…");
-
-    setTimeout(() => {
-      router.push(`/anuncios/${data.id}`);
-    }, 1500);
-  };
+  const categoriasLinha2 = [
+    {
+      nome: "0 km",
+      href: "/veiculos/lista?condicao=0km",
+    },
+    {
+      nome: "Financiados",
+      href: "/veiculos/lista?financiado=1",
+    },
+    {
+      nome: "Consignados",
+      href: "/veiculos/lista?consignado=1",
+    },
+    {
+      nome: "Loja / Revenda",
+      href: "/veiculos/lista?loja=1",
+    },
+  ];
 
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
-
-      {erro && (
-        <p className="text-red-600 text-xs border border-red-200 bg-red-50 rounded px-3 py-2">{erro}</p>
-      )}
-      {sucesso && (
-        <p className="text-green-600 text-xs border border-green-200 bg-green-50 rounded px-3 py-2">{sucesso}</p>
-      )}
-
-      {/* TIPO */}
-      <div className="space-y-3">
-        <h2 className="font-semibold text-slate-900">Tipo do anúncio</h2>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Subcategoria *</label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-              value={subcategoria}
-              onChange={(e) => setSubcategoria(e.target.value)}
-              required
-            >
-              <option value="">Selecione...</option>
-              {subcategoriasNautica.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Finalidade *</label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-              value={finalidade}
-              onChange={(e) => setFinalidade(e.target.value)}
-              required
-            >
-              <option value="">Selecione...</option>
-              {finalidadesNautica.map((f) => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* INFOS PRINCIPAIS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Informações principais</h2>
-
-        <div>
-          <label className="text-[11px] font-medium text-slate-700">Título *</label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="text-[11px] font-medium text-slate-700">Descrição *</label>
-          <textarea
-            className="mt-1 w-full border rounded-lg px-3 py-2 h-28"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      {/* LOCALIZAÇÃO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Localização</h2>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Cidade *</label>
-            <select
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              required
-            >
-              <option value="">Selecione...</option>
-              {cidades.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Bairro</label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
+    <main className="bg-white min-h-screen">
+      {/* BANNER FIXO NO TOPO */}
+      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Anuncie seu veículo totalmente GRÁTIS - Classilagos"
+              fill
+              sizes="900px"
+              className="object-contain"
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* DETALHES EMBARCAÇÃO */}
-      {(finalidade === "Venda" || finalidade === "Aluguel") && (
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Detalhes da embarcação</h2>
+      {/* HERO – SÓ FOTO + TEXTO */}
+      <section className="relative w-full">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
+          <Image
+            key={heroImages[currentHero]}
+            src={heroImages[currentHero]}
+            alt="Classilagos Veículos"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover transition-opacity duration-700"
+          />
+          <div className="absolute inset-0 bg-black/25" />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Marca</label>
-            <input className="mt-1 w-full border rounded-lg px-3 py-2" value={marca} onChange={(e) => setMarca(e.target.value)} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+            <p className="text-sm md:text-base font-medium drop-shadow">
+              Encontre carros, motos, caminhões e oportunidades em toda a Região
+              dos Lagos.
+            </p>
+            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+              Classilagos – Veículos
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      {/* CAIXA DE BUSCA FORA DA FOTO */}
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+              {/* Busca livre */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Busca
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: carro 1.0 completo, moto 150cc"
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Tipo */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Tipo
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Carro</option>
+                  <option>Moto</option>
+                  <option>Caminhonete</option>
+                  <option>Caminhão</option>
+                  <option>Utilitário</option>
+                </select>
+              </div>
+
+              {/* Cidade */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Maricá</option>
+                  <option>Saquarema</option>
+                  <option>Araruama</option>
+                  <option>Iguaba Grande</option>
+                  <option>São Pedro da Aldeia</option>
+                  <option>Arraial do Cabo</option>
+                  <option>Cabo Frio</option>
+                  <option>Búzios</option>
+                  <option>Rio das Ostras</option>
+                </select>
+              </div>
+
+              {/* Botão */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="text-[11px] font-medium text-slate-700">Modelo</label>
-            <input className="mt-1 w-full border rounded-lg px-3 py-2" value={modelo} onChange={(e) => setModelo(e.target.value)} />
-          </div>
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
+          </p>
+        </div>
+      </section>
+
+      <div className="h-4 sm:h-6" />
+
+      {/* CATEGORIAS */}
+      <section className="max-w-6xl mx-auto px-4 pb-10">
+        {/* LINHA 1 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+          {categoriasLinha1.map((cat) => (
+            <Link
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+            >
+              <div className="h-32 md:h-36 w-full bg-slate-300 group-hover:bg-slate-200 transition" />
+              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                {cat.nome}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <input placeholder="Ano" className="border rounded-lg px-3 py-2" value={ano} onChange={(e) => setAno(e.target.value)} />
-          <input placeholder="Comprimento (pés)" className="border rounded-lg px-3 py-2" value={comprimento} onChange={(e) => setComprimento(e.target.value)} />
-          <input placeholder="Material do casco" className="border rounded-lg px-3 py-2" value={material} onChange={(e) => setMaterial(e.target.value)} />
+        {/* LINHA 2 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {categoriasLinha2.map((cat) => (
+            <Link
+              key={cat.nome}
+              href={cat.href}
+              className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
+            >
+              <div className="h-32 md:h-36 w-full bg-slate-400 group-hover:bg-slate-300 transition" />
+              <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                {cat.nome}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <input placeholder="Marca do motor" className="border rounded-lg px-3 py-2" value={marcaMotor} onChange={(e) => setMarcaMotor(e.target.value)} />
-          <input placeholder="Potência total (HP)" className="border rounded-lg px-3 py-2" value={potenciaMotor} onChange={(e) => setPotenciaMotor(e.target.value)} />
-          <input placeholder="Qtde. de motores" className="border rounded-lg px-3 py-2" value={qtdMotores} onChange={(e) => setQtdMotores(e.target.value)} />
+        {/* VEÍCULOS EM DESTAQUE (DINÂMICO DO SUPABASE) */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
+            Veículos em destaque
+          </h2>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <input placeholder="Horas de motor" className="border rounded-lg px-3 py-2" value={horasMotor} onChange={(e) => setHorasMotor(e.target.value)} />
-          <input placeholder="Capacidade (pessoas)" className="border rounded-lg px-3 py-2" value={capacidade} onChange={(e) => setCapacidade(e.target.value)} />
-          <input placeholder="Cabines" className="border rounded-lg px-3 py-2" value={cabines} onChange={(e) => setCabines(e.target.value)} />
+        {/* GRID DE CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-slate-200 animate-pulse" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Carregando...
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {!loadingVeiculos && veiculos.length === 0 && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl shadow border border-slate-200"
+                >
+                  <div className="h-28 md:h-32 w-full bg-emerald-800" />
+                  <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                    Veículo destaque
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {veiculos.length > 0 &&
+            veiculos.map((carro) => {
+              const img =
+                Array.isArray(carro.imagens) && carro.imagens.length > 0
+                  ? carro.imagens[0]
+                  : null;
+
+              return (
+                <Link
+                  key={carro.id}
+                  href={`/anuncios/${carro.id}`}
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
+                >
+                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                    {img ? (
+                      <Image
+                        src={img}
+                        alt={carro.titulo}
+                        fill
+                        sizes="300px"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                        Sem foto
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-900 text-white px-3 py-2">
+                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">
+                      {carro.titulo}
+                    </p>
+                    <p className="mt-1 text-[10px] text-slate-200">
+                      {carro.cidade}
+                      {carro.bairro ? ` • ${carro.bairro}` : ""}
+                    </p>
+                    {carro.preco && (
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">
+                        R$ {carro.preco}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
         </div>
-
-        <input placeholder="Banheiros" className="border rounded-lg px-3 py-2" value={banheiros} onChange={(e) => setBanheiros(e.target.value)} />
-      </div>
-      )}
-
-      {/* PASSEIO */}
-      {finalidade === "Passeio" && (
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Informações do passeio</h2>
-
-        <input placeholder="Tipo de passeio" className="border rounded-lg px-3 py-2" value={tipoPasseio} onChange={(e) => setTipoPasseio(e.target.value)} />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <input placeholder="Duração" className="border rounded-lg px-3 py-2" value={duracaoPasseio} onChange={(e) => setDuracaoPasseio(e.target.value)} />
-          <input placeholder="Valor por pessoa" className="border rounded-lg px-3 py-2" value={valorPessoa} onChange={(e) => setValorPessoa(e.target.value)} />
-        </div>
-
-        <input placeholder="Valor passeio fechado" className="border rounded-lg px-3 py-2" value={valorFechado} onChange={(e) => setValorFechado(e.target.value)} />
-
-        <textarea placeholder="Itens inclusos" className="border rounded-lg px-3 py-2 h-24" value={itensInclusos} onChange={(e) => setItensInclusos(e.target.value)} />
-      </div>
-      )}
-
-      {/* VAGA MARINA */}
-      {finalidade === "Vaga em marina" && (
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Vaga em marina / guardaria</h2>
-
-        <input placeholder="Tipo de vaga" className="border rounded-lg px-3 py-2" value={tipoVaga} onChange={(e) => setTipoVaga(e.target.value)} />
-
-        <input placeholder="Comprimento máximo (pés)" className="border rounded-lg px-3 py-2" value={comprimentoMaximo} onChange={(e) => setComprimentoMaximo(e.target.value)} />
-
-        <textarea placeholder="Estrutura disponível" className="border rounded-lg px-3 py-2 h-24" value={estrutura} onChange={(e) => setEstrutura(e.target.value)} />
-      </div>
-      )}
-
-      {/* FOTOS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Fotos</h2>
-
-        <input type="file" multiple onChange={handleArquivosChange} className="text-xs" />
-
-        {arquivos.length > 0 && (
-          <p className="text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s)</p>
-        )}
-      </div>
-
-      {/* VÍDEO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Vídeo (opcional)</h2>
-
-        <input
-          type="text"
-          placeholder="URL do vídeo"
-          className="border rounded-lg px-3 py-2 w-full"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-        />
-      </div>
-
-      {/* CONTATO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="font-semibold text-slate-900">Contato</h2>
-
-        <input placeholder="Nome do responsável" className="border rounded-lg px-3 py-2 w-full" value={nomeContato} onChange={(e) => setNomeContato(e.target.value)} />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <input placeholder="Telefone" className="border rounded-lg px-3 py-2" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
-          <input placeholder="WhatsApp" className="border rounded-lg px-3 py-2" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
-        </div>
-
-        <input placeholder="E-mail" className="border rounded-lg px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
-
-      {/* TERMOS */}
-      <div className="border-t border-slate-100 pt-4">
-        <label className="flex items-start gap-2 text-[11px] text-slate-700">
-          <input type="checkbox" className="mt-0.5" checked={aceitoTermos} onChange={(e) => setAceitoTermos(e.target.checked)} />
-          <span>
-            Declaro que as informações são verdadeiras e estou de acordo com os{" "}
-            <a href="/termos-de-uso" className="text-cyan-700 underline">Termos de Uso</a>.
-          </span>
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        disabled={uploading}
-        className="w-full bg-sky-600 text-white rounded-full py-3 font-semibold hover:bg-sky-700 transition"
-      >
-        {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
-      </button>
-    </form>
+      </section>
+    </main>
   );
 }
 
