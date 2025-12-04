@@ -33,7 +33,7 @@ const tiposEmbarcacao = [
   "Serviços náuticos",
 ];
 
-// MESMAS CATEGORIAS, AGORA COM slug + href
+// CATEGORIAS -> AGORA COM slug + href (para /nautica/lista)
 const categoriasLinha1 = [
   {
     nome: "Lanchas e veleiros à venda",
@@ -129,8 +129,7 @@ export default function NauticaPage() {
       case "lanchas-veleiros-venda":
         filtrados = filtrados.filter((a) => {
           const tipo = (a.tipo_imovel || "").toLowerCase();
-          const fin = (a.finalidade || a.finalidade_nautica || "")
-            .toLowerCase();
+          const fin = (a.finalidade || a.finalidade_nautica || "").toLowerCase();
           return (
             fin === "venda" &&
             (tipo.includes("lancha") || tipo.includes("veleiro"))
@@ -166,8 +165,7 @@ export default function NauticaPage() {
 
       case "aluguel-embarcacoes":
         filtrados = filtrados.filter((a) => {
-          const fin = (a.finalidade || a.finalidade_nautica || "")
-            .toLowerCase();
+          const fin = (a.finalidade || a.finalidade_nautica || "").toLowerCase();
           return fin === "aluguel";
         });
         break;
@@ -232,7 +230,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* HERO – MESMO QUE VOCÊ JÁ TINHA */}
+      {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -244,7 +242,7 @@ export default function NauticaPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          {/* texto com sombra forte */}
+
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p
               className="
@@ -268,12 +266,12 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA FORA DA FOTO (igual você já tinha) */}
+      {/* CAIXA DE BUSCA (ainda estática) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              {/* Busca livre (ainda fake) */}
+              {/* Busca livre */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Busca
@@ -285,7 +283,7 @@ export default function NauticaPage() {
                 />
               </div>
 
-              {/* Tipo de embarcação */}
+              {/* Tipo */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Tipo
@@ -315,7 +313,7 @@ export default function NauticaPage() {
                 </select>
               </div>
 
-              {/* Botão (fake) */}
+              {/* Botão fake */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -335,7 +333,7 @@ export default function NauticaPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS – AGORA COM LINK E FOTO REAL QUANDO HOUVER */}
+      {/* CATEGORIAS – CARDS COM FOTO E LINK PARA /nautica/lista */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
         {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
@@ -426,7 +424,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* EMBARCAÇÕES EM DESTAQUE (mesma lógica, só usando destaques) */}
+      {/* EMBARCAÇÕES EM DESTAQUE */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
@@ -467,6 +465,9 @@ export default function NauticaPage() {
                     ? item.imagens[0]
                     : null;
 
+                const finalidadeLabel =
+                  item.finalidade_nautica || item.finalidade || "";
+
                 return (
                   <Link
                     key={item.id}
@@ -503,9 +504,9 @@ export default function NauticaPage() {
                           {item.preco}
                         </p>
                       )}
-                      {(item.finalidade_nautica || item.finalidade) && (
+                      {finalidadeLabel && (
                         <p className="text-[10px] uppercase tracking-wide text-slate-500">
-                          {(item.finalidade_nautica || item.finalidade) as string}
+                          {finalidadeLabel}
                         </p>
                       )}
                     </div>
@@ -517,7 +518,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS – IGUAL VOCÊ JÁ TINHA */}
+      {/* LINKS ÚTEIS */}
       <section className="bg-slate-50 py-8">
         <div className="max-w-6xl mx-auto px-4 space-y-4">
           <h2 className="text-sm font-semibold text-slate-800">
@@ -558,7 +559,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* CHAMADA FINAL – IGUAL A SUA, SÓ AJUSTADO TEXTO */}
+      {/* CHAMADA FINAL */}
       <section className="bg-slate-50 pb-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="rounded-3xl bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 border border-slate-800 px-6 py-7 text-center text-white">
