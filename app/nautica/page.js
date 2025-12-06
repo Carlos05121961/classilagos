@@ -23,15 +23,19 @@ const cidades = [
   "Rio das Ostras",
 ];
 
-const tiposEmbarcacao = [
+const subcategoriasNautica = [
   "Lancha",
   "Veleiro",
   "Jetski",
   "Barco de pesca",
   "Stand-up / Caiaque",
+  "Motores & equipamentos",
+  "Peças & acessórios",
   "Vaga em marina",
   "Serviços náuticos",
+  "Outros",
 ];
+
 
 // CATEGORIAS -> slug + href (para /nautica/lista)
 const categoriasLinha1 = [
