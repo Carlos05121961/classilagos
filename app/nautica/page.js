@@ -29,33 +29,34 @@ const tiposEmbarcacao = [
   "Jetski",
   "Barco de pesca",
   "Stand-up / Caiaque",
-  "Vaga em marina",
-  "Serviços náuticos",
-  "Peças & acessórios",
   "Motores & equipamentos",
+  "Peças & acessórios",
+  "Vaga em marina / guardaria",
+  "Serviços náuticos",
+  "Outros",
 ];
 
-// CATEGORIAS -> slug + href (para /nautica/lista)
+// CATEGORIAS – slugs + links
 const categoriasLinha1 = [
   {
     nome: "Lanchas e veleiros à venda",
-    slug: "lanchas-veleiros-venda",
-    href: "/nautica/lista?finalidade=venda",
+    slug: "lanchas-veleiros",
+    href: "/nautica/lista?grupo=lanchas-veleiros&finalidade=venda",
   },
   {
     nome: "Jetski, stand-up & caiaques",
     slug: "jetski-caiaques",
-    href: "/nautica/lista?tipo=Jetski",
+    href: "/nautica/lista?grupo=jetski-caiaques",
   },
   {
     nome: "Barcos de pesca",
     slug: "barcos-pesca",
-    href: "/nautica/lista?tipo=Barco%20de%20pesca",
+    href: "/nautica/lista?grupo=barcos-pesca",
   },
   {
     nome: "Motores & equipamentos",
     slug: "motores-equipamentos",
-    href: "/nautica/lista?tipo=Motores%20&%20equipamentos",
+    href: "/nautica/lista?grupo=motores-equipamentos",
   },
 ];
 
@@ -68,23 +69,23 @@ const categoriasLinha2 = [
   {
     nome: "Marinas & guardarias",
     slug: "marinas-guardarias",
-    href: "/nautica/lista?tipo=Vaga%20em%20marina",
+    href: "/nautica/lista?grupo=marinas-guardarias",
   },
   {
     nome: "Serviços náuticos",
     slug: "servicos-nauticos",
-    href: "/nautica/lista?tipo=Serviços%20náuticos",
+    href: "/nautica/lista?grupo=servicos-nauticos",
   },
   {
     nome: "Peças & acessórios",
     slug: "pecas-acessorios",
-    href: "/nautica/lista?tipo=Peças%20&%20acessórios",
+    href: "/nautica/lista?grupo=pecas-acessorios",
   },
 ];
 
 export default function NauticaPage() {
   const [currentHero, setCurrentHero] = useState(0);
-  const [anuncios, setAnuncios] = useState<any[]>([]);
+  const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
   // Troca de foto do hero
@@ -104,7 +105,6 @@ export default function NauticaPage() {
           "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, status, categoria"
         )
         .eq("categoria", "nautica")
-        // mostra tanto status = 'ativo' quanto status NULL
         .or("status.eq.ativo,status.is.null")
         .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
@@ -123,16 +123,18 @@ export default function NauticaPage() {
   }, []);
 
   // Escolhe um anúncio para representar cada card de categoria
-  function escolherAnuncioParaCard(slug: string) {
+  function escolherAnuncioParaCard(slug) {
     if (!anuncios || anuncios.length === 0) return null;
 
     let filtrados = [...anuncios];
 
+    const norm = (s) => (s || "").toLowerCase();
+
     switch (slug) {
-      case "lanchas-veleiros-venda":
+      case "lanchas-veleiros":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
-          const fin = (a.finalidade_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
+          const fin = norm(a.finalidade_nautica);
           return (
             fin === "venda" &&
             (sub.includes("lancha") || sub.includes("veleiro"))
@@ -142,7 +144,7 @@ export default function NauticaPage() {
 
       case "jetski-caiaques":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
           return (
             sub.includes("jet") ||
             sub.includes("ski") ||
@@ -154,44 +156,58 @@ export default function NauticaPage() {
         break;
 
       case "barcos-pesca":
-        filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return sub.includes("pesca");
-        });
+        filtrados = filtrados.filter((a) =>
+          norm(a.subcategoria_nautica).includes("pesca")
+        );
         break;
 
       case "motores-equipamentos":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
           if (!sub || sub === "outros") return false;
-
-          // Prioriza subcategoria exata
-          if (sub === "motores & equipamentos") return true;
-
-          // Fallback: qualquer coisa claramente de motor
           if (sub.includes("motor")) return true;
-
+          if (sub.includes("equip")) return true;
+          if (sub === "motores & equipamentos") return true;
           return false;
         });
         break;
 
       case "aluguel-embarcacoes":
         filtrados = filtrados.filter((a) => {
-          const fin = (a.finalidade_nautica || "").toLowerCase();
-          return fin === "aluguel";
+          const fin = norm(a.finalidade_nautica);
+          const sub = norm(a.subcategoria_nautica);
+
+          if (fin !== "aluguel") return false;
+
+          // opcional: evita repetir jetski/standup/marina/serviço aqui
+          if (
+            sub.includes("jet") ||
+            sub.includes("ski") ||
+            sub.includes("stand-up") ||
+            sub.includes("stand up") ||
+            sub.includes("caiaque") ||
+            sub.includes("vaga") ||
+            sub.includes("marina") ||
+            sub.includes("serviço") ||
+            sub.includes("servico")
+          ) {
+            return false;
+          }
+
+          return true;
         });
         break;
 
       case "marinas-guardarias":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
           return sub.includes("marina") || sub.includes("guardaria");
         });
         break;
 
       case "servicos-nauticos":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
           return (
             sub.includes("serviço") ||
             sub.includes("servico") ||
@@ -204,14 +220,11 @@ export default function NauticaPage() {
 
       case "pecas-acessorios":
         filtrados = filtrados.filter((a) => {
-          const sub = (a.subcategoria_nautica || "").toLowerCase();
+          const sub = norm(a.subcategoria_nautica);
           if (!sub || sub === "outros") return false;
-
-          // Prioriza subcategoria exata
           if (sub === "peças & acessórios" || sub === "pecas & acessorios") {
             return true;
           }
-
           if (
             sub.includes("peça") ||
             sub.includes("peca") ||
@@ -219,7 +232,6 @@ export default function NauticaPage() {
           ) {
             return true;
           }
-
           return false;
         });
         break;
@@ -234,7 +246,7 @@ export default function NauticaPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Lista de destaques (igual Imóveis / Veículos)
+  // Lista de anúncios recentes (ou destaques)
   const destaques = (() => {
     if (!anuncios || anuncios.length === 0) return [];
     const soDestaques = anuncios.filter((a) => a.destaque === true);
@@ -274,8 +286,8 @@ export default function NauticaPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-              Encontre lanchas, veleiros, jetski, motores e serviços náuticos em
-              toda a Região dos Lagos.
+              Encontre lanchas, veleiros, jetski, motores e serviços náuticos
+              em toda a Região dos Lagos.
             </p>
 
             <h1 className="mt-1 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]">
@@ -358,7 +370,7 @@ export default function NauticaPage() {
         {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
-            const anuncio: any = escolherAnuncioParaCard(cat.slug);
+            const anuncio = escolherAnuncioParaCard(cat.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
@@ -402,7 +414,7 @@ export default function NauticaPage() {
         {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {categoriasLinha2.map((cat) => {
-            const anuncio: any = escolherAnuncioParaCard(cat.slug);
+            const anuncio = escolherAnuncioParaCard(cat.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
@@ -479,7 +491,7 @@ export default function NauticaPage() {
 
           {!loadingAnuncios && destaques.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-              {destaques.map((item: any) => {
+              {destaques.map((item) => {
                 const img =
                   Array.isArray(item.imagens) && item.imagens.length > 0
                     ? item.imagens[0]
@@ -584,7 +596,7 @@ export default function NauticaPage() {
           </div>
         </div>
       </section>
-      {/* Depois daqui entra só o footer global com os peixinhos */}
+      {/* Daqui pra baixo entra só o footer global com os peixinhos */}
     </main>
   );
 }
