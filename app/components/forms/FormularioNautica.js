@@ -95,15 +95,17 @@ export default function FormularioNautica() {
   ];
 
   const subcategoriasNautica = [
-    "Lancha",
-    "Veleiro",
-    "Jetski",
-    "Barco de pesca",
-    "Stand-up / Caiaque",
-    "Vaga em marina",
-    "Serviços náuticos",
-    "Outros",
-  ];
+  "Lancha",
+  "Veleiro",
+  "Jetski",
+  "Barco de pesca",
+  "Stand-up / Caiaque",
+  "Motores & equipamentos",
+  "Peças & acessórios",
+  "Vaga em marina / guardaria",
+  "Serviços náuticos",
+  "Outros",
+];
 
   const finalidadesNautica = [
     { value: "venda", label: "Venda" },
