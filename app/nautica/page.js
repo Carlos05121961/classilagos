@@ -247,13 +247,9 @@ export default function NauticaPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Lista de anúncios recentes (ou destaques)
-  const destaques = (() => {
-    if (!anuncios || anuncios.length === 0) return [];
-    const soDestaques = anuncios.filter((a) => a.destaque === true);
-    if (soDestaques.length > 0) return soDestaques.slice(0, 12);
-    return anuncios.slice(0, 12);
-  })();
+  // Anúncios recentes (simples: sempre os mais novos)
+  const destaques = anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
+
 
   return (
     <main className="bg-white min-h-screen">
