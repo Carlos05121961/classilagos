@@ -96,19 +96,18 @@ export default function NauticaPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Buscar anúncios de náutica no Supabase
+   // Buscar anúncios de náutica no Supabase
   useEffect(() => {
     const fetchAnuncios = async () => {
+      setLoadingAnuncios(true);
+
       const { data, error } = await supabase
         .from("anuncios")
         .select(
           "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, status, categoria"
         )
         .eq("categoria", "nautica")
-        .or("status.eq.ativo,status.is.null")
-        .order("destaque", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(40);
+        .order("created_at", { ascending: false }); // do mais novo pro mais antigo
 
       if (error) {
         console.error("Erro ao carregar anúncios de náutica:", error);
@@ -116,11 +115,13 @@ export default function NauticaPage() {
       } else {
         setAnuncios(data || []);
       }
+
       setLoadingAnuncios(false);
     };
 
     fetchAnuncios();
   }, []);
+
 
   // Escolhe um anúncio para representar cada card de categoria
   function escolherAnuncioParaCard(slug) {
