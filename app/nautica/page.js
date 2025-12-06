@@ -29,13 +29,11 @@ const tiposEmbarcacao = [
   "Jetski",
   "Barco de pesca",
   "Stand-up / Caiaque",
-  "Motores & equipamentos",
-  "Peças & acessórios",
   "Vaga em marina",
   "Serviços náuticos",
-  "Outros",
+  "Peças & acessórios",
+  "Motores & equipamentos",
 ];
-
 
 // CATEGORIAS -> slug + href (para /nautica/lista)
 const categoriasLinha1 = [
@@ -57,7 +55,7 @@ const categoriasLinha1 = [
   {
     nome: "Motores & equipamentos",
     slug: "motores-equipamentos",
-    href: "/nautica/lista?tipo=Outros",
+    href: "/nautica/lista?tipo=Motores%20&%20equipamentos",
   },
 ];
 
@@ -80,34 +78,37 @@ const categoriasLinha2 = [
   {
     nome: "Peças & acessórios",
     slug: "pecas-acessorios",
-    href: "/nautica/lista?tipo=Outros",
+    href: "/nautica/lista?tipo=Peças%20&%20acessórios",
   },
 ];
 
 export default function NauticaPage() {
   const [currentHero, setCurrentHero] = useState(0);
-  const [anuncios, setAnuncios] = useState([]);
+  const [anuncios, setAnuncios] = useState<any[]>([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
   // Troca de foto do hero
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
+    const interval = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
-  // Buscar TODOS anúncios de náutica no Supabase
+  // Buscar anúncios de náutica no Supabase
   useEffect(() => {
     const fetchAnuncios = async () => {
       const { data, error } = await supabase
         .from("anuncios")
-        .select("*")
+        .select(
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, status, categoria"
+        )
         .eq("categoria", "nautica")
+        // mostra tanto status = 'ativo' quanto status NULL
+        .or("status.eq.ativo,status.is.null")
         .order("destaque", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(60);
+        .limit(40);
 
       if (error) {
         console.error("Erro ao carregar anúncios de náutica:", error);
@@ -122,7 +123,7 @@ export default function NauticaPage() {
   }, []);
 
   // Escolhe um anúncio para representar cada card de categoria
-  function escolherAnuncioParaCard(slug) {
+  function escolherAnuncioParaCard(slug: string) {
     if (!anuncios || anuncios.length === 0) return null;
 
     let filtrados = [...anuncios];
@@ -162,7 +163,15 @@ export default function NauticaPage() {
       case "motores-equipamentos":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return sub.includes("motor") || sub.includes("equip");
+          if (!sub || sub === "outros") return false;
+
+          // Prioriza subcategoria exata
+          if (sub === "motores & equipamentos") return true;
+
+          // Fallback: qualquer coisa claramente de motor
+          if (sub.includes("motor")) return true;
+
+          return false;
         });
         break;
 
@@ -196,9 +205,22 @@ export default function NauticaPage() {
       case "pecas-acessorios":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_nautica || "").toLowerCase();
-          return (
-            sub.includes("peça") || sub.includes("peca") || sub.includes("acess")
-          );
+          if (!sub || sub === "outros") return false;
+
+          // Prioriza subcategoria exata
+          if (sub === "peças & acessórios" || sub === "pecas & acessorios") {
+            return true;
+          }
+
+          if (
+            sub.includes("peça") ||
+            sub.includes("peca") ||
+            sub.includes("acess")
+          ) {
+            return true;
+          }
+
+          return false;
         });
         break;
 
@@ -212,8 +234,13 @@ export default function NauticaPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Lista de anúncios para o grid de baixo – TODOS os anúncios retornados
-  const anunciosRecentes = anuncios || [];
+  // Lista de destaques (igual Imóveis / Veículos)
+  const destaques = (() => {
+    if (!anuncios || anuncios.length === 0) return [];
+    const soDestaques = anuncios.filter((a) => a.destaque === true);
+    if (soDestaques.length > 0) return soDestaques.slice(0, 12);
+    return anuncios.slice(0, 12);
+  })();
 
   return (
     <main className="bg-white min-h-screen">
@@ -247,8 +274,8 @@ export default function NauticaPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-              Encontre lanchas, veleiros, jetski, motores e serviços náuticos
-              em toda a Região dos Lagos.
+              Encontre lanchas, veleiros, jetski, motores e serviços náuticos em
+              toda a Região dos Lagos.
             </p>
 
             <h1 className="mt-1 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]">
@@ -331,7 +358,7 @@ export default function NauticaPage() {
         {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const anuncio: any = escolherAnuncioParaCard(cat.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
@@ -375,7 +402,7 @@ export default function NauticaPage() {
         {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {categoriasLinha2.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const anuncio: any = escolherAnuncioParaCard(cat.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
@@ -417,7 +444,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* LISTA DE ANÚNCIOS RECENTES */}
+      {/* ANÚNCIOS RECENTES DE NÁUTICA */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
@@ -427,9 +454,9 @@ export default function NauticaPage() {
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
                 ? "Carregando anúncios..."
-                : anunciosRecentes.length === 0
+                : destaques.length === 0
                 ? "Nenhum anúncio cadastrado ainda."
-                : `${anunciosRecentes.length} anúncio(s)`}
+                : `${destaques.length} anúncio(s)`}
             </span>
           </div>
 
@@ -437,18 +464,22 @@ export default function NauticaPage() {
             <p className="text-xs text-slate-500">Buscando anúncios…</p>
           )}
 
-          {!loadingAnuncios && anunciosRecentes.length === 0 && (
+          {!loadingAnuncios && destaques.length === 0 && (
             <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
               Ainda não há anúncios de náutica cadastrados.
               <br />
-              Em breve, as primeiras lanchas, veleiros e passeios vão aparecer
-              aqui.
+              <Link
+                href="/anunciar?tipo=nautica"
+                className="inline-flex mt-3 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700"
+              >
+                Seja o primeiro a anunciar sua embarcação
+              </Link>
             </div>
           )}
 
-          {!loadingAnuncios && anunciosRecentes.length > 0 && (
+          {!loadingAnuncios && destaques.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-              {anunciosRecentes.map((item) => {
+              {destaques.map((item: any) => {
                 const img =
                   Array.isArray(item.imagens) && item.imagens.length > 0
                     ? item.imagens[0]
@@ -506,7 +537,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA – FICA COLADO NO FOOTER */}
+      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA */}
       <section className="bg-slate-950 text-white py-10">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-base md:text-lg font-semibold mb-2">
@@ -553,8 +584,7 @@ export default function NauticaPage() {
           </div>
         </div>
       </section>
-
-      {/* ❌ CTA "Anuncie na Náutica grátis" foi removido de propósito */}
+      {/* Depois daqui entra só o footer global com os peixinhos */}
     </main>
   );
 }
