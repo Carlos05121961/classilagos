@@ -17,13 +17,43 @@ function ListaNauticaContent() {
   const tipo = params.get("tipo") || "";
   const finalidade = params.get("finalidade") || "";
   const subcategoria = params.get("subcategoria") || "";
+  const grupo = params.get("grupo") || "";
 
   // 🔎 TÍTULO DA LISTA
   let tituloPagina = "Anúncios náuticos";
 
-  if (finalidade) tituloPagina = `Náutica — ${finalidade}`;
-  if (tipo) tituloPagina = `Náutica — ${tipo}`;
-  if (subcategoria) tituloPagina = `Náutica — ${subcategoria}`;
+  if (grupo) {
+    switch (grupo) {
+      case "lanchas-veleiros":
+        tituloPagina = "Lanchas e veleiros à venda";
+        break;
+      case "jetski-caiaques":
+        tituloPagina = "Jetski, stand-up & caiaques";
+        break;
+      case "barcos-pesca":
+        tituloPagina = "Barcos de pesca";
+        break;
+      case "motores-equipamentos":
+        tituloPagina = "Motores & equipamentos";
+        break;
+      case "marinas-guardarias":
+        tituloPagina = "Marinas & guardarias";
+        break;
+      case "servicos-nauticos":
+        tituloPagina = "Serviços náuticos";
+        break;
+      case "pecas-acessorios":
+        tituloPagina = "Peças & acessórios";
+        break;
+      default:
+        tituloPagina = "Anúncios náuticos";
+        break;
+    }
+  } else {
+    if (finalidade) tituloPagina = `Náutica — ${finalidade}`;
+    if (tipo) tituloPagina = `Náutica — ${tipo}`;
+    if (subcategoria) tituloPagina = `Náutica — ${subcategoria}`;
+  }
 
   useEffect(() => {
     const carregar = async () => {
@@ -37,25 +67,127 @@ function ListaNauticaContent() {
         .eq("categoria", "nautica")
         .order("created_at", { ascending: false });
 
-      // Aplica filtros reais
-      if (tipo) query = query.eq("subcategoria_nautica", tipo);
-      if (subcategoria) query = query.eq("subcategoria_nautica", subcategoria);
-      if (finalidade) query = query.eq("finalidade_nautica", finalidade);
+      // Filtro direto por finalidade (ex.: aluguel)
+      if (finalidade) {
+        query = query.eq("finalidade_nautica", finalidade);
+      }
 
       const { data, error } = await query;
 
       if (error) {
         console.error("Erro ao carregar anúncios de náutica:", error);
         setAnuncios([]);
-      } else {
-        setAnuncios(data || []);
+        setLoading(false);
+        return;
       }
 
+      let filtrados = data || [];
+      const norm = (s) => (s || "").toLowerCase();
+
+      if (grupo) {
+        switch (grupo) {
+          case "lanchas-veleiros":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              const fin = norm(a.finalidade_nautica);
+              return (
+                fin === "venda" &&
+                (sub.includes("lancha") || sub.includes("veleiro"))
+              );
+            });
+            break;
+
+          case "jetski-caiaques":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              return (
+                sub.includes("jet") ||
+                sub.includes("ski") ||
+                sub.includes("stand-up") ||
+                sub.includes("stand up") ||
+                sub.includes("caiaque")
+              );
+            });
+            break;
+
+          case "barcos-pesca":
+            filtrados = filtrados.filter((a) =>
+              norm(a.subcategoria_nautica).includes("pesca")
+            );
+            break;
+
+          case "motores-equipamentos":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              if (!sub || sub === "outros") return false;
+              if (sub === "motores & equipamentos") return true;
+              if (sub.includes("motor")) return true;
+              if (sub.includes("equip")) return true;
+              return false;
+            });
+            break;
+
+          case "marinas-guardarias":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              return sub.includes("marina") || sub.includes("guardaria");
+            });
+            break;
+
+          case "servicos-nauticos":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              return (
+                sub.includes("serviço") ||
+                sub.includes("servico") ||
+                sub.includes("manutenção") ||
+                sub.includes("manutencao") ||
+                sub.includes("reforma")
+              );
+            });
+            break;
+
+          case "pecas-acessorios":
+            filtrados = filtrados.filter((a) => {
+              const sub = norm(a.subcategoria_nautica);
+              if (!sub || sub === "outros") return false;
+              if (sub === "peças & acessórios" || sub === "pecas & acessorios")
+                return true;
+              if (
+                sub.includes("peça") ||
+                sub.includes("peca") ||
+                sub.includes("acess")
+              )
+                return true;
+              return false;
+            });
+            break;
+
+          default:
+            break;
+        }
+      } else {
+        // Compatibilidade com filtros antigos por tipo / subcategoria exata
+        if (tipo) {
+          const t = tipo.toLowerCase();
+          filtrados = filtrados.filter(
+            (a) => norm(a.subcategoria_nautica) === t
+          );
+        }
+        if (subcategoria) {
+          const s = subcategoria.toLowerCase();
+          filtrados = filtrados.filter(
+            (a) => norm(a.subcategoria_nautica) === s
+          );
+        }
+      }
+
+      setAnuncios(filtrados);
       setLoading(false);
     };
 
     carregar();
-  }, [tipo, finalidade, subcategoria]);
+  }, [tipo, finalidade, subcategoria, grupo]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -70,8 +202,8 @@ function ListaNauticaContent() {
               {tituloPagina}
             </h1>
             <p className="text-xs md:text-sm text-slate-600 mt-1">
-              Embarcações, motores, serviços e equipamentos náuticos na
-              Região dos Lagos.
+              Embarcações, motores, serviços e equipamentos náuticos na Região
+              dos Lagos.
             </p>
           </div>
 
