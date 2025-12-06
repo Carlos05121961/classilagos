@@ -23,7 +23,7 @@ const cidades = [
   "Rio das Ostras",
 ];
 
-const subcategoriasNautica = [
+const tiposEmbarcacao = [
   "Lancha",
   "Veleiro",
   "Jetski",
