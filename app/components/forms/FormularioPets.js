@@ -49,7 +49,14 @@ export default function FormularioPets() {
     "Rio das Ostras",
   ];
 
-  const subcategoriasPets = ["Animais", "Acessórios", "Serviços pet"];
+  const subcategoriasPets = [
+  "Animais",
+  "Acessórios",
+  "Serviços pet",
+  "Adoção / Doação",
+  "Achados e perdidos",
+];
+
 
   // Garante login
   useEffect(() => {
