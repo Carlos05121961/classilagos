@@ -5,14 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
-// Imagens do hero
 const heroImages = [
   "/pets/animal-01.jpg",
   "/pets/animal-02.jpg",
   "/pets/animal-03.jpg",
 ];
 
-// Cidades da região
+// CIDADES DA REGIÃO
 const cidades = [
   "Maricá",
   "Saquarema",
@@ -25,51 +24,54 @@ const cidades = [
   "Rio das Ostras",
 ];
 
-// Cards de categorias (1ª linha)
+// OPÇÕES DO SELECT "Tipo" (busca ainda é fake)
+const tiposPet = ["Animais", "Acessórios", "Serviços pet", "Outros pets"];
+
+// CARDS VISUAIS – LINHA 1
 const categoriasLinha1 = [
   {
     nome: "Animais à venda",
     slug: "animais",
-    filtro: { subcategoria: "Animais" },
+    href: "/pets/lista?subcategoria=Animais",
   },
   {
     nome: "Acessórios",
     slug: "acessorios",
-    filtro: { subcategoria: "Acessórios" },
+    href: "/pets/lista?subcategoria=Acessórios",
   },
   {
     nome: "Serviços pet",
-    slug: "servicos",
-    filtro: { subcategoria: "Serviços pet" },
+    slug: "servicos-pet",
+    href: "/pets/lista?subcategoria=Serviços pet",
   },
   {
     nome: "Outros pets",
     slug: "outros",
-    filtro: { subcategoria: "Outros" },
+    href: "/pets/lista?subcategoria=Outros pets",
   },
 ];
 
-// 2ª linha (serviços mais detalhados)
+// CARDS VISUAIS – LINHA 2
 const categoriasLinha2 = [
   {
     nome: "Banho & tosa",
     slug: "banho-tosa",
-    filtro: { subcategoria: "Serviços pet", tipo: "Banho e tosa" },
+    href: "/pets/lista?subcategoria=Banho & tosa",
   },
   {
-    nome: "Veterinários",
+    nome: "Veterinários & clínicas",
     slug: "veterinarios",
-    filtro: { subcategoria: "Serviços pet", tipo: "Veterinário" },
+    href: "/pets/lista?subcategoria=Veterinário / Clínica",
   },
   {
-    nome: "Pet shops",
-    slug: "petshop",
-    filtro: { subcategoria: "Serviços pet", tipo: "Petshop" },
+    nome: "Hospedagem & hotel",
+    slug: "hospedagem",
+    href: "/pets/lista?subcategoria=Hospedagem / Hotel",
   },
   {
-    nome: "Adoção",
-    slug: "adocao",
-    filtro: { tipo: "Adoção" },
+    nome: "Passeios & dog walker",
+    slug: "passeios",
+    href: "/pets/lista?subcategoria=Passeios & dog walker",
   },
 ];
 
@@ -96,12 +98,25 @@ export default function PetsPage() {
         const { data, error } = await supabase
           .from("anuncios")
           .select(
-            "id, titulo, cidade, bairro, preco, imagens, subcategoria_pet, tipo_pet, status, categoria, created_at"
+            `
+            id,
+            titulo,
+            cidade,
+            bairro,
+            preco,
+            imagens,
+            subcategoria_pet,
+            tipo_pet,
+            tipo_imovel,
+            status,
+            categoria,
+            destaque,
+            created_at
+          `
           )
           .eq("categoria", "pets")
           .eq("status", "ativo")
-          .order("created_at", { ascending: false })
-          .limit(40);
+          .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
@@ -110,7 +125,7 @@ export default function PetsPage() {
           setAnuncios(data || []);
         }
       } catch (e) {
-        console.error("Erro inesperado ao carregar anúncios:", e);
+        console.error("Erro inesperado ao carregar anúncios de pets:", e);
         setAnuncios([]);
       } finally {
         setLoadingAnuncios(false);
@@ -120,75 +135,127 @@ export default function PetsPage() {
     fetchAnuncios();
   }, []);
 
-  // Anúncios recentes na grade inferior
-  const anunciosRecentes = anuncios.slice(0, 12);
+  // Normaliza string
+  const norm = (s) => (s || "").toLowerCase();
 
-  // Escolhe imagem para cada card
+  // Escolhe um anúncio para ilustrar cada card
   function escolherAnuncioParaCard(slug) {
     if (!anuncios || anuncios.length === 0) return null;
 
-    let filtrados = [];
+    let filtrados = [...anuncios];
 
     switch (slug) {
       case "animais":
-        filtrados = anuncios.filter((a) => a.subcategoria_pet === "Animais");
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel); // para anúncios antigos
+          return (
+            sub.includes("animal") ||
+            sub.includes("cachorro") ||
+            sub.includes("gato") ||
+            tipo.includes("animal") ||
+            tipoImovel.includes("animal") ||
+            tipoImovel.includes("animais")
+          );
+        });
         break;
 
       case "acessorios":
-        filtrados = anuncios.filter((a) => a.subcategoria_pet === "Acessórios");
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          const tipo = norm(a.tipo_pet);
+          return (
+            sub.includes("acess") ||
+            sub.includes("ração") ||
+            sub.includes("rações") ||
+            tipo.includes("acess")
+          );
+        });
         break;
 
-      case "servicos":
-        filtrados = anuncios.filter((a) => a.subcategoria_pet === "Serviços pet");
+      case "servicos-pet":
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          const tipo = norm(a.tipo_pet);
+          return (
+            sub.includes("serviço") ||
+            sub.includes("servico") ||
+            sub.includes("banho") ||
+            sub.includes("tosa") ||
+            sub.includes("hotel") ||
+            tipo.includes("serviço") ||
+            tipo.includes("servico")
+          );
+        });
+        break;
+
+      case "outros":
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          return sub.includes("outros") || sub.includes("outro");
+        });
         break;
 
       case "banho-tosa":
-        filtrados = anuncios.filter(
-          (a) =>
-            a.subcategoria_pet === "Serviços pet" &&
-            (a.tipo_pet || "").toLowerCase().includes("banho")
-        );
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          return sub.includes("banho") || sub.includes("tosa");
+        });
         break;
 
       case "veterinarios":
-        filtrados = anuncios.filter(
-          (a) =>
-            a.subcategoria_pet === "Serviços pet" &&
-            (a.tipo_pet || "").toLowerCase().includes("veterin")
-        );
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          return (
+            sub.includes("veterin") ||
+            sub.includes("clínica") ||
+            sub.includes("clinica")
+          );
+        });
         break;
 
-      case "petshop":
-        filtrados = anuncios.filter(
-          (a) =>
-            a.subcategoria_pet === "Serviços pet" &&
-            (a.tipo_pet || "").toLowerCase().includes("petshop")
-        );
+      case "hospedagem":
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          return sub.includes("hosped") || sub.includes("hotel");
+        });
         break;
 
-      case "adocao":
-        filtrados = anuncios.filter(
-          (a) => (a.tipo_pet || "").toLowerCase().includes("adoção")
-        );
+      case "passeios":
+        filtrados = filtrados.filter((a) => {
+          const sub = norm(a.subcategoria_pet);
+          return (
+            sub.includes("passeio") ||
+            sub.includes("dog walker") ||
+            sub.includes("dogwalker")
+          );
+        });
         break;
 
       default:
-        filtrados = [];
+        break;
     }
 
-    return filtrados.length > 0 ? filtrados[0] : null;
+    if (filtrados.length === 0) return null;
+
+    const emDestaque = filtrados.find((a) => a.destaque === true);
+    return emDestaque || filtrados[0];
   }
+
+  // Anúncios recentes (até 12)
+  const anunciosRecentes =
+    anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
 
   return (
     <main className="bg-white min-h-screen">
-
-      {/* BANNER NO TOPO */}
+      {/* BANNER FIXO NO TOPO */}
       <section className="w-full flex justify-center bg-slate-100 border-b py-3">
         <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow flex items-center justify-center overflow-hidden">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
             <Image
               src="/banners/anuncio-01.png"
-              alt="Anuncie no Classilagos"
+              alt="Anuncie para pets no Classilagos"
               fill
               sizes="900px"
               className="object-contain"
@@ -197,9 +264,9 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* HERO */}
+      {/* HERO – FOTO + TEXTO */}
       <section className="relative w-full">
-        <div className="relative w-full h-[260px] md:h-[380px] overflow-hidden">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
             key={heroImages[currentHero]}
             src={heroImages[currentHero]}
@@ -209,87 +276,175 @@ export default function PetsPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/70" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
-            <p className="text-sm font-medium drop-shadow">
-              Encontre animais, acessórios e serviços pet na Região dos Lagos
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/70" />
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+            <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
+              Encontre animais, acessórios, serviços pet e muito mais na Região
+              dos Lagos.
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold drop-shadow-lg mt-2">
+            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
               Classilagos – Pets
             </h1>
+            <p className="mt-2 text-[11px] sm:text-xs text-amber-100/90">
+              Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio,
+              Búzios e toda a região.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* CATEGORIAS */}
-      <section className="max-w-6xl mx-auto px-4 py-6">
+      {/* CAIXA DE BUSCA (AINDA FAKE) */}
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+              {/* Busca livre */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Busca
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: adoção de cachorro, banho e tosa, veterinário"
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-        {/* LINHA 1 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {/* Tipo */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Tipo
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Todos</option>
+                  {tiposPet.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Cidade */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Cidade
+                </label>
+                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Todas</option>
+                  {cidades.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Botão (ainda não busca de verdade) */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Em breve, essa busca estará ligada aos anúncios reais da
+            plataforma.
+          </p>
+        </div>
+      </section>
+
+      <div className="h-4 sm:h-6" />
+
+      {/* CATEGORIAS VISUAIS – LINHA 1 */}
+      <section className="max-w-6xl mx-auto px-4 pb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
-            const cardAnuncio = escolherAnuncioParaCard(cat.slug);
-            const capa = Array.isArray(cardAnuncio?.imagens)
-              ? cardAnuncio.imagens[0]
-              : null;
+            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const imagensValidas = Array.isArray(anuncio?.imagens)
+              ? anuncio.imagens
+              : [];
+            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
 
             return (
               <Link
                 key={cat.slug}
-                href={`/pets/lista?subcategoria=${encodeURIComponent(
-                  cat.filtro.subcategoria || ""
-                )}`}
-                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:shadow-md hover:-translate-y-0.5 transition"
+                href={cat.href}
+                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
               >
-                <div className="relative h-28 md:h-32 bg-slate-200 overflow-hidden">
+                <div className="relative h-24 md:h-28 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
                     <img
                       src={capa}
-                      className="w-full h-full object-cover group-hover:scale-105 transition"
+                      alt={anuncio?.titulo || cat.nome}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-[11px] text-slate-500">
-                      Em breve
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
+                      Em breve, anúncios aqui
                     </div>
                   )}
+                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
                 <div className="bg-slate-900 text-white px-3 py-2">
-                  <p className="text-xs font-semibold">{cat.nome}</p>
+                  <p className="text-xs md:text-sm font-semibold">
+                    {cat.nome}
+                  </p>
+                  {anuncio && (
+                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
+                      {anuncio.titulo} • {anuncio.cidade}
+                    </p>
+                  )}
                 </div>
               </Link>
             );
           })}
         </div>
 
-        {/* LINHA 2 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* CATEGORIAS VISUAIS – LINHA 2 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => {
-            const cardAnuncio = escolherAnuncioParaCard(cat.slug);
-            const capa = Array.isArray(cardAnuncio?.imagens)
-              ? cardAnuncio.imagens[0]
-              : null;
+            const anuncio = escolherAnuncioParaCard(cat.slug);
+            const imagensValidas = Array.isArray(anuncio?.imagens)
+              ? anuncio.imagens
+              : [];
+            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
 
             return (
               <Link
                 key={cat.slug}
-                href={`/pets/lista?subcategoria=${encodeURIComponent(
-                  cat.filtro.subcategoria || ""
-                )}&tipo=${encodeURIComponent(cat.filtro.tipo || "")}`}
-                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:shadow-md hover:-translate-y-0.5 transition"
+                href={cat.href}
+                className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
               >
-                <div className="relative h-28 md:h-32 bg-slate-200 overflow-hidden">
+                <div className="relative h-24 md:h-28 w-full bg-slate-400 overflow-hidden">
                   {capa ? (
                     <img
                       src={capa}
-                      className="w-full h-full object-cover group-hover:scale-105 transition"
+                      alt={anuncio?.titulo || cat.nome}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-[11px] text-slate-500">
-                      Em breve
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-700">
+                      Em breve, anúncios aqui
                     </div>
                   )}
+                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
                 <div className="bg-slate-900 text-white px-3 py-2">
-                  <p className="text-xs font-semibold">{cat.nome}</p>
+                  <p className="text-xs md:text-sm font-semibold">
+                    {cat.nome}
+                  </p>
+                  {anuncio && (
+                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
+                      {anuncio.titulo} • {anuncio.cidade}
+                    </p>
+                  )}
                 </div>
               </Link>
             );
@@ -297,21 +452,43 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ANÚNCIOS RECENTES */}
+      {/* ANÚNCIOS RECENTES DE PETS */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-base md:text-lg font-semibold text-slate-900 mb-2">
-            Anúncios recentes de pets
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900">
+              Anúncios recentes de pets
+            </h2>
+            <span className="text-[11px] text-slate-500">
+              {loadingAnuncios
+                ? "Carregando anúncios..."
+                : anunciosRecentes.length === 0
+                ? "Nenhum anúncio cadastrado ainda."
+                : `${anunciosRecentes.length} anúncio(s)`}
+            </span>
+          </div>
+
+          {loadingAnuncios && (
+            <p className="text-xs text-slate-500">Buscando anúncios…</p>
+          )}
 
           {!loadingAnuncios && anunciosRecentes.length === 0 && (
-            <p className="text-xs text-slate-500">Nenhum anúncio ainda.</p>
+            <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
+              Ainda não há anúncios de pets cadastrados.
+              <br />
+              <Link
+                href="/anunciar?tipo=pets"
+                className="inline-flex mt-3 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              >
+                Seja o primeiro a anunciar
+              </Link>
+            </div>
           )}
 
           {!loadingAnuncios && anunciosRecentes.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
               {anunciosRecentes.map((a) => {
-                const capa =
+                const img =
                   Array.isArray(a.imagens) && a.imagens.length > 0
                     ? a.imagens[0]
                     : null;
@@ -320,16 +497,17 @@ export default function PetsPage() {
                   <Link
                     key={a.id}
                     href={`/anuncios/${a.id}`}
-                    className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 overflow-hidden transition"
+                    className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
                   >
-                    <div className="relative h-28 md:h-32 bg-slate-200 overflow-hidden">
-                      {capa ? (
+                    <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                      {img ? (
                         <img
-                          src={capa}
+                          src={img}
+                          alt={a.titulo}
                           className="w-full h-full object-cover group-hover:scale-105 transition"
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full text-[11px] text-white bg-rose-400">
+                        <div className="w-full h-full flex items-center justify-center text-[11px] text-amber-50 bg-gradient-to-br from-amber-500 to-rose-500">
                           Sem foto
                         </div>
                       )}
@@ -340,7 +518,10 @@ export default function PetsPage() {
                         {a.titulo}
                       </p>
                       <p className="text-[10px] text-slate-300">
-                        {a.subcategoria_pet}
+                        {a.subcategoria_pet ||
+                          a.tipo_pet ||
+                          a.tipo_imovel ||
+                          ""}
                       </p>
                     </div>
                   </Link>
@@ -351,55 +532,61 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS — COLADO NO FOOTER */}
+      {/* LINKS ÚTEIS – COLADO NO FOOTER MARINHO */}
       <section className="bg-slate-900 py-8 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-sm font-semibold text-white mb-1">
             Links úteis para pets
           </h2>
           <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Guia rápido para cuidar dos seus animais na Região dos Lagos.
+            Use o Classilagos também como guia para cuidar bem dos seus animais
+            na Região dos Lagos.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">
                 Campanhas de vacinação
               </h3>
               <p className="text-[11px] text-slate-300">
-                Informações oficiais sobre vacinação antirrábica.
+                Informações sobre vacinação antirrábica e campanhas oficiais
+                nas cidades da região.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">
                 Centro de Zoonoses
               </h3>
               <p className="text-[11px] text-slate-300">
-                Endereços e telefones úteis para emergências.
+                Endereços e orientações sobre saúde pública, resgate e animais
+                em situação de rua.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">
-                ONGs & Adoção
+                ONGs e proteção animal
               </h3>
               <p className="text-[11px] text-slate-300">
-                Projetos de resgate e feiras de adoção na região.
+                Projetos de adoção, lares temporários e feiras de adoção na
+                Região dos Lagos.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">
-                Bem-estar animal
+                Dicas de bem-estar pet
               </h3>
               <p className="text-[11px] text-slate-300">
-                Conteúdos especiais sobre alimentação e cuidados pet.
+                Em breve, conteúdos especiais sobre alimentação, comportamento e
+                cuidados gerais.
               </p>
             </div>
           </div>
         </div>
       </section>
+      {/* Daqui pra baixo entra só o footer global com os peixinhos */}
     </main>
   );
 }
