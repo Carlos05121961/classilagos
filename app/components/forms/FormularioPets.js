@@ -95,12 +95,11 @@ export default function FormularioPets() {
       return;
     }
 
-    if (!subcategoria) {
-      setErro(
-        "Selecione o tipo de anúncio (Animais, Acessórios ou Serviços pet)."
-      );
-      return;
-    }
+if (!subcategoria) {
+  setErro("Selecione o tipo de anúncio para pets.");
+  return;
+}
+ 
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
