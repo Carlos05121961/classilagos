@@ -73,7 +73,7 @@ const categoriasLinha2 = [
 
 export default function PetsPage() {
   const [currentHero, setCurrentHero] = useState(0);
-  const [anuncios, setAnuncios] = useState([]);
+  const [anuncios, setAnuncios] = useState<any[]>([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
   // Troca das fotos do hero
@@ -96,8 +96,8 @@ export default function PetsPage() {
           .select(
             "id, titulo, cidade, bairro, preco, imagens, subcategoria_pet, tipo_pet, status, categoria, destaque, created_at"
           )
-          .eq("categoria", "pets")
-          .eq("status", "ativo")
+          // pega qualquer coisa cuja categoria contenha "pets" (maiúsculo/minúsculo tanto faz)
+          .ilike("categoria", "pets")
           .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(40);
@@ -123,7 +123,7 @@ export default function PetsPage() {
   const anunciosRecentes = anuncios.slice(0, 12);
 
   // Escolhe 1 anúncio para ilustrar cada card de categoria
-  function escolherAnuncioParaCard(slug) {
+  function escolherAnuncioParaCard(slug: string) {
     if (!anuncios || anuncios.length === 0) return null;
 
     let filtrados = [...anuncios];
@@ -146,7 +146,7 @@ export default function PetsPage() {
         filtrados = filtrados.filter((a) => {
           const tipo = (a.tipo_pet || "").toLowerCase();
           const sub = (a.subcategoria_pet || "").toLowerCase();
-          return tipo.includes("adoção") || sub.includes("adoção");
+          return tipo.includes("adoção") || tipo.includes("adocao") || sub.includes("adoção");
         });
         break;
 
@@ -156,6 +156,8 @@ export default function PetsPage() {
           return (
             sub.includes("ração") ||
             sub.includes("rações") ||
+            sub.includes("racao") ||
+            sub.includes("racoes") ||
             sub.includes("acess")
           );
         });
@@ -164,11 +166,14 @@ export default function PetsPage() {
       case "petshops-clinicas":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_pet || "").toLowerCase();
+          const tipo = (a.tipo_pet || "").toLowerCase();
           return (
             sub.includes("petshop") ||
             sub.includes("clínica") ||
             sub.includes("clinica") ||
-            sub.includes("veterin")
+            sub.includes("veterin") ||
+            tipo.includes("petshop") ||
+            tipo.includes("clinica")
           );
         });
         break;
@@ -177,28 +182,41 @@ export default function PetsPage() {
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_pet || "").toLowerCase();
           const tipo = (a.tipo_pet || "").toLowerCase();
-          return sub.includes("serviço") || sub.includes("servicos") || tipo.includes("serviço");
+          return (
+            sub.includes("serviço") ||
+            sub.includes("servicos") ||
+            sub.includes("serviço") ||
+            tipo.includes("serviço")
+          );
         });
         break;
 
       case "banho-tosa":
         filtrados = filtrados.filter((a) => {
+          const tipo = (a.tipo_pet || "").toLowerCase();
           const sub = (a.subcategoria_pet || "").toLowerCase();
-          return sub.includes("banho") || sub.includes("tosa");
+          return (
+            sub.includes("banho") ||
+            sub.includes("tosa") ||
+            tipo.includes("banho") ||
+            tipo.includes("tosa")
+          );
         });
         break;
 
       case "veterinarios":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_pet || "").toLowerCase();
-          return sub.includes("veterin");
+          const tipo = (a.tipo_pet || "").toLowerCase();
+          return sub.includes("veterin") || tipo.includes("veterin");
         });
         break;
 
       case "outros":
         filtrados = filtrados.filter((a) => {
           const sub = (a.subcategoria_pet || "").toLowerCase();
-          return sub.includes("outros") || sub.includes("outro");
+          const tipo = (a.tipo_pet || "").toLowerCase();
+          return sub.includes("outros") || sub.includes("outro") || tipo.includes("outro");
         });
         break;
 
@@ -241,21 +259,21 @@ export default function PetsPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
-              Encontre animais, acessórios, serviços pet e muito mais na Região
-              dos Lagos.
-            </p>
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-              Classilagos – Pets
-            </h1>
-            <p className="mt-2 text-[11px] sm:text-xs text-amber-100/90">
-              Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio,
-              Búzios e toda a região.
-            </p>
-          </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+          <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
+            Encontre animais, acessórios, serviços pet e muito mais na Região
+            dos Lagos.
+          </p>
+          <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+            Classilagos – Pets
+          </h1>
+          <p className="mt-2 text-[11px] sm:text-xs text-amber-100/90">
+            Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio,
+            Búzios e toda a região.
+          </p>
         </div>
       </section>
 
