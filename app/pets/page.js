@@ -73,7 +73,7 @@ const categoriasLinha2 = [
 
 export default function PetsPage() {
   const [currentHero, setCurrentHero] = useState(0);
-  const [anuncios, setAnuncios] = useState<any[]>([]);
+  const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
   // Troca das fotos do hero
