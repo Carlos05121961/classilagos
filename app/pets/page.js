@@ -27,7 +27,7 @@ const cidades = [
 // OPÇÕES DO SELECT "Tipo" (busca ainda é fake)
 const tiposPet = ["Animais", "Acessórios", "Serviços pet", "Outros pets"];
 
-// NORMALIZA STRING: tira acento e deixa minúscula
+// NORMALIZA STRING: tira acentos e deixa minúscula
 const norm = (s) =>
   (s || "")
     .normalize("NFD")
@@ -123,18 +123,26 @@ export default function PetsPage() {
             created_at
           `
           )
-          .eq("categoria", "pets")
           .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
           setAnuncios([]);
         } else {
-          // se quiser, aqui você pode filtrar só status "ativo"
-          const filtrados = (data || []).filter((a) => {
+          const todos = data || [];
+
+          // 1) garante que são da categoria pets (tolerante)
+          const soPets = todos.filter((a) => {
+            const cat = norm(a.categoria);
+            return cat.includes("pets");
+          });
+
+          // 2) filtra status (se vazio ou "ativo", entra)
+          const filtrados = soPets.filter((a) => {
             const st = norm(a.status);
             return !st || st === "ativo";
           });
+
           setAnuncios(filtrados);
         }
       } catch (e) {
@@ -159,7 +167,7 @@ export default function PetsPage() {
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
-          const tipoImovel = norm(a.tipo_imovel); // para anúncios antigos
+          const tipoImovel = norm(a.tipo_imovel); // para anúncios mais antigos
           return (
             sub.includes("animal") ||
             sub.includes("cachorro") ||
@@ -190,12 +198,14 @@ export default function PetsPage() {
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
           return (
             sub.includes("servico") ||
             sub.includes("banho") ||
             sub.includes("tosa") ||
             sub.includes("hotel") ||
-            tipo.includes("servico")
+            tipo.includes("servico") ||
+            tipoImovel.includes("servico")
           );
         });
         break;
@@ -205,6 +215,7 @@ export default function PetsPage() {
           const titulo = norm(a.titulo);
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
           const preco = norm(a.preco);
           return (
             titulo.includes("adoc") ||
@@ -213,6 +224,8 @@ export default function PetsPage() {
             sub.includes("doac") ||
             tipo.includes("adoc") ||
             tipo.includes("doac") ||
+            tipoImovel.includes("adoc") ||
+            tipoImovel.includes("doac") ||
             preco.includes("gratis") ||
             preco === "0" ||
             preco === "r$ 0"
@@ -223,17 +236,29 @@ export default function PetsPage() {
       case "banho-tosa":
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
-          return sub.includes("banho") || sub.includes("tosa");
+          const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
+          return (
+            sub.includes("banho") ||
+            sub.includes("tosa") ||
+            tipo.includes("banho") ||
+            tipo.includes("tosa") ||
+            tipoImovel.includes("banho") ||
+            tipoImovel.includes("tosa")
+          );
         });
         break;
 
       case "veterinarios":
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
+          const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
           return (
             sub.includes("veterin") ||
             sub.includes("clinica") ||
-            sub.includes("clinico")
+            tipo.includes("veterin") ||
+            tipoImovel.includes("veterin")
           );
         });
         break;
@@ -241,7 +266,16 @@ export default function PetsPage() {
       case "hospedagem":
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
-          return sub.includes("hosped") || sub.includes("hotel");
+          const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
+          return (
+            sub.includes("hosped") ||
+            sub.includes("hotel") ||
+            tipo.includes("hosped") ||
+            tipo.includes("hotel") ||
+            tipoImovel.includes("hosped") ||
+            tipoImovel.includes("hotel")
+          );
         });
         break;
 
@@ -250,6 +284,7 @@ export default function PetsPage() {
           const titulo = norm(a.titulo);
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
+          const tipoImovel = norm(a.tipo_imovel);
           return (
             titulo.includes("perdido") ||
             titulo.includes("desaparecido") ||
@@ -259,7 +294,9 @@ export default function PetsPage() {
             sub.includes("achado") ||
             sub.includes("perdido") ||
             tipo.includes("achado") ||
-            tipo.includes("perdido")
+            tipo.includes("perdido") ||
+            tipoImovel.includes("achado") ||
+            tipoImovel.includes("perdido")
           );
         });
         break;
@@ -295,7 +332,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* HERO – FOTO + TEXTO */}
+      {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -325,7 +362,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (AINDA FAKE) */}
+      {/* CAIXA DE BUSCA (FAKE) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -372,7 +409,7 @@ export default function PetsPage() {
                 </select>
               </div>
 
-              {/* Botão (ainda não busca de verdade) */}
+              {/* Botão fake */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -393,8 +430,9 @@ export default function PetsPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS VISUAIS – LINHA 1 */}
+      {/* CATEGORIAS VISUAIS */}
       <section className="max-w-6xl mx-auto px-4 pb-6">
+        {/* Linha 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -438,7 +476,7 @@ export default function PetsPage() {
           })}
         </div>
 
-        {/* CATEGORIAS VISUAIS – LINHA 2 */}
+        {/* Linha 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -483,8 +521,8 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ANÚNCIOS RECENTES DE PETS */}
-      <section className="bg.white pb-10">
+      {/* ANÚNCIOS RECENTES */}
+      <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
@@ -563,7 +601,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS – COLADO NO FOOTER MARINHO */}
+      {/* LINKS ÚTEIS */}
       <section className="bg-slate-900 py-8 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-sm font-semibold text-white mb-1">
@@ -617,7 +655,6 @@ export default function PetsPage() {
           </div>
         </div>
       </section>
-      {/* Daqui pra baixo entra só o footer global com os peixinhos */}
     </main>
   );
 }
