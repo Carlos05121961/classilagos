@@ -8,7 +8,11 @@ import { supabase } from "../../supabaseClient";
 
 function ListaPetsContent() {
   const searchParams = useSearchParams();
-  const categoriaFiltro = searchParams.get("categoria") || "";
+
+  // aceita tanto ?categoria=... quanto ?subcategoria=...
+  const categoriaParam = searchParams.get("categoria");
+  const subcategoriaParam = searchParams.get("subcategoria");
+  const categoriaFiltro = categoriaParam || subcategoriaParam || "";
 
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +26,7 @@ function ListaPetsContent() {
     const carregar = async () => {
       setLoading(true);
 
-      let query = supabase
+      let { data, error } = await supabase
         .from("anuncios")
         .select(
           `
@@ -43,8 +47,6 @@ function ListaPetsContent() {
         .eq("status", "ativo")
         .order("created_at", { ascending: false });
 
-      const { data, error } = await query;
-
       if (error) {
         console.error("Erro ao carregar anúncios de pets:", error);
         setAnuncios([]);
@@ -54,7 +56,7 @@ function ListaPetsContent() {
 
       let lista = data || [];
 
-      // se veio categoria=..., filtra por tipo_imovel exatamente igual
+      // se tiver categoria/subcategoria na URL, filtra pelo tipo_imovel
       if (categoriaFiltro) {
         lista = lista.filter((a) => a.tipo_imovel === categoriaFiltro);
       }
@@ -68,7 +70,7 @@ function ListaPetsContent() {
 
   return (
     <main className="bg-white min-h-screen">
-      {/* TOPO, igual padrão das outras listas */}
+      {/* TOPO (padrão das listas) */}
       <section className="border-b bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
