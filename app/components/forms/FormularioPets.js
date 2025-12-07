@@ -13,8 +13,8 @@ export default function FormularioPets() {
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Tipo de anúncio (categoria pet)
-  const [subcategoria, setSubcategoria] = useState("");
+  // Tipo de anúncio (simples)
+  const [subcategoria, setSubcategoria] = useState(""); // Animais / Acessórios / Serviços pet
 
   // Valor
   const [preco, setPreco] = useState("");
@@ -49,14 +49,7 @@ export default function FormularioPets() {
     "Rio das Ostras",
   ];
 
-  // 🔹 Agora com Adoção e Achados/Perdidos
-  const subcategoriasPets = [
-    "Animais",
-    "Acessórios",
-    "Serviços pet",
-    "Adoção",
-    "Achados e perdidos",
-  ];
+  const subcategoriasPets = ["Animais", "Acessórios", "Serviços pet"];
 
   // Garante login
   useEffect(() => {
@@ -67,18 +60,19 @@ export default function FormularioPets() {
     });
   }, [router]);
 
-  // ✅ Mantém arquivos já escolhidos e limita a 8
+  // ✅ ACUMULA ARQUIVOS ATÉ 8, NÃO APAGA OS ANTERIORES
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setArquivos((prev) => {
-      const combinado = [...prev, ...files];
-      const limitado = combinado.slice(0, 8);
+      const combinado = [...prev, ...files]; // junta o que já tinha com os novos
+      const limitado = combinado.slice(0, 8); // garante no máximo 8
       return limitado;
     });
   };
 
+  // ✅ FUNÇÃO NOVA: INSERE TAMBÉM subcategoria_pet e tipo_pet
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -95,7 +89,9 @@ export default function FormularioPets() {
     }
 
     if (!subcategoria) {
-      setErro("Selecione o tipo de anúncio para pets.");
+      setErro(
+        "Selecione o tipo de anúncio (Animais, Acessórios ou Serviços pet)."
+      );
       return;
     }
 
@@ -153,35 +149,40 @@ export default function FormularioPets() {
 
     const imagens = urlsUpload;
 
-    // 🔹 Aqui gravamos de forma amigável para a página /pets:
-    // - categoria = "pets"
-    // - subcategoria_pet e tipo_pet = subcategoria escolhida
-    // - tipo_imovel = subcategoria (compatibilidade com anúncios antigos)
+    // 👉 INSERT no Supabase
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "pets",
+
       titulo,
       descricao,
       cidade,
       bairro,
       preco,
       imagens,
-      video_url: videoUrl,
-      telefone,
-      whatsapp,
-      email,
+      video_url: videoUrl || null,
+
+      telefone: telefone || null,
+      whatsapp: whatsapp || null,
+      email: email || null,
       contato: contatoPrincipal,
-      subcategoria_pet: subcategoria,
-      tipo_pet: subcategoria,
-      tipo_imovel: subcategoria,
-      nome_contato: nomeContato,
+      nome_contato: nomeContato || null,
+
+      // campos específicos de pets
+      subcategoria_pet: subcategoria, // NOVO
+      tipo_pet: subcategoria,         // NOVO
+      tipo_imovel: subcategoria,      // compatibilidade com código antigo
+
       status: "ativo",
       destaque: false,
     });
 
     if (error) {
-      console.error(error);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+      console.error("Erro ao salvar anúncio de pets:", error);
+      setErro(
+        "Ocorreu um erro ao salvar o anúncio. Detalhes: " +
+          (error.message || JSON.stringify(error))
+      );
       return;
     }
 
