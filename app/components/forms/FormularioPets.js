@@ -13,8 +13,8 @@ export default function FormularioPets() {
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Tipo de anúncio (simples)
-  const [subcategoria, setSubcategoria] = useState(""); // Animais / Acessórios / Serviços pet
+  // Tipo de anúncio (categoria pet)
+  const [subcategoria, setSubcategoria] = useState("");
 
   // Valor
   const [preco, setPreco] = useState("");
@@ -49,7 +49,14 @@ export default function FormularioPets() {
     "Rio das Ostras",
   ];
 
-  const subcategoriasPets = ["Animais", "Acessórios", "Serviços pet"];
+  // 🔹 Agora com Adoção e Achados/Perdidos
+  const subcategoriasPets = [
+    "Animais",
+    "Acessórios",
+    "Serviços pet",
+    "Adoção",
+    "Achados e perdidos",
+  ];
 
   // Garante login
   useEffect(() => {
@@ -60,14 +67,14 @@ export default function FormularioPets() {
     });
   }, [router]);
 
-  // ✅ NOVA VERSÃO – ACUMULA ARQUIVOS ATÉ 8, NÃO APAGA OS ANTERIORES
+  // ✅ Mantém arquivos já escolhidos e limita a 8
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setArquivos((prev) => {
-      const combinado = [...prev, ...files]; // junta o que já tinha com os novos
-      const limitado = combinado.slice(0, 8); // garante no máximo 8
+      const combinado = [...prev, ...files];
+      const limitado = combinado.slice(0, 8);
       return limitado;
     });
   };
@@ -88,7 +95,7 @@ export default function FormularioPets() {
     }
 
     if (!subcategoria) {
-      setErro("Selecione o tipo de anúncio (Animais, Acessórios ou Serviços).");
+      setErro("Selecione o tipo de anúncio para pets.");
       return;
     }
 
@@ -146,6 +153,10 @@ export default function FormularioPets() {
 
     const imagens = urlsUpload;
 
+    // 🔹 Aqui gravamos de forma amigável para a página /pets:
+    // - categoria = "pets"
+    // - subcategoria_pet e tipo_pet = subcategoria escolhida
+    // - tipo_imovel = subcategoria (compatibilidade com anúncios antigos)
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "pets",
@@ -160,7 +171,9 @@ export default function FormularioPets() {
       whatsapp,
       email,
       contato: contatoPrincipal,
-      tipo_imovel: subcategoria, // aqui usamos como tipo do anúncio
+      subcategoria_pet: subcategoria,
+      tipo_pet: subcategoria,
+      tipo_imovel: subcategoria,
       nome_contato: nomeContato,
       status: "ativo",
       destaque: false,
