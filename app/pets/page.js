@@ -95,28 +95,15 @@ export default function PetsPage() {
       try {
         setLoadingAnuncios(true);
 
-        const { data, error } = await supabase
-          .from("anuncios")
-          .select(
-            `
-            id,
-            titulo,
-            cidade,
-            bairro,
-            preco,
-            imagens,
-            subcategoria_pet,
-            tipo_pet,
-            tipo_imovel,
-            status,
-            categoria,
-            destaque,
-            created_at
-          `
-          )
-          .eq("categoria", "pets")
-          .eq("status", "ativo")
-          .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+  .from("anuncios")
+  .select(
+    "id, titulo, cidade, bairro, preco, imagens, subcategoria_pet, tipo_pet, tipo_imovel, status, categoria, destaque, created_at"
+  )
+  .eq("categoria", "pets")
+  // por enquanto sem filtro de status pra garantir que venha algo
+  .order("created_at", { ascending: false });
+
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
