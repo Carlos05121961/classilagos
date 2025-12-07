@@ -52,51 +52,56 @@ const categoriasLinha2 = [
   { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
 ];
 
-/**
- * Monta o link para /imoveis/lista com os filtros certos
- * de acordo com o card clicado.
- *
- * Esses parâmetros serão lidos em app/imoveis/lista/page.js
- * via useSearchParams (finalidade, tipo, etc.).
- */
-function montarLinkLista(slug) {
+// MONTA O LINK CORRETO PARA CADA CARD
+function montarUrlDaCategoria(slug) {
+  const params = new URLSearchParams();
+
   switch (slug) {
     case "casas-venda":
-      // Finalidade venda + tipo CASA
-      return "/imoveis/lista?finalidade=venda&tipo=Casa";
+      params.set("finalidade", "venda");
+      params.set("tipo_imovel", "Casa");
+      break;
 
     case "apartamentos-venda":
-      // Finalidade venda + tipo APARTAMENTO
-      return "/imoveis/lista?finalidade=venda&tipo=Apartamento";
+      params.set("finalidade", "venda");
+      params.set("tipo_imovel", "Apartamento");
+      break;
 
     case "lancamentos":
-      // Lançamentos: você pode tratar como "últimos anúncios"
-      // lá na lista usando esse parâmetro.
-      return "/imoveis/lista?lancamentos=1";
+      // Por enquanto mostra todos de venda, ordenados pelos mais recentes
+      params.set("finalidade", "venda");
+      break;
 
     case "oportunidades":
-      // Oportunidades: imóveis em destaque (destaque = true)
-      return "/imoveis/lista?oportunidades=1";
+      // Mostra apenas anúncios em destaque
+      params.set("destaque", "1");
+      break;
 
     case "aluguel-residencial":
-      // Finalidade aluguel + residencial (não comercial)
-      return "/imoveis/lista?finalidade=aluguel&residencial=1";
+      // Mostra todos os imóveis de aluguel (residenciais + comerciais)
+      // Depois o usuário pode refinar no filtro
+      params.set("finalidade", "aluguel");
+      break;
 
     case "aluguel-comercial":
-      // Finalidade aluguel + comercial
-      return "/imoveis/lista?finalidade=aluguel&tipo=Comercial";
+      params.set("finalidade", "aluguel");
+      params.set("tipo_imovel", "Comercial");
+      break;
 
     case "temporada":
-      // Finalidade temporada
-      return "/imoveis/lista?finalidade=temporada";
+      params.set("finalidade", "temporada");
+      break;
 
     case "terrenos-lotes":
-      // Tipo terreno / lote
-      return "/imoveis/lista?tipo=Terreno%20/%20Lote";
+      params.set("tipo_imovel", "Terreno / Lote");
+      break;
 
     default:
-      return "/imoveis/lista";
+      break;
   }
+
+  const qs = params.toString();
+  return qs ? `/imoveis/lista?${qs}` : "/imoveis/lista";
 }
 
 export default function ImoveisPage() {
@@ -340,8 +345,7 @@ export default function ImoveisPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da
-            plataforma.
+            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
           </p>
         </div>
       </section>
@@ -357,12 +361,15 @@ export default function ImoveisPage() {
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
-            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
+            const capa =
+              imagensValidas.length > 0 ? imagensValidas[0] : null;
+
+            const hrefCategoria = montarUrlDaCategoria(cat.slug);
 
             return (
               <Link
                 key={cat.slug}
-                href={montarLinkLista(cat.slug)}
+                href={hrefCategoria}
                 className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
               >
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
@@ -400,12 +407,15 @@ export default function ImoveisPage() {
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
-            const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
+            const capa =
+              imagensValidas.length > 0 ? imagensValidas[0] : null;
+
+            const hrefCategoria = montarUrlDaCategoria(cat.slug);
 
             return (
               <Link
                 key={cat.slug}
-                href={montarLinkLista(cat.slug)}
+                href={hrefCategoria}
                 className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
               >
                 <div className="relative h-32 md:h-36 w-full bg-slate-400 overflow-hidden">
@@ -554,4 +564,3 @@ export default function ImoveisPage() {
     </main>
   );
 }
-
