@@ -72,7 +72,7 @@ export default function FormularioPets() {
     });
   };
 
-  // ✅ FUNÇÃO NOVA: INSERE TAMBÉM subcategoria_pet e tipo_pet
+  // ✅ ENVIO DO ANÚNCIO
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -149,7 +149,7 @@ export default function FormularioPets() {
 
     const imagens = urlsUpload;
 
-    // 👉 INSERT no Supabase
+    // 👉 INSERT no Supabase (SEM tipo_pet)
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
       categoria: "pets",
@@ -169,9 +169,9 @@ export default function FormularioPets() {
       nome_contato: nomeContato || null,
 
       // campos específicos de pets
-      subcategoria_pet: subcategoria, // NOVO
-      tipo_pet: subcategoria,         // NOVO
-      tipo_imovel: subcategoria,      // compatibilidade com código antigo
+      subcategoria_pet: subcategoria, // existe no banco
+      // tipo_pet removido — não existe na tabela
+      tipo_imovel: subcategoria, // compatibilidade com código antigo
 
       status: "ativo",
       destaque: false,
@@ -449,9 +449,9 @@ export default function FormularioPets() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que
-            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
-            e de acordo com os{" "}
+            Declaro que as informações deste anúncio são verdadeiras e que assumo
+            total responsabilidade pelo conteúdo publicado. Estou ciente e de
+            acordo com os{" "}
             <a
               href="/termos-de-uso"
               className="text-cyan-700 underline hover:text-cyan-800"
