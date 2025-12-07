@@ -45,6 +45,7 @@ export default function ListaImoveisPage() {
     finalidade: "",
     tipoImovel: "",
     cidade: "",
+    destaque: "", // novo
   });
 
   // Lê query params da URL no navegador (sem useSearchParams)
@@ -55,8 +56,9 @@ export default function ListaImoveisPage() {
     const finalidade = params.get("finalidade") || "";
     const tipoImovel = params.get("tipo_imovel") || params.get("tipo") || "";
     const cidade = params.get("cidade") || "";
+    const destaque = params.get("destaque") || "";
 
-    setFiltros({ finalidade, tipoImovel, cidade });
+    setFiltros({ finalidade, tipoImovel, cidade, destaque });
   }, []);
 
   // Busca imóveis sempre que os filtros mudarem
@@ -81,6 +83,13 @@ export default function ListaImoveisPage() {
         }
         if (filtros.cidade) {
           query = query.eq("cidade", filtros.cidade);
+        }
+        if (
+          filtros.destaque === "1" ||
+          filtros.destaque === "true" ||
+          filtros.destaque === "sim"
+        ) {
+          query = query.eq("destaque", true);
         }
 
         const { data, error } = await query;
@@ -107,12 +116,15 @@ export default function ListaImoveisPage() {
     }
     if (filtros.tipoImovel) partes.push(filtros.tipoImovel.toLowerCase());
     if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
+    if (
+      filtros.destaque === "1" ||
+      filtros.destaque === "true" ||
+      filtros.destaque === "sim"
+    ) {
+      partes.push("em destaque");
+    }
     if (partes.length === 0) return "Todos os imóveis cadastrados";
-    return (
-      "Filtrando: " +
-      partes.join(" ") +
-      (partes.length > 0 ? "." : "")
-    );
+    return "Filtrando: " + partes.join(" ") + (partes.length > 0 ? "." : "");
   })();
 
   function atualizarFiltro(campo, valor) {
@@ -199,7 +211,12 @@ export default function ListaImoveisPage() {
                 type="button"
                 className="w-full md:w-auto rounded-full bg-slate-900 text-white px-4 py-2 text-xs md:text-sm font-semibold hover:bg-slate-800"
                 onClick={() =>
-                  setFiltros({ finalidade: "", tipoImovel: "", cidade: "" })
+                  setFiltros({
+                    finalidade: "",
+                    tipoImovel: "",
+                    cidade: "",
+                    destaque: "",
+                  })
                 }
               >
                 Limpar filtros
