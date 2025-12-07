@@ -27,6 +27,13 @@ const cidades = [
 // OPÇÕES DO SELECT "Tipo" (busca ainda é fake)
 const tiposPet = ["Animais", "Acessórios", "Serviços pet", "Outros pets"];
 
+// NORMALIZA STRING: tira acento e deixa minúscula
+const norm = (s) =>
+  (s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 // CARDS VISUAIS – LINHA 1
 const categoriasLinha1 = [
   {
@@ -45,9 +52,10 @@ const categoriasLinha1 = [
     href: "/pets/lista?subcategoria=Serviços pet",
   },
   {
-    nome: "Outros pets",
-    slug: "outros",
-    href: "/pets/lista?subcategoria=Outros pets",
+    // TROCA: antes era "Outros pets"
+    nome: "Adoção de pets",
+    slug: "adocao",
+    href: "/pets/lista?subcategoria=Adocao",
   },
 ];
 
@@ -69,9 +77,10 @@ const categoriasLinha2 = [
     href: "/pets/lista?subcategoria=Hospedagem / Hotel",
   },
   {
-    nome: "Passeios & dog walker",
-    slug: "passeios",
-    href: "/pets/lista?subcategoria=Passeios & dog walker",
+    // TROCA: antes era "Passeios & dog walker"
+    nome: "Animais achados e perdidos",
+    slug: "achados-perdidos",
+    href: "/pets/lista?subcategoria=Achados e perdidos",
   },
 ];
 
@@ -95,21 +104,38 @@ export default function PetsPage() {
       try {
         setLoadingAnuncios(true);
 
-      const { data, error } = await supabase
-  .from("anuncios")
-  .select(
-    "id, titulo, cidade, bairro, preco, imagens, subcategoria_pet, tipo_pet, tipo_imovel, status, categoria, destaque, created_at"
-  )
-  .eq("categoria", "pets")
-  // por enquanto sem filtro de status pra garantir que venha algo
-  .order("created_at", { ascending: false });
-
+        const { data, error } = await supabase
+          .from("anuncios")
+          .select(
+            `
+            id,
+            titulo,
+            cidade,
+            bairro,
+            preco,
+            imagens,
+            subcategoria_pet,
+            tipo_pet,
+            tipo_imovel,
+            status,
+            categoria,
+            destaque,
+            created_at
+          `
+          )
+          .eq("categoria", "pets")
+          .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
           setAnuncios([]);
         } else {
-          setAnuncios(data || []);
+          // se quiser, aqui você pode filtrar só status "ativo"
+          const filtrados = (data || []).filter((a) => {
+            const st = norm(a.status);
+            return !st || st === "ativo";
+          });
+          setAnuncios(filtrados);
         }
       } catch (e) {
         console.error("Erro inesperado ao carregar anúncios de pets:", e);
@@ -121,9 +147,6 @@ export default function PetsPage() {
 
     fetchAnuncios();
   }, []);
-
-  // Normaliza string
-  const norm = (s) => (s || "").toLowerCase();
 
   // Escolhe um anúncio para ilustrar cada card
   function escolherAnuncioParaCard(slug) {
@@ -140,6 +163,7 @@ export default function PetsPage() {
           return (
             sub.includes("animal") ||
             sub.includes("cachorro") ||
+            sub.includes("cao") ||
             sub.includes("gato") ||
             tipo.includes("animal") ||
             tipoImovel.includes("animal") ||
@@ -153,9 +177,10 @@ export default function PetsPage() {
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
           return (
+            sub.includes("acessorio") ||
             sub.includes("acess") ||
-            sub.includes("ração") ||
-            sub.includes("rações") ||
+            sub.includes("racao") ||
+            sub.includes("racoes") ||
             tipo.includes("acess")
           );
         });
@@ -166,21 +191,32 @@ export default function PetsPage() {
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
           return (
-            sub.includes("serviço") ||
             sub.includes("servico") ||
             sub.includes("banho") ||
             sub.includes("tosa") ||
             sub.includes("hotel") ||
-            tipo.includes("serviço") ||
             tipo.includes("servico")
           );
         });
         break;
 
-      case "outros":
+      case "adocao":
         filtrados = filtrados.filter((a) => {
+          const titulo = norm(a.titulo);
           const sub = norm(a.subcategoria_pet);
-          return sub.includes("outros") || sub.includes("outro");
+          const tipo = norm(a.tipo_pet);
+          const preco = norm(a.preco);
+          return (
+            titulo.includes("adoc") ||
+            titulo.includes("doac") ||
+            sub.includes("adoc") ||
+            sub.includes("doac") ||
+            tipo.includes("adoc") ||
+            tipo.includes("doac") ||
+            preco.includes("gratis") ||
+            preco === "0" ||
+            preco === "r$ 0"
+          );
         });
         break;
 
@@ -196,8 +232,8 @@ export default function PetsPage() {
           const sub = norm(a.subcategoria_pet);
           return (
             sub.includes("veterin") ||
-            sub.includes("clínica") ||
-            sub.includes("clinica")
+            sub.includes("clinica") ||
+            sub.includes("clinico")
           );
         });
         break;
@@ -209,13 +245,21 @@ export default function PetsPage() {
         });
         break;
 
-      case "passeios":
+      case "achados-perdidos":
         filtrados = filtrados.filter((a) => {
+          const titulo = norm(a.titulo);
           const sub = norm(a.subcategoria_pet);
+          const tipo = norm(a.tipo_pet);
           return (
-            sub.includes("passeio") ||
-            sub.includes("dog walker") ||
-            sub.includes("dogwalker")
+            titulo.includes("perdido") ||
+            titulo.includes("desaparecido") ||
+            titulo.includes("procura se") ||
+            titulo.includes("procura-se") ||
+            titulo.includes("achado") ||
+            sub.includes("achado") ||
+            sub.includes("perdido") ||
+            tipo.includes("achado") ||
+            tipo.includes("perdido")
           );
         });
         break;
@@ -263,7 +307,7 @@ export default function PetsPage() {
             sizes="100vw"
             className="object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/65" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
@@ -440,7 +484,7 @@ export default function PetsPage() {
       </section>
 
       {/* ANÚNCIOS RECENTES DE PETS */}
-      <section className="bg-white pb-10">
+      <section className="bg.white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
