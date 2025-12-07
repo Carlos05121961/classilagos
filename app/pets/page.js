@@ -52,7 +52,6 @@ const categoriasLinha1 = [
     href: "/pets/lista?subcategoria=Serviços pet",
   },
   {
-    // TROCA: antes era "Outros pets"
     nome: "Adoção de pets",
     slug: "adocao",
     href: "/pets/lista?subcategoria=Adocao",
@@ -77,7 +76,6 @@ const categoriasLinha2 = [
     href: "/pets/lista?subcategoria=Hospedagem / Hotel",
   },
   {
-    // TROCA: antes era "Passeios & dog walker"
     nome: "Animais achados e perdidos",
     slug: "achados-perdidos",
     href: "/pets/lista?subcategoria=Achados e perdidos",
@@ -86,6 +84,8 @@ const categoriasLinha2 = [
 
 export default function PetsPage() {
   const [currentHero, setCurrentHero] = useState(0);
+
+  // Lista geral de anúncios de pets (para cards + destaques)
   const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
@@ -123,28 +123,31 @@ export default function PetsPage() {
             created_at
           `
           )
-          .order("created_at", { ascending: false });
+          .order("destaque", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(40);
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
           setAnuncios([]);
-        } else {
-          const todos = data || [];
-
-          // 1) garante que são da categoria pets (tolerante)
-          const soPets = todos.filter((a) => {
-            const cat = norm(a.categoria);
-            return cat.includes("pets");
-          });
-
-          // 2) filtra status (se vazio ou "ativo", entra)
-          const filtrados = soPets.filter((a) => {
-            const st = norm(a.status);
-            return !st || st === "ativo";
-          });
-
-          setAnuncios(filtrados);
+          return;
         }
+
+        const todos = data || [];
+
+        // 1) garante que são da categoria pets (tolerante)
+        const soPets = todos.filter((a) => {
+          const cat = norm(a.categoria);
+          return cat.includes("pets");
+        });
+
+        // 2) filtra status (se vazio ou "ativo", entra)
+        const filtrados = soPets.filter((a) => {
+          const st = norm(a.status);
+          return !st || st === "ativo";
+        });
+
+        setAnuncios(filtrados);
       } catch (e) {
         console.error("Erro inesperado ao carregar anúncios de pets:", e);
         setAnuncios([]);
@@ -156,7 +159,7 @@ export default function PetsPage() {
     fetchAnuncios();
   }, []);
 
-  // Escolhe um anúncio para ilustrar cada card
+  // Escolhe um anúncio para ilustrar cada card (igual conceito de Imóveis)
   function escolherAnuncioParaCard(slug) {
     if (!anuncios || anuncios.length === 0) return null;
 
@@ -167,7 +170,7 @@ export default function PetsPage() {
         filtrados = filtrados.filter((a) => {
           const sub = norm(a.subcategoria_pet);
           const tipo = norm(a.tipo_pet);
-          const tipoImovel = norm(a.tipo_imovel); // para anúncios mais antigos
+          const tipoImovel = norm(a.tipo_imovel); // anúncios antigos
           return (
             sub.includes("animal") ||
             sub.includes("cachorro") ||
@@ -311,9 +314,13 @@ export default function PetsPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Anúncios recentes (até 12)
-  const anunciosRecentes =
-    anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
+  // Lista de destaques (padrão igual Imóveis: até 8)
+  const listaDestaques = (() => {
+    if (!anuncios || anuncios.length === 0) return [];
+    const soDestaques = anuncios.filter((a) => a.destaque === true);
+    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
+    return anuncios.slice(0, 8);
+  })();
 
   return (
     <main className="bg-white min-h-screen">
@@ -422,8 +429,7 @@ export default function PetsPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da
-            plataforma.
+            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
           </p>
         </div>
       </section>
@@ -521,27 +527,18 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ANÚNCIOS RECENTES */}
+      {/* PETS EM DESTAQUE – anúncios reais do Supabase */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              Anúncios recentes de pets
-            </h2>
-            <span className="text-[11px] text-slate-500">
-              {loadingAnuncios
-                ? "Carregando anúncios..."
-                : anunciosRecentes.length === 0
-                ? "Nenhum anúncio cadastrado ainda."
-                : `${anunciosRecentes.length} anúncio(s)`}
-            </span>
-          </div>
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">
+            Pets em destaque
+          </h2>
 
-          {loadingAnuncios && (
-            <p className="text-xs text-slate-500">Buscando anúncios…</p>
-          )}
-
-          {!loadingAnuncios && anunciosRecentes.length === 0 && (
+          {loadingAnuncios ? (
+            <p className="text-xs text-slate-500">
+              Carregando anúncios de pets...
+            </p>
+          ) : listaDestaques.length === 0 ? (
             <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
               Ainda não há anúncios de pets cadastrados.
               <br />
@@ -552,46 +549,45 @@ export default function PetsPage() {
                 Seja o primeiro a anunciar
               </Link>
             </div>
-          )}
-
-          {!loadingAnuncios && anunciosRecentes.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-              {anunciosRecentes.map((a) => {
-                const img =
-                  Array.isArray(a.imagens) && a.imagens.length > 0
-                    ? a.imagens[0]
-                    : null;
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-2 text-xs">
+              {listaDestaques.map((a) => {
+                const imagens = Array.isArray(a.imagens) ? a.imagens : [];
+                const capa =
+                  imagens.length > 0 ? imagens[0] : "/pets/sem-foto.jpg";
 
                 return (
                   <Link
                     key={a.id}
                     href={`/anuncios/${a.id}`}
-                    className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
+                    className="group rounded-2xl border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-md transition overflow-hidden flex flex-col"
                   >
                     <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
-                      {img ? (
-                        <img
-                          src={img}
-                          alt={a.titulo}
-                          className="w-full h-full object-cover group-hover:scale-105 transition"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[11px] text-amber-50 bg-gradient-to-br from-amber-500 to-rose-500">
-                          Sem foto
-                        </div>
+                      <img
+                        src={capa}
+                        alt={a.titulo || "Pet"}
+                        className="w-full h-full object-cover group-hover:scale-105 transition"
+                      />
+                      {a.destaque && (
+                        <span className="absolute top-2 left-2 rounded-full bg-amber-500 text-[10px] font-semibold text-white px-2 py-1 shadow">
+                          Destaque
+                        </span>
                       )}
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] font-bold uppercase line-clamp-2">
+                      <p className="text-[11px] font-bold line-clamp-2">
                         {a.titulo}
                       </p>
                       <p className="text-[10px] text-slate-300">
-                        {a.subcategoria_pet ||
-                          a.tipo_pet ||
-                          a.tipo_imovel ||
-                          ""}
+                        {a.cidade}
+                        {a.bairro ? ` • ${a.bairro}` : ""}
                       </p>
+                      {a.preco && (
+                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
+                          {a.preco}
+                        </p>
+                      )}
                     </div>
                   </Link>
                 );
