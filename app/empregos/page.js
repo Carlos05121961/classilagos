@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image"; // <- IMPORT DA IMAGE
 import { supabase } from "../supabaseClient";
 
 export default function EmpregosPage() {
@@ -9,6 +10,18 @@ export default function EmpregosPage() {
   const [curriculosRecentes, setCurriculosRecentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
+
+  // HERO – alternando 2 imagens no topo (mesmo esquema antigo)
+  const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
+  const [currentHero, setCurrentHero] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(
+      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
+      6000
+    );
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -54,39 +67,31 @@ export default function EmpregosPage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* HERO PADRÃO CLASSILAGOS */}
-      <section className="bg-[#E6F4FF] border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-8 md:py-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-xl">
-            <p className="text-[11px] font-semibold text-cyan-700 uppercase tracking-wide">
-              Oportunidades para toda a Região dos Lagos
-            </p>
-            <h1 className="mt-1 text-2xl md:text-3xl font-black text-slate-900">
+      {/* HERO PRINCIPAL – VERSÃO COM FOTO DE FUNDO IGUAL AO ANTIGO */}
+      <section className="relative w-full">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
+          <Image
+            key={heroImages[currentHero]}
+            src={heroImages[currentHero]}
+            alt="Classilagos Empregos"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover transition-opacity duration-700"
+          />
+
+          {/* leve escurecida para o texto aparecer melhor */}
+          <div className="absolute inset-0 bg-black/10" />
+
+          {/* textos centralizados, como no hero antigo */}
+          <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-white">
+            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">
               Classilagos – Empregos
             </h1>
-            <p className="mt-2 text-xs md:text-sm text-slate-700">
-              Vagas de emprego, banco de currículos e oportunidades para
-              empresas, comércios e profissionais em todas as cidades da
-              região.
+            <p className="mt-2 text-xs md:text-sm text-slate-50 max-w-2xl drop-shadow">
+              Vagas de emprego, banco de currículos e oportunidades em toda a
+              Região dos Lagos.
             </p>
-
-            <div className="mt-4 grid gap-2 text-[11px] text-slate-700">
-              <p>• Vagas de emprego em diversas áreas</p>
-              <p>• Banco de currículos com candidatos da Região dos Lagos</p>
-              <p>• Espaço gratuito para empresas anunciarem suas vagas</p>
-            </div>
-          </div>
-
-          <div className="mt-2 md:mt-0">
-            <div className="rounded-3xl border border-cyan-200 bg-white px-5 py-4 shadow-sm text-[11px] text-slate-700 max-w-xs">
-              <p className="font-semibold text-cyan-700 mb-1">
-                Banco de talentos Classilagos
-              </p>
-              <p>
-                Mantenha seu currículo sempre atualizado e aumente suas chances
-                de ser encontrado pelas melhores empresas da região.
-              </p>
-            </div>
           </div>
         </div>
       </section>
