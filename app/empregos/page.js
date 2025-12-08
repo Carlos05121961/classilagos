@@ -6,23 +6,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 export default function EmpregosPage() {
-  /* HERO – alternando 2 imagens */
-  const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
-  const [currentHero, setCurrentHero] = useState(0);
-
   // Listas do Supabase
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [curriculosRecentes, setCurriculosRecentes] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingCurriculos, setLoadingCurriculos] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
-    return () => clearInterval(interval);
-  }, []);
 
   // Buscar vagas e currículos
   useEffect(() => {
@@ -77,37 +65,23 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* HERO PRINCIPAL */}
+      {/* HERO PRINCIPAL – imagem única com texto dentro da lupa */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
           <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Empregos"
+            src="/empregos/hero-empregos.png"
+            alt="VAGAS DE EMPREGOS, BANCO DE CURRÍCULOS E OPORTUNIDADES EM TODA A REGIÃO DOS LAGOS."
             fill
             priority
             sizes="100vw"
-            className="object-cover transition-opacity duration-700"
+            className="object-cover"
           />
-
-          <div className="absolute inset-0 bg-black/10" />
-
-          <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-black">
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">
-              Classilagos – Empregos
-            </h1>
-            <p className="mt-2 text-xs md:text-sm text-slate-50 max-w-2xl drop-shadow">
-              Vagas de emprego, banco de currículos e oportunidades em toda a Região
-              dos Lagos.
-            </p>
-          </div>
         </div>
       </section>
 
       {/* BOTÕES PRINCIPAIS */}
       <section className="max-w-5xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          
           {/* CARD – CADASTRAR CURRÍCULO */}
           <Link
             href="/anunciar/curriculo"
@@ -256,3 +230,4 @@ export default function EmpregosPage() {
     </main>
   );
 }
+
