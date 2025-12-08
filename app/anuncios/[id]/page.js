@@ -92,11 +92,11 @@ export default function AnuncioDetalhePage() {
   const isLagolistas = anuncio.categoria === "lagolistas";
   const isPets = anuncio.categoria === "pets";
 
-  // Imagens (não usamos galeria para currículo e vagas)
+  // Imagens (galeria não é usada para currículo, vagas, nem LagoListas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
   const mostrarGaleria =
-    temImagens && !isCurriculo && !isEmprego && !isLagolistas; // Lagolistas sem foto grande
+    temImagens && !isCurriculo && !isEmprego && !isLagolistas;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
@@ -123,7 +123,7 @@ export default function AnuncioDetalhePage() {
   const whatsappShareUrl = `https://wa.me/?text=${shareText}%20${encodedUrl}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
-  // Endereço para mapa
+  // Endereço para mapa (usado somente nos tipos normais, não currículo)
   const enderecoCompleto = [
     anuncio.endereco || "",
     anuncio.bairro || "",
@@ -375,37 +375,129 @@ export default function AnuncioDetalhePage() {
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* LOGO / FOTO PARA EMPREGO E CURRÍCULO */}
-            {temImagens && (isEmprego || isCurriculo) && (
-              <div className="w-full flex justify-start">
-                <div
-                  className={
-                    isCurriculo
-                      ? "w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-white shadow-sm"
-                      : "w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm"
-                  }
-                >
-                  <img
-                    src={imagens[0]}
-                    alt={isCurriculo ? "Foto do candidato" : "Logo da empresa"}
-                    className={
-                      isCurriculo
-                        ? "w-full h-full object-cover"
-                        : "w-full h-full object-contain p-1"
-                    }
-                  />
-                </div>
-              </div>
-            )}
-
             {/* ===================== CURRÍCULO ===================== */}
             {isCurriculo ? (
               <>
-                {/* aqui permanece o mesmo bloco de currículo
-                    que você já tinha (não alterei nada) */}
+                {/* Perfil do candidato */}
+                <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                  <div className="flex items-start gap-4">
+                    {anuncio.curriculo_foto_url && (
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-white shadow-sm">
+                          <img
+                            src={anuncio.curriculo_foto_url}
+                            alt={anuncio.nome_contato || "Foto do candidato"}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <h2 className="text-base md:text-lg font-bold text-slate-900">
+                        {anuncio.nome_contato || "Candidato"}
+                      </h2>
+
+                      {anuncio.area_profissional && (
+                        <p className="text-xs md:text-sm font-medium text-emerald-700">
+                          {anuncio.area_profissional}
+                        </p>
+                      )}
+
+                      <p className="text-xs text-slate-600">
+                        {anuncio.cidade}
+                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                      </p>
+
+                      {anuncio.escolaridade_minima && (
+                        <p className="text-[11px] text-slate-600 mt-1">
+                          <span className="font-semibold text-slate-900">
+                            Escolaridade:{" "}
+                          </span>
+                          {anuncio.escolaridade_minima}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Resumo profissional */}
+                {anuncio.descricao && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Resumo profissional
+                    </h3>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.descricao}
+                    </p>
+                  </section>
+                )
+
+                }
+
+                {/* Experiências profissionais */}
+                {anuncio.experiencias_profissionais && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Experiências profissionais
+                    </h3>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.experiencias_profissionais}
+                    </p>
+                  </section>
+                )}
+
+                {/* Formação acadêmica / cursos */}
+                {anuncio.formacao_academica && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Formação acadêmica / cursos
+                    </h3>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.formacao_academica}
+                    </p>
+                  </section>
+                )}
+
+                {/* Habilidades */}
+                {anuncio.habilidades && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Habilidades e competências
+                    </h3>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.habilidades}
+                    </p>
+                  </section>
+                )}
+
+                {/* Idiomas */}
+                {anuncio.idiomas && (
+                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Idiomas
+                    </h3>
+                    <p className="text-xs text-slate-700 whitespace-pre-line">
+                      {anuncio.idiomas}
+                    </p>
+                  </section>
+                )}
               </>
             ) : (
               <>
+                {/* LOGO PARA EMPREGO (empresa) */}
+                {temImagens && isEmprego && (
+                  <div className="w-full flex justify-start">
+                    <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+                      <img
+                        src={imagens[0]}
+                        alt="Logo da empresa"
+                        className="w-full h-full object-contain p-1"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* ===================== OUTROS TIPOS ===================== */}
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -713,7 +805,8 @@ export default function AnuncioDetalhePage() {
                                     : `https://instagram.com/${anuncio.instagram.replace(
                                         "@",
                                         ""
-                                      )}`}
+                                      )}`
+                                }
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[11px] md:text-xs text-pink-600 underline"
@@ -799,7 +892,8 @@ export default function AnuncioDetalhePage() {
                                   : `https://instagram.com/${anuncio.instagram.replace(
                                       "@",
                                       ""
-                                    )}`}
+                                    )}`
+                              }
                               target="_blank"
                               rel="noreferrer"
                               className="text-blue-600 hover:underline"
@@ -860,7 +954,7 @@ export default function AnuncioDetalhePage() {
           <div className="space-y-4">
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
-                Fale com o anunciante
+                {isCurriculo ? "Falar com o candidato" : "Fale com o anunciante"}
               </h2>
 
               {whatsappLink && (
@@ -904,7 +998,7 @@ export default function AnuncioDetalhePage() {
                 )}
               </div>
 
-              {(imobiliaria || corretor || creci) && (
+              {(imobiliaria || corretor || creci) && !isCurriculo && (
                 <div className="mt-4 pt-3 border-t border-slate-200 space-y-1 text-xs text-slate-700">
                   {imobiliaria && (
                     <p>
@@ -939,6 +1033,7 @@ export default function AnuncioDetalhePage() {
               </p>
             </div>
 
+            {/* Bloco Mercado Livre continua igual para todos os tipos */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Ofertas que combinam com este anúncio (Mercado Livre)
