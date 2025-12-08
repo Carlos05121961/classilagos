@@ -31,16 +31,17 @@ export default function ServicosPage() {
 
       const lista = data || [];
 
+      // máximo 5 anúncios em cada coluna
       setClassimed(
-        lista.filter((s) => s.subcategoria_servico === "classimed").slice(0, 6)
+        lista.filter((s) => s.subcategoria_servico === "classimed").slice(0, 5)
       );
       setEventos(
-        lista.filter((s) => s.subcategoria_servico === "eventos").slice(0, 6)
+        lista.filter((s) => s.subcategoria_servico === "eventos").slice(0, 5)
       );
       setProfissionais(
         lista
           .filter((s) => s.subcategoria_servico === "profissionais")
-          .slice(0, 6)
+          .slice(0, 5)
       );
 
       setLoading(false);
@@ -49,7 +50,7 @@ export default function ServicosPage() {
     fetchServicos();
   }, []);
 
-  // Card padrão para todos os serviços
+  // Card reutilizável com miniatura opcional
   const CardServico = ({ item }) => {
     const thumb =
       Array.isArray(item.imagens) && item.imagens.length > 0
@@ -244,9 +245,6 @@ export default function ServicosPage() {
               Clínicas, terapeutas, cuidadores, psicólogos, nutricionistas e
               muito mais.
             </p>
-            <p className="mt-2 text-[11px] text-emerald-700 font-semibold">
-              Clique para anunciar seus serviços de saúde.
-            </p>
           </Link>
 
           {/* EVENTOS */}
@@ -268,11 +266,8 @@ export default function ServicosPage() {
               </div>
             </div>
             <p className="text-xs text-slate-700">
-              Buffet, doces e salgados, fotografia, DJ, decoração, espaços
-              para festas e muito mais.
-            </p>
-            <p className="mt-2 text-[11px] text-pink-600 font-semibold">
-              Clique para anunciar serviços de festas &amp; eventos.
+              Buffet, doces e salgados, fotografia, DJ, decoração, espaços para
+              festas e muito mais.
             </p>
           </Link>
 
@@ -298,151 +293,183 @@ export default function ServicosPage() {
               Eletricistas, diaristas, manutenção, reboque, arquitetos,
               engenheiros, piscineiros e muito mais.
             </p>
-            <p className="mt-2 text-[11px] text-blue-600 font-semibold">
-              Clique para anunciar seus serviços profissionais.
-            </p>
           </Link>
         </div>
-
-        {/* Atalhos para descer até as vitrines */}
-        <div className="mt-3 flex flex-wrap justify-center gap-4 text-[11px]">
-          <a
-            href="#classimed-lista"
-            className="text-emerald-700 hover:underline font-semibold"
-          >
-            Ver serviços de saúde cadastrados ↓
-          </a>
-          <a
-            href="#eventos-lista"
-            className="text-pink-600 hover:underline font-semibold"
-          >
-            Ver serviços de festas &amp; eventos ↓
-          </a>
-          <a
-            href="#profissionais-lista"
-            className="text-blue-600 hover:underline font-semibold"
-          >
-            Ver profissionais &amp; serviços cadastrados ↓
-          </a>
-        </div>
       </section>
 
-      {/* VITRINE DOS ANÚNCIOS REAIS */}
-      <section className="max-w-5xl mx-auto px-4 pb-10 space-y-10">
-        {/* CLASSIMED LISTA */}
-        <div id="classimed-lista" className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 px-2 items-center rounded-full bg-emerald-50 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
-                Saúde &amp; bem-estar
-              </span>
+      {/* VITRINE 3 COLUNAS – CLASSIMED / EVENTOS / PROFISSIONAIS */}
+      <section className="max-w-5xl mx-auto px-4 pb-10">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-4 text-center md:text-left">
+          Profissionais em destaque na Região dos Lagos
+        </h2>
+
+        <div className="grid gap-5 md:grid-cols-3">
+          {/* COLUNA CLASSIMED */}
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
               <h3 className="text-sm font-semibold text-slate-900">
-                Serviços de saúde (Classimed)
+                Saúde (Classimed)
               </h3>
+              {!loading && (
+                <p className="text-[11px] text-slate-500">
+                  {classimed.length} anúncio(s)
+                </p>
+              )}
             </div>
 
-            {!loading && (
+            {loading && classimed.length === 0 && (
               <p className="text-[11px] text-slate-500">
-                {classimed.length} encontrado(s)
+                Carregando serviços de saúde…
               </p>
             )}
+
+            {!loading && classimed.length === 0 && (
+              <p className="text-[11px] text-slate-500">
+                Ainda não há serviços de saúde cadastrados.
+              </p>
+            )}
+
+            <div className="space-y-3">
+              {classimed.map((item) => (
+                <CardServico key={item.id} item={item} />
+              ))}
+            </div>
           </div>
 
-          {loading && classimed.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Carregando serviços de saúde…
-            </p>
-          )}
-
-          {!loading && classimed.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Ainda não há serviços de saúde cadastrados.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {classimed.map((item) => (
-              <CardServico key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-
-        {/* EVENTOS LISTA */}
-        <div id="eventos-lista" className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 px-2 items-center rounded-full bg-pink-50 text-[11px] font-semibold text-pink-600 border border-pink-100">
-                Festas &amp; eventos
-              </span>
+          {/* COLUNA EVENTOS */}
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
               <h3 className="text-sm font-semibold text-slate-900">
                 Festas &amp; eventos
               </h3>
+              {!loading && (
+                <p className="text-[11px] text-slate-500">
+                  {eventos.length} anúncio(s)
+                </p>
+              )}
             </div>
 
-            {!loading && (
+            {loading && eventos.length === 0 && (
               <p className="text-[11px] text-slate-500">
-                {eventos.length} encontrado(s)
+                Carregando serviços de eventos…
               </p>
             )}
+
+            {!loading && eventos.length === 0 && (
+              <p className="text-[11px] text-slate-500">
+                Ainda não há serviços de festas e eventos cadastrados.
+              </p>
+            )}
+
+            <div className="space-y-3">
+              {eventos.map((item) => (
+                <CardServico key={item.id} item={item} />
+              ))}
+            </div>
           </div>
 
-          {loading && eventos.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Carregando serviços de eventos…
-            </p>
-          )}
-
-          {!loading && eventos.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Ainda não há serviços de festas e eventos cadastrados.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {eventos.map((item) => (
-              <CardServico key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-
-        {/* PROFISSIONAIS LISTA */}
-        <div id="profissionais-lista" className="space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 px-2 items-center rounded-full bg-blue-50 text-[11px] font-semibold text-blue-600 border border-blue-100">
-                Profissionais &amp; serviços
-              </span>
+          {/* COLUNA PROFISSIONAIS */}
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
               <h3 className="text-sm font-semibold text-slate-900">
                 Profissionais &amp; serviços
               </h3>
+              {!loading && (
+                <p className="text-[11px] text-slate-500">
+                  {profissionais.length} anúncio(s)
+                </p>
+              )}
             </div>
 
-            {!loading && (
+            {loading && profissionais.length === 0 && (
               <p className="text-[11px] text-slate-500">
-                {profissionais.length} encontrado(s)
+                Carregando profissionais…
               </p>
             )}
-          </div>
 
-          {loading && profissionais.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Carregando profissionais…
-            </p>
-          )}
+            {!loading && profissionais.length === 0 && (
+              <p className="text-[11px] text-slate-500">
+                Ainda não há profissionais cadastrados.
+              </p>
+            )}
 
-          {!loading && profissionais.length === 0 && (
-            <p className="text-[11px] text-slate-500">
-              Ainda não há profissionais cadastrados.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {profissionais.map((item) => (
-              <CardServico key={item.id} item={item} />
-            ))}
+            <div className="space-y-3">
+              {profissionais.map((item) => (
+                <CardServico key={item.id} item={item} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* TARJA PRETA – COLADA NO FOOTER DO PEIXINHO */}
+      <section className="bg-slate-950 text-slate-50">
+        <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold">
+              Serviços e informações para contratar com segurança
+            </h2>
+            <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
+              Use o Classilagos também como guia para encontrar profissionais,
+              empresas e serviços confiáveis em toda a Região dos Lagos.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Card Classimed */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+              <h3 className="text-xs font-semibold mb-1">
+                Classimed – Saúde &amp; bem-estar
+              </h3>
+              <p className="text-[11px] text-slate-300 mb-3">
+                Profissionais de saúde, terapias, clínicas e bem-estar perto de
+                você.
+              </p>
+              <Link
+                href="/servicos/classimed"
+                className="inline-flex items-center text-[11px] font-semibold text-emerald-300 hover:text-emerald-200"
+              >
+                Ver serviços de saúde →
+              </Link>
+            </div>
+
+            {/* Card Eventos */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+              <h3 className="text-xs font-semibold mb-1">
+                Festas &amp; Eventos
+              </h3>
+              <p className="text-[11px] text-slate-300 mb-3">
+                Buffet, decoração, fotografia, som, iluminação e espaços para
+                todos os tipos de eventos.
+              </p>
+              <Link
+                href="/servicos/eventos"
+                className="inline-flex items-center text-[11px] font-semibold text-pink-300 hover:text-pink-200"
+              >
+                Ver serviços para festas →
+              </Link>
+            </div>
+
+            {/* Card Profissionais */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+              <h3 className="text-xs font-semibold mb-1">
+                Profissionais &amp; serviços
+              </h3>
+              <p className="text-[11px] text-slate-300 mb-3">
+                Manutenção, reformas, serviços técnicos e especializados para
+                casa, empresa ou condomínio.
+              </p>
+              <Link
+                href="/servicos/profissionais"
+                className="inline-flex items-center text-[11px] font-semibold text-blue-300 hover:text-blue-200"
+              >
+                Ver profissionais disponíveis →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Footer global do peixinho vem do layout geral */}
     </main>
   );
 }
