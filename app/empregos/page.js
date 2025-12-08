@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image"; // <- IMPORT DA IMAGE
+import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
 export default function EmpregosPage() {
@@ -83,15 +83,27 @@ export default function EmpregosPage() {
           {/* leve escurecida para o texto aparecer melhor */}
           <div className="absolute inset-0 bg-black/10" />
 
-          {/* textos centralizados, como no hero antigo */}
-          <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-4 text-center text-white">
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-sm">
+          {/* TEXTOS EM PRETO COM SOMBRA – COMO NO BANNER ANTIGO */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+            {/* Título principal */}
+            <h1 className="mt-2 text-3xl md:text-4xl font-black text-black drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
               Classilagos – Empregos
             </h1>
-            <p className="mt-2 text-xs md:text-sm text-slate-50 max-w-2xl drop-shadow">
+
+            {/* Subtítulo */}
+            <p className="mt-2 text-xs md:text-sm font-semibold text-black max-w-2xl drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
               Vagas de emprego, banco de currículos e oportunidades em toda a
               Região dos Lagos.
             </p>
+
+            {/* Linhas em preto – mesmo texto de dentro da lupa */}
+            <div className="mt-4 text-center font-extrabold text-black drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
+              <p className="text-lg md:text-xl">VAGAS DE EMPREGO</p>
+              <p className="text-lg md:text-xl">BANCO DE CURRÍCULOS</p>
+              <p className="text-lg md:text-xl">E OPORTUNIDADES</p>
+              <p className="text-lg md:text-xl">EM TODA A REGIÃO</p>
+              <p className="text-lg md:text-xl">DOS LAGOS.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -282,23 +294,7 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* RODAPÉ SIMPLES DA PÁGINA EMPREGOS */}
-      <section className="mt-8">
-        <footer className="text-center text-[11px] text-slate-500 space-y-1">
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-            <Link href="/quem-somos" className="hover:underline">
-              Quem somos
-            </Link>
-            <Link href="/contato" className="hover:underline">
-              Contato
-            </Link>
-            <Link href="/politica-de-privacidade" className="hover:underline">
-              Política de privacidade
-            </Link>
-          </div>
-          <p>Classilagos © 2025</p>
-        </footer>
-      </section>
+      {/* ❌ RODAPÉ SIMPLES REMOVIDO – PARA NÃO DUPLICAR COM O "PEIXINHO" */}
 
       {/* TARJA ANTES DO RODAPÉ DO PEIXINHO – LINKS ÚTEIS */}
       <section className="mt-6 bg-slate-900 text-slate-50">
@@ -343,4 +339,3 @@ export default function EmpregosPage() {
     </main>
   );
 }
-
