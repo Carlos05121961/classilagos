@@ -32,7 +32,7 @@ export default function EmpregosPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, area_profissional, tipo_vaga, faixa_salarial, created_at"
+          "id, titulo, cidade, bairro, area_profissional, tipo_vaga, faixa_salarial, imagens, created_at"
         )
         .eq("categoria", "emprego")
         .eq("status", "ativo")
@@ -177,52 +177,64 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-  {/* VAGAS RECENTES */}
-<section className="max-w-6xl mx-auto px-4 py-6">
-  <h2 className="text-lg font-semibold text-slate-900 mb-2">
-    Vagas recentes
-  </h2>
+      {/* VAGAS RECENTES */}
+      <section className="max-w-6xl mx-auto px-4 py-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+          Vagas recentes
+        </h2>
 
-  {!loadingVagas && vagasRecentes.length === 0 && (
-    <p className="text-slate-500 text-sm">
-      Nenhuma vaga cadastrada ainda.
-    </p>
-  )}
-
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-    {vagasRecentes.map((vaga) => (
-      <Link
-        key={vaga.id}
-        href={`/anuncios/${vaga.id}`}
-        className="rounded-2xl border p-4 bg-slate-50 hover:bg-slate-100 shadow-sm hover:shadow transition"
-      >
-        <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
-          {vaga.titulo}
-        </p>
-
-        {/* cidade */}
-        <p className="text-[11px] text-slate-600 mb-1">
-          {vaga.cidade}
-        </p>
-
-        {/* tipo de vaga: CLT, Estágio, Temporário, etc. */}
-        {vaga.tipo_vaga && (
-          <p className="text-[11px] font-semibold text-sky-700 mb-1">
-            {vaga.tipo_vaga}
+        {!loadingVagas && vagasRecentes.length === 0 && (
+          <p className="text-slate-500 text-sm">
+            Nenhuma vaga cadastrada ainda.
           </p>
         )}
 
-        {/* faixa salarial */}
-        {vaga.faixa_salarial && (
-          <p className="text-[11px] text-emerald-700 font-semibold">
-            {vaga.faixa_salarial}
-          </p>
-        )}
-      </Link>
-    ))}
-  </div>
-</section>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {vagasRecentes.map((vaga) => (
+            <Link
+              key={vaga.id}
+              href={`/anuncios/${vaga.id}`}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition flex gap-3"
+            >
+              {/* LOGO DA EMPRESA (opcional) */}
+              {vaga.imagens && vaga.imagens.length > 0 && (
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden border bg-white flex items-center justify-center">
+                  <Image
+                    src={vaga.imagens[0]}
+                    alt="Logo da empresa"
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
+                </div>
+              )}
 
+              {/* INFORMAÇÕES DA VAGA */}
+              <div className="flex flex-col">
+                <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
+                  {vaga.titulo}
+                </p>
+
+                <p className="text-[11px] text-slate-600 mb-1">
+                  {vaga.cidade}
+                </p>
+
+                {vaga.tipo_vaga && (
+                  <p className="inline-flex text-[11px] font-semibold text-sky-700 mb-1">
+                    {vaga.tipo_vaga}
+                  </p>
+                )}
+
+                {vaga.faixa_salarial && (
+                  <p className="text-[11px] text-emerald-700 font-semibold">
+                    {vaga.faixa_salarial}
+                  </p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* CURRÍCULOS RECENTES */}
       <section className="max-w-6xl mx-auto px-4 pb-12">
@@ -241,7 +253,7 @@ export default function EmpregosPage() {
             <Link
               key={cv.id}
               href={`/anuncios/${cv.id}`}
-              className="rounded-2xl border p-4 bg-white hover:bg-slate-50 shadow-sm hover:shadow transition"
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
             >
               <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-1">
                 {cv.nome_contato || "Candidato"}
@@ -277,4 +289,3 @@ export default function EmpregosPage() {
     </main>
   );
 }
-
