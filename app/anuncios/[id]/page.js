@@ -375,6 +375,29 @@ export default function AnuncioDetalhePage() {
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
+            {/* LOGO / FOTO PARA EMPREGO E CURRÍCULO */}
+            {temImagens && (isEmprego || isCurriculo) && (
+              <div className="w-full flex justify-start">
+                <div
+                  className={
+                    isCurriculo
+                      ? "w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-white shadow-sm"
+                      : "w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm"
+                  }
+                >
+                  <img
+                    src={imagens[0]}
+                    alt={isCurriculo ? "Foto do candidato" : "Logo da empresa"}
+                    className={
+                      isCurriculo
+                        ? "w-full h-full object-cover"
+                        : "w-full h-full object-contain p-1"
+                    }
+                  />
+                </div>
+              </div>
+            )}
+
             {/* ===================== CURRÍCULO ===================== */}
             {isCurriculo ? (
               <>
@@ -690,8 +713,7 @@ export default function AnuncioDetalhePage() {
                                     : `https://instagram.com/${anuncio.instagram.replace(
                                         "@",
                                         ""
-                                      )}`
-                                }
+                                      )}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[11px] md:text-xs text-pink-600 underline"
@@ -777,8 +799,7 @@ export default function AnuncioDetalhePage() {
                                   : `https://instagram.com/${anuncio.instagram.replace(
                                       "@",
                                       ""
-                                    )}`
-                              }
+                                    )}`}
                               target="_blank"
                               rel="noreferrer"
                               className="text-blue-600 hover:underline"
