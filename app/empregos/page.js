@@ -52,38 +52,41 @@ export default function EmpregosPage() {
     carregarDados();
   }, []);
 
-  const heroImage = "/empregos/hero-empregos.jpg"; // o mesmo fundo azul com lupa
-
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* HERO */}
-      <section className="relative w-full border-b border-slate-200 overflow-hidden">
-        <div className="relative max-w-5xl mx-auto px-4 py-10 md:py-12">
-          {/* Imagem de fundo */}
-          <div className="absolute inset-0 -z-10">
-            <img
-              src={heroImage}
-              alt="Classilagos Empregos"
-              className="w-full h-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-black/40" />
-          </div>
-
-          {/* Texto sobreposto */}
-          <div className="max-w-xl text-white">
-            <h1 className="text-2xl md:text-3xl font-black drop-shadow">
+      {/* HERO PADRÃO CLASSILAGOS */}
+      <section className="bg-[#E6F4FF] border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 py-8 md:py-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl">
+            <p className="text-[11px] font-semibold text-cyan-700 uppercase tracking-wide">
+              Oportunidades para toda a Região dos Lagos
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-black text-slate-900">
               Classilagos – Empregos
             </h1>
-            <p className="mt-1 text-xs md:text-sm text-slate-100">
-              Vagas de emprego, banco de currículos e oportunidades em toda a
-              Região dos Lagos.
+            <p className="mt-2 text-xs md:text-sm text-slate-700">
+              Vagas de emprego, banco de currículos e oportunidades para
+              empresas, comércios e profissionais em todas as cidades da
+              região.
             </p>
 
-            <p className="mt-4 text-xs md:text-sm font-semibold uppercase">
-              Vagas de emprego<br />
-              Banco de currículos<br />
-              E oportunidades em toda a Região dos Lagos.
-            </p>
+            <div className="mt-4 grid gap-2 text-[11px] text-slate-700">
+              <p>• Vagas de emprego em diversas áreas</p>
+              <p>• Banco de currículos com candidatos da Região dos Lagos</p>
+              <p>• Espaço gratuito para empresas anunciarem suas vagas</p>
+            </div>
+          </div>
+
+          <div className="mt-2 md:mt-0">
+            <div className="rounded-3xl border border-cyan-200 bg-white px-5 py-4 shadow-sm text-[11px] text-slate-700 max-w-xs">
+              <p className="font-semibold text-cyan-700 mb-1">
+                Banco de talentos Classilagos
+              </p>
+              <p>
+                Mantenha seu currículo sempre atualizado e aumente suas chances
+                de ser encontrado pelas melhores empresas da região.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -204,7 +207,7 @@ export default function EmpregosPage() {
           )}
         </div>
 
-        {/* CURRÍCULOS RECENTES – AGORA COM FOTO */}
+        {/* CURRÍCULOS RECENTES – COM FOTO */}
         <div className="space-y-3">
           <h2 className="text-sm md:text-base font-semibold text-slate-900">
             Currículos recentes
