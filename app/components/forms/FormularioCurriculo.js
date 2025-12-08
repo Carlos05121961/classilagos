@@ -27,9 +27,8 @@ export default function FormularioCurriculo() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Arquivos
-  const [fotoFile, setFotoFile] = useState(null);
-  const [pdfFile, setPdfFile] = useState(null);
+  // Foto do currículo
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
 
   // Checkbox de confirmação
   const [aceitoTermos, setAceitoTermos] = useState(false);
@@ -58,6 +57,7 @@ export default function FormularioCurriculo() {
     "Rio das Ostras",
   ];
 
+  // Lista ampliada de áreas profissionais (mantendo as antigas e adicionando outras)
   const areas = [
     "Administração",
     "Atendimento / Caixa",
@@ -69,10 +69,20 @@ export default function FormularioCurriculo() {
     "Hotelaria / Turismo",
     "Motorista / Entregador",
     "TI / Informática",
+    "Beleza / Estética",
+    "Gastronomia / Cozinha",
+    "Limpeza / Conservação",
+    "Segurança / Portaria",
+    "Financeiro / Contábil",
+    "Marketing / Mídias sociais",
+    "Logística / Estoque",
+    "Telemarketing / Call Center",
+    "Industrial / Produção",
+    "Autônomo / Freelancer",
     "Outros",
   ];
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
@@ -110,8 +120,7 @@ export default function FormularioCurriculo() {
 
     setUploading(true);
 
-    let fotoUrl = null;
-    let pdfUrl = null;
+    let fotoUrl: string | null = null;
 
     try {
       const bucket = "anuncios";
@@ -134,24 +143,6 @@ export default function FormularioCurriculo() {
         fotoUrl = data.publicUrl;
       }
 
-      // Upload do PDF (opcional)
-      if (pdfFile) {
-        const ext = pdfFile.name.split(".").pop();
-        const path = `curriculos/${user.id}/cv-${Date.now()}.${ext}`;
-
-        const { error: uploadErroPdf } = await supabase.storage
-          .from(bucket)
-          .upload(path, pdfFile);
-
-        if (uploadErroPdf) {
-          console.error("Erro upload PDF currículo:", uploadErroPdf);
-          throw uploadErroPdf;
-        }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        pdfUrl = data.publicUrl;
-      }
-
       // Monta título e descrição principais
       const titulo =
         resumo || areaProfissional
@@ -164,7 +155,7 @@ export default function FormularioCurriculo() {
         formacaoAcademica ||
         "Currículo cadastrado no banco de talentos do Classilagos.";
 
-      // INSERT no Supabase
+      // INSERT no Supabase (campos batendo com a tabela que você enviou)
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
         categoria: "curriculo",
@@ -185,16 +176,17 @@ export default function FormularioCurriculo() {
         whatsapp,
         email,
         contato: contatoPrincipal, // coluna NOT NULL
-        // Arquivos
+        // Arquivo de foto
         curriculo_foto_url: fotoUrl,
-        curriculo_pdf_url: pdfUrl,
         status: "ativo",
       });
 
       if (insertError) {
         console.error("Erro ao inserir currículo:", insertError);
         setErro(
-          `Erro ao salvar seu currículo: ${insertError.message || "Tente novamente."}`
+          `Erro ao salvar seu currículo: ${
+            insertError.message || "Tente novamente."
+          }`
         );
         setUploading(false);
         return;
@@ -219,13 +211,12 @@ export default function FormularioCurriculo() {
       setWhatsapp("");
       setEmail("");
       setFotoFile(null);
-      setPdfFile(null);
       setAceitoTermos(false);
 
       setTimeout(() => {
         router.push("/painel/meus-anuncios");
       }, 1800);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setErro(
         `Erro ao salvar seu currículo: ${err.message || "Tente novamente."}`
@@ -408,36 +399,24 @@ export default function FormularioCurriculo() {
         </div>
       </div>
 
-      {/* Arquivos */}
+      {/* Foto */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Arquivos (opcional)
+          Foto para o currículo (opcional)
         </h2>
 
         <div>
           <label className="block text-xs font-medium text-slate-700">
-            Foto para o currículo (opcional)
+            Envie uma foto tipo 3x4 ou similar
           </label>
           <input
             type="file"
             accept="image/*"
             className="mt-1 w-full text-xs"
-            onChange={(e) => setFotoFile(e.target.files[0] || null)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Currículo em PDF (se já tiver pronto)
-          </label>
-          <input
-            type="file"
-            accept="application/pdf"
-            className="mt-1 w-full text-xs"
-            onChange={(e) => setPdfFile(e.target.files[0] || null)}
+            onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
           />
           <p className="mt-1 text-[11px] text-slate-500">
-            Você pode enviar apenas o formulário, apenas o PDF ou os dois.
+            Imagens em JPG ou PNG, tamanho máximo recomendado 1 MB.
           </p>
         </div>
       </div>
@@ -498,8 +477,9 @@ export default function FormularioCurriculo() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações preenchidas são verdadeiras e autorizo que
-            meu currículo seja exibido para empresas na plataforma Classilagos.
+            Declaro que as informações preenchidas são verdadeiras e autorizo
+            que meu currículo seja exibido para empresas na plataforma
+            Classilagos.
           </span>
         </label>
       </div>
@@ -514,3 +494,4 @@ export default function FormularioCurriculo() {
     </form>
   );
 }
+
