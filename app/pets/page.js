@@ -32,27 +32,32 @@ const tiposPet = [
   "Serviços pet & acessórios",
 ];
 
-// 4 CARDS PRINCIPAIS
-const categoriasPrincipais = [
+// CARDS – AGORA SÓ 4 GRUPOS
+const cardsPets = [
   {
-    nome: "Animais à venda",
     slug: "animais",
-    href: "/pets/lista?categoria=Animais",
+    titulo: "Animais à venda",
+    subtitulo: "Filhotes e adultos para compra",
+    href: "/pets/lista?subcategoria=Animais",
   },
   {
-    nome: "Adoção / Doação",
     slug: "adocao",
-    href: "/pets/lista?categoria=Adoção%20/%20Doação",
+    titulo: "Adoção / Doação",
+    subtitulo: "Ajude a encontrar um novo lar",
+    href: "/pets/lista?subcategoria=Adocao",
   },
   {
-    nome: "Achados e perdidos",
     slug: "achados",
-    href: "/pets/lista?categoria=Achados%20e%20perdidos",
+    titulo: "Achados e perdidos",
+    subtitulo: "Divulgue animais desaparecidos ou encontrados",
+    href: "/pets/lista?subcategoria=Achados",
   },
   {
-    nome: "Serviços pet & acessórios",
     slug: "servicos",
-    href: "/pets/lista?categoria=Serviços%20pet%20&%20acessórios",
+    titulo: "Serviços pet & acessórios",
+    subtitulo: "Banho e tosa, clínica, hotel, acessórios…",
+    // 👇 AQUI ESTÁ O PULO DO GATO: NÃO TEM MAIS "categoria=" NEM "&"
+    href: "/pets/lista?subcategoria=Servicos",
   },
 ];
 
@@ -86,11 +91,10 @@ export default function PetsPage() {
             bairro,
             preco,
             imagens,
+            categoria,
             subcategoria_pet,
             tipo_imovel,
             status,
-            categoria,
-            destaque,
             created_at
           `
           )
@@ -117,26 +121,39 @@ export default function PetsPage() {
 
   const norm = (s) => (s || "").toLowerCase();
 
-  // Classificação geral em 4 grupos
+  // CLASSIFICA UM ANÚNCIO EM UM DOS 4 GRUPOS
   function classificarAnuncio(item) {
     const cat = norm(item.subcategoria_pet || item.tipo_imovel || "");
     const titulo = norm(item.titulo || "");
 
+    // Achados e perdidos
     if (cat.includes("achado") || cat.includes("perdido")) return "achados";
 
-    if (cat.includes("adoção") || cat.includes("adocao")) return "adocao";
+    // Adoção / doação
+    if (
+      cat.includes("adoção") ||
+      cat.includes("adocao") ||
+      cat.includes("doação") ||
+      cat.includes("doacao") ||
+      titulo.includes("adoção") ||
+      titulo.includes("adocao")
+    ) {
+      return "adocao";
+    }
 
+    // Serviços pet & acessórios (banho, tosa, hotel, clínica, etc.)
     if (
       cat.includes("serviços pet & acessórios") ||
-      cat.includes("serviços pet & acessorios") ||
-      cat.includes("serviços") ||
-      cat.includes("servicos") ||
-      cat.includes("acessórios") ||
-      cat.includes("acessorios") ||
+      cat.includes("servicos pet & acessorios") ||
+      cat.includes("serviços pet") ||
+      cat.includes("servicos pet") ||
+      cat.includes("serviço") ||
+      cat.includes("servico") ||
       cat.includes("banho") ||
       cat.includes("tosa") ||
       cat.includes("hotel") ||
       cat.includes("hospedagem") ||
+      cat.includes("hosped") ||
       cat.includes("clínica") ||
       cat.includes("clinica") ||
       cat.includes("veterin")
@@ -144,22 +161,16 @@ export default function PetsPage() {
       return "servicos";
     }
 
-    // fallback: animais à venda / geral
-    if (cat.includes("animal") || cat.includes("animais")) return "animais";
-    if (titulo.includes("filhote") || titulo.includes("cachorro") || titulo.includes("gato"))
-      return "animais";
-
+    // Se não cair em nada, tratamos como "Animais à venda"
     return "animais";
   }
 
   // Escolhe um anúncio para ilustrar cada card
-  function escolherAnuncioParaCard(slug) {
+  function escolherParaCard(slugGrupo) {
     if (!anuncios || anuncios.length === 0) return null;
-
-    let filtrados = anuncios.filter(
-      (a) => classificarAnuncio(a) === slug
+    const filtrados = anuncios.filter(
+      (a) => classificarAnuncio(a) === slugGrupo
     );
-
     if (filtrados.length === 0) return null;
 
     const emDestaque = filtrados.find((a) => a.destaque === true);
@@ -203,7 +214,8 @@ export default function PetsPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
-              Encontre animais, serviços pet e acessórios na Região dos Lagos.
+              Encontre animais, acessórios, serviços pet e muito mais na Região
+              dos Lagos.
             </p>
             <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
               Classilagos – Pets
@@ -228,7 +240,7 @@ export default function PetsPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: filhotes, banho e tosa, veterinário..."
+                  placeholder="Ex.: adoção de cachorro, banho e tosa, veterinário"
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -284,11 +296,11 @@ export default function PetsPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* 4 CATEGORIAS PRINCIPAIS */}
+      {/* 4 CARDS PRINCIPAIS */}
       <section className="max-w-6xl mx-auto px-4 pb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          {categoriasPrincipais.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
+          {cardsPets.map((card) => {
+            const anuncio = escolherParaCard(card.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens)
               ? anuncio.imagens
               : [];
@@ -296,30 +308,33 @@ export default function PetsPage() {
 
             return (
               <Link
-                key={cat.slug}
-                href={cat.href}
+                key={card.slug}
+                href={card.href}
                 className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-0.5 hover:shadow-md transition"
               >
                 <div className="relative h-24 md:h-28 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
                     <img
                       src={capa}
-                      alt={anuncio?.titulo || cat.nome}
+                      alt={anuncio?.titulo || card.titulo}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
-                      Em breve, anúncios aqui
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[11px] text-slate-600">
+                      <span>Em breve, anúncios aqui</span>
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">
-                    {cat.nome}
+                    {card.titulo}
+                  </p>
+                  <p className="mt-1 text-[10px] text-slate-300 line-clamp-2">
+                    {card.subtitulo}
                   </p>
                   {anuncio && (
-                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
+                    <p className="mt-1 text-[11px] text-amber-300 line-clamp-1">
                       {anuncio.titulo} • {anuncio.cidade}
                     </p>
                   )}
@@ -335,7 +350,7 @@ export default function PetsPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              Pets em destaque
+              Anúncios recentes de pets
             </h2>
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
@@ -396,9 +411,13 @@ export default function PetsPage() {
                         {a.titulo}
                       </p>
                       <p className="text-[10px] text-slate-300">
-                        {a.subcategoria_pet ||
-                          a.tipo_imovel ||
-                          ""}
+                        {classificarAnuncio(a) === "animais" && "Animais"}
+                        {classificarAnuncio(a) === "adocao" &&
+                          "Adoção / Doação"}
+                        {classificarAnuncio(a) === "achados" &&
+                          "Achados e perdidos"}
+                        {classificarAnuncio(a) === "servicos" &&
+                          "Serviços pet & acessórios"}
                       </p>
                     </div>
                   </Link>
@@ -467,4 +486,3 @@ export default function PetsPage() {
     </main>
   );
 }
-
