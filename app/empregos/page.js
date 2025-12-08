@@ -1,291 +1,338 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
 export default function EmpregosPage() {
-  /* HERO – alternando 2 imagens */
-  const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
-  const [currentHero, setCurrentHero] = useState(0);
-
-  // Listas do Supabase
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [curriculosRecentes, setCurriculosRecentes] = useState([]);
-  const [loadingVagas, setLoadingVagas] = useState(true);
-  const [loadingCurriculos, setLoadingCurriculos] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
-  // troca de imagem do hero
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
-    return () => clearInterval(interval);
-  }, []);
+    const carregarDados = async () => {
+      try {
+        // VAGAS
+        const { data: vagas, error: vagasError } = await supabase
+          .from("anuncios")
+          .select(
+            "id, titulo, cidade, bairro, faixa_salarial, tipo_vaga, modelo_trabalho, imagens"
+          )
+          .eq("categoria", "emprego")
+          .order("created_at", { ascending: false })
+          .limit(6);
 
-  // Buscar vagas e currículos
-  useEffect(() => {
-    const fetchVagas = async () => {
-      setLoadingVagas(true);
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select(
-          "id, titulo, cidade, bairro, area_profissional, tipo_vaga, faixa_salarial, imagens, created_at"
-        )
-        .eq("categoria", "emprego")
-        .eq("status", "ativo")
-        .order("created_at", { ascending: false })
-        .limit(6);
+        if (vagasError) throw vagasError;
 
-      setVagasRecentes(error ? [] : data || []);
-      setLoadingVagas(false);
+        // CURRÍCULOS
+        const { data: curriculos, error: curriculosError } = await supabase
+          .from("anuncios")
+          .select(
+            "id, titulo, cidade, bairro, area_profissional, curriculo_foto_url"
+          )
+          .eq("categoria", "curriculo")
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (curriculosError) throw curriculosError;
+
+        setVagasRecentes(vagas || []);
+        setCurriculosRecentes(curriculos || []);
+        setLoading(false);
+      } catch (e) {
+        console.error("Erro ao carregar empregos:", e);
+        setErro(
+          "Não foi possível carregar vagas e currículos neste momento. Tente novamente em alguns instantes."
+        );
+        setLoading(false);
+      }
     };
 
-    const fetchCurriculos = async () => {
-      setLoadingCurriculos(true);
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("id, nome_contato, cidade, bairro, area_profissional, created_at")
-        .eq("categoria", "curriculo")
-        .eq("status", "ativo")
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      setCurriculosRecentes(error ? [] : data || []);
-      setLoadingCurriculos(false);
-    };
-
-    fetchVagas();
-    fetchCurriculos();
+    carregarDados();
   }, []);
+
+  const heroImage = "/empregos/hero-empregos.jpg"; // o mesmo fundo azul com lupa
 
   return (
-    <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie no Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
+    <main className="min-h-screen bg-[#F5FBFF] pb-12">
+      {/* HERO */}
+      <section className="relative w-full border-b border-slate-200 overflow-hidden">
+        <div className="relative max-w-5xl mx-auto px-4 py-10 md:py-12">
+          {/* Imagem de fundo */}
+          <div className="absolute inset-0 -z-10">
+            <img
+              src={heroImage}
+              alt="Classilagos Empregos"
+              className="w-full h-full object-cover object-center"
             />
+            <div className="absolute inset-0 bg-black/40" />
           </div>
-        </div>
-      </section>
 
-      {/* HERO PRINCIPAL – como no print, com textos sobre a imagem */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
-          {/* imagem do hero */}
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Empregos"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
-          />
-
-          {/* leve escurecida pra dar contraste */}
-          <div className="absolute inset-0 bg-black/10" />
-
-          {/* TÍTULO PRINCIPAL (parte de cima do print) */}
-          <div className="absolute top-[18%] w-full flex justify-center px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 drop-shadow">
+          {/* Texto sobreposto */}
+          <div className="max-w-xl text-white">
+            <h1 className="text-2xl md:text-3xl font-black drop-shadow">
               Classilagos – Empregos
             </h1>
-          </div>
+            <p className="mt-1 text-xs md:text-sm text-slate-100">
+              Vagas de emprego, banco de currículos e oportunidades em toda a
+              Região dos Lagos.
+            </p>
 
-          {/* TEXTO EM BLOCOS (como se estivesse dentro da lupa) */}
-          <div className="absolute top-[38%] w-full flex justify-center px-4 text-center">
-            <div className="text-black font-extrabold leading-tight drop-shadow-md">
-              <p className="text-lg md:text-2xl">VAGAS DE EMPREGO</p>
-              <p className="text-lg md:text-2xl">BANCO DE CURRÍCULOS</p>
-              <p className="text-lg md:text-2xl">E OPORTUNIDADES</p>
-              <p className="text-lg md:text-2xl">EM TODA A REGIÃO DOS LAGOS.</p>
-            </div>
+            <p className="mt-4 text-xs md:text-sm font-semibold uppercase">
+              Vagas de emprego<br />
+              Banco de currículos<br />
+              E oportunidades em toda a Região dos Lagos.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* BOTÕES PRINCIPAIS */}
-      <section className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* CARD – CADASTRAR CURRÍCULO */}
+      {/* BLOCO – ESCOLHA CANDIDATO / EMPRESA */}
+      <section className="max-w-5xl mx-auto px-4 mt-6 grid gap-4 md:grid-cols-2">
+        {/* Card candidato */}
+        <div className="rounded-3xl border border-emerald-200 bg-white shadow-sm p-5">
+          <p className="text-[11px] font-semibold text-emerald-700 mb-1">
+            PARA CANDIDATOS
+          </p>
+          <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-1">
+            Quero cadastrar meu currículo
+          </h2>
+          <p className="text-[11px] text-slate-600 mb-3">
+            Cadastre seu perfil no banco de talentos do Classilagos e seja
+            encontrado por empresas de toda a região.
+          </p>
           <Link
-            href="/anunciar/curriculo"
-            className="group block rounded-3xl border border-emerald-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            href="/empregos/curriculos/anunciar"
+            className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
-                📄
-              </div>
-              <div className="text-left">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                  Para candidatos
-                </p>
-                <h2 className="text-lg md:text-xl font-bold text-slate-900">
-                  Quero cadastrar meu currículo
-                </h2>
-              </div>
-            </div>
-
-            <p className="text-sm text-slate-600 mb-3">
-              Cadastre seu perfil no banco de talentos do Classilagos e seja
-              encontrado por empresas de toda a região.
-            </p>
-
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 group-hover:gap-2 transition-all">
-              Começar agora <span>➜</span>
-            </span>
+            Começar agora →
           </Link>
+        </div>
 
-          {/* CARD – ANUNCIAR VAGA */}
+        {/* Card empresa */}
+        <div className="rounded-3xl border border-cyan-200 bg-white shadow-sm p-5">
+          <p className="text-[11px] font-semibold text-cyan-700 mb-1">
+            PARA EMPRESAS E COMÉRCIOS
+          </p>
+          <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-1">
+            Quero anunciar uma vaga
+          </h2>
+          <p className="text-[11px] text-slate-600 mb-3">
+            Divulgue gratuitamente oportunidades de trabalho e receba candidatos
+            qualificados de toda a Região dos Lagos.
+          </p>
           <Link
-            href="/anunciar/empregos"
-            className="group block rounded-3xl border border-sky-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            href="/empregos/anunciar"
+            className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-2xl">
-                💼
-              </div>
-              <div className="text-left">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-                  Para empresas e comércios
-                </p>
-                <h2 className="text-lg md:text-xl font-bold text-slate-900">
-                  Quero anunciar uma vaga
-                </h2>
-              </div>
-            </div>
-
-            <p className="text-sm text-slate-600 mb-3">
-              Divulgue gratuitamente oportunidades de trabalho e receba candidatos
-              qualificados de toda a Região dos Lagos.
-            </p>
-
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 group-hover:gap-2 transition-all">
-              Publicar vaga <span>➜</span>
-            </span>
+            Publicar vaga →
           </Link>
         </div>
       </section>
 
-      {/* VAGAS RECENTES */}
-      <section className="max-w-6xl mx-auto px-4 py-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
-          Vagas recentes
-        </h2>
-
-        {!loadingVagas && vagasRecentes.length === 0 && (
-          <p className="text-slate-500 text-sm">
-            Nenhuma vaga cadastrada ainda.
+      {/* LISTAGENS */}
+      <section className="max-w-5xl mx-auto px-4 mt-8 space-y-8">
+        {erro && (
+          <p className="text-xs text-red-600 border border-red-100 rounded-md bg-red-50 px-3 py-2">
+            {erro}
           </p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {vagasRecentes.map((vaga) => (
-            <Link
-              key={vaga.id}
-              href={`/anuncios/${vaga.id}`}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition flex gap-3"
-            >
-              {/* LOGO DA EMPRESA (opcional) */}
-              {vaga.imagens && vaga.imagens.length > 0 && (
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden border bg-white flex items-center justify-center">
-                  <Image
-                    src={vaga.imagens[0]}
-                    alt="Logo da empresa"
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                  />
-                </div>
-              )}
+        {/* VAGAS RECENTES */}
+        <div className="space-y-3">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
+            Vagas recentes
+          </h2>
 
-              {/* INFORMAÇÕES DA VAGA */}
-              <div className="flex flex-col">
-                <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
-                  {vaga.titulo}
-                </p>
+          {loading && (
+            <p className="text-[11px] text-slate-500">Carregando vagas…</p>
+          )}
 
-                <p className="text-[11px] text-slate-600 mb-1">
-                  {vaga.cidade}
-                </p>
+          {!loading && vagasRecentes.length === 0 && (
+            <p className="text-[11px] text-slate-500">
+              Ainda não há vagas cadastradas. Em breve, novas oportunidades
+              aparecerão aqui.
+            </p>
+          )}
 
-                {vaga.tipo_vaga && (
-                  <p className="inline-flex text-[11px] font-semibold text-sky-700 mb-1">
-                    {vaga.tipo_vaga}
-                  </p>
-                )}
+          {vagasRecentes.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-3">
+              {vagasRecentes.map((vaga) => {
+                const logo =
+                  Array.isArray(vaga.imagens) && vaga.imagens.length > 0
+                    ? vaga.imagens[0]
+                    : null;
 
-                {vaga.faixa_salarial && (
-                  <p className="text-[11px] text-emerald-700 font-semibold">
-                    {vaga.faixa_salarial}
-                  </p>
-                )}
-              </div>
-            </Link>
-          ))}
+                return (
+                  <Link
+                    key={vaga.id}
+                    href={`/anuncios/${vaga.id}`}
+                    className="group rounded-3xl border border-slate-200 bg-white hover:bg-slate-50 transition flex flex-row gap-3 px-4 py-3 items-center"
+                  >
+                    {/* Logo da empresa */}
+                    {logo && (
+                      <div className="flex-shrink-0">
+                        <div className="h-12 w-12 rounded-xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center">
+                          <img
+                            src={logo}
+                            alt={vaga.titulo}
+                            className="h-10 w-10 object-contain"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Texto */}
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xs font-semibold text-slate-900 line-clamp-2">
+                        {vaga.titulo}
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        {vaga.cidade}
+                        {vaga.bairro ? ` • ${vaga.bairro}` : ""}
+                      </p>
+                      <p className="text-[11px] text-emerald-700 font-semibold">
+                        {vaga.tipo_vaga || ""}{" "}
+                        {vaga.faixa_salarial ? `• ${vaga.faixa_salarial}` : ""}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* CURRÍCULOS RECENTES – AGORA COM FOTO */}
+        <div className="space-y-3">
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">
+            Currículos recentes
+          </h2>
+
+          {loading && (
+            <p className="text-[11px] text-slate-500">Carregando currículos…</p>
+          )}
+
+          {!loading && curriculosRecentes.length === 0 && (
+            <p className="text-[11px] text-slate-500">
+              Ainda não há currículos cadastrados. Em breve, novos candidatos
+              aparecerão aqui.
+            </p>
+          )}
+
+          {curriculosRecentes.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-3">
+              {curriculosRecentes.map((cv) => {
+                const nomeLimpo = cv.titulo?.startsWith("Currículo - ")
+                  ? cv.titulo.replace("Currículo - ", "")
+                  : cv.titulo;
+
+                return (
+                  <Link
+                    key={cv.id}
+                    href={`/anuncios/${cv.id}`}
+                    className="group rounded-3xl border border-slate-200 bg-white hover:bg-slate-50 transition px-4 py-3 flex flex-row items-center gap-3"
+                  >
+                    {/* FOTO DO CANDIDATO */}
+                    <div className="flex-shrink-0">
+                      {cv.curriculo_foto_url ? (
+                        <div className="h-12 w-12 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+                          <img
+                            src={cv.curriculo_foto_url}
+                            alt={nomeLimpo}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-12 w-12 rounded-full border border-slate-200 bg-slate-100 flex items-center justify-center text-[11px] text-slate-400">
+                          CV
+                        </div>
+                      )}
+                    </div>
+
+                    {/* TEXTO */}
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xs font-semibold text-slate-900 line-clamp-2">
+                        {nomeLimpo}
+                      </p>
+                      {cv.area_profissional && (
+                        <p className="text-[11px] text-slate-600">
+                          {cv.area_profissional}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-slate-500">
+                        {cv.cidade}
+                        {cv.bairro ? ` • ${cv.bairro}` : ""}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CURRÍCULOS RECENTES */}
-      <section className="max-w-6xl mx-auto px-4 pb-12">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
-          Currículos recentes
-        </h2>
-
-        {!loadingCurriculos && curriculosRecentes.length === 0 && (
-          <p className="text-slate-500 text-sm">
-            Nenhum currículo cadastrado ainda.
-          </p>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {curriculosRecentes.map((cv) => (
-            <Link
-              key={cv.id}
-              href={`/anuncios/${cv.id}`}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
-            >
-              <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-1">
-                {cv.nome_contato || "Candidato"}
-              </p>
-              <p className="text-[11px] text-slate-600 mb-1">
-                {cv.area_profissional}
-              </p>
-              <p className="text-[11px] text-slate-600">
-                {cv.cidade}
-              </p>
+      {/* RODAPÉ SIMPLES DA PÁGINA EMPREGOS */}
+      <section className="mt-8">
+        <footer className="text-center text-[11px] text-slate-500 space-y-1">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <Link href="/quem-somos" className="hover:underline">
+              Quem somos
             </Link>
-          ))}
-        </div>
+            <Link href="/contato" className="hover:underline">
+              Contato
+            </Link>
+            <Link href="/politica-de-privacidade" className="hover:underline">
+              Política de privacidade
+            </Link>
+          </div>
+          <p>Classilagos © 2025</p>
+        </footer>
       </section>
 
-      {/* RODAPÉ */}
-      <footer className="bg-slate-100 border-t py-6 text-center text-xs text-slate-600">
-        <p>Classilagos © {new Date().getFullYear()}</p>
-        <p className="mt-1">
-          <Link href="/quem-somos" className="hover:underline">
-            Quem somos
-          </Link>{" "}
-          •{" "}
-          <Link href="/contato" className="hover:underline">
-            Contato
-          </Link>{" "}
-          •{" "}
-          <Link href="/politica" className="hover:underline">
-            Política de privacidade
-          </Link>
-        </p>
-      </footer>
+      {/* TARJA ANTES DO RODAPÉ DO PEIXINHO – LINKS ÚTEIS */}
+      <section className="mt-6 bg-slate-900 text-slate-50">
+        <div className="max-w-5xl mx-auto px-4 py-6 grid gap-4 md:grid-cols-[2fr,3fr]">
+          <div>
+            <h2 className="text-sm font-semibold">
+              Links úteis para quem busca emprego
+            </h2>
+            <p className="mt-1 text-[11px] text-slate-300">
+              Acesse serviços oficiais e materiais que podem ajudar na sua
+              recolocação profissional.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-[11px]">
+            <a
+              href="https://empregabrasil.mte.gov.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
+            >
+              SINE / Emprega Brasil
+            </a>
+            <a
+              href="https://www.gov.br/trabalho-e-emprego/pt-br"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
+            >
+              Ministério do Trabalho
+            </a>
+            <a
+              href="#"
+              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
+            >
+              Em breve: Dicas de currículo e entrevista
+            </a>
+          </div>
+        </div>
+      </section>
+      {/* O rodapé do peixinho vem depois, no layout global */}
     </main>
   );
 }
+
