@@ -375,130 +375,142 @@ export default function AnuncioDetalhePage() {
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* ===================== CURRÍCULO ===================== */}
-            {isCurriculo ? (
-              <>
-                {/* Perfil do candidato */}
-                <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                  <div className="flex items-start gap-4">
-                    {anuncio.curriculo_foto_url && (
-                      <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-white shadow-sm">
-                          <img
-                            src={anuncio.curriculo_foto_url}
-                            alt={anuncio.nome_contato || "Foto do candidato"}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    )}
+         {/* ===================== CURRÍCULO ===================== */}
+{isCurriculo ? (
+  <>
+    {/* Card principal do candidato */}
+    <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+      <div className="flex items-start gap-4">
+        {/* FOTO DO CANDIDATO */}
+        {anuncio.curriculo_foto_url && (
+          <div className="flex-shrink-0">
+            <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+              <img
+                src={anuncio.curriculo_foto_url}
+                alt={anuncio.nome_contato || "Foto do candidato"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
 
-                    <div className="space-y-1">
-                      <h2 className="text-base md:text-lg font-bold text-slate-900">
-                        {anuncio.nome_contato || "Candidato"}
-                      </h2>
+        {/* TEXTOS CABEÇALHO */}
+        <div className="space-y-1">
+          <h2 className="text-base md:text-lg font-bold text-slate-900">
+            {anuncio.titulo?.startsWith("Currículo - ")
+              ? anuncio.titulo.replace("Currículo - ", "")
+              : anuncio.titulo}
+          </h2>
 
-                      {anuncio.area_profissional && (
-                        <p className="text-xs md:text-sm font-medium text-emerald-700">
-                          {anuncio.area_profissional}
-                        </p>
-                      )}
+          {anuncio.area_profissional && (
+            <p className="text-[11px] md:text-xs font-semibold text-emerald-700">
+              {anuncio.area_profissional}
+            </p>
+          )}
 
-                      <p className="text-xs text-slate-600">
-                        {anuncio.cidade}
-                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-                      </p>
+          {(anuncio.cidade || anuncio.bairro) && (
+            <p className="text-[11px] text-slate-500">
+              {anuncio.cidade}
+              {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
 
-                      {anuncio.escolaridade_minima && (
-                        <p className="text-[11px] text-slate-600 mt-1">
-                          <span className="font-semibold text-slate-900">
-                            Escolaridade:{" "}
-                          </span>
-                          {anuncio.escolaridade_minima}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </section>
+    {/* Resumo profissional */}
+    <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900 mb-1">
+        Resumo profissional
+      </h3>
+      <p className="text-xs text-slate-700 whitespace-pre-line">
+        {anuncio.descricao || "O candidato ainda não preencheu o resumo profissional."}
+      </p>
+    </section>
 
-                {/* Resumo profissional */}
-                {anuncio.descricao && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
-                      Resumo profissional
-                    </h3>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.descricao}
-                    </p>
-                  </section>
-                )
+    {/* Experiências profissionais */}
+    <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900 mb-1">
+        Experiências profissionais
+      </h3>
+      <p className="text-xs text-slate-700 whitespace-pre-line">
+        {anuncio.experiencias_profissionais ||
+          "O candidato ainda não descreveu experiências profissionais."}
+      </p>
+    </section>
 
-                }
+    {/* Formação acadêmica / cursos + Escolaridade */}
+    <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900 mb-1">
+        Formação acadêmica / cursos
+      </h3>
 
-                {/* Experiências profissionais */}
-                {anuncio.experiencias_profissionais && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
-                      Experiências profissionais
-                    </h3>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.experiencias_profissionais}
-                    </p>
-                  </section>
-                )}
+      {anuncio.escolaridade_minima && (
+        <p className="text-[11px] text-slate-700">
+          <span className="font-semibold">Escolaridade: </span>
+          {anuncio.escolaridade_minima}
+        </p>
+      )}
 
-                {/* Formação acadêmica / cursos */}
-                {anuncio.formacao_academica && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
-                      Formação acadêmica / cursos
-                    </h3>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.formacao_academica}
-                    </p>
-                  </section>
-                )}
+      {anuncio.formacao_academica && (
+        <p className="mt-1 text-xs text-slate-700 whitespace-pre-line">
+          {anuncio.formacao_academica}
+        </p>
+      )}
 
-                {/* Habilidades */}
-                {anuncio.habilidades && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
-                      Habilidades e competências
-                    </h3>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.habilidades}
-                    </p>
-                  </section>
-                )}
+      {!anuncio.escolaridade_minima && !anuncio.formacao_academica && (
+        <p className="text-xs text-slate-500">
+          O candidato ainda não informou formação acadêmica.
+        </p>
+      )}
+    </section>
 
-                {/* Idiomas */}
-                {anuncio.idiomas && (
-                  <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
-                      Idiomas
-                    </h3>
-                    <p className="text-xs text-slate-700 whitespace-pre-line">
-                      {anuncio.idiomas}
-                    </p>
-                  </section>
-                )}
-              </>
-            ) : (
-              <>
-                {/* LOGO PARA EMPREGO (empresa) */}
-                {temImagens && isEmprego && (
-                  <div className="w-full flex justify-start">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
-                      <img
-                        src={imagens[0]}
-                        alt="Logo da empresa"
-                        className="w-full h-full object-contain p-1"
-                      />
-                    </div>
-                  </div>
-                )}
+    {/* Habilidades e competências */}
+    <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900 mb-1">
+        Habilidades e competências
+      </h3>
+      <p className="text-xs text-slate-700 whitespace-pre-line">
+        {anuncio.habilidades ||
+          "O candidato ainda não descreveu habilidades e competências."}
+      </p>
+    </section>
 
-                {/* ===================== OUTROS TIPOS ===================== */}
+    {/* Idiomas (mostra só se tiver) */}
+    {anuncio.idiomas && (
+      <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">Idiomas</h3>
+        <p className="text-xs text-slate-700 whitespace-pre-line">
+          {anuncio.idiomas}
+        </p>
+      </section>
+    )}
+
+    {/* Link para baixar PDF do currículo, se existir */}
+    {anuncio.curriculo_pdf_url && (
+      <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">
+          Currículo em PDF
+        </h3>
+        <a
+          href={anuncio.curriculo_pdf_url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
+        >
+          Baixar currículo em PDF
+        </a>
+      </section>
+    )}
+  </>
+) : (
+  <>
+    {/* ==================== OUTROS TIPOS ==================== */}
+    {/* (deixa aqui exatamente o bloco que você já tem hoje
+        para imóveis, veículos, serviços, etc.) */}
+  </>
+)}
+
                 <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h2 className="text-sm font-semibold text-slate-900 mb-2">
                     Resumo do anúncio
