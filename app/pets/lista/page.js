@@ -6,42 +6,69 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../../supabaseClient";
 
+function normalizarFiltro(valor) {
+  const v = (valor || "").toLowerCase().trim();
+
+  if (!v) return "";
+
+  // aceita várias formas: "Animais", "animais-venda", etc.
+  if (v.startsWith("animais")) return "animais";
+  if (v.includes("ado")) return "adocao";
+  if (v.includes("achado") || v.includes("perdido")) return "achados";
+  if (v.includes("serv")) return "servicos";
+
+  return "";
+}
+
+function tituloPorFiltro(filtro) {
+  switch (filtro) {
+    case "animais":
+      return "Pets – Animais à venda";
+    case "adocao":
+      return "Pets – Adoção / Doação";
+    case "achados":
+      return "Pets – Achados e perdidos";
+    case "servicos":
+      return "Pets – Serviços pet & acessórios";
+    default:
+      return "Pets – Lista";
+  }
+}
+
 function ListaPetsContent() {
   const searchParams = useSearchParams();
 
-  // aceita tanto ?categoria=... quanto ?subcategoria=...
-  const categoriaParam = searchParams.get("categoria");
-  const subcategoriaParam = searchParams.get("subcategoria");
-  const categoriaFiltro = categoriaParam || subcategoriaParam || "";
+  // compat: aceita ?subcategoria=... ou ?categoria=...
+  const rawSub = searchParams.get("subcategoria");
+  const rawCat = searchParams.get("categoria");
+  const filtroSlug = normalizarFiltro(rawSub || rawCat);
 
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  let tituloPagina = "Pets – Lista";
-  if (categoriaFiltro) {
-    tituloPagina = `Pets – ${categoriaFiltro}`;
-  }
+  const tituloPagina = tituloPorFiltro(filtroSlug);
 
   useEffect(() => {
     const carregar = async () => {
       setLoading(true);
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from("anuncios")
         .select(
           `
-          id,
-          titulo,
-          descricao,
-          cidade,
-          bairro,
-          preco,
-          imagens,
-          categoria,
-          status,
-          tipo_imovel,
-          created_at
-        `
+            id,
+            titulo,
+            descricao,
+            cidade,
+            bairro,
+            preco,
+            imagens,
+            categoria,
+            status,
+            tipo_imovel,
+            subcategoria_pet,
+            created_at
+          `
         )
         .eq("categoria", "pets")
         .eq("status", "ativo")
@@ -56,9 +83,34 @@ function ListaPetsContent() {
 
       let lista = data || [];
 
-      // se tiver categoria/subcategoria na URL, filtra pelo tipo_imovel
-      if (categoriaFiltro) {
-        lista = lista.filter((a) => a.tipo_imovel === categoriaFiltro);
+      // 🔍 filtro por grupo (animais / adocao / achados / servicos)
+      if (filtroSlug) {
+        lista = lista.filter((a) => {
+          const sub =
+            (a.subcategoria_pet ||
+              a.tipo_imovel || // compat anúncios antigos
+              ""
+            )
+              .toLowerCase()
+              .trim();
+
+          switch (filtroSlug) {
+            case "animais":
+              return sub.startsWith("animais");
+            case "adocao":
+              return sub.includes("adocao") || sub.includes("adoção");
+            case "achados":
+              return sub.includes("achado") || sub.includes("perdido");
+            case "servicos":
+              return (
+                sub.includes("servico") ||
+                sub.includes("serviços") ||
+                sub.includes("acess") // acessórios
+              );
+            default:
+              return true;
+          }
+        });
       }
 
       setAnuncios(lista);
@@ -66,7 +118,7 @@ function ListaPetsContent() {
     };
 
     carregar();
-  }, [categoriaFiltro]);
+  }, [filtroSlug]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -136,6 +188,9 @@ function ListaPetsContent() {
                   ? item.imagens[0]
                   : null;
 
+              const subLabel =
+                item.subcategoria_pet || item.tipo_imovel || "Pets";
+
               return (
                 <Link
                   key={item.id}
@@ -164,7 +219,7 @@ function ListaPetsContent() {
                     </p>
 
                     <p className="text-[10px] text-slate-300">
-                      {item.tipo_imovel || ""} • {item.cidade}
+                      {subLabel} • {item.cidade}
                       {item.bairro ? ` • ${item.bairro}` : ""}
                     </p>
 
