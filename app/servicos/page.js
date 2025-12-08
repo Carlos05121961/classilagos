@@ -19,7 +19,7 @@ export default function ServicosPage() {
         .select(
           "id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens"
         )
-       .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
+        .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
         .eq("status", "ativo")
         .order("created_at", { ascending: false });
 
@@ -49,7 +49,7 @@ export default function ServicosPage() {
     fetchServicos();
   }, []);
 
-  // Componente de card reutilizável com miniatura opcional
+  // Card padrão para todos os serviços
   const CardServico = ({ item }) => {
     const thumb =
       Array.isArray(item.imagens) && item.imagens.length > 0
@@ -207,7 +207,8 @@ export default function ServicosPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da plataforma.
+            Em breve, essa busca estará ligada aos anúncios reais da
+            plataforma.
           </p>
         </div>
       </section>
@@ -243,6 +244,9 @@ export default function ServicosPage() {
               Clínicas, terapeutas, cuidadores, psicólogos, nutricionistas e
               muito mais.
             </p>
+            <p className="mt-2 text-[11px] text-emerald-700 font-semibold">
+              Clique para anunciar seus serviços de saúde.
+            </p>
           </Link>
 
           {/* EVENTOS */}
@@ -264,8 +268,11 @@ export default function ServicosPage() {
               </div>
             </div>
             <p className="text-xs text-slate-700">
-              Buffet, doces e salgados, fotografia, DJ, decoração, espaços para
-              festas e muito mais.
+              Buffet, doces e salgados, fotografia, DJ, decoração, espaços
+              para festas e muito mais.
+            </p>
+            <p className="mt-2 text-[11px] text-pink-600 font-semibold">
+              Clique para anunciar serviços de festas &amp; eventos.
             </p>
           </Link>
 
@@ -291,18 +298,49 @@ export default function ServicosPage() {
               Eletricistas, diaristas, manutenção, reboque, arquitetos,
               engenheiros, piscineiros e muito mais.
             </p>
+            <p className="mt-2 text-[11px] text-blue-600 font-semibold">
+              Clique para anunciar seus serviços profissionais.
+            </p>
           </Link>
+        </div>
+
+        {/* Atalhos para descer até as vitrines */}
+        <div className="mt-3 flex flex-wrap justify-center gap-4 text-[11px]">
+          <a
+            href="#classimed-lista"
+            className="text-emerald-700 hover:underline font-semibold"
+          >
+            Ver serviços de saúde cadastrados ↓
+          </a>
+          <a
+            href="#eventos-lista"
+            className="text-pink-600 hover:underline font-semibold"
+          >
+            Ver serviços de festas &amp; eventos ↓
+          </a>
+          <a
+            href="#profissionais-lista"
+            className="text-blue-600 hover:underline font-semibold"
+          >
+            Ver profissionais &amp; serviços cadastrados ↓
+          </a>
         </div>
       </section>
 
       {/* VITRINE DOS ANÚNCIOS REAIS */}
-      <section className="max-w-5xl mx-auto px-4 pb-10 space-y-8">
+      <section className="max-w-5xl mx-auto px-4 pb-10 space-y-10">
         {/* CLASSIMED LISTA */}
-        <div className="space-y-3">
+        <div id="classimed-lista" className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Serviços de saúde (Classimed)
-            </h3>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 px-2 items-center rounded-full bg-emerald-50 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
+                Saúde &amp; bem-estar
+              </span>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Serviços de saúde (Classimed)
+              </h3>
+            </div>
+
             {!loading && (
               <p className="text-[11px] text-slate-500">
                 {classimed.length} encontrado(s)
@@ -330,11 +368,17 @@ export default function ServicosPage() {
         </div>
 
         {/* EVENTOS LISTA */}
-        <div className="space-y-3">
+        <div id="eventos-lista" className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Festas &amp; eventos
-            </h3>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 px-2 items-center rounded-full bg-pink-50 text-[11px] font-semibold text-pink-600 border border-pink-100">
+                Festas &amp; eventos
+              </span>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Festas &amp; eventos
+              </h3>
+            </div>
+
             {!loading && (
               <p className="text-[11px] text-slate-500">
                 {eventos.length} encontrado(s)
@@ -362,11 +406,17 @@ export default function ServicosPage() {
         </div>
 
         {/* PROFISSIONAIS LISTA */}
-        <div className="space-y-3">
+        <div id="profissionais-lista" className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Profissionais &amp; serviços
-            </h3>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 px-2 items-center rounded-full bg-blue-50 text-[11px] font-semibold text-blue-600 border border-blue-100">
+                Profissionais &amp; serviços
+              </span>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Profissionais &amp; serviços
+              </h3>
+            </div>
+
             {!loading && (
               <p className="text-[11px] text-slate-500">
                 {profissionais.length} encontrado(s)
@@ -396,3 +446,4 @@ export default function ServicosPage() {
     </main>
   );
 }
+
