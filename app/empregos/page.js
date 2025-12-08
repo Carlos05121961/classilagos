@@ -67,7 +67,7 @@ export default function EmpregosPage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
-      {/* HERO PRINCIPAL – VERSÃO COM FOTO DE FUNDO IGUAL AO ANTIGO */}
+      {/* HERO PRINCIPAL – FOTO DE FUNDO + TEXTOS EM PRETO COM SOMBRA */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
           <Image
@@ -80,30 +80,24 @@ export default function EmpregosPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          {/* leve escurecida para o texto aparecer melhor */}
-          <div className="absolute inset-0 bg-black/10" />
-
-          {/* TEXTOS EM PRETO COM SOMBRA – COMO NO BANNER ANTIGO */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            {/* Título principal */}
-            <h1 className="mt-2 text-3xl md:text-4xl font-black text-black drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
+          {/* Textos centralizados sobre a imagem */}
+          <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
+            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-black drop-shadow-md">
               Classilagos – Empregos
             </h1>
 
-            {/* Subtítulo */}
-            <p className="mt-2 text-xs md:text-sm font-semibold text-black max-w-2xl drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
-              Vagas de emprego, banco de currículos e oportunidades em toda a
-              Região dos Lagos.
+            {/* BLOCO DE TEXTO (O MESMO DA LUPA) – EM PRETO COM SOMBRA */}
+            <p className="mt-4 text-base md:text-lg font-extrabold uppercase text-black leading-tight drop-shadow-md">
+              VAGAS DE EMPREGO
+              <br />
+              BANCO DE CURRÍCULOS
+              <br />
+              E OPORTUNIDADES
+              <br />
+              EM TODA A REGIÃO
+              <br />
+              DOS LAGOS.
             </p>
-
-            {/* Linhas em preto – mesmo texto de dentro da lupa */}
-            <div className="mt-4 text-center font-extrabold text-black drop-shadow-[2px_2px_4px_rgba(0,0,0,0.7)]">
-              <p className="text-lg md:text-xl">VAGAS DE EMPREGO</p>
-              <p className="text-lg md:text-xl">BANCO DE CURRÍCULOS</p>
-              <p className="text-lg md:text-xl">E OPORTUNIDADES</p>
-              <p className="text-lg md:text-xl">EM TODA A REGIÃO</p>
-              <p className="text-lg md:text-xl">DOS LAGOS.</p>
-            </div>
           </div>
         </div>
       </section>
@@ -123,7 +117,7 @@ export default function EmpregosPage() {
             encontrado por empresas de toda a região.
           </p>
           <Link
-            href="/empregos/curriculos/anunciar"
+            href="/anunciar/curriculo" // ✅ rota corrigida
             className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
           >
             Começar agora →
@@ -143,7 +137,7 @@ export default function EmpregosPage() {
             qualificados de toda a Região dos Lagos.
           </p>
           <Link
-            href="/empregos/anunciar"
+            href="/anunciar/empregos" // ✅ rota corrigida
             className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
           >
             Publicar vaga →
@@ -294,9 +288,7 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* ❌ RODAPÉ SIMPLES REMOVIDO – PARA NÃO DUPLICAR COM O "PEIXINHO" */}
-
-      {/* TARJA ANTES DO RODAPÉ DO PEIXINHO – LINKS ÚTEIS */}
+      {/* TARJA PRETA – COLADA NO FOOTER DO PEIXINHO */}
       <section className="mt-6 bg-slate-900 text-slate-50">
         <div className="max-w-5xl mx-auto px-4 py-6 grid gap-4 md:grid-cols-[2fr,3fr]">
           <div>
