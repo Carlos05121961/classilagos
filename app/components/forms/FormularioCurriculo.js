@@ -28,7 +28,7 @@ export default function FormularioCurriculo() {
   const [email, setEmail] = useState("");
 
   // Foto do currículo
-  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoFile, setFotoFile] = useState(null);
 
   // Checkbox de confirmação
   const [aceitoTermos, setAceitoTermos] = useState(false);
@@ -57,7 +57,7 @@ export default function FormularioCurriculo() {
     "Rio das Ostras",
   ];
 
-  // Lista ampliada de áreas profissionais (mantendo as antigas e adicionando outras)
+  // Lista ampliada de áreas profissionais
   const areas = [
     "Administração",
     "Atendimento / Caixa",
@@ -82,14 +82,13 @@ export default function FormularioCurriculo() {
     "Outros",
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
 
     if (!user) {
       setErro("Você precisa estar logado para cadastrar seu currículo.");
@@ -120,7 +119,7 @@ export default function FormularioCurriculo() {
 
     setUploading(true);
 
-    let fotoUrl: string | null = null;
+    let fotoUrl = null;
 
     try {
       const bucket = "anuncios";
@@ -139,8 +138,10 @@ export default function FormularioCurriculo() {
           throw uploadErroFoto;
         }
 
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        fotoUrl = data.publicUrl;
+        const { data: publicData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(path);
+        fotoUrl = publicData.publicUrl;
       }
 
       // Monta título e descrição principais
@@ -155,7 +156,7 @@ export default function FormularioCurriculo() {
         formacaoAcademica ||
         "Currículo cadastrado no banco de talentos do Classilagos.";
 
-      // INSERT no Supabase (campos batendo com a tabela que você enviou)
+      // INSERT no Supabase
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
         categoria: "curriculo",
@@ -164,7 +165,7 @@ export default function FormularioCurriculo() {
         cidade,
         bairro,
         nome_contato: nome,
-        // Campos específicos de currículo
+        // Campos específicos de currículo (batendo com o schema que você mandou)
         area_profissional: areaProfissional,
         escolaridade_minima: escolaridade,
         formacao_academica: formacaoAcademica,
@@ -175,8 +176,8 @@ export default function FormularioCurriculo() {
         telefone,
         whatsapp,
         email,
-        contato: contatoPrincipal, // coluna NOT NULL
-        // Arquivo de foto
+        contato: contatoPrincipal,
+        // Foto
         curriculo_foto_url: fotoUrl,
         status: "ativo",
       });
@@ -216,10 +217,12 @@ export default function FormularioCurriculo() {
       setTimeout(() => {
         router.push("/painel/meus-anuncios");
       }, 1800);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setErro(
-        `Erro ao salvar seu currículo: ${err.message || "Tente novamente."}`
+        `Erro ao salvar seu currículo: ${
+          err?.message || "Tente novamente."
+        }`
       );
       setUploading(false);
     }
