@@ -177,40 +177,52 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* VAGAS RECENTES */}
-      <section className="max-w-6xl mx-auto px-4 py-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
-          Vagas recentes
-        </h2>
+  {/* VAGAS RECENTES */}
+<section className="max-w-6xl mx-auto px-4 py-6">
+  <h2 className="text-lg font-semibold text-slate-900 mb-2">
+    Vagas recentes
+  </h2>
 
-        {!loadingVagas && vagasRecentes.length === 0 && (
-          <p className="text-slate-500 text-sm">
-            Nenhuma vaga cadastrada ainda.
+  {!loadingVagas && vagasRecentes.length === 0 && (
+    <p className="text-slate-500 text-sm">
+      Nenhuma vaga cadastrada ainda.
+    </p>
+  )}
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {vagasRecentes.map((vaga) => (
+      <Link
+        key={vaga.id}
+        href={`/anuncios/${vaga.id}`}
+        className="rounded-2xl border p-4 bg-slate-50 hover:bg-slate-100 shadow-sm hover:shadow transition"
+      >
+        <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
+          {vaga.titulo}
+        </p>
+
+        {/* cidade */}
+        <p className="text-[11px] text-slate-600 mb-1">
+          {vaga.cidade}
+        </p>
+
+        {/* tipo de vaga: CLT, Estágio, Temporário, etc. */}
+        {vaga.tipo_vaga && (
+          <p className="text-[11px] font-semibold text-sky-700 mb-1">
+            {vaga.tipo_vaga}
           </p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {vagasRecentes.map((vaga) => (
-            <Link
-              key={vaga.id}
-              href={`/anuncios/${vaga.id}`}
-              className="rounded-2xl border p-4 bg-slate-50 hover:bg-slate-100 shadow-sm hover:shadow transition"
-            >
-              <p className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
-                {vaga.titulo}
-              </p>
-              <p className="text-[11px] text-slate-600 mb-1">
-                {vaga.cidade}
-              </p>
-              {vaga.faixa_salarial && (
-                <p className="text-[11px] text-emerald-700 font-semibold">
-                  {vaga.faixa_salarial}
-                </p>
-              )}
-            </Link>
-          ))}
-        </div>
-      </section>
+        {/* faixa salarial */}
+        {vaga.faixa_salarial && (
+          <p className="text-[11px] text-emerald-700 font-semibold">
+            {vaga.faixa_salarial}
+          </p>
+        )}
+      </Link>
+    ))}
+  </div>
+</section>
+
 
       {/* CURRÍCULOS RECENTES */}
       <section className="max-w-6xl mx-auto px-4 pb-12">
