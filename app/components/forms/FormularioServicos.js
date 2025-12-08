@@ -32,7 +32,7 @@ export default function FormularioServicos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // AGORA: várias imagens
+  // >>> AQUI: VÁRIAS IMAGENS <<<
   const [imagensFiles, setImagensFiles] = useState([]);
 
   // Controle
@@ -105,9 +105,9 @@ export default function FormularioServicos() {
     try {
       const bucket = "anuncios";
 
-      // =========================
+      // ============================
       // UPLOAD DE VÁRIAS IMAGENS
-      // =========================
+      // ============================
       let imagensUrls = [];
 
       if (imagensFiles.length > 0) {
@@ -160,7 +160,7 @@ export default function FormularioServicos() {
         site_url: siteUrl,
         instagram,
 
-        // Imagens (agora várias)
+        // Imagens (array)
         imagens: imagensUrls.length > 0 ? imagensUrls : null,
 
         status: "ativo",
@@ -551,3 +551,4 @@ export default function FormularioServicos() {
     </form>
   );
 }
+
