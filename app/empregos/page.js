@@ -6,11 +6,24 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 export default function EmpregosPage() {
+  /* HERO – alternando 2 imagens */
+  const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
+  const [currentHero, setCurrentHero] = useState(0);
+
   // Listas do Supabase
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [curriculosRecentes, setCurriculosRecentes] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingCurriculos, setLoadingCurriculos] = useState(true);
+
+  // troca de imagem do hero
+  useEffect(() => {
+    const interval = setInterval(
+      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
+      6000
+    );
+    return () => clearInterval(interval);
+  }, []);
 
   // Buscar vagas e currículos
   useEffect(() => {
@@ -65,43 +78,41 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-   {/* HERO PRINCIPAL */}
-<section className="relative w-full">
-  <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
+      {/* HERO PRINCIPAL – como no print, com textos sobre a imagem */}
+      <section className="relative w-full">
+        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] overflow-hidden">
+          {/* imagem do hero */}
+          <Image
+            key={heroImages[currentHero]}
+            src={heroImages[currentHero]}
+            alt="Classilagos Empregos"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover transition-opacity duration-700"
+          />
 
-    {/* Imagem do hero */}
-    <Image
-      src={heroImages[currentHero]}
-      alt="Classilagos Empregos"
-      fill
-      priority
-      sizes="100vw"
-      className="object-cover transition-opacity duration-700"
-    />
+          {/* leve escurecida pra dar contraste */}
+          <div className="absolute inset-0 bg-black/10" />
 
-    {/* leve escurecida para ler o texto */}
-    <div className="absolute inset-0 bg-black/10" />
+          {/* TÍTULO PRINCIPAL (parte de cima do print) */}
+          <div className="absolute top-[18%] w-full flex justify-center px-4 text-center">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 drop-shadow">
+              Classilagos – Empregos
+            </h1>
+          </div>
 
-    {/* TÍTULO PRINCIPAL (igual ao print) */}
-    <div className="absolute top-[15%] w-full flex justify-center">
-      <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 drop-shadow">
-        Classilagos – Empregos
-      </h1>
-    </div>
-
-    {/* TEXTO DENTRO DA LUPA (igual ao print) */}
-    <div className="absolute top-[38%] w-full flex justify-center text-center px-4">
-      <div className="text-black font-extrabold leading-tight drop-shadow-md">
-        <p className="text-lg md:text-2xl">VAGAS DE EMPREGO</p>
-        <p className="text-lg md:text-2xl">BANCO DE CURRÍCULOS</p>
-        <p className="text-lg md:text-2xl">E OPORTUNIDADES</p>
-        <p className="text-lg md:text-2xl">EM TODA A REGIÃO DOS LAGOS.</p>
-      </div>
-    </div>
-
-  </div>
-</section>
-
+          {/* TEXTO EM BLOCOS (como se estivesse dentro da lupa) */}
+          <div className="absolute top-[38%] w-full flex justify-center px-4 text-center">
+            <div className="text-black font-extrabold leading-tight drop-shadow-md">
+              <p className="text-lg md:text-2xl">VAGAS DE EMPREGO</p>
+              <p className="text-lg md:text-2xl">BANCO DE CURRÍCULOS</p>
+              <p className="text-lg md:text-2xl">E OPORTUNIDADES</p>
+              <p className="text-lg md:text-2xl">EM TODA A REGIÃO DOS LAGOS.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* BOTÕES PRINCIPAIS */}
       <section className="max-w-5xl mx-auto px-4 py-8">
