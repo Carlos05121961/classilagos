@@ -32,7 +32,7 @@ export default function FormularioServicos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // >>> AQUI: VÁRIAS IMAGENS <<<
+  // IMAGENS – várias fotos
   const [imagensFiles, setImagensFiles] = useState([]);
 
   // Controle
@@ -110,9 +110,11 @@ export default function FormularioServicos() {
       // ============================
       let imagensUrls = [];
 
-      if (imagensFiles.length > 0) {
+      if (imagensFiles && imagensFiles.length > 0) {
         let index = 0;
         for (const file of imagensFiles) {
+          if (!file) continue;
+
           const ext = file.name.split(".").pop();
           const path = `servicos/${user.id}/foto-${Date.now()}-${index}.${ext}`;
           index++;
