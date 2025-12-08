@@ -90,6 +90,7 @@ export default function AnuncioDetalhePage() {
   const isEmprego = anuncio.categoria === "emprego";
   const isServico = anuncio.categoria === "servico";
   const isLagolistas = anuncio.categoria === "lagolistas";
+  const isPets = anuncio.categoria === "pets";
 
   // Imagens (não usamos galeria para currículo e vagas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
@@ -150,6 +151,8 @@ export default function AnuncioDetalhePage() {
       ? "Serviços similares na Região dos Lagos"
       : anuncio.categoria === "lagolistas"
       ? "Comércios similares na Região dos Lagos"
+      : anuncio.categoria === "pets"
+      ? "Anúncios de pets similares na Região dos Lagos"
       : "Anúncios similares na Região dos Lagos";
 
   // Texto dinâmico quando não houver similares
@@ -166,6 +169,8 @@ export default function AnuncioDetalhePage() {
       ? "Em breve mais serviços cadastrados aparecerão aqui."
       : anuncio.categoria === "lagolistas"
       ? "Em breve mais comércios desta região aparecerão aqui."
+      : anuncio.categoria === "pets"
+      ? "Em breve mais anúncios de pets nesta região aparecerão aqui."
       : "Em breve mais anúncios nesta região aparecerão aqui.";
 
   // Rota para o "voltar"
@@ -180,6 +185,8 @@ export default function AnuncioDetalhePage() {
       ? "/servicos"
       : anuncio.categoria === "lagolistas"
       ? "/lagolistas"
+      : anuncio.categoria === "pets"
+      ? "/pets"
       : "/";
 
   // Texto "Voltar para ..."
@@ -194,6 +201,8 @@ export default function AnuncioDetalhePage() {
       ? "Serviços"
       : anuncio.categoria === "lagolistas"
       ? "LagoListas"
+      : anuncio.categoria === "pets"
+      ? "Pets"
       : "a lista";
 
   return (
@@ -227,7 +236,7 @@ export default function AnuncioDetalhePage() {
 
                 <Link
                   href={rotaVoltar}
-                  className="hidden sm:inline-flex rounded-full border border-black/30 bg-white/80 px-4 py-1.5 text-xs font-semibold text-black hover:bg-white"
+                  className="hidden sm:inline-flex rounded-full border border-black/30 bg-white/80 px-4 py-1.5 text-xs font-semibold text-black hover:bg:white"
                 >
                   Voltar para {textoVoltar}
                 </Link>
@@ -273,6 +282,8 @@ export default function AnuncioDetalhePage() {
                       ? "Serviços"
                       : anuncio.categoria === "lagolistas"
                       ? "LagoListas"
+                      : anuncio.categoria === "pets"
+                      ? "Pets"
                       : "Anúncios"}
                   </p>
                   <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -367,9 +378,8 @@ export default function AnuncioDetalhePage() {
             {/* ===================== CURRÍCULO ===================== */}
             {isCurriculo ? (
               <>
-                {/* ... (BLOCO DE CURRÍCULO MANTIDO IGUAL) ... */}
-                {/* para economizar espaço aqui, mantemos idêntico ao seu,
-                    você já colou antes; não alterei nada nessa parte */}
+                {/* aqui permanece o mesmo bloco de currículo
+                    que você já tinha (não alterei nada) */}
               </>
             ) : (
               <>
@@ -380,7 +390,6 @@ export default function AnuncioDetalhePage() {
                   </h2>
 
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
-                    {/* (todo o bloco de resumo original permanece igual) */}
                     {anuncio.preco && (
                       <div>
                         <span className="font-semibold text-slate-900">
@@ -581,7 +590,9 @@ export default function AnuncioDetalhePage() {
                           <div className="block">
                             <img
                               src={imagens[0]}
-                              alt={anuncio.titulo || "Foto do estabelecimento"}
+                              alt={
+                                anuncio.titulo || "Foto do estabelecimento"
+                              }
                               className="h-24 w-24 md:h-28 md:w-28 rounded-xl object-cover border border-slate-200"
                             />
                             <span className="mt-1 block text-[11px] text-slate-600">
