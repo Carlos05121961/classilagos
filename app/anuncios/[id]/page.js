@@ -1187,30 +1187,6 @@ export default function AnuncioDetalhePage() {
             Voltar
           </Link>
         </div>
-
-        {/* Rodapé simples */}
-        <footer className="mt-8 text-center text-[11px] text-slate-500 space-y-1">
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-            <Link href="/quem-somos" className="hover:underline">
-              Quem somos
-            </Link>
-            <Link href="/como-anunciar" className="hover:underline">
-              Como anunciar
-            </Link>
-            <Link href="/fale-conosco" className="hover:underline">
-              Fale conosco
-            </Link>
-            <Link href="/termos-de-uso" className="hover:underline">
-              Termos de uso
-            </Link>
-            <Link href="/politica-de-privacidade" className="hover:underline">
-              Política de privacidade
-            </Link>
-          </div>
-          <p>
-            Classilagos • O seu guia de compras e serviços na Região dos Lagos
-          </p>
-        </footer>
       </section>
     </main>
   );
