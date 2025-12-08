@@ -32,8 +32,8 @@ export default function FormularioServicos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // Imagens (AGORA: múltiplas fotos)
-  const [imagensFiles, setImagensFiles] = useState([]); // array de File
+  // AGORA: várias imagens
+  const [imagensFiles, setImagensFiles] = useState([]);
 
   // Controle
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
@@ -105,15 +105,17 @@ export default function FormularioServicos() {
     try {
       const bucket = "anuncios";
 
-      // 🔹 Upload de TODAS as imagens selecionadas
-      const imagensUrls = [];
+      // =========================
+      // UPLOAD DE VÁRIAS IMAGENS
+      // =========================
+      let imagensUrls = [];
 
       if (imagensFiles.length > 0) {
+        let index = 0;
         for (const file of imagensFiles) {
           const ext = file.name.split(".").pop();
-          const path = `servicos/${user.id}/foto-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2)}.${ext}`;
+          const path = `servicos/${user.id}/foto-${Date.now()}-${index}.${ext}`;
+          index++;
 
           const { error: uploadErro } = await supabase.storage
             .from(bucket)
@@ -158,7 +160,7 @@ export default function FormularioServicos() {
         site_url: siteUrl,
         instagram,
 
-        // Imagens (AGORA: array com todas as fotos)
+        // Imagens (agora várias)
         imagens: imagensUrls.length > 0 ? imagensUrls : null,
 
         status: "ativo",
@@ -516,8 +518,8 @@ export default function FormularioServicos() {
           }
         />
         <p className="text-[11px] text-slate-500">
-          Você pode enviar várias imagens (JPG ou PNG, até 1 MB cada). Elas
-          aparecerão na galeria do anúncio.
+          Você pode enviar várias imagens em JPG ou PNG, até 1 MB cada. A
+          primeira será usada como destaque no anúncio.
         </p>
       </div>
 
@@ -549,4 +551,3 @@ export default function FormularioServicos() {
     </form>
   );
 }
-
