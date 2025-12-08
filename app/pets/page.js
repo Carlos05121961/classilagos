@@ -44,22 +44,22 @@ const cardsPets = [
     slug: "adocao",
     titulo: "Adoção / Doação",
     subtitulo: "Ajude a encontrar um novo lar",
-    href: "/pets/lista?subcategoria=Adocao",
+    href: "/pets/lista?subcategoria=Adoção / Doação",
   },
   {
     slug: "achados",
     titulo: "Achados e perdidos",
     subtitulo: "Divulgue animais desaparecidos ou encontrados",
-    href: "/pets/lista?subcategoria=Achados",
+    href: "/pets/lista?subcategoria=Achados e perdidos",
   },
   {
     slug: "servicos",
     titulo: "Serviços pet & acessórios",
-    subtitulo: "Banho e tosa, clínica, hotel, acessórios…",
-    // 👇 AQUI ESTÁ O PULO DO GATO: NÃO TEM MAIS "categoria=" NEM "&"
-    href: "/pets/lista?subcategoria=Servicos",
+    subtitulo: "Banho, tosa, clínicas, hotel, acessórios...",
+    href: "/pets/lista?subcategoria=Serviços pet & acessórios",
   },
 ];
+
 
 export default function PetsPage() {
   const [currentHero, setCurrentHero] = useState(0);
