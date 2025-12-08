@@ -288,45 +288,76 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* TARJA PRETA – COLADA NO FOOTER DO PEIXINHO */}
-      <section className="mt-6 bg-slate-900 text-slate-50">
-        <div className="max-w-5xl mx-auto px-4 py-6 grid gap-4 md:grid-cols-[2fr,3fr]">
+  
+      {/* TARJA ANTES DO RODAPÉ DO PEIXINHO – SERVIÇOS E INFORMAÇÕES PARA EMPREGO */}
+      <section className="mt-10 bg-slate-950 text-slate-50">
+        <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
           <div>
             <h2 className="text-sm font-semibold">
-              Links úteis para quem busca emprego
+              Serviços e informações para quem busca emprego
             </h2>
-            <p className="mt-1 text-[11px] text-slate-300">
-              Acesse serviços oficiais e materiais que podem ajudar na sua
-              recolocação profissional.
+            <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
+              Use o Classilagos também como guia para acessar serviços oficiais
+              e conteúdos que ajudam na sua recolocação profissional.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 text-[11px]">
-            <a
-              href="https://empregabrasil.mte.gov.br/"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
-            >
-              SINE / Emprega Brasil
-            </a>
-            <a
-              href="https://www.gov.br/trabalho-e-emprego/pt-br"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
-            >
-              Ministério do Trabalho
-            </a>
-            <a
-              href="#"
-              className="rounded-full border border-slate-500 px-3 py-1 hover:bg-slate-800"
-            >
-              Em breve: Dicas de currículo e entrevista
-            </a>
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Card 1 */}
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-[11px]">
+              <h3 className="text-xs font-semibold mb-1">
+                SINE / Emprega Brasil
+              </h3>
+              <p className="text-slate-300 mb-3">
+                Cadastro, consulta de vagas e serviços do sistema nacional de
+                emprego.
+              </p>
+              <a
+                href="https://empregabrasil.mte.gov.br/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-full border border-emerald-400 px-3 py-1 font-semibold text-[11px] text-emerald-300 hover:bg-emerald-400/10"
+              >
+                Acessar site oficial →
+              </a>
+            </div>
+
+            {/* Card 2 */}
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-[11px]">
+              <h3 className="text-xs font-semibold mb-1">
+                Ministério do Trabalho
+              </h3>
+              <p className="text-slate-300 mb-3">
+                Informações sobre carteira de trabalho, direitos trabalhistas,
+                programas e serviços.
+              </p>
+              <a
+                href="https://www.gov.br/trabalho-e-emprego/pt-br"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-full border border-sky-400 px-3 py-1 font-semibold text-[11px] text-sky-300 hover:bg-sky-400/10"
+              >
+                Ver portal do governo →
+              </a>
+            </div>
+
+            {/* Card 3 */}
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-[11px]">
+              <h3 className="text-xs font-semibold mb-1">
+                Dicas de currículo e entrevista
+              </h3>
+              <p className="text-slate-300 mb-3">
+                Em breve, conteúdos exclusivos do Classilagos para você se
+                preparar melhor para os processos seletivos.
+              </p>
+              <span className="inline-flex items-center rounded-full border border-slate-500 px-3 py-1 font-semibold text-[11px] text-slate-200">
+                Em breve no Classilagos
+              </span>
+            </div>
           </div>
         </div>
       </section>
+
       {/* O rodapé do peixinho vem depois, no layout global */}
     </main>
   );
