@@ -32,8 +32,8 @@ export default function FormularioServicos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // Imagem principal
-  const [imagemFile, setImagemFile] = useState(null);
+  // Imagens (AGORA: múltiplas fotos)
+  const [imagensFiles, setImagensFiles] = useState([]); // array de File
 
   // Controle
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
@@ -102,27 +102,33 @@ export default function FormularioServicos() {
 
     setUploading(true);
 
-    let imagemUrl = null;
-
     try {
       const bucket = "anuncios";
 
-      // Upload da imagem principal (opcional)
-      if (imagemFile) {
-        const ext = imagemFile.name.split(".").pop();
-        const path = `servicos/${user.id}/foto-${Date.now()}.${ext}`;
+      // 🔹 Upload de TODAS as imagens selecionadas
+      const imagensUrls = [];
 
-        const { error: uploadErro } = await supabase.storage
-          .from(bucket)
-          .upload(path, imagemFile);
+      if (imagensFiles.length > 0) {
+        for (const file of imagensFiles) {
+          const ext = file.name.split(".").pop();
+          const path = `servicos/${user.id}/foto-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2)}.${ext}`;
 
-        if (uploadErro) {
-          console.error("Erro upload imagem serviço:", uploadErro);
-          throw uploadErro;
+          const { error: uploadErro } = await supabase.storage
+            .from(bucket)
+            .upload(path, file);
+
+          if (uploadErro) {
+            console.error("Erro upload imagem serviço:", uploadErro);
+            throw uploadErro;
+          }
+
+          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+          if (data?.publicUrl) {
+            imagensUrls.push(data.publicUrl);
+          }
         }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        imagemUrl = data.publicUrl;
       }
 
       const { error: insertError } = await supabase.from("anuncios").insert({
@@ -152,8 +158,8 @@ export default function FormularioServicos() {
         site_url: siteUrl,
         instagram,
 
-        // Imagens
-        imagens: imagemUrl ? [imagemUrl] : null,
+        // Imagens (AGORA: array com todas as fotos)
+        imagens: imagensUrls.length > 0 ? imagensUrls : null,
 
         status: "ativo",
       });
@@ -186,7 +192,7 @@ export default function FormularioServicos() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-      setImagemFile(null);
+      setImagensFiles([]);
       setAceitoResponsabilidade(false);
 
       setTimeout(() => {
@@ -495,20 +501,23 @@ export default function FormularioServicos() {
         </p>
       </div>
 
-      {/* IMAGEM */}
+      {/* IMAGENS */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Foto do serviço / logo (opcional)
+          Fotos do serviço / logo (opcional)
         </h2>
         <input
           type="file"
           accept="image/*"
+          multiple
           className="text-sm"
-          onChange={(e) => setImagemFile(e.target.files[0] || null)}
+          onChange={(e) =>
+            setImagensFiles(Array.from(e.target.files || []))
+          }
         />
         <p className="text-[11px] text-slate-500">
-          Envie uma imagem em JPG ou PNG, até 1 MB. Ela aparecerá como destaque
-          no anúncio.
+          Você pode enviar várias imagens (JPG ou PNG, até 1 MB cada). Elas
+          aparecerão na galeria do anúncio.
         </p>
       </div>
 
