@@ -26,7 +26,8 @@ export default function FormularioProfissionais() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  const [imagemFile, setImagemFile] = useState(null);
+  // AGORA: várias imagens (array)
+  const [imagensFiles, setImagensFiles] = useState([]);
 
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -129,26 +130,38 @@ export default function FormularioProfissionais() {
     }
 
     setUploading(true);
-    let imagemUrl = null;
 
     try {
       const bucket = "anuncios";
 
-      if (imagemFile) {
-        const ext = imagemFile.name.split(".").pop();
-        const path = `servicos/${user.id}/profissionais-${Date.now()}.${ext}`;
+      // -----------------------------
+      // UPLOAD DE VÁRIAS IMAGENS
+      // -----------------------------
+      let imagensUrls = [];
 
-        const { error: uploadErro } = await supabase.storage
-          .from(bucket)
-          .upload(path, imagemFile);
+      if (imagensFiles && imagensFiles.length > 0) {
+        let index = 0;
+        for (const file of imagensFiles) {
+          if (!file) continue;
 
-        if (uploadErro) {
-          console.error("Erro upload imagem serviço:", uploadErro);
-          throw uploadErro;
+          const ext = file.name.split(".").pop();
+          const path = `servicos/${user.id}/profissionais-${Date.now()}-${index}.${ext}`;
+          index++;
+
+          const { error: uploadErro } = await supabase.storage
+            .from(bucket)
+            .upload(path, file);
+
+          if (uploadErro) {
+            console.error("Erro upload imagem serviço:", uploadErro);
+            throw uploadErro;
+          }
+
+          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+          if (data?.publicUrl) {
+            imagensUrls.push(data.publicUrl);
+          }
         }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        imagemUrl = data.publicUrl;
       }
 
       const { error: insertError } = await supabase.from("anuncios").insert({
@@ -176,7 +189,8 @@ export default function FormularioProfissionais() {
         site_url: siteUrl,
         instagram,
 
-        imagens: imagemUrl ? [imagemUrl] : null,
+        // agora é um ARRAY de imagens
+        imagens: imagensUrls.length > 0 ? imagensUrls : null,
         status: "ativo",
       });
 
@@ -189,6 +203,7 @@ export default function FormularioProfissionais() {
 
       setSucesso("Serviço profissional cadastrado com sucesso!");
 
+      // limpa formulário
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -204,7 +219,7 @@ export default function FormularioProfissionais() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-      setImagemFile(null);
+      setImagensFiles([]);
       setAceitoResponsabilidade(false);
 
       setTimeout(() => {
@@ -508,15 +523,15 @@ export default function FormularioProfissionais() {
         </p>
       </div>
 
-      {/* IMAGEM */}
+      {/* IMAGENS */}
       <div className="space-y-2 border-t border-slate-200 pt-4">
         <div className="flex items-center gap-1 mb-1">
           <h2 className="text-sm font-semibold text-slate-900">
-            Foto do serviço / logo (opcional)
+            Fotos do serviço / logo (opcional)
           </h2>
           <span
             className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-            title="Envie uma foto do seu serviço ou sua logo. Essa imagem aparece em destaque no card do anúncio."
+            title="Envie fotos do seu serviço ou sua logo. A primeira imagem será usada em destaque no card."
           >
             i
           </span>
@@ -524,12 +539,15 @@ export default function FormularioProfissionais() {
         <input
           type="file"
           accept="image/*"
+          multiple
           className="text-sm"
-          onChange={(e) => setImagemFile(e.target.files[0] || null)}
+          onChange={(e) =>
+            setImagensFiles(Array.from(e.target.files || []))
+          }
         />
         <p className="text-[11px] text-slate-500">
-          Envie uma imagem em JPG ou PNG, até 1 MB. Ela aparecerá como destaque
-          no anúncio.
+          Você pode enviar várias imagens em JPG ou PNG, até 1 MB cada. A
+          primeira será usada como destaque no anúncio.
         </p>
       </div>
 
