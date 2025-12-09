@@ -60,6 +60,15 @@ export default function FormularioServicos() {
     "Rio das Ostras",
   ];
 
+  // ====== TRATA IMAGENS (ACUMULA) ======
+  const handleImagensChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    // acumula para permitir selecionar mais fotos em novas aberturas do seletor
+    setImagensFiles((prev) => [...prev, ...files]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -510,15 +519,15 @@ export default function FormularioServicos() {
         <h2 className="text-sm font-semibold text-slate-900">
           Fotos do serviço / logo (opcional)
         </h2>
+
         <input
           type="file"
           accept="image/*"
           multiple
           className="text-sm"
-          onChange={(e) =>
-            setImagensFiles(Array.from(e.target.files || []))
-          }
+          onChange={handleImagensChange}
         />
+
         <p className="text-[11px] text-slate-500">
           Você pode enviar várias imagens em JPG ou PNG, até 1 MB cada. A
           primeira será usada como destaque no anúncio.
@@ -553,4 +562,3 @@ export default function FormularioServicos() {
     </form>
   );
 }
-
