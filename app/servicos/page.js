@@ -60,7 +60,7 @@ export default function ServicosPage() {
     return (
       <Link
         href={`/anuncios/${item.id}`}
-        className="group flex gap-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition shadow-sm hover:shadow-md px-4 py-3"
+        className="group flex gap-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition shadow-sm hover:shadow-md px-4 py-3 min-h-[110px]"
       >
         {/* Miniatura, se existir */}
         {thumb && (
@@ -222,77 +222,83 @@ export default function ServicosPage() {
           Escolha o tipo de serviço que deseja encontrar ou divulgar
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
           {/* CLASSIMED */}
           <Link
             href="/anunciar/servicos/classimed"
-            className="group block rounded-3xl border border-emerald-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
+            className="group flex flex-col justify-between h-full rounded-3xl border border-emerald-500 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
-                🩺
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
+                  🩺
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                    Saúde &amp; bem-estar
+                  </p>
+                  <h3 className="text-base md:text-lg font-bold text-slate-900">
+                    Classimed
+                  </h3>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                  Saúde &amp; bem-estar
-                </p>
-                <h3 className="text-base md:text-lg font-bold text-slate-900">
-                  Classimed
-                </h3>
-              </div>
+              <p className="text-xs text-slate-700">
+                Clínicas, terapeutas, cuidadores, psicólogos, nutricionistas e
+                muito mais.
+              </p>
             </div>
-            <p className="text-xs text-slate-700">
-              Clínicas, terapeutas, cuidadores, psicólogos, nutricionistas e
-              muito mais.
-            </p>
           </Link>
 
           {/* EVENTOS */}
           <Link
             href="/anunciar/servicos/eventos"
-            className="group block rounded-3xl border border-pink-400 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
+            className="group flex flex-col justify-between h-full rounded-3xl border border-pink-400 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-100 text-2xl">
-                🎉
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-100 text-2xl">
+                  🎉
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-pink-600">
+                    Festas &amp; eventos
+                  </p>
+                  <h3 className="text-base md:text-lg font-bold text-slate-900">
+                    Eventos
+                  </h3>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-pink-600">
-                  Festas &amp; eventos
-                </p>
-                <h3 className="text-base md:text-lg font-bold text-slate-900">
-                  Eventos
-                </h3>
-              </div>
+              <p className="text-xs text-slate-700">
+                Buffet, doces e salgados, fotografia, DJ, decoração, espaços
+                para festas e muito mais.
+              </p>
             </div>
-            <p className="text-xs text-slate-700">
-              Buffet, doces e salgados, fotografia, DJ, decoração, espaços para
-              festas e muito mais.
-            </p>
           </Link>
 
           {/* PROFISSIONAIS */}
           <Link
             href="/anunciar/servicos/profissionais"
-            className="group block rounded-3xl border border-blue-400 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
+            className="group flex flex-col justify-between h-full rounded-3xl border border-blue-400 bg-white p-5 shadow-md hover:shadow-xl hover:-translate-y-1 transition"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
-                🛠️
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+                  🛠️
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
+                    Profissionais &amp; serviços
+                  </p>
+                  <h3 className="text-base md:text-lg font-bold text-slate-900">
+                    Profissionais
+                  </h3>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
-                  Profissionais &amp; serviços
-                </p>
-                <h3 className="text-base md:text-lg font-bold text-slate-900">
-                  Profissionais
-                </h3>
-              </div>
+              <p className="text-xs text-slate-700">
+                Eletricistas, diaristas, manutenção, reboque, arquitetos,
+                engenheiros, piscineiros e muito mais.
+              </p>
             </div>
-            <p className="text-xs text-slate-700">
-              Eletricistas, diaristas, manutenção, reboque, arquitetos,
-              engenheiros, piscineiros e muito mais.
-            </p>
           </Link>
         </div>
       </section>
@@ -473,4 +479,3 @@ export default function ServicosPage() {
     </main>
   );
 }
-
