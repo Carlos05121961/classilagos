@@ -23,6 +23,7 @@ export default function TurismoPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
+  // ROTATIVO DO HERO
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
@@ -83,41 +84,36 @@ export default function TurismoPage() {
       .join(" ");
   };
 
-  // Cards do GUIA ONDE – agora usando seus ícones prontos
+  // Cards do GUIA ONDE (ícone já com o texto "Onde ficar", etc.)
   const guiaOndeCards = [
     {
-      value: "onde_ficar",
-      title: "Onde ficar",
-      desc: "Pousadas, hotéis, hostels, casas de temporada e camping.",
+      key: "onde_ficar",
       icon: "/turismo/onde-ficar.png",
+      desc: "Pousadas, hotéis, hostels, casas de temporada e camping.",
       href: "/turismo?secao=onde_ficar",
     },
     {
-      value: "onde_comer",
-      title: "Onde comer",
-      desc: "Bares, restaurantes, quiosques, pizzarias, hamburguerias.",
+      key: "onde_comer",
       icon: "/turismo/onde-comer.png",
+      desc: "Bares, restaurantes, quiosques, pizzarias, hamburguerias.",
       href: "/turismo?secao=onde_comer",
     },
     {
-      value: "onde_se_divertir",
-      title: "Onde se divertir",
-      desc: "Casas de show, música ao vivo, baladas, pubs, eventos.",
+      key: "onde_se_divertir",
       icon: "/turismo/onde-se-divertir.png",
+      desc: "Casas de show, música ao vivo, baladas, pubs, eventos.",
       href: "/turismo?secao=onde_se_divertir",
     },
     {
-      value: "onde_passear",
-      title: "Onde passear",
-      desc: "Passeios de barco, buggy, trilhas, city tour, mergulho.",
+      key: "onde_passear",
       icon: "/turismo/onde-passear.png",
+      desc: "Passeios de barco, buggy, trilhas, city tour, mergulho.",
       href: "/turismo?secao=onde_passear",
     },
     {
-      value: "cartoes_postais",
-      title: "Cartões Postais",
-      desc: "Envie cartões postais digitais da Região dos Lagos para quem você ama.",
+      key: "cartoes_postais",
       icon: "/turismo/cartoes-postais.png",
+      desc: "Envie cartões postais digitais da Região dos Lagos para quem você ama.",
       href: "/turismo/cartoes-postais",
     },
   ];
@@ -159,7 +155,7 @@ export default function TurismoPage() {
             <h1 className="text-3xl md:text-4xl font-extrabold drop-shadow-lg">
               Classilagos – Turismo
             </h1>
-            <p className="mt-2 text-xs md:text-sm max-w-2xl drop-shadow">
+            <p className="mt-3 text-sm md:text-base max-w-2xl drop-shadow">
               Descubra o melhor da Região dos Lagos em um só lugar.
             </p>
           </div>
@@ -168,15 +164,16 @@ export default function TurismoPage() {
 
       {/* GUIA ONDE – PILARES DO TURISMO */}
       <section className="max-w-6xl mx-auto px-4 pt-8 pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
+          {/* Logo + textos */}
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <Image
                 src="/turismo/guia-onde.png"
                 alt="Guia ONDE – Turismo Classilagos"
-                width={40}
-                height={40}
-                className="w-9 h-9 rounded-2xl drop-shadow"
+                width={52}
+                height={52}
+                className="w-12 h-12 rounded-2xl drop-shadow"
               />
               <h2 className="text-sm md:text-base font-semibold text-slate-900">
                 GUIA ONDE – Turismo Classilagos
@@ -189,10 +186,12 @@ export default function TurismoPage() {
             </p>
           </div>
 
-          {/* Seleção de cidade (por enquanto ilustrativa) */}
-          <div className="flex items-center gap-2 text-[11px] text-slate-600">
-            <label className="font-semibold">Cidade</label>
-            <select className="rounded-full border border-slate-200 px-3 py-1.5 text-[11px] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {/* Seleção de cidade (ilustrativa por enquanto) */}
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-semibold text-slate-600">
+              Cidade
+            </label>
+            <select className="rounded-full border border-slate-300 px-3 py-1.5 text-xs text-slate-800">
               <option>Toda a região</option>
               <option>Maricá</option>
               <option>Saquarema</option>
@@ -207,36 +206,33 @@ export default function TurismoPage() {
           </div>
         </div>
 
+        {/* Grid dos 5 cards GUIA ONDE */}
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
           {guiaOndeCards.map((card) => (
-            <div
-              key={card.value}
-              className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm"
+            <Link
+              key={card.key}
+              href={card.href}
+              className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
             >
-              {/* Ícone com o texto já embutido (Onde ficar / Onde comer / etc.) */}
               <div className="flex items-center justify-center mb-2">
                 <Image
                   src={card.icon}
-                  alt={card.title}
-                  width={80}
-                  height={80}
-                  className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                  alt="Guia ONDE"
+                  width={64}
+                  height={64}
+                  className="w-14 h-14 object-contain"
                 />
               </div>
-
-              {/* Título fica só para acessibilidade, sem repetir visualmente */}
-              <h3 className="sr-only">{card.title}</h3>
-
-              <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center md:text-left">
+              <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
                 {card.desc}
               </p>
-              <Link
-                href={card.href}
-                className="inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
+              <button
+                type="button"
+                className="mt-auto inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
               >
                 Ver opções
-              </Link>
-            </div>
+              </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -420,3 +416,4 @@ export default function TurismoPage() {
     </main>
   );
 }
+
