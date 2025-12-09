@@ -23,8 +23,20 @@ export default function TurismoPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
-  // Filtro de cidade (ainda ilustrativo, pronto para ser ligado aos anúncios)
+  // Filtro de cidade (para os anúncios)
   const [cidadeFiltro, setCidadeFiltro] = useState("toda");
+
+  const cidades = [
+    "Maricá",
+    "Saquarema",
+    "Araruama",
+    "Iguaba Grande",
+    "São Pedro da Aldeia",
+    "Arraial do Cabo",
+    "Cabo Frio",
+    "Búzios",
+    "Rio das Ostras",
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,8 +77,14 @@ export default function TurismoPage() {
     fetchTurismo();
   }, []);
 
-  const destaques = anuncios.filter((a) => a.destaque);
-  const recentes = anuncios.filter((a) => !a.destaque);
+  // Aplica filtro de cidade nos anúncios
+  const anunciosFiltrados =
+    cidadeFiltro === "toda"
+      ? anuncios
+      : anuncios.filter((a) => a.cidade === cidadeFiltro);
+
+  const destaques = anunciosFiltrados.filter((a) => a.destaque);
+  const recentes = anunciosFiltrados.filter((a) => !a.destaque);
 
   const labelPilar = {
     onde_ficar: "Onde ficar",
@@ -86,43 +104,42 @@ export default function TurismoPage() {
       .join(" ");
   };
 
+  // Cards do GUIA ONDE
   const guiaOndeCards = [
     {
       value: "onde_ficar",
       title: "Onde ficar",
       desc: "Pousadas, hotéis, hostels, casas de temporada e camping.",
-      icon: "/icons/guia-onde-b.png",
+      href: "/turismo?secao=onde_ficar",
+      icon: "/icons/onde-ficar.png",
     },
     {
       value: "onde_comer",
       title: "Onde comer",
       desc: "Bares, restaurantes, quiosques, pizzarias, hamburguerias.",
-      icon: "/icons/guia-onde-b.png",
+      href: "/turismo?secao=onde_comer",
+      icon: "/icons/onde-comer.png",
     },
     {
       value: "onde_se_divertir",
       title: "Onde se divertir",
       desc: "Casas de show, música ao vivo, baladas, pubs, eventos.",
-      icon: "/icons/guia-onde-b.png",
+      href: "/turismo?secao=onde_se_divertir",
+      icon: "/icons/onde-se-divertir.png",
     },
     {
       value: "onde_passear",
       title: "Onde passear",
       desc: "Passeios de barco, buggy, trilhas, city tour, mergulho.",
-      icon: "/icons/guia-onde-b.png",
+      href: "/turismo?secao=onde_passear",
+      icon: "/icons/onde-passear.png",
     },
-    {
-      value: "outros",
-      title: "Outros serviços de turismo",
-      desc: "Guias, turismo rural, turismo religioso e mais.",
-      icon: "/icons/guia-onde-b.png",
-    },
-    // NOVO CARD – CARTÕES POSTAIS
     {
       value: "cartoes_postais",
       title: "Cartões Postais",
-      desc: "Envie cartões postais digitais da Região dos Lagos.",
-      icon: "/icons/guia-postal.png", // coloque este arquivo em /public/icons/
+      desc: "Envie cartões postais digitais para quem você ama.",
+      href: "/turismo/cartoes-postais",
+      icon: "/icons/cartoes-postais.png",
     },
   ];
 
@@ -160,39 +177,32 @@ export default function TurismoPage() {
           <div className="absolute inset-0 bg-black/30" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-sm md:text-base font-medium drop-shadow">
-              Descubra o melhor da Região dos Lagos em um só lugar.
-            </p>
-            <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-              Classilagos – Turismo &amp; Guia ONDE
+            <h1 className="text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+              Classilagos – Turismo
             </h1>
             <p className="mt-2 text-xs md:text-sm max-w-2xl drop-shadow">
-              Onde ficar, onde comer, onde passear e onde se divertir em Maricá,
-              Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial
-              do Cabo, Cabo Frio, Búzios e Rio das Ostras.
+              Descubra o melhor da Região dos Lagos em um só lugar.
             </p>
           </div>
         </div>
       </section>
 
-      {/* (MOTOR DE BUSCA FOI REMOVIDO PARA DEIXAR A PÁGINA MAIS LEVE) */}
-
-      {/* GUIA ONDE – PILARES DO TURISMO */}
+      {/* GUIA ONDE – PILARES DO TURISMO + CIDADE */}
       <section className="max-w-6xl mx-auto px-4 pt-8 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Image
-                src="/icons/guia-onde-b.png"
+                src="/icons/guia-onde.png"
                 alt="Ícone Guia ONDE"
                 width={36}
                 height={36}
                 className="w-8 h-8 md:w-9 md:h-9 rounded-2xl drop-shadow"
               />
+              <h2 className="text-sm md:text-base font-semibold text-slate-900">
+                GUIA ONDE – Turismo Classilagos
+              </h2>
             </div>
-            <h2 className="text-sm md:text-base font-semibold text-slate-900">
-              GUIA ONDE – Turismo Classilagos
-            </h2>
             <p className="text-[11px] md:text-xs text-slate-600 max-w-2xl">
               Escolha por tipo de experiência e encontre lugares para se
               hospedar, comer, passear e se divertir em toda a Região dos
@@ -200,74 +210,55 @@ export default function TurismoPage() {
             </p>
           </div>
 
-          {/* SELETOR DE CIDADE – ILUSTRATIVO, PRONTO PARA SER LIGADO AO FILTRO */}
-          <div className="flex flex-col items-start sm:items-end gap-1">
+          {/* Caixinha de cidade aqui em cima, do lado direito */}
+          <div className="flex items-center gap-2">
             <label className="text-[11px] font-semibold text-slate-600">
               Cidade
             </label>
             <select
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs md:text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={cidadeFiltro}
               onChange={(e) => setCidadeFiltro(e.target.value)}
-              className="rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="toda">Toda a região</option>
-              <option value="Maricá">Maricá</option>
-              <option value="Saquarema">Saquarema</option>
-              <option value="Araruama">Araruama</option>
-              <option value="Iguaba Grande">Iguaba Grande</option>
-              <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
-              <option value="Arraial do Cabo">Arraial do Cabo</option>
-              <option value="Cabo Frio">Cabo Frio</option>
-              <option value="Búzios">Búzios</option>
-              <option value="Rio das Ostras">Rio das Ostras</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
-            <p className="text-[10px] text-slate-400">
-              Em breve esse filtro será ligado aos anúncios.
-            </p>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {guiaOndeCards.map((card) => {
-            const href =
-              card.value === "cartoes_postais"
-                ? "/turismo/cartoes-postais"
-                : `/turismo?secao=${card.value}`;
-
-            const buttonLabel =
-              card.value === "cartoes_postais" ? "Ver cartões" : "Ver opções";
-
-            return (
-              <div
-                key={card.value}
-                className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-10 w-10 rounded-2xl bg-white/90 border border-slate-100 shadow-sm flex items-center justify-center">
-                    <Image
-                      src={card.icon || "/icons/guia-onde-b.png"}
-                      alt={`Ícone ${card.title}`}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 object-contain"
-                    />
-                  </div>
-                  <h3 className="text-xs font-semibold text-slate-900">
-                    {card.title}
-                  </h3>
+          {guiaOndeCards.map((card) => (
+            <Link
+              key={card.value}
+              href={card.href}
+              className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-10 w-10 rounded-2xl bg-white/90 border border-slate-100 shadow-sm flex items-center justify-center">
+                  <Image
+                    src={card.icon}
+                    alt={`Ícone ${card.title}`}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
-                <p className="text-[11px] text-slate-600 flex-1 mb-3">
-                  {card.desc}
-                </p>
-                <Link
-                  href={href}
-                  className="inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
-                >
-                  {buttonLabel}
-                </Link>
+                <h3 className="text-xs font-semibold text-slate-900">
+                  {card.title}
+                </h3>
               </div>
-            );
-          })}
+              <p className="text-[11px] text-slate-600 flex-1 mb-3">
+                {card.desc}
+              </p>
+              <span className="inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700">
+                Ver opções
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -295,10 +286,10 @@ export default function TurismoPage() {
           <p className="text-[11px] text-slate-500">
             Carregando anúncios de turismo…
           </p>
-        ) : anuncios.length === 0 ? (
+        ) : anunciosFiltrados.length === 0 ? (
           <p className="text-[11px] text-slate-500">
-            Ainda não há anúncios de turismo publicados. Aproveite a fase de
-            lançamento para ser um dos primeiros a aparecer aqui!
+            Não encontramos anúncios de turismo para essa seleção. Tente outra
+            cidade ou aguarde novos cadastros.
           </p>
         ) : destaques.length === 0 ? (
           <p className="text-[11px] text-slate-500 mb-2">
@@ -363,65 +354,70 @@ export default function TurismoPage() {
       </section>
 
       {/* ÚLTIMOS ANÚNCIOS DE TURISMO */}
-      {!loading && anuncios.length > 0 && (
+      {!loading && anunciosFiltrados.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 pb-10">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm md:text-base font-semibold text-slate-900">
               Últimos anúncios de turismo
             </h2>
             <span className="text-[11px] text-slate-500">
-              Em breve: filtros por cidade e por tipo de experiência.
+              Em breve: filtros por tipo de experiência.
             </span>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {(recentes.length > 0 ? recentes : anuncios).map((anuncio) => {
-              const imagemCapa =
-                anuncio.imagens && anuncio.imagens.length > 0
-                  ? anuncio.imagens[0]
-                  : null;
-              const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
+            {(recentes.length > 0 ? recentes : anunciosFiltrados).map(
+              (anuncio) => {
+                const imagemCapa =
+                  anuncio.imagens && anuncio.imagens.length > 0
+                    ? anuncio.imagens[0]
+                    : null;
+                const precoExibicao =
+                  anuncio.faixa_preco || anuncio.preco || "";
 
-              return (
-                <Link
-                  key={anuncio.id}
-                  href={`/turismo/anuncio/${anuncio.id}`}
-                  className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
-                >
-                  <div className="h-28 bg-slate-100 overflow-hidden">
-                    {imagemCapa && (
-                      <img
-                        src={imagemCapa}
-                        alt={anuncio.titulo}
-                        className="w-full h-full object-cover group-hover:scale-[1.04] transition"
-                      />
-                    )}
-                  </div>
-                  <div className="p-3 flex-1 flex flex-col justify-between">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {labelPilar[anuncio.pilar_turismo] || "Turismo"}
-                      </p>
-                      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h3>
-                      <p className="text-[11px] text-slate-600">
-                        {anuncio.cidade}
-                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-                      </p>
-                      {precoExibicao && (
-                        <p className="text-[11px] text-emerald-700 font-semibold">
-                          {precoExibicao}
-                        </p>
+                return (
+                  <Link
+                    key={anuncio.id}
+                    href={`/turismo/anuncio/${anuncio.id}`}
+                    className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
+                  >
+                    <div className="h-28 bg-slate-100 overflow-hidden">
+                      {imagemCapa && (
+                        <img
+                          src={imagemCapa}
+                          alt={anuncio.titulo}
+                          className="w-full h-full object-cover group-hover:scale-[1.04] transition"
+                        />
                       )}
                     </div>
-                    <p className="mt-2 text-[10px] text-slate-400">
-                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {labelPilar[anuncio.pilar_turismo] || "Turismo"}
+                        </p>
+                        <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
+                          {anuncio.titulo}
+                        </h3>
+                        <p className="text-[11px] text-slate-600">
+                          {anuncio.cidade}
+                          {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                        </p>
+                        {precoExibicao && (
+                          <p className="text-[11px] text-emerald-700 font-semibold">
+                            {precoExibicao}
+                          </p>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-400">
+                        {new Date(
+                          anuncio.created_at
+                        ).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              }
+            )}
           </div>
         </section>
       )}
