@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 export default function TurismoPage() {
@@ -22,6 +23,10 @@ export default function TurismoPage() {
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
+
+  // Lê a seção da URL: ?secao=onde_ficar
+  const searchParams = useSearchParams();
+  const secao = searchParams.get("secao");
 
   // ROTATIVO DO HERO
   useEffect(() => {
@@ -63,9 +68,6 @@ export default function TurismoPage() {
     fetchTurismo();
   }, []);
 
-  const destaques = anuncios.filter((a) => a.destaque);
-  const recentes = anuncios.filter((a) => !a.destaque);
-
   const labelPilar = {
     onde_ficar: "Onde ficar",
     onde_comer: "Onde comer",
@@ -84,7 +86,7 @@ export default function TurismoPage() {
       .join(" ");
   };
 
-  // Cards do GUIA ONDE (agora com título em texto, colorido)
+  // Cards do GUIA ONDE (título em texto, colorido)
   const guiaOndeCards = [
     {
       key: "onde_ficar",
@@ -119,9 +121,39 @@ export default function TurismoPage() {
       title: "Cartões postais",
       icon: "/turismo/cartoes-postais.png",
       desc: "Envie cartões postais digitais da Região dos Lagos para quem você ama.",
-      href: "/turismo/cartoes-postais",
+      href: "/turismo?secao=cartoes_postais",
     },
   ];
+
+  // Qual pilar está sendo filtrado pela URL?
+  const pilaresValidos = [
+    "onde_ficar",
+    "onde_comer",
+    "onde_se_divertir",
+    "onde_passear",
+    "servicos_turismo",
+    "produtos_turisticos",
+    "outros",
+    "cartoes_postais",
+  ];
+
+  const pilarFiltro = pilaresValidos.includes(secao || "")
+    ? secao
+    : null;
+
+  // Se houver filtro de pilar, aplica nos anúncios
+  const anunciosFiltrados = pilarFiltro
+    ? anuncios.filter((a) => a.pilar_turismo === pilarFiltro)
+    : anuncios;
+
+  const destaques = anunciosFiltrados.filter((a) => a.destaque);
+  const recentes = anunciosFiltrados.filter((a) => !a.destaque);
+
+  // Texto complementar nos títulos quando estiver filtrado
+  const textoFiltro =
+    pilarFiltro && labelPilar[pilarFiltro]
+      ? ` – ${labelPilar[pilarFiltro]}`
+      : "";
 
   return (
     <main className="bg-white min-h-screen">
@@ -213,42 +245,50 @@ export default function TurismoPage() {
 
         {/* Grid dos 5 cards GUIA ONDE */}
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {guiaOndeCards.map((card) => (
-            <Link
-              key={card.key}
-              href={card.href}
-              className="rounded-3xl border border-slate-300 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+          {guiaOndeCards.map((card) => {
+            const isActive = secao === card.key;
 
-            >
-              <div className="flex items-center justify-center mb-2">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
-                  <Image
-                    src={card.icon}
-                    alt={card.title}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-
-              {/* TÍTULO COLORIDO DO CARD (A) */}
-              <h3 className="text-xs sm:text-sm font-semibold text-sky-700 text-center mb-1">
-                {card.title}
-              </h3>
-
-              <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
-                {card.desc}
-              </p>
-
-              <button
-                type="button"
-                className="mt-auto inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
+            return (
+              <Link
+                key={card.key}
+                href={card.href}
+                className={
+                  "rounded-3xl border bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition " +
+                  (isActive
+                    ? "border-sky-500 ring-1 ring-sky-200"
+                    : "border-slate-300")
+                }
               >
-                Ver opções
-              </button>
-            </Link>
-          ))}
+                <div className="flex items-center justify-center mb-2">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+                    <Image
+                      src={card.icon}
+                      alt={card.title}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                {/* TÍTULO COLORIDO DO CARD */}
+                <h3 className="text-xs sm:text-sm font-semibold text-sky-700 text-center mb-1">
+                  {card.title}
+                </h3>
+
+                <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
+                  {card.desc}
+                </p>
+
+                <button
+                  type="button"
+                  className="mt-auto inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
+                >
+                  Ver opções
+                </button>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -259,7 +299,7 @@ export default function TurismoPage() {
       <section className="max-w-6xl mx-auto px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm md:text-base font-semibold text-slate-900">
-            Destaques de turismo
+            Destaques de turismo{textoFiltro}
           </h2>
           <span className="text-[11px] text-slate-500">
             Anúncios com mais destaque aparecem primeiro.
@@ -276,14 +316,22 @@ export default function TurismoPage() {
           <p className="text-[11px] text-slate-500">
             Carregando anúncios de turismo…
           </p>
-        ) : anuncios.length === 0 ? (
+        ) : anunciosFiltrados.length === 0 ? (
           <p className="text-[11px] text-slate-500">
-            Ainda não há anúncios de turismo publicados. Aproveite a fase de
-            lançamento para ser um dos primeiros a aparecer aqui!
+            Ainda não há anúncios de turismo publicados
+            {pilarFiltro && labelPilar[pilarFiltro]
+              ? ` em "${labelPilar[pilarFiltro]}".`
+              : "."}{" "}
+            Aproveite a fase de lançamento para ser um dos primeiros a aparecer
+            aqui!
           </p>
         ) : destaques.length === 0 ? (
           <p className="text-[11px] text-slate-500 mb-2">
-            Quando houver anúncios em destaque, eles aparecerão aqui no topo.
+            Quando houver anúncios em destaque
+            {pilarFiltro && labelPilar[pilarFiltro]
+              ? ` em "${labelPilar[pilarFiltro]}",`
+              : ","}{" "}
+            eles aparecerão aqui no topo.
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
@@ -347,11 +395,11 @@ export default function TurismoPage() {
       </section>
 
       {/* ÚLTIMOS ANÚNCIOS DE TURISMO */}
-      {!loading && anuncios.length > 0 && (
+      {!loading && anunciosFiltrados.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 pb-10">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm md:text-base font-semibold text-slate-900">
-              Últimos anúncios de turismo
+              Últimos anúncios de turismo{textoFiltro}
             </h2>
             <span className="text-[11px] text-slate-500">
               Em breve: filtros por cidade e por tipo de experiência.
@@ -359,56 +407,58 @@ export default function TurismoPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {(recentes.length > 0 ? recentes : anuncios).map((anuncio) => {
-              const imagemCapa =
-                anuncio.imagens && anuncio.imagens.length > 0
-                  ? anuncio.imagens[0]
-                  : null;
-              const precoExibicao =
-                anuncio.faixa_preco || anuncio.preco || "";
+            {(recentes.length > 0 ? recentes : anunciosFiltrados).map(
+              (anuncio) => {
+                const imagemCapa =
+                  anuncio.imagens && anuncio.imagens.length > 0
+                    ? anuncio.imagens[0]
+                    : null;
+                const precoExibicao =
+                  anuncio.faixa_preco || anuncio.preco || "";
 
-              return (
-                <Link
-                  key={anuncio.id}
-                  href={`/turismo/anuncio/${anuncio.id}`}
-                  className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
-                >
-                  <div className="h-28 bg-slate-100 overflow-hidden">
-                    {imagemCapa && (
-                      <img
-                        src={imagemCapa}
-                        alt={anuncio.titulo}
-                        className="w-full h-full object-cover group-hover:scale-[1.04] transition"
-                      />
-                    )}
-                  </div>
-                  <div className="p-3 flex-1 flex flex-col justify-between">
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {labelPilar[anuncio.pilar_turismo] || "Turismo"}
-                      </p>
-                      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h3>
-                      <p className="text-[11px] text-slate-600">
-                        {anuncio.cidade}
-                        {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
-                      </p>
-                      {precoExibicao && (
-                        <p className="text-[11px] text-emerald-700 font-semibold">
-                          {precoExibicao}
-                        </p>
+                return (
+                  <Link
+                    key={anuncio.id}
+                    href={`/turismo/anuncio/${anuncio.id}`}
+                    className="group rounded-3xl border border-slate-200 bg-white hover:shadow-md transition overflow-hidden flex flex-col"
+                  >
+                    <div className="h-28 bg-slate-100 overflow-hidden">
+                      {imagemCapa && (
+                        <img
+                          src={imagemCapa}
+                          alt={anuncio.titulo}
+                          className="w-full h-full object-cover group-hover:scale-[1.04] transition"
+                        />
                       )}
                     </div>
-                    <p className="mt-2 text-[10px] text-slate-400">
-                      {new Date(
-                        anuncio.created_at
-                      ).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                          {labelPilar[anuncio.pilar_turismo] || "Turismo"}
+                        </p>
+                        <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
+                          {anuncio.titulo}
+                        </h3>
+                        <p className="text-[11px] text-slate-600">
+                          {anuncio.cidade}
+                          {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
+                        </p>
+                        {precoExibicao && (
+                          <p className="text-[11px] text-emerald-700 font-semibold">
+                            {precoExibicao}
+                          </p>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-400">
+                        {new Date(
+                          anuncio.created_at
+                        ).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              }
+            )}
           </div>
         </section>
       )}
