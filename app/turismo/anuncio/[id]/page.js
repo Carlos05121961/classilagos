@@ -244,7 +244,7 @@ export default function TurismoAnuncioPage() {
           {temImagens && (
             <section className="w-full flex flex-col gap-3">
               <div className="w-full max-w-5xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
-                <div className="relative w-full h-[260px] sm:h-[320px] md:h-[380px] lg:h-[420px]">
+                <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[340px]">
                   <img
                     src={imagens[fotoIndex]}
                     alt={anuncio.titulo}
