@@ -19,7 +19,7 @@ export default function TurismoPage() {
   const [currentHero, setCurrentHero] = useState(0);
 
   // Anúncios de turismo
-  const [anuncios, setAnuncios] = useState([]);
+  const [anuncios, setAnuncios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -66,7 +66,7 @@ export default function TurismoPage() {
   const destaques = anuncios.filter((a) => a.destaque);
   const recentes = anuncios.filter((a) => !a.destaque);
 
-  const labelPilar = {
+  const labelPilar: Record<string, string> = {
     onde_ficar: "Onde ficar",
     onde_comer: "Onde comer",
     onde_se_divertir: "Onde se divertir",
@@ -76,7 +76,7 @@ export default function TurismoPage() {
     outros: "Turismo / serviços",
   };
 
-  const labelSubcategoria = (sub) => {
+  const labelSubcategoria = (sub?: string | null) => {
     if (!sub) return "";
     return sub
       .split("_")
@@ -215,13 +215,15 @@ export default function TurismoPage() {
               className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
             >
               <div className="flex items-center justify-center mb-2">
-                <Image
-                  src={card.icon}
-                  alt="Guia ONDE"
-                  width={64}
-                  height={64}
-                  className="w-14 h-14 object-contain"
-                />
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <Image
+                    src={card.icon}
+                    alt="Guia ONDE"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               </div>
               <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
                 {card.desc}
