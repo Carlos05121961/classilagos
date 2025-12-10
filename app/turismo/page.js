@@ -19,7 +19,7 @@ export default function TurismoPage() {
   const [currentHero, setCurrentHero] = useState(0);
 
   // Anúncios de turismo
-  const [anuncios, setAnuncios] = useState<any[]>([]);
+  const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -66,7 +66,7 @@ export default function TurismoPage() {
   const destaques = anuncios.filter((a) => a.destaque);
   const recentes = anuncios.filter((a) => !a.destaque);
 
-  const labelPilar: Record<string, string> = {
+  const labelPilar = {
     onde_ficar: "Onde ficar",
     onde_comer: "Onde comer",
     onde_se_divertir: "Onde se divertir",
@@ -76,7 +76,7 @@ export default function TurismoPage() {
     outros: "Turismo / serviços",
   };
 
-  const labelSubcategoria = (sub?: string | null) => {
+  const labelSubcategoria = (sub) => {
     if (!sub) return "";
     return sub
       .split("_")
@@ -279,7 +279,8 @@ export default function TurismoPage() {
                 anuncio.imagens && anuncio.imagens.length > 0
                   ? anuncio.imagens[0]
                   : null;
-              const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
+              const precoExibicao =
+                anuncio.faixa_preco || anuncio.preco || "";
 
               return (
                 <Link
@@ -320,7 +321,9 @@ export default function TurismoPage() {
                     </div>
                     <p className="mt-2 text-[10px] text-slate-400">
                       Publicado em{" "}
-                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                      {new Date(
+                        anuncio.created_at
+                      ).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                 </Link>
@@ -348,7 +351,8 @@ export default function TurismoPage() {
                 anuncio.imagens && anuncio.imagens.length > 0
                   ? anuncio.imagens[0]
                   : null;
-              const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
+              const precoExibicao =
+                anuncio.faixa_preco || anuncio.preco || "";
 
               return (
                 <Link
@@ -384,7 +388,9 @@ export default function TurismoPage() {
                       )}
                     </div>
                     <p className="mt-2 text-[10px] text-slate-400">
-                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                      {new Date(
+                        anuncio.created_at
+                      ).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                 </Link>
@@ -418,4 +424,3 @@ export default function TurismoPage() {
     </main>
   );
 }
-
