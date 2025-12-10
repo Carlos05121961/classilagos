@@ -330,49 +330,48 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-    {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
-{mostrarGaleria && (
-  <section
-    className="w-full flex flex-col gap-3"
-    id="fachada" // âncora p/outros tipos
-  >
-    {/* FOTO PRINCIPAL – padrão Classilagos bonito */}
-<div className="w-full flex justify-center">
-  <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
-    <img
-      src={imagens[fotoIndex]}
-      alt={anuncio.titulo}
-      className="w-full h-full object-cover object-center"
-    />
-  </div>
-</div>
-
-    {/* MINIATURAS (todas as fotos) */}
-    {imagens.length > 1 && (
-      <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-        {imagens.map((url, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => setFotoIndex(index)}
-            className={`rounded-xl overflow-hidden border bg-white transition ${
-              fotoIndex === index
-                ? "border-cyan-500 ring-2 ring-cyan-400/40"
-                : "border-slate-300 hover:border-cyan-400"
-            }`}
+        {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
+        {mostrarGaleria && (
+          <section
+            className="w-full flex flex-col gap-3"
+            id="fachada" // âncora p/outros tipos
           >
-            <img
-              src={url}
-              alt={`Foto ${index + 1}`}
-              className="w-full h-16 object-contain"
-            />
-          </button>
-        ))}
-      </div>
-    )}
-  </section>
-)}
+            {/* FOTO PRINCIPAL – padrão Classilagos bonito */}
+            <div className="w-full flex justify-center">
+              <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
+                <img
+                  src={imagens[fotoIndex]}
+                  alt={anuncio.titulo}
+                  className="w-full h-full object-cover object-center"
+                />
+              </div>
+            </div>
 
+            {/* MINIATURAS (todas as fotos) */}
+            {imagens.length > 1 && (
+              <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                {imagens.map((url, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setFotoIndex(index)}
+                    className={`rounded-xl overflow-hidden border bg-white transition ${
+                      fotoIndex === index
+                        ? "border-cyan-500 ring-2 ring-cyan-400/40"
+                        : "border-slate-300 hover:border-cyan-400"
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-16 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* GRID PRINCIPAL: ESQUERDA / DIREITA */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
