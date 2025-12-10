@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-export default function TurismoPage() {
+// COMPONENTE PRINCIPAL (usa useSearchParams, faz o fetch, renderiza tudo)
+function TurismoPageContent() {
   // Imagens do hero de Turismo
   const heroImages = [
     "/turismo/hero-turismo01.jpg",
@@ -125,7 +126,7 @@ export default function TurismoPage() {
     },
   ];
 
-  // Qual pilar está sendo filtrado pela URL?
+  // Quais valores de pilar são válidos (para filtro)
   const pilaresValidos = [
     "onde_ficar",
     "onde_comer",
@@ -137,9 +138,7 @@ export default function TurismoPage() {
     "cartoes_postais",
   ];
 
-  const pilarFiltro = pilaresValidos.includes(secao || "")
-    ? secao
-    : null;
+  const pilarFiltro = pilaresValidos.includes(secao || "") ? secao : null;
 
   // Se houver filtro de pilar, aplica nos anúncios
   const anunciosFiltrados = pilarFiltro
@@ -212,10 +211,10 @@ export default function TurismoPage() {
                 height={64}
                 className="w-12 h-12 md:w-16 md:h-16 rounded-2xl drop-shadow"
               />
-              <h2 className="text-sm md:text-base font-bold text-sky-700">
-                GUIA ONDE – Turismo Classilagos
-              </h2>
             </div>
+            <h2 className="text-sm md:text-base font-bold text-sky-700 mb-1">
+              GUIA ONDE – Turismo Classilagos
+            </h2>
             <p className="text-[11px] md:text-xs text-slate-600 max-w-2xl">
               Escolha por tipo de experiência e encontre lugares para se
               hospedar, comer, passear e se divertir em toda a Região dos
@@ -485,5 +484,22 @@ export default function TurismoPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+// WRAPPER COM SUSPENSE (resolve o erro do useSearchParams no Next)
+export default function TurismoPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="bg-white min-h-screen">
+          <section className="max-w-6xl mx-auto px-4 py-10 text-sm text-slate-600">
+            Carregando turismo…
+          </section>
+        </main>
+      }
+    >
+      <TurismoPageContent />
+    </Suspense>
   );
 }
