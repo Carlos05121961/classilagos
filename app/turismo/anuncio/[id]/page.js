@@ -241,18 +241,20 @@ export default function TurismoAnuncioPage() {
         {/* CONTEÚDO EM CARDS BRANCOS */}
         <section className="max-w-6xl mx-auto px-4 pb-10 space-y-6">
           {/* GALERIA DE FOTOS */}
-         {temImagens && (
-  <section className="w-full flex flex-col gap-3">
-    <div className="w-full max-w-3xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
-      <div className="w-full h-[160px] sm:h-[180px] md:h-[200px] lg:h-[220px]">
-        <img
-          src={imagens[fotoIndex]}
-          alt={anuncio.titulo}
-          className="w-full h-full object-cover object-center"
-        />
-      </div>
-    </div>
+          {temImagens && (
+            <section className="w-full flex flex-col gap-3">
+              {/* FOTO PRINCIPAL – agora com tamanho controlado */}
+              <div className="w-full flex justify-center">
+                <div className="relative w-full max-w-3xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
+                  <img
+                    src={imagens[fotoIndex]}
+                    alt={anuncio.titulo}
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              </div>
 
+              {/* MINIATURAS */}
               {imagens.length > 1 && (
                 <div className="w-full max-w-5xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                   {imagens.map((url, index) => (
