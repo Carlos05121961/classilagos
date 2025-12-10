@@ -243,11 +243,11 @@ export default function TurismoAnuncioPage() {
           {/* GALERIA DE FOTOS */}
           {temImagens && (
             <section className="w-full flex flex-col gap-3">
-              <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
+              <div className="w-full max-w-3xl mx-auto rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
                 <img
                   src={imagens[fotoIndex]}
                   alt={anuncio.titulo}
-                  className="w-full h-auto max-h-[320px] object-cover object-center rounded-2xl"
+                  className="w-full h-auto max-h-[230px] object-cover object-center rounded-2xl"
                 />
               </div>
 
@@ -515,4 +515,3 @@ export default function TurismoAnuncioPage() {
     </main>
   );
 }
-
