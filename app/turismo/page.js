@@ -217,7 +217,8 @@ export default function TurismoPage() {
             <Link
               key={card.key}
               href={card.href}
-              className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+              className="rounded-3xl border border-slate-300 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+
             >
               <div className="flex items-center justify-center mb-2">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
