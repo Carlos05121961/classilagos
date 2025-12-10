@@ -336,16 +336,16 @@ export default function AnuncioDetalhePage() {
     className="w-full flex flex-col gap-3"
     id="fachada" // âncora p/outros tipos
   >
-    {/* FOTO PRINCIPAL um pouco menor e sem cortar a imagem */}
-    <div className="w-full max-w-4xl mx-auto rounded-3xl border border-slate-200 bg-slate-100 flex items-center justify-center">
-      <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px]">
-        <img
-          src={imagens[fotoIndex]}
-          alt={anuncio.titulo}
-          className="w-full h-full object-contain bg-white"
-        />
-      </div>
-    </div>
+    {/* FOTO PRINCIPAL – padrão Classilagos bonito */}
+<div className="w-full flex justify-center">
+  <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
+    <img
+      src={imagens[fotoIndex]}
+      alt={anuncio.titulo}
+      className="w-full h-full object-cover object-center"
+    />
+  </div>
+</div>
 
     {/* MINIATURAS (todas as fotos) */}
     {imagens.length > 1 && (
