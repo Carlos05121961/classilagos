@@ -91,6 +91,7 @@ export default function AnuncioDetalhePage() {
   const isServico = anuncio.categoria === "servico";
   const isLagolistas = anuncio.categoria === "lagolistas";
   const isPets = anuncio.categoria === "pets";
+  const isTurismo = anuncio.categoria === "turismo"; // ⭐ TURISMO
 
   // Imagens (galeria não é usada para currículo, vagas, nem LagoListas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
@@ -284,6 +285,8 @@ export default function AnuncioDetalhePage() {
                       ? "LagoListas"
                       : anuncio.categoria === "pets"
                       ? "Pets"
+                      : anuncio.categoria === "turismo"
+                      ? "Turismo"
                       : "Anúncios"}
                   </p>
                   <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -330,49 +333,90 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-    {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
-{mostrarGaleria && (
-  <section
-    className="w-full flex flex-col gap-3"
-    id="fachada" // âncora p/outros tipos
-  >
-    {/* FOTO PRINCIPAL um pouco menor e sem cortar a imagem */}
-    <div className="w-full max-w-4xl mx-auto rounded-3xl border border-slate-200 bg-slate-100 flex items-center justify-center">
-      <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px]">
-        <img
-          src={imagens[fotoIndex]}
-          alt={anuncio.titulo}
-          className="w-full h-full object-contain bg-white"
-        />
-      </div>
-    </div>
-
-    {/* MINIATURAS (todas as fotos) */}
-    {imagens.length > 1 && (
-      <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-        {imagens.map((url, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => setFotoIndex(index)}
-            className={`rounded-xl overflow-hidden border bg-white transition ${
-              fotoIndex === index
-                ? "border-cyan-500 ring-2 ring-cyan-400/40"
-                : "border-slate-300 hover:border-cyan-400"
-            }`}
+        {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
+        {mostrarGaleria && (
+          <section
+            className="w-full flex flex-col gap-3"
+            id="fachada" // âncora p/outros tipos
           >
-            <img
-              src={url}
-              alt={`Foto ${index + 1}`}
-              className="w-full h-16 object-contain"
-            />
-          </button>
-        ))}
-      </div>
-    )}
-  </section>
-)}
+            {/* ⭐ VERSÃO ESPECIAL PARA TURISMO – IMAGEM UM POUCO MENOR E MAIS “CHIC” */}
+            {isTurismo ? (
+              <>
+                {/* FOTO PRINCIPAL TURISMO */}
+                <div className="w-full max-w-4xl mx-auto rounded-3xl bg-gradient-to-r from-sky-900 via-sky-800 to-emerald-700 p-3 sm:p-4 shadow-md">
+                  <div className="relative w-full h-[190px] sm:h-[210px] md:h-[230px] lg:h-[240px] rounded-2xl overflow-hidden bg-black/40">
+                    <img
+                      src={imagens[fotoIndex]}
+                      alt={anuncio.titulo}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
 
+                {/* MINIATURAS TURISMO */}
+                {imagens.length > 1 && (
+                  <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                    {imagens.map((url, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setFotoIndex(index)}
+                        className={`rounded-xl overflow-hidden border transition bg-white/90 ${
+                          fotoIndex === index
+                            ? "border-cyan-500 ring-2 ring-cyan-300/60"
+                            : "border-slate-300 hover:border-cyan-400"
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-14 object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* FOTO PRINCIPAL PADRÃO (IMÓVEIS, VEÍCULOS, PETS, SERVIÇOS, ETC.) */}
+                <div className="w-full max-w-4xl mx-auto rounded-3xl border border-slate-200 bg-slate-100 flex items-center justify-center">
+                  <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px]">
+                    <img
+                      src={imagens[fotoIndex]}
+                      alt={anuncio.titulo}
+                      className="w-full h-full object-contain bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* MINIATURAS PADRÃO */}
+                {imagens.length > 1 && (
+                  <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                    {imagens.map((url, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setFotoIndex(index)}
+                        className={`rounded-xl overflow-hidden border bg-white transition ${
+                          fotoIndex === index
+                            ? "border-cyan-500 ring-2 ring-cyan-400/40"
+                            : "border-slate-300 hover:border-cyan-400"
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-16 object-contain"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
 
         {/* GRID PRINCIPAL: ESQUERDA / DIREITA */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
