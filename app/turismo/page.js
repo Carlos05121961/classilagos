@@ -84,34 +84,39 @@ export default function TurismoPage() {
       .join(" ");
   };
 
-  // Cards do GUIA ONDE (ícone já com o texto "Onde ficar", etc.)
+  // Cards do GUIA ONDE (agora com título em texto, colorido)
   const guiaOndeCards = [
     {
       key: "onde_ficar",
+      title: "Onde ficar",
       icon: "/turismo/onde-ficar.png",
       desc: "Pousadas, hotéis, hostels, casas de temporada e camping.",
       href: "/turismo?secao=onde_ficar",
     },
     {
       key: "onde_comer",
+      title: "Onde comer",
       icon: "/turismo/onde-comer.png",
       desc: "Bares, restaurantes, quiosques, pizzarias, hamburguerias.",
       href: "/turismo?secao=onde_comer",
     },
     {
       key: "onde_se_divertir",
+      title: "Onde se divertir",
       icon: "/turismo/onde-se-divertir.png",
       desc: "Casas de show, música ao vivo, baladas, pubs, eventos.",
       href: "/turismo?secao=onde_se_divertir",
     },
     {
       key: "onde_passear",
+      title: "Onde passear",
       icon: "/turismo/onde-passear.png",
       desc: "Passeios de barco, buggy, trilhas, city tour, mergulho.",
       href: "/turismo?secao=onde_passear",
     },
     {
       key: "cartoes_postais",
+      title: "Cartões postais",
       icon: "/turismo/cartoes-postais.png",
       desc: "Envie cartões postais digitais da Região dos Lagos para quem você ama.",
       href: "/turismo/cartoes-postais",
@@ -167,15 +172,15 @@ export default function TurismoPage() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
           {/* Logo + textos */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-3 mb-1">
               <Image
                 src="/turismo/guia-onde.png"
                 alt="Guia ONDE – Turismo Classilagos"
-                width={52}
-                height={52}
-                className="w-12 h-12 rounded-2xl drop-shadow"
+                width={64}
+                height={64}
+                className="w-12 h-12 md:w-16 md:h-16 rounded-2xl drop-shadow"
               />
-              <h2 className="text-sm md:text-base font-semibold text-slate-900">
+              <h2 className="text-sm md:text-base font-bold text-sky-700">
                 GUIA ONDE – Turismo Classilagos
               </h2>
             </div>
@@ -215,19 +220,26 @@ export default function TurismoPage() {
               className="rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-3 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
             >
               <div className="flex items-center justify-center mb-2">
-                <div className="w-20 h-20 flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
                   <Image
                     src={card.icon}
-                    alt="Guia ONDE"
+                    alt={card.title}
                     width={80}
                     height={80}
                     className="w-full h-full object-contain"
                   />
                 </div>
               </div>
+
+              {/* TÍTULO COLORIDO DO CARD (A) */}
+              <h3 className="text-xs sm:text-sm font-semibold text-sky-700 text-center mb-1">
+                {card.title}
+              </h3>
+
               <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
                 {card.desc}
               </p>
+
               <button
                 type="button"
                 className="mt-auto inline-flex items-center justify-center rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-sky-700"
