@@ -95,8 +95,8 @@ export default function AnuncioDetalhePage() {
   // Imagens (galeria não é usada para currículo, vagas, nem LagoListas)
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
-  const mostrarGaleria =
-    temImagens && !isCurriculo && !isEmprego && !isLagolistas;
+   // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
+  const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
