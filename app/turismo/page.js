@@ -122,7 +122,8 @@ function TurismoPageContent() {
       title: "Cartões postais",
       icon: "/turismo/cartoes-postais.png",
       desc: "Envie cartões postais digitais da Região dos Lagos para quem você ama.",
-      href: "/turismo?secao=cartoes_postais",
+      // AGORA LEVA DIRETO PARA A NOVA GALERIA
+      href: "/turismo/cartoes-postais",
     },
   ];
 
