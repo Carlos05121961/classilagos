@@ -9,7 +9,7 @@ const POSTAIS = [
     id: "restinga-aerea-01",
     cidade: "Maricá",
     titulo: "Restinga de Maricá – vista aérea",
-    caminho: "/postais/restinga-aerea-01.webp",
+    caminho: "/postais/marica/restinga-aerea-01.webp",
     credito: "Foto: Carlinhos Soares",
     descricao:
       "Vista aérea da restinga entre a lagoa e o mar em Maricá, cartão postal clássico da Região dos Lagos.",
