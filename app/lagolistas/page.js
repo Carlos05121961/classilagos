@@ -13,7 +13,7 @@ export default function LagoListasPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
 
-  // cidades e segmentos no mesmo padrão do formulário
+  // cidades da Região dos Lagos
   const cidades = [
     "Maricá",
     "Saquarema",
@@ -26,19 +26,21 @@ export default function LagoListasPage() {
     "Rio das Ostras",
   ];
 
+  // segmentos principais do LagoListas (iguais aos do formulário)
   const segmentosLagolistas = [
-    "Comércio & lojas",
-    "Mercados & mercearias",
+    "Materiais de construção & reformas",
+    "Supermercados & mercearias",
     "Farmácias & drogarias",
-    "Bares, restaurantes & lanchonetes",
-    "Pizzarias & delivery",
-    "Hotéis, pousadas & hospedagem",
+    "Bazares & variedades",
+    "Piscinas, jardins & paisagismo",
+    "Móveis, decoração & utilidades",
     "Serviços em geral",
     "Saúde, beleza & bem-estar",
     "Educação & escolas",
-    "Órgãos públicos & serviços da prefeitura",
-    "Serviços de emergência & utilidade pública",
     "Turismo & passeios",
+    "Bares, lanchonetes & cafeterias",
+    "Pizzarias & delivery",
+    "Hotéis, pousadas & hospedagem",
     "Outros",
   ];
 
@@ -197,29 +199,101 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* HERO LAGOLISTAS */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            src="/lagolistas/hero-lagolistas.jpg"
-            alt="Classilagos LagoListas"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-
-          <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900">
+      {/* NOVO HERO LAGOLISTAS – 3 FOTOS */}
+      <section className="relative w-full bg-[#FEF9C3] border-b border-yellow-200">
+        <div className="max-w-6xl mx-auto px-4 py-8 md:py-10 grid gap-6 md:grid-cols-[2fr,3fr] items-center">
+          {/* Texto principal */}
+          <div className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-yellow-700">
+              Guia comercial da Região dos Lagos
+            </p>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-snug">
               Classilagos – LagoListas
             </h1>
-            <p className="mt-2 text-sm md:text-base font-medium text-slate-900">
-              O maior guia comercial da Região dos Lagos.
+            <p className="text-xs md:text-sm text-slate-800 max-w-md">
+              O maior guia comercial da região para{" "}
+              <span className="font-semibold">
+                materiais de construção, mercados, farmácias, bazares, móveis,
+                serviços e muito mais
+              </span>
+              . Encontre tudo o que você precisa em Maricá e em toda a Região
+              dos Lagos.
             </p>
-            <p className="mt-1 text-[11px] md:text-xs text-slate-800/80 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites, mapas e muito mais de
-              comércios, serviços, turismo, saúde e profissionais liberais.
-            </p>
+
+            <ul className="text-[11px] md:text-xs text-slate-700 space-y-1">
+              <li>• Telefones, WhatsApp, endereços e sites sempre à mão.</li>
+              <li>• Empresas de bairro até grandes redes da região.</li>
+              <li>• Em breve: destaques e ofertas especiais por cidade.</li>
+            </ul>
+          </div>
+
+          {/* Bloco das 3 fotos */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
+            {/* Construção */}
+            <div className="flex flex-col gap-2">
+              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden border border-yellow-200 shadow-md bg-slate-100">
+                <Image
+                  src="/lagolistas/hero-construcao.webp"
+                  alt="Materiais de construção & reformas"
+                  fill
+                  sizes="(max-width: 768px) 33vw, 200px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-[10px] font-semibold text-white drop-shadow">
+                    Casa & construção
+                  </p>
+                  <p className="text-[9px] text-slate-100 drop-shadow">
+                    Materiais, reformas, piscinas…
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Comércio & bazar */}
+            <div className="flex flex-col gap-2 translate-y-3 md:translate-y-6">
+              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden border border-yellow-200 shadow-md bg-slate-100">
+                <Image
+                  src="/lagolistas/hero-comercio.webp"
+                  alt="Comércio & bazares"
+                  fill
+                  sizes="(max-width: 768px) 33vw, 200px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-[10px] font-semibold text-white drop-shadow">
+                    Comércio & bazares
+                  </p>
+                  <p className="text-[9px] text-slate-100 drop-shadow">
+                    Mercados, lojas, utilidades…
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Saúde & bem-estar */}
+            <div className="flex flex-col gap-2 translate-y-1 md:translate-y-3">
+              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden border border-yellow-200 shadow-md bg-slate-100">
+                <Image
+                  src="/lagolistas/hero-saude.webp"
+                  alt="Saúde & bem-estar"
+                  fill
+                  sizes="(max-width: 768px) 33vw, 200px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-[10px] font-semibold text-white drop-shadow">
+                    Saúde & bem-estar
+                  </p>
+                  <p className="text-[9px] text-slate-100 drop-shadow">
+                    Farmácias, clínicas, estética…
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -236,7 +310,7 @@ export default function LagoListasPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
+                  placeholder="Ex.: bazar, materiais de construção, farmácia, encanador..."
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
@@ -246,7 +320,7 @@ export default function LagoListasPage() {
               {/* Categoria */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Categoria
+                  Segmento
                 </label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
