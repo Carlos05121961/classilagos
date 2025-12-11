@@ -32,8 +32,8 @@ export default function FormularioLagolistas() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Imagem (logo / fachada)
-  const [logoFile, setLogoFile] = useState(null);
+  // Imagens (logo + fotos) — até 5
+  const [imagensFiles, setImagensFiles] = useState([]);
 
   // Estados gerais
   const [aceitoTermos, setAceitoTermos] = useState(false);
@@ -102,27 +102,35 @@ export default function FormularioLagolistas() {
 
     setUploading(true);
 
-    let logoUrl = null;
+    // aqui vamos guardar as URLs públicas das imagens
+    let imagensUrls = [];
 
     try {
       const bucket = "anuncios";
 
-      // Upload opcional da logo / fachada (MESMO PADRÃO DO CLASSIMED)
-      if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `lagolistas/${user.id}/lagolistas-logo-${Date.now()}.${ext}`;
+      // Upload opcional de até 5 imagens (logo + fotos)
+      if (imagensFiles && imagensFiles.length > 0) {
+        const maxImagens = Math.min(imagensFiles.length, 5);
 
-        const { error: uploadErroLogo } = await supabase.storage
-          .from(bucket)
-          .upload(path, logoFile);
+        for (let i = 0; i < maxImagens; i++) {
+          const file = imagensFiles[i];
+          const ext = file.name.split(".").pop();
+          const path = `lagolistas/${user.id}/lagolistas-${Date.now()}-${i}.${ext}`;
 
-        if (uploadErroLogo) {
-          console.error("Erro upload logo Lagolistas:", uploadErroLogo);
-          throw uploadErroLogo;
+          const { error: uploadErro } = await supabase.storage
+            .from(bucket)
+            .upload(path, file);
+
+          if (uploadErro) {
+            console.error("Erro upload imagem Lagolistas:", uploadErro);
+            throw uploadErro;
+          }
+
+          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+          if (data?.publicUrl) {
+            imagensUrls.push(data.publicUrl);
+          }
         }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        logoUrl = data.publicUrl;
       }
 
       // INSERT no Supabase
@@ -142,8 +150,6 @@ export default function FormularioLagolistas() {
 
         // dados da empresa
         nome_negocio: nomeNegocio,
-        // podemos aproveitar nome_contato depois se quiser:
-        // nome_contato: ..., 
 
         // campos novos da tabela
         cnpj: cnpj || null,
@@ -161,8 +167,8 @@ export default function FormularioLagolistas() {
         email,
         contato: contatoPrincipal,
 
-        // imagem principal
-        imagens: logoUrl ? [logoUrl] : null,
+        // imagens (logo + fotos)
+        imagens: imagensUrls.length > 0 ? imagensUrls : null,
 
         status: "ativo",
       });
@@ -196,7 +202,7 @@ export default function FormularioLagolistas() {
       setTelefone("");
       setWhatsapp("");
       setEmail("");
-      setLogoFile(null);
+      setImagensFiles([]);
       setAceitoTermos(false);
 
       setUploading(false);
@@ -238,8 +244,12 @@ export default function FormularioLagolistas() {
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Ex.: <strong>“Mercado São José – Ofertas todo dia em Maricá”</strong> ou{" "}
-              <strong>“Imobiliária Lagoa Viva – Aluguel e venda em Cabo Frio”</strong>.
+              Ex.: <strong>“Mercado São José – Ofertas todo dia em Maricá”</strong>{" "}
+              ou{" "}
+              <strong>
+                “Imobiliária Lagoa Viva – Aluguel e venda em Cabo Frio”
+              </strong>
+              .
             </div>
           </div>
         </div>
@@ -405,7 +415,9 @@ export default function FormularioLagolistas() {
 
       {/* LINKS */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Links (opcional)</h2>
+        <h2 className="text-sm font-semibold text-slate-900">
+          Links (opcional)
+        </h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -435,20 +447,37 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* LOGO / FOTO */}
+      {/* LOGO / FOTOS */}
       <div className="space-y-2 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
-          Logo / foto do comércio (opcional)
+          Logo e fotos do comércio (até 5 imagens)
         </h2>
-        <input
-          type="file"
-          accept="image/*"
-          className="w-full text-xs"
-          onChange={(e) => setLogoFile(e.target.files[0] || null)}
-        />
-        <p className="text-[11px] text-slate-500">
-          Imagem quadrada ou horizontal funciona melhor na vitrine do Lagolistas.
-        </p>
+
+        <div className="border border-dashed border-slate-300 rounded-xl p-3 bg-slate-50/60">
+          <p className="text-[11px] font-semibold text-slate-700 mb-1">
+            💡 Destaque aqui a sua logomarca
+          </p>
+          <p className="text-[11px] text-slate-600 mb-2">
+            Envie sua logo (de preferência em PNG com fundo transparente) e até
+            4 fotos da fachada, interior, produtos, equipe etc. A{" "}
+            <strong>primeira imagem</strong> será usada como destaque na
+            vitrine do LagoListas.
+          </p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="w-full text-[11px]"
+            onChange={(e) =>
+              setImagensFiles(Array.from(e.target.files || []))
+            }
+          />
+
+          <p className="mt-1 text-[10px] text-slate-500">
+            Formato recomendado: JPG ou PNG, até 5 arquivos por anúncio.
+          </p>
+        </div>
       </div>
 
       {/* CONTATOS */}
