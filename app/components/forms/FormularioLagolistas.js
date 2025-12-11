@@ -13,6 +13,9 @@ export default function FormularioLagolistas() {
   const [bairro, setBairro] = useState("");
   const [endereco, setEndereco] = useState("");
 
+  // Segmento (categoria principal do comércio)
+  const [segmento, setSegmento] = useState("");
+
   // Dados da empresa / comércio
   const [nomeNegocio, setNomeNegocio] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
@@ -32,7 +35,7 @@ export default function FormularioLagolistas() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Imagens (logo + fotos) — até 5
+  // Imagens (logo + até 4 fotos)
   const [imagensFiles, setImagensFiles] = useState([]);
 
   // Estados gerais
@@ -41,7 +44,7 @@ export default function FormularioLagolistas() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // Verificar login (mesmo padrão do Classimed)
+  // Verificar login (mesmo padrão)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
@@ -60,6 +63,23 @@ export default function FormularioLagolistas() {
     "Cabo Frio",
     "Búzios",
     "Rio das Ostras",
+  ];
+
+  const segmentosLagolistas = [
+    "Materiais de construção & reformas",
+    "Supermercados & mercearias",
+    "Farmácias & drogarias",
+    "Bazares & variedades",
+    "Piscinas, jardins & paisagismo",
+    "Móveis, decoração & utilidades",
+    "Serviços em geral",
+    "Saúde, beleza & bem-estar",
+    "Educação & escolas",
+    "Turismo & passeios",
+    "Bares, lanchonetes & cafeterias",
+    "Pizzarias & delivery",
+    "Hotéis, pousadas & hospedagem",
+    "Outros",
   ];
 
   const handleSubmit = async (e) => {
@@ -85,6 +105,13 @@ export default function FormularioLagolistas() {
       return;
     }
 
+    if (!segmento) {
+      setErro(
+        "Selecione o segmento principal do seu negócio (materiais de construção, bazar, farmácia, etc.)."
+      );
+      return;
+    }
+
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
       setErro(
@@ -95,35 +122,34 @@ export default function FormularioLagolistas() {
 
     if (!aceitoTermos) {
       setErro(
-        "Para publicar no Lagolistas, marque a opção confirmando que as informações são verdadeiras."
+        "Para publicar no LagoListas, marque a opção confirmando que as informações são verdadeiras."
       );
       return;
     }
 
     setUploading(true);
 
-    // aqui vamos guardar as URLs públicas das imagens
     let imagensUrls = [];
 
     try {
       const bucket = "anuncios";
 
-      // Upload opcional de até 5 imagens (logo + fotos)
+      // Upload opcional de até 5 imagens
       if (imagensFiles && imagensFiles.length > 0) {
-        const maxImagens = Math.min(imagensFiles.length, 5);
+        const filesArray = Array.from(imagensFiles).slice(0, 5);
 
-        for (let i = 0; i < maxImagens; i++) {
-          const file = imagensFiles[i];
+        for (let index = 0; index < filesArray.length; index++) {
+          const file = filesArray[index];
           const ext = file.name.split(".").pop();
-          const path = `lagolistas/${user.id}/lagolistas-${Date.now()}-${i}.${ext}`;
+          const path = `lagolistas/${user.id}/lagolistas-${Date.now()}-${index}.${ext}`;
 
-          const { error: uploadErro } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from(bucket)
             .upload(path, file);
 
-          if (uploadErro) {
-            console.error("Erro upload imagem Lagolistas:", uploadErro);
-            throw uploadErro;
+          if (uploadError) {
+            console.error("Erro upload imagem Lagolistas:", uploadError);
+            throw uploadError;
           }
 
           const { data } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -137,10 +163,8 @@ export default function FormularioLagolistas() {
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
 
-        // Categoria para o Lagolistas
+        // Categoria para o LagoListas
         categoria: "lagolistas",
-        // se quiser usar subcategoria depois, já existe a coluna:
-        // subcategoria_servico: "lagolistas",
 
         titulo,
         descricao,
@@ -148,26 +172,27 @@ export default function FormularioLagolistas() {
         bairro,
         endereco,
 
-        // dados da empresa
-        nome_negocio: nomeNegocio,
+        // segmento principal (usaremos no filtro e na vitrine)
+        area_profissional: segmento,
 
-        // campos novos da tabela
-        cnpj: cnpj || null,
+        // dados da empresa
+        nome_negocio: nomeNegocio || null,
         razao_social: razaoSocial || null,
+        cnpj: cnpj || null,
         inscricao_municipal: inscricaoMunicipal || null,
         registro_profissional: registroProfissional || null,
 
         // links
-        site_url: siteUrl,
-        instagram,
+        site_url: siteUrl || null,
+        instagram: instagram || null,
 
         // contatos
-        telefone,
-        whatsapp,
-        email,
+        telefone: telefone || null,
+        whatsapp: whatsapp || null,
+        email: email || null,
         contato: contatoPrincipal,
 
-        // imagens (logo + fotos)
+        // imagens (logo + fachada + interior, etc.)
         imagens: imagensUrls.length > 0 ? imagensUrls : null,
 
         status: "ativo",
@@ -184,13 +209,14 @@ export default function FormularioLagolistas() {
         return;
       }
 
-      setSucesso("Anúncio publicado com sucesso no Lagolistas! 🎉");
+      setSucesso("Anúncio publicado com sucesso no LagoListas! 🎉");
 
       // Limpar formulário
       setTitulo("");
       setCidade("");
       setBairro("");
       setEndereco("");
+      setSegmento("");
       setNomeNegocio("");
       setRazaoSocial("");
       setCnpj("");
@@ -244,12 +270,9 @@ export default function FormularioLagolistas() {
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Ex.: <strong>“Mercado São José – Ofertas todo dia em Maricá”</strong>{" "}
+              Ex.: <strong>“Materiais de Construção São José – Entregamos em toda Maricá”</strong>{" "}
               ou{" "}
-              <strong>
-                “Imobiliária Lagoa Viva – Aluguel e venda em Cabo Frio”
-              </strong>
-              .
+              <strong>“Bazar Tudo em Casa – Utilidades & presentes em Cabo Frio”</strong>.
             </div>
           </div>
         </div>
@@ -257,7 +280,7 @@ export default function FormularioLagolistas() {
         <input
           type="text"
           className="w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="Ex.: Padaria Pão Quentinho – Café da manhã e lanches"
+          placeholder="Ex.: Mercado Pão Quentinho – Café da manhã e lanches"
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
           required
@@ -313,6 +336,38 @@ export default function FormularioLagolistas() {
             placeholder="Rua, número, sala, ponto de referência..."
           />
         </div>
+      </div>
+
+      {/* SEGMENTO / CATEGORIA */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Segmento do seu negócio *
+          </h2>
+          <div className="relative group text-[11px] text-slate-500 cursor-help">
+            <span>ℹ</span>
+            <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              Isso ajuda o cliente a encontrar mais rápido. Ex.:{" "}
+              <strong>“Materiais de construção & reformas”</strong>,{" "}
+              <strong>“Bazares & variedades”</strong>,{" "}
+              <strong>“Farmácias & drogarias”</strong>, etc.
+            </div>
+          </div>
+        </div>
+
+        <select
+          className="w-full border rounded-lg px-3 py-2 text-sm"
+          value={segmento}
+          onChange={(e) => setSegmento(e.target.value)}
+          required
+        >
+          <option value="">Selecione o segmento principal...</option>
+          {segmentosLagolistas.map((seg) => (
+            <option key={seg} value={seg}>
+              {seg}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* DADOS DA EMPRESA */}
@@ -408,16 +463,14 @@ export default function FormularioLagolistas() {
           className="w-full border rounded-lg px-3 py-2 text-sm h-32"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
-          placeholder="Ex.: Mercado com hortifrúti, açougue, padaria e entrega em domicílio..."
+          placeholder="Ex.: Loja de materiais de construção com entrega rápida, área de madeira, ferragens, hidráulica, elétrica, tintas e muito mais..."
           required
         />
       </div>
 
       {/* LINKS */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Links (opcional)
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Links (opcional)</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -449,35 +502,31 @@ export default function FormularioLagolistas() {
 
       {/* LOGO / FOTOS */}
       <div className="space-y-2 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Logo e fotos do comércio (até 5 imagens)
-        </h2>
-
-        <div className="border border-dashed border-slate-300 rounded-xl p-3 bg-slate-50/60">
-          <p className="text-[11px] font-semibold text-slate-700 mb-1">
-            💡 Destaque aqui a sua logomarca
-          </p>
-          <p className="text-[11px] text-slate-600 mb-2">
-            Envie sua logo (de preferência em PNG com fundo transparente) e até
-            4 fotos da fachada, interior, produtos, equipe etc. A{" "}
-            <strong>primeira imagem</strong> será usada como destaque na
-            vitrine do LagoListas.
-          </p>
-
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="w-full text-[11px]"
-            onChange={(e) =>
-              setImagensFiles(Array.from(e.target.files || []))
-            }
-          />
-
-          <p className="mt-1 text-[10px] text-slate-500">
-            Formato recomendado: JPG ou PNG, até 5 arquivos por anúncio.
-          </p>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Logo e fotos do comércio (até 5 imagens)
+          </h2>
+          <div className="relative group text-[11px] text-slate-500 cursor-help">
+            <span>ℹ</span>
+            <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              A primeira imagem será usada como capa na vitrine. Use, se
+              possível, uma logo em boa resolução e uma foto da fachada ou do
+              interior da loja.
+            </div>
+          </div>
         </div>
+
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          className="w-full text-xs"
+          onChange={(e) => setImagensFiles(e.target.files)}
+        />
+        <p className="text-[11px] text-slate-500">
+          Formato recomendado: JPG ou WEBP, até 5 imagens. Dica: use sempre sua
+          logomarca em uma das fotos.
+        </p>
       </div>
 
       {/* CONTATOS */}
@@ -539,7 +588,7 @@ export default function FormularioLagolistas() {
           />
           <span>
             Declaro que as informações preenchidas são verdadeiras e autorizo
-            que este anúncio seja exibido no Lagolistas / Classilagos para os
+            que este anúncio seja exibido no LagoListas / Classilagos para os
             consumidores da Região dos Lagos.
           </span>
         </label>
@@ -552,7 +601,7 @@ export default function FormularioLagolistas() {
       >
         {uploading
           ? "Publicando anúncio..."
-          : "Publicar meu comércio no Lagolistas"}
+          : "Publicar meu comércio no LagoListas"}
       </button>
     </form>
   );
