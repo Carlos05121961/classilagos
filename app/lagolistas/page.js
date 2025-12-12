@@ -44,88 +44,71 @@ export default function LagoListasPage() {
     "Rio das Ostras",
   ];
 
+  // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
   const segmentosLagolistas = [
-    // COMÉRCIO & LOJAS
-    "Comércio geral & lojas de rua",
-    "Supermercados, hortifrutis & mercearias",
-    "Materiais de construção & home center",
-    "Depósitos de gás e água mineral",
-    "Bazar, utilidades & presentes",
-    "Móveis & decoração",
-    "Eletrodomésticos & eletrônicos",
-    "Lojas de roupas & calçados",
-    "Óticas & relojoarias",
-    "Joalherias & semijoias",
-    "Papelarias, livrarias & copiadoras",
-
-    // AUTOMOTIVO
-    "Autopeças & acessórios",
-    "Concessionárias & lojas de veículos",
-    "Oficinas mecânicas & auto centers",
-    "Funilaria & pintura automotiva",
-    "Lava-rápido & estética automotiva",
-    "Pneus, rodas & alinhamento",
-
-    // IMÓVEIS & NEGÓCIOS
-    "Imobiliárias & corretores",
-    "Contabilidade & serviços contábeis",
+    "Academias, pilates & estúdios de treino",
     "Advogados & serviços jurídicos",
-    "Seguradoras & corretores de seguros",
-    "Consultoria empresarial & administrativa",
-    "Gráficas & comunicação visual",
     "Agências de publicidade & marketing digital",
-    "Internet, provedores & tecnologia",
+    "Agências de viagens & turismo",
     "Assistência técnica (celular, informática, eletro)",
-
-    // SAÚDE & BEM-ESTAR
+    "Autoescolas",
+    "Autopeças & acessórios",
+    "Bares & pubs",
+    "Barbearias",
+    "Bazar, utilidades & presentes",
+    "Buffets, salgados & bolos",
+    "Chaveiros",
+    "Clínicas de estética & depilação",
     "Clínicas médicas & consultórios",
-    "Hospitais & prontos-socorros",
     "Clínicas odontológicas / dentistas",
     "Clínicas veterinárias & pet shops",
-    "Farmácias & drogarias",
-    "Clínicas de estética & depilação",
-    "Salões de beleza, manicure & cabeleireiros",
-    "Barbearias",
-    "Fisioterapia & terapias integradas",
-    "Psicólogos, terapeutas & coaching",
-    "Academias, pilates & estúdios de treino",
-
-    // EDUCAÇÃO
-    "Escolas, cursos & reforço escolar",
+    "Comércio geral & lojas de rua",
+    "Concessionárias & lojas de veículos",
+    "Consultoria empresarial & administrativa",
+    "Contabilidade & serviços contábeis",
     "Cursos de idiomas",
-    "Autoescolas",
-    "Faculdades & ensino superior",
-
-    // FESTAS, EVENTOS & LAZER
-    "Buffets, salgados & bolos",
-    "Organização de festas & eventos",
-    "Locação de brinquedos, som & estrutura",
-    "Fotografia & filmagem de eventos",
-
-    // ALIMENTAÇÃO
-    "Restaurantes & churrascarias",
-    "Pizzarias, lanchonetes & fast food",
-    "Padarias & confeitarias",
-    "Delivery de marmita & refeições",
-    "Bares & pubs",
-
-    // TURISMO & HOSPEDAGEM
-    "Hotéis, pousadas & hospedagem",
-    "Agências de viagens & turismo",
-
-    // SERVIÇOS EM GERAL
-    "Transportes, fretes & mudanças",
-    "Motoboy & entregas rápidas",
-    "Lavanderias & tinturarias",
-    "Chaveiros",
     "Dedetização & controle de pragas",
-    "Serviços funerários",
-    "Serviços de limpeza & diaristas",
+    "Delivery de marmita & refeições",
+    "Depósitos de gás e água mineral",
+    "Eletrodomésticos & eletrônicos",
+    "Escolas, cursos & reforço escolar",
+    "Faculdades & ensino superior",
+    "Farmácias & drogarias",
+    "Fisioterapia & terapias integradas",
+    "Fotografia & filmagem de eventos",
+    "Funilaria & pintura automotiva",
+    "Gráficas & comunicação visual",
+    "Hospitais & prontos-socorros",
+    "Hotéis, pousadas & hospedagem",
+    "Imobiliárias & corretores",
+    "Internet, provedores & tecnologia",
     "Jardinagem, paisagismo & piscinas",
-
-    // OUTROS
+    "Joalherias & semijoias",
+    "Lava-rápido & estética automotiva",
+    "Lavanderias & tinturarias",
+    "Locação de brinquedos, som & estrutura",
+    "Lojas de roupas & calçados",
+    "Materiais de construção & home center",
+    "Motoboy & entregas rápidas",
+    "Móveis & decoração",
+    "Oficinas mecânicas & auto centers",
+    "Organização de festas & eventos",
     "Outros serviços & negócios",
+    "Padarias & confeitarias",
+    "Papelarias, livrarias & copiadoras",
+    "Pizzarias, lanchonetes & fast food",
+    "Pneus, rodas & alinhamento",
+    "Psicólogos, terapeutas & coaching",
+    "Restaurantes & churrascarias",
+    "Salões de beleza, manicure & cabeleireiros",
+    "Seguradoras & corretores de seguros",
+    "Serviços de limpeza & diaristas",
+    "Serviços funerários",
+    "Supermercados, hortifrutis & mercearias",
+    "Transportes, fretes & mudanças",
+    "Óticas & relojoarias",
   ];
+
 
 
   // Buscar cadastros do LagoListas
