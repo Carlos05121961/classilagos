@@ -44,25 +44,89 @@ export default function LagoListasPage() {
     "Rio das Ostras",
   ];
 
-  // segmentos (pode ajustar depois, se quiser)
   const segmentosLagolistas = [
-    "Comércio & lojas",
-    "Materiais de construção",
-    "Mercados & mercearias",
+    // COMÉRCIO & LOJAS
+    "Comércio geral & lojas de rua",
+    "Supermercados, hortifrutis & mercearias",
+    "Materiais de construção & home center",
+    "Depósitos de gás e água mineral",
+    "Bazar, utilidades & presentes",
+    "Móveis & decoração",
+    "Eletrodomésticos & eletrônicos",
+    "Lojas de roupas & calçados",
+    "Óticas & relojoarias",
+    "Joalherias & semijoias",
+    "Papelarias, livrarias & copiadoras",
+
+    // AUTOMOTIVO
+    "Autopeças & acessórios",
+    "Concessionárias & lojas de veículos",
+    "Oficinas mecânicas & auto centers",
+    "Funilaria & pintura automotiva",
+    "Lava-rápido & estética automotiva",
+    "Pneus, rodas & alinhamento",
+
+    // IMÓVEIS & NEGÓCIOS
+    "Imobiliárias & corretores",
+    "Contabilidade & serviços contábeis",
+    "Advogados & serviços jurídicos",
+    "Seguradoras & corretores de seguros",
+    "Consultoria empresarial & administrativa",
+    "Gráficas & comunicação visual",
+    "Agências de publicidade & marketing digital",
+    "Internet, provedores & tecnologia",
+    "Assistência técnica (celular, informática, eletro)",
+
+    // SAÚDE & BEM-ESTAR
+    "Clínicas médicas & consultórios",
+    "Hospitais & prontos-socorros",
+    "Clínicas odontológicas / dentistas",
+    "Clínicas veterinárias & pet shops",
     "Farmácias & drogarias",
-    "Bares, restaurantes & lanchonetes",
-    "Pizzarias & delivery",
+    "Clínicas de estética & depilação",
+    "Salões de beleza, manicure & cabeleireiros",
+    "Barbearias",
+    "Fisioterapia & terapias integradas",
+    "Psicólogos, terapeutas & coaching",
+    "Academias, pilates & estúdios de treino",
+
+    // EDUCAÇÃO
+    "Escolas, cursos & reforço escolar",
+    "Cursos de idiomas",
+    "Autoescolas",
+    "Faculdades & ensino superior",
+
+    // FESTAS, EVENTOS & LAZER
+    "Buffets, salgados & bolos",
+    "Organização de festas & eventos",
+    "Locação de brinquedos, som & estrutura",
+    "Fotografia & filmagem de eventos",
+
+    // ALIMENTAÇÃO
+    "Restaurantes & churrascarias",
+    "Pizzarias, lanchonetes & fast food",
+    "Padarias & confeitarias",
+    "Delivery de marmita & refeições",
+    "Bares & pubs",
+
+    // TURISMO & HOSPEDAGEM
     "Hotéis, pousadas & hospedagem",
-    "Lojas de móveis & decoração",
-    "Bazar & utilidades",
-    "Piscinas, jardins & paisagismo",
-    "Serviços em geral",
-    "Saúde, beleza & bem-estar",
-    "Educação & escolas",
-    "Turismo & passeios",
-    "Serviços de emergência & utilidade pública",
-    "Outros",
+    "Agências de viagens & turismo",
+
+    // SERVIÇOS EM GERAL
+    "Transportes, fretes & mudanças",
+    "Motoboy & entregas rápidas",
+    "Lavanderias & tinturarias",
+    "Chaveiros",
+    "Dedetização & controle de pragas",
+    "Serviços funerários",
+    "Serviços de limpeza & diaristas",
+    "Jardinagem, paisagismo & piscinas",
+
+    // OUTROS
+    "Outros serviços & negócios",
   ];
+
 
   // Buscar cadastros do LagoListas
   useEffect(() => {
