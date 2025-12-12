@@ -8,25 +8,23 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
 export default function Home() {
+  // HERO (NOVO PADRÃO WEBP)
   const heroImages = [
-    "/banners/pontanegra.png",
-    "/banners/itaipuacu.png",
-    "/banners/barra.png",
+    "/hero/home-01.webp",
+    "/hero/home-02.webp",
+    "/hero/home-03.webp",
   ];
 
+  // ORDEM NOVA (PORTAL): Turismo → LagoListas → Empregos → Serviços → Imóveis → Veículos → Náutica → Pets
   const categorias = [
+    { label: "Turismo", href: "/turismo", icon: "/icons/turismo.png" },
+    { label: "LagoListas", href: "/lagolistas", icon: "/icons/lagolistas.png" },
+    { label: "Empregos", href: "/empregos", icon: "/icons/empregos.png" },
+    { label: "Serviços", href: "/servicos", icon: "/icons/servicos.png" },
     { label: "Imóveis", href: "/imoveis", icon: "/icons/imoveis.png" },
     { label: "Veículos", href: "/veiculos", icon: "/icons/veiculos.png" },
     { label: "Náutica", href: "/nautica", icon: "/icons/nautica.png" },
     { label: "Pets", href: "/pets", icon: "/icons/pets.png" },
-    { label: "Empregos", href: "/empregos", icon: "/icons/empregos.png" },
-    { label: "Serviços", href: "/servicos", icon: "/icons/servicos.png" },
-    { label: "Turismo", href: "/turismo", icon: "/icons/turismo.png" },
-    {
-      label: "LagoListas",
-      href: "/lagolistas",
-      icon: "/icons/lagolistas.png",
-    },
   ];
 
   const cidades = [
@@ -67,14 +65,6 @@ export default function Home() {
   };
 
   // CLASSILAGOS TV
-  // Neste momento estamos usando UM VÍDEO específico do canal,
-  // porque é 100% garantido no iframe.
-  //
-  // Se quiser trocar por uma PLAYLIST:
-  // 1. Vá no YouTube, abra a playlist.
-  // 2. Clique em COMPARTILHAR → INCORPORAR.
-  // 3. Copie o valor de src="https://www.youtube.com/embed/...."
-  // 4. Cole aqui em tvEmbedUrl.
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
 
   // DESTAQUES
@@ -98,7 +88,7 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER COMERCIAL */}
+      {/* BANNER COMERCIAL (TOPO) */}
       <BannerRotator />
 
       {/* HERO */}
@@ -119,7 +109,7 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA */}
+      {/* CAIXA DE BUSCA (VISUAL) */}
       <section className="bg-gradient-to-b from-cyan-700 via-cyan-600 to-slate-950">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-4">
           <div className="rounded-3xl bg-slate-950/95 border border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.8)] px-6 py-5">
@@ -153,13 +143,17 @@ export default function Home() {
                   Cidade
                 </label>
                 <select className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50">
+                  <option>Toda a região</option>
                   {cidades.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
-              <button className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
+              <button
+                type="button"
+                className="rounded-full bg-white text-cyan-700 hover:bg-cyan-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition"
+              >
                 Buscar
               </button>
             </div>
@@ -439,7 +433,25 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* BANNER (RODAPÉ DA HOME) – em cima do Footer global */}
+      <section className="bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="relative w-full h-[120px] sm:h-[140px] rounded-3xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
+            <Image
+              src="/banners/anuncio-02.png"
+              alt="Publicidade Classilagos"
+              fill
+              sizes="1200px"
+              className="object-contain"
+            />
+          </div>
+          <p className="mt-2 text-[11px] text-center text-slate-500">
+            Espaço para banner principal do rodapé (parcerias, afiliados e
+            campanhas).
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
-
