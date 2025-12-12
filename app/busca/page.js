@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../supabaseClient";
+
 
 export default function BuscaPage() {
   const [resultados, setResultados] = useState([]);
