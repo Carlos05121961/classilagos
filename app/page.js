@@ -5,6 +5,7 @@ import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "./supabaseClient";
 
 export default function Home() {
