@@ -1,11 +1,11 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
-export default function BuscaPage() {
+function BuscaPage() {
   const searchParams = useSearchParams();
 
   const q = searchParams.get("q") || "";
@@ -132,5 +132,14 @@ export default function BuscaPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+// Função para envolver com Suspense Boundary
+export default function SuspenseWrapper() {
+  return (
+    <Suspense fallback={<p>Carregando...</p>}>
+      <BuscaPage />
+    </Suspense>
   );
 }
