@@ -337,11 +337,10 @@ export default function ListaImoveisPage() {
         ) : (
           <div className="grid gap-3">
             {imoveis.map((anuncio) => {
-              const imagens = Array.isArray(anuncio.imagens)
-                ? anuncio.imagens
-                : [];
-              const capa =
-                imagens.length > 0 ? imagens[0] : "/imoveis/sem-foto.jpg";
+           const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
+const capa =
+  imagens.find((x) => typeof x === "string" && x.trim().length > 0) ||
+  "/imoveis/sem-foto.jpg";
 
               return (
                 <Link
