@@ -29,12 +29,11 @@ const tiposImovel = [
   "Outros",
 ];
 
-// Padrão do banco agora: "venda" | "aluguel" | "aluguel temporada"
 const finalidades = [
   { label: "Qualquer", value: "" },
   { label: "Venda", value: "venda" },
   { label: "Aluguel", value: "aluguel" },
-  { label: "Temporada", value: "aluguel temporada" },
+  { label: "Temporada", value: "aluguel temporada" }, // PADRÃO
 ];
 
 function normaliza(s = "") {
@@ -48,34 +47,19 @@ function normaliza(s = "") {
 function normalizarFinalidade(v) {
   if (!v) return "";
   const s = normaliza(v);
-  if (s === "temporada") return "aluguel temporada"; // compat com links antigos
+  if (s === "temporada") return "aluguel temporada";
   if (s === "aluguel por temporada") return "aluguel temporada";
   return v;
 }
 
-// Detecta finalidade a partir do texto digitado
 function extrairFinalidadeDaBusca(busca) {
   const t = normaliza(busca);
-
-  // temporada
-  if (t.includes("temporada") || t.includes("por temporada")) {
-    return "aluguel temporada";
-  }
-
-  // aluguel (mas não temporada)
-  if (t.includes("aluguel") || t.includes("alugar")) {
-    return "aluguel";
-  }
-
-  // venda
-  if (t.includes("venda") || t.includes("comprar") || t.includes("vende")) {
-    return "venda";
-  }
-
+  if (t.includes("temporada") || t.includes("por temporada")) return "aluguel temporada";
+  if (t.includes("aluguel") || t.includes("alugar")) return "aluguel";
+  if (t.includes("venda") || t.includes("comprar") || t.includes("vende")) return "venda";
   return "";
 }
 
-// remove palavras de finalidade do texto, pra melhorar o FTS
 function limparBusca(busca) {
   let q = String(busca || "");
   q = q.replace(/aluguel por temporada/gi, "");
@@ -108,8 +92,10 @@ export default function ListaImoveisPage() {
     const params = new URLSearchParams(window.location.search);
 
     const busca = params.get("q") || params.get("busca") || "";
-    const finalidadeRaw = params.get("finalidade") || "";
-    const finalidade = normalizarFinalidade(finalidadeRaw);
+
+    // ✅ AQUI está o fix da mistura:
+    // /imoveis/lista?finalidade=temporada vira "aluguel temporada"
+    const finalidade = normalizarFinalidade(params.get("finalidade") || "");
 
     const tipoImovel = params.get("tipo_imovel") || params.get("tipo") || "";
     const cidade = params.get("cidade") || "";
@@ -124,12 +110,7 @@ export default function ListaImoveisPage() {
         setCarregando(true);
         setErro("");
 
-        // Se o usuário não escolheu finalidade no select,
-        // tentamos inferir pela busca (aluguel/temporada/venda)
-        const finInferida = !filtros.finalidade
-          ? extrairFinalidadeDaBusca(filtros.busca)
-          : "";
-
+        const finInferida = !filtros.finalidade ? extrairFinalidadeDaBusca(filtros.busca) : "";
         const finFinal = filtros.finalidade || finInferida;
 
         const qLimpa = limparBusca(filtros.busca);
@@ -151,11 +132,7 @@ export default function ListaImoveisPage() {
           lista = lista.filter((x) => x.tipo_imovel === filtros.tipoImovel);
         }
 
-        if (
-          filtros.destaque === "1" ||
-          filtros.destaque === "true" ||
-          filtros.destaque === "sim"
-        ) {
+        if (filtros.destaque === "1" || filtros.destaque === "true" || filtros.destaque === "sim") {
           lista = lista.filter((x) => x.destaque === true);
         }
 
@@ -190,25 +167,16 @@ export default function ListaImoveisPage() {
     const partes = [];
     if (filtros.busca) partes.push(`"${filtros.busca}"`);
 
-    if (filtros.finalidade) {
-      const f = finalidades.find((x) => x.value === filtros.finalidade);
+    const finMostrada = filtros.finalidade || extrairFinalidadeDaBusca(filtros.busca);
+    if (finMostrada) {
+      const f = finalidades.find((x) => x.value === finMostrada);
       if (f) partes.push(f.label.toLowerCase());
-    } else {
-      const finInferida = extrairFinalidadeDaBusca(filtros.busca);
-      if (finInferida) {
-        const f = finalidades.find((x) => x.value === finInferida);
-        if (f) partes.push(f.label.toLowerCase());
-      }
     }
 
     if (filtros.tipoImovel) partes.push(filtros.tipoImovel.toLowerCase());
     if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
 
-    if (
-      filtros.destaque === "1" ||
-      filtros.destaque === "true" ||
-      filtros.destaque === "sim"
-    ) {
+    if (filtros.destaque === "1" || filtros.destaque === "true" || filtros.destaque === "sim") {
       partes.push("em destaque");
     }
 
@@ -217,10 +185,7 @@ export default function ListaImoveisPage() {
   }, [filtros]);
 
   function atualizarFiltro(campo, valor) {
-    setFiltros((prev) => ({
-      ...prev,
-      [campo]: valor,
-    }));
+    setFiltros((prev) => ({ ...prev, [campo]: valor }));
   }
 
   return (
@@ -229,9 +194,7 @@ export default function ListaImoveisPage() {
         <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
           Imóveis – Lista
         </h1>
-        <p className="text-xs md:text-sm text-slate-600 mb-4">
-          {descricaoFiltro}
-        </p>
+        <p className="text-xs md:text-sm text-slate-600 mb-4">{descricaoFiltro}</p>
 
         <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
           <div className="grid gap-3 md:grid-cols-5 items-end">
@@ -254,9 +217,7 @@ export default function ListaImoveisPage() {
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.finalidade}
-                onChange={(e) =>
-                  atualizarFiltro("finalidade", normalizarFinalidade(e.target.value))
-                }
+                onChange={(e) => atualizarFiltro("finalidade", normalizarFinalidade(e.target.value))}
               >
                 {finalidades.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -331,16 +292,16 @@ export default function ListaImoveisPage() {
         {carregando ? (
           <p className="text-xs text-slate-500">Carregando imóveis...</p>
         ) : imoveis.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            Nenhum imóvel encontrado com esses filtros.
-          </p>
+          <p className="text-xs text-slate-500">Nenhum imóvel encontrado com esses filtros.</p>
         ) : (
           <div className="grid gap-3">
             {imoveis.map((anuncio) => {
-           const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
-const capa =
-  imagens.find((x) => typeof x === "string" && x.trim().length > 0) ||
-  "/imoveis/sem-foto.jpg";
+              const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
+
+              // ✅ FIX DA FOTO: pega a primeira imagem válida (não vazia)
+              const capa =
+                imagens.find((img) => typeof img === "string" && img.trim() !== "") ||
+                "/imoveis/sem-foto.jpg";
 
               return (
                 <Link
