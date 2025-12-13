@@ -8,7 +8,7 @@ import { supabase } from "../supabaseClient";
 function BuscaContent() {
   const searchParams = useSearchParams();
 
-  const q = searchParams.get("q") || "";
+  const termo = searchParams.get("q") || "";
   const categoria = searchParams.get("categoria") || "";
   const cidade = searchParams.get("cidade") || "";
 
@@ -21,54 +21,116 @@ function BuscaContent() {
 
       let query = supabase.from("anuncios").select("*");
 
-      if (q) query = query.ilike("titulo", `%${q}%`);
-      if (categoria && categoria !== "todas")
+      // CATEGORIA
+      if (categoria) {
         query = query.eq("categoria", categoria);
-      if (cidade && cidade !== "todas")
+      }
+
+      // CIDADE
+      if (cidade && cidade !== "Toda a região") {
         query = query.eq("cidade", cidade);
+      }
 
-      const { data } = await query.order("created_at", {
-        ascending: false,
-      });
+      // ===== REFINO ESPECÍFICO PARA IMÓVEIS =====
+      if (categoria === "imoveis") {
+        const termoLower = termo.toLowerCase();
 
-      setResultados(data || []);
+        // TIPO DE IMÓVEL
+        if (termoLower.includes("casa")) {
+          query = query.eq("tipo_imovel", "Casa");
+        }
+        if (termoLower.includes("apartamento")) {
+          query = query.eq("tipo_imovel", "Apartamento");
+        }
+        if (termoLower.includes("terreno")) {
+          query = query.eq("tipo_imovel", "Terreno");
+        }
+
+        // FINALIDADE
+        if (termoLower.includes("temporada")) {
+          query = query.eq("finalidade", "Aluguel por temporada");
+        } else if (termoLower.includes("aluguel")) {
+          query = query.eq("finalidade", "Aluguel");
+        } else if (
+          termoLower.includes("venda") ||
+          termoLower.includes("comprar")
+        ) {
+          query = query.eq("finalidade", "Venda");
+        }
+      }
+
+      // TEXTO LIVRE (título + descrição)
+      if (termo) {
+        query = query.or(
+          `titulo.ilike.%${termo}%,descricao.ilike.%${termo}%`
+        );
+      }
+
+      query = query.order("created_at", { ascending: false });
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        setResultados(data);
+      } else {
+        setResultados([]);
+      }
+
       setLoading(false);
     }
 
     buscar();
-  }, [q, categoria, cidade]);
-
-  if (loading) return <p className="p-6">Carregando...</p>;
+  }, [termo, categoria, cidade]);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-6">
-      <h1 className="text-lg font-bold mb-4">Resultado da busca</h1>
+    <main className="bg-slate-950 min-h-screen py-10">
+      <div className="max-w-7xl mx-auto px-4">
+        <h1 className="text-white text-xl font-bold mb-4">
+          Resultado da busca
+        </h1>
 
-      {resultados.length === 0 ? (
-        <p>Nenhum resultado encontrado.</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {resultados.map((item) => (
-            <Link
-              key={item.id}
-              href={`/anuncios/${item.id}`}
-              className="border rounded-xl p-4 hover:shadow"
-            >
-              <h2 className="font-semibold">{item.titulo}</h2>
-              <p className="text-xs text-slate-600">
-                {item.categoria} • {item.cidade}
-              </p>
-            </Link>
-          ))}
-        </div>
-      )}
+        {loading && (
+          <p className="text-slate-300 text-sm">Carregando...</p>
+        )}
+
+        {!loading && resultados.length === 0 && (
+          <p className="text-slate-300 text-sm">
+            Nenhum resultado encontrado.
+          </p>
+        )}
+
+        {!loading && resultados.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {resultados.map((item) => (
+              <Link
+                key={item.id}
+                href={`/anuncios/${item.id}`}
+                className="border border-white/20 rounded-2xl p-4 hover:bg-white/5 transition"
+              >
+                <h2 className="text-white font-semibold text-sm mb-1">
+                  {item.titulo}
+                </h2>
+                <p className="text-slate-300 text-xs">
+                  {item.categoria} • {item.cidade}
+                </p>
+
+                {item.finalidade && (
+                  <p className="text-slate-400 text-xs mt-1">
+                    {item.finalidade}
+                  </p>
+                )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
 
 export default function BuscaPage() {
   return (
-    <Suspense fallback={<p className="p-6">Carregando...</p>}>
+    <Suspense fallback={<div className="text-white p-6">Carregando…</div>}>
       <BuscaContent />
     </Suspense>
   );
