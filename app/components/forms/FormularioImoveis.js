@@ -16,7 +16,7 @@ export default function FormularioImoveis() {
   const [cep, setCep] = useState("");
 
   // Tipo de anúncio / imóvel
-  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / temporada
+  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / aluguel temporada
   const [tipoImovel, setTipoImovel] = useState("");
 
   // Detalhes numéricos
@@ -78,7 +78,13 @@ export default function FormularioImoveis() {
     "Outros",
   ];
 
-  const finalidades = ["Venda", "Aluguel", "Temporada"];
+  // ✅ AQUI: “Temporada” virou “Aluguel por temporada”
+  // ✅ E o value salvo no banco será: "aluguel temporada"
+  const finalidades = [
+    { label: "Venda", value: "venda" },
+    { label: "Aluguel", value: "aluguel" },
+    { label: "Aluguel por temporada", value: "aluguel temporada" },
+  ];
 
   // Garante login
   useEffect(() => {
@@ -194,7 +200,7 @@ export default function FormularioImoveis() {
       email,
       contato: contatoPrincipal,
       tipo_imovel: tipoImovel,
-      finalidade: finalidade,
+      finalidade: finalidade, // ✅ agora salva: venda / aluguel / aluguel temporada
       area: areaConstruida || areaTerreno,
       quartos,
       banheiros,
@@ -287,8 +293,8 @@ export default function FormularioImoveis() {
             >
               <option value="">Selecione...</option>
               {finalidades.map((f) => (
-                <option key={f} value={f.toLowerCase()}>
-                  {f}
+                <option key={f.value} value={f.value}>
+                  {f.label}
                 </option>
               ))}
             </select>
@@ -530,7 +536,7 @@ export default function FormularioImoveis() {
               placeholder={
                 finalidade === "aluguel"
                   ? "Ex: R$ 2.500 / mês"
-                  : finalidade === "temporada"
+                  : finalidade === "aluguel temporada"
                   ? "Ex: R$ 500 / diária"
                   : "Ex: R$ 450.000"
               }
