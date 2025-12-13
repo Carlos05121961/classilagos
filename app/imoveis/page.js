@@ -37,72 +37,60 @@ const tiposImovel = [
   "Outros",
 ];
 
-// ===== ORDEM NOVA (8 CARDS) =====
-const cards = [
-  { nome: "Aluguel por temporada", slug: "aluguel-temporada" },
-  { nome: "Aluguel residencial", slug: "aluguel-residencial" },
+// ✅ ORDEM NOVA (8 cards) — SEM OPORTUNIDADES
+const cardsOrdem = [
+  { nome: "Aluguel Temporada", slug: "aluguel-temporada" },
+  { nome: "Aluguel Residencial", slug: "aluguel-residencial" },
   { nome: "Casas à venda", slug: "casas-venda" },
   { nome: "Apartamentos à venda", slug: "apartamentos-venda" },
   { nome: "Aluguel comercial", slug: "aluguel-comercial" },
-  { nome: "Imóveis comerciais – venda", slug: "comercial-venda" },
+  { nome: "Imóvel comercial venda", slug: "comercial-venda" },
   { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
   { nome: "Lançamentos", slug: "lancamentos" },
 ];
 
 function norm(s) {
-  return (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+  return (s || "").toString().trim().toLowerCase();
 }
+
+const TIPOS_COMERCIAIS = ["comercial", "loja / sala", "galpão"];
 
 function isFinalidadeTemporada(finalidade) {
   const f = norm(finalidade);
   return (
+    f === "temporada" ||
     f === "aluguel temporada" ||
-    f === "temporada" || // compat antigo (se existir)
-    f === "aluguel_temporada"
+    f === "aluguel_temporada" ||
+    f === "aluguel-por-temporada"
   );
 }
 
 function isFinalidadeAluguel(finalidade) {
   const f = norm(finalidade);
+  // aluguel comum (fixo)
   return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
-}
-
-function isFinalidadeVenda(finalidade) {
-  return norm(finalidade) === "venda";
-}
-
-function isComercialTipo(tipo) {
-  const t = norm(tipo);
-  // comercial puro OU categorias comerciais comuns
-  return t === "comercial" || t.includes("loja") || t.includes("sala") || t.includes("galp");
-}
-
-function isTerrenoTipo(tipo) {
-  const t = norm(tipo);
-  return t.includes("terreno") || t.includes("lote");
 }
 
 function pegarCapaDoAnuncio(anuncio) {
   const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
-  const capa =
+  return (
     imgs.find((u) => typeof u === "string" && u.trim() !== "") ||
-    "/imoveis/sem-foto.jpg";
-  return capa;
+    "/imoveis/sem-foto.jpg"
+  );
 }
 
-// ===== URLS 100% compatíveis com /imoveis/lista/page.js =====
-function montarUrlDaCategoria(slug) {
+// ✅ links amarrados para a LISTA entender exatamente o que é cada card
+function montarUrlDoCard(slug) {
   const params = new URLSearchParams();
 
   switch (slug) {
     case "aluguel-temporada":
-      // o formulário já grava assim
-      params.set("finalidade", "temporada"); // a lista converte para OR (temporada + aluguel temporada)
-      // OU, se quiser direto: params.set("finalidade", "temporada") (mantém padrão da lista)
+      params.set("finalidade", "temporada"); // na lista, temporada inclui "aluguel temporada"
       break;
 
     case "aluguel-residencial":
       params.set("finalidade", "aluguel");
+      params.set("aluguel_tipo", "residencial"); // ✅ novo
       break;
 
     case "casas-venda":
@@ -117,12 +105,12 @@ function montarUrlDaCategoria(slug) {
 
     case "aluguel-comercial":
       params.set("finalidade", "aluguel");
-      params.set("tipo_imovel", "Comercial");
+      params.set("aluguel_tipo", "comercial"); // ✅ novo
       break;
 
     case "comercial-venda":
       params.set("finalidade", "venda");
-      params.set("tipo_imovel", "Comercial");
+      params.set("segmento", "comercial"); // ✅ novo (Comercial/Loja/Galpão)
       break;
 
     case "terrenos-lotes":
@@ -130,8 +118,7 @@ function montarUrlDaCategoria(slug) {
       break;
 
     case "lancamentos":
-      // chave que SUA LISTA já entende
-      params.set("lancamento", "1");
+      params.set("lancamento", "1"); // ✅ lista já entende
       break;
 
     default:
@@ -147,16 +134,16 @@ export default function ImoveisPage() {
 
   const [currentHero, setCurrentHero] = useState(0);
 
-  // Busca da página (motor global)
+  // busca da página
   const [buscaTexto, setBuscaTexto] = useState("");
   const [buscaTipo, setBuscaTipo] = useState("");
   const [buscaCidade, setBuscaCidade] = useState("");
 
-  // Lista geral de imóveis para montar cards + destaques
+  // lista geral
   const [imoveis, setImoveis] = useState([]);
   const [loadingImoveis, setLoadingImoveis] = useState(true);
 
-  // Rotação das imagens do hero
+  // hero rotativo
   useEffect(() => {
     const interval = setInterval(
       () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
@@ -165,7 +152,7 @@ export default function ImoveisPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Busca TODOS os imóveis (até 80) para montar cards e destaques
+  // busca imóveis
   useEffect(() => {
     async function fetchImoveis() {
       try {
@@ -208,42 +195,42 @@ export default function ImoveisPage() {
       case "aluguel-residencial":
         filtrados = filtrados.filter((a) => {
           const tipo = norm(a.tipo_imovel);
-          return isFinalidadeAluguel(a.finalidade) && tipo && !isComercialTipo(tipo);
+          return isFinalidadeAluguel(a.finalidade) && !TIPOS_COMERCIAIS.includes(tipo);
         });
         break;
 
       case "casas-venda":
         filtrados = filtrados.filter(
-          (a) => isFinalidadeVenda(a.finalidade) && norm(a.tipo_imovel) === "casa"
+          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa"
         );
         break;
 
       case "apartamentos-venda":
         filtrados = filtrados.filter(
-          (a) => isFinalidadeVenda(a.finalidade) && norm(a.tipo_imovel) === "apartamento"
+          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento"
         );
         break;
 
       case "aluguel-comercial":
         filtrados = filtrados.filter((a) => {
-          const tipo = a.tipo_imovel;
-          return isFinalidadeAluguel(a.finalidade) && isComercialTipo(tipo);
+          const tipo = norm(a.tipo_imovel);
+          return isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(tipo);
         });
         break;
 
       case "comercial-venda":
         filtrados = filtrados.filter((a) => {
-          const tipo = a.tipo_imovel;
-          return isFinalidadeVenda(a.finalidade) && isComercialTipo(tipo);
+          const tipo = norm(a.tipo_imovel);
+          return norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(tipo);
         });
         break;
 
       case "terrenos-lotes":
-        filtrados = filtrados.filter((a) => isTerrenoTipo(a.tipo_imovel));
+        filtrados = filtrados.filter((a) => norm(a.tipo_imovel).includes("terreno"));
         break;
 
       case "lancamentos": {
-        // 1) prioriza anúncios com palavra "lançamento/lancamento" no título/descrição
+        // prioriza título/descrição com "lançamento"
         const comPalavra = filtrados.filter((a) => {
           const t = norm(a.titulo);
           const d = norm(a.descricao);
@@ -253,11 +240,11 @@ export default function ImoveisPage() {
         if (comPalavra.length > 0) {
           filtrados = comPalavra;
         } else {
-          // 2) fallback: venda + últimos 45 dias
+          // fallback: venda + últimos 45 dias
           const agora = new Date();
           const dias45 = new Date(agora.getTime() - 45 * 24 * 60 * 60 * 1000);
           filtrados = filtrados.filter((a) => {
-            if (!isFinalidadeVenda(a.finalidade)) return false;
+            if (norm(a.finalidade) !== "venda") return false;
             if (!a.created_at) return false;
             return new Date(a.created_at) >= dias45;
           });
@@ -271,13 +258,12 @@ export default function ImoveisPage() {
 
     if (filtrados.length === 0) return null;
 
-    // pega o mais recente dentro do filtro (evita “maluco”)
-    filtrados.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    return filtrados[0];
+    // se tiver destaque, prioriza (mas sem depender disso)
+    const emDestaque = filtrados.find((a) => a.destaque === true);
+    return emDestaque || filtrados[0];
   }
 
-  // Destaques (por enquanto: últimos 8)
-  const listaDestaques = useMemo(() => {
+  const ultimosPublicados = useMemo(() => {
     if (!imoveis || imoveis.length === 0) return [];
     return imoveis.slice(0, 8);
   }, [imoveis]);
@@ -336,7 +322,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (LIGADA AO MOTOR GLOBAL) */}
+      {/* BUSCA LIGADA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -409,23 +395,23 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      <div className="h-5 sm:h-7" />
+      <div className="h-4 sm:h-6" />
 
       {/* 8 CARDS (ORDEM NOVA) */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {cards.map((cat) => {
+          {cardsOrdem.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
             const capa = anuncio ? pegarCapaDoAnuncio(anuncio) : null;
-            const hrefCategoria = montarUrlDaCategoria(cat.slug);
+            const href = montarUrlDoCard(cat.slug);
 
             return (
               <Link
                 key={cat.slug}
-                href={hrefCategoria}
+                href={href}
                 className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
               >
-                {/* 🔧 ALTURA ÚNICA PRA TODOS (corrige “card menor”) */}
+                {/* ✅ altura igual em todos (conserta “apartamento menor”) */}
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
                     <img
@@ -442,7 +428,6 @@ export default function ImoveisPage() {
 
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
-
                   {anuncio && (
                     <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
                       {anuncio.titulo} • {anuncio.cidade}
@@ -454,21 +439,21 @@ export default function ImoveisPage() {
           })}
         </div>
 
-        {/* IMÓVEIS EM DESTAQUE (por enquanto: últimos anúncios) */}
-        <div className="mt-1">
+        {/* ÚLTIMOS PUBLICADOS (por enquanto) */}
+        <div className="mt-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">
             Últimos imóveis publicados
           </h2>
 
           {loadingImoveis ? (
-            <p className="text-xs text-slate-500">Carregando imóveis...</p>
-          ) : listaDestaques.length === 0 ? (
+            <p className="text-xs text-slate-500">Carregando...</p>
+          ) : ultimosPublicados.length === 0 ? (
             <p className="text-xs text-slate-500">
               Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              {listaDestaques.map((anuncio) => {
+              {ultimosPublicados.map((anuncio) => {
                 const href = `/anuncios/${anuncio.id}`;
                 const capa = pegarCapaDoAnuncio(anuncio);
 
@@ -508,7 +493,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* SERVIÇOS E INFORMAÇÕES */}
+      {/* FAIXA FINAL */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-sm font-semibold text-white mb-1">
@@ -566,3 +551,4 @@ export default function ImoveisPage() {
     </main>
   );
 }
+
