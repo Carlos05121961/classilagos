@@ -6,11 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-const heroImages = [
-  "/imoveis/imovel-01.jpg",
-  "/imoveis/imovel-02.jpg",
-  "/imoveis/imovel-03.jpg",
-];
+const heroImages = ["/imoveis/imovel-01.jpg", "/imoveis/imovel-02.jpg", "/imoveis/imovel-03.jpg"];
 
 const cidades = [
   "Maricá",
@@ -37,23 +33,9 @@ const tiposImovel = [
   "Outros",
 ];
 
-// ✅ ORDEM NOVA (8 cards) — SEM OPORTUNIDADES
-const cardsOrdem = [
-  { nome: "Aluguel Temporada", slug: "aluguel-temporada" },
-  { nome: "Aluguel Residencial", slug: "aluguel-residencial" },
-  { nome: "Casas à venda", slug: "casas-venda" },
-  { nome: "Apartamentos à venda", slug: "apartamentos-venda" },
-  { nome: "Aluguel comercial", slug: "aluguel-comercial" },
-  { nome: "Imóvel comercial venda", slug: "comercial-venda" },
-  { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
-  { nome: "Lançamentos", slug: "lancamentos" },
-];
-
 function norm(s) {
   return (s || "").toString().trim().toLowerCase();
 }
-
-const TIPOS_COMERCIAIS = ["comercial", "loja / sala", "galpão"];
 
 function isFinalidadeTemporada(finalidade) {
   const f = norm(finalidade);
@@ -67,30 +49,34 @@ function isFinalidadeTemporada(finalidade) {
 
 function isFinalidadeAluguel(finalidade) {
   const f = norm(finalidade);
-  // aluguel comum (fixo)
   return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
 }
 
-function pegarCapaDoAnuncio(anuncio) {
-  const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
-  return (
-    imgs.find((u) => typeof u === "string" && u.trim() !== "") ||
-    "/imoveis/sem-foto.jpg"
-  );
-}
+const TIPOS_COMERCIAIS = ["Comercial", "Loja / Sala", "Galpão"];
 
-// ✅ links amarrados para a LISTA entender exatamente o que é cada card
-function montarUrlDoCard(slug) {
+// Cards na ORDEM NOVA
+const cards = [
+  { nome: "Aluguel por temporada", slug: "aluguel-temporada" },
+  { nome: "Aluguel residencial", slug: "aluguel-residencial" },
+  { nome: "Casas à venda", slug: "casas-venda" },
+  { nome: "Apartamentos à venda", slug: "apartamentos-venda" },
+  { nome: "Aluguel comercial", slug: "aluguel-comercial" },
+  { nome: "Imóvel comercial (venda)", slug: "comercial-venda" },
+  { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
+  { nome: "Lançamentos", slug: "lancamentos" },
+];
+
+function montarUrlDaCategoria(slug) {
   const params = new URLSearchParams();
 
   switch (slug) {
     case "aluguel-temporada":
-      params.set("finalidade", "temporada"); // na lista, temporada inclui "aluguel temporada"
+      params.set("finalidade", "temporada"); // lista entende temporada e "aluguel temporada"
       break;
 
     case "aluguel-residencial":
       params.set("finalidade", "aluguel");
-      params.set("aluguel_tipo", "residencial"); // ✅ novo
+      params.set("aluguel_tipo", "residencial");
       break;
 
     case "casas-venda":
@@ -105,12 +91,11 @@ function montarUrlDoCard(slug) {
 
     case "aluguel-comercial":
       params.set("finalidade", "aluguel");
-      params.set("aluguel_tipo", "comercial"); // ✅ novo
+      params.set("aluguel_tipo", "comercial");
       break;
 
     case "comercial-venda":
-      params.set("finalidade", "venda");
-      params.set("segmento", "comercial"); // ✅ novo (Comercial/Loja/Galpão)
+      params.set("comercial_venda", "1"); // filtro de grupo no /lista
       break;
 
     case "terrenos-lotes":
@@ -118,7 +103,7 @@ function montarUrlDoCard(slug) {
       break;
 
     case "lancamentos":
-      params.set("lancamento", "1"); // ✅ lista já entende
+      params.set("lancamento", "1");
       break;
 
     default:
@@ -129,30 +114,28 @@ function montarUrlDoCard(slug) {
   return qs ? `/imoveis/lista?${qs}` : "/imoveis/lista";
 }
 
+function pegarCapaDoAnuncio(anuncio) {
+  const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
+  const capa = imgs.find((u) => typeof u === "string" && u.trim() !== "") || "/imoveis/sem-foto.jpg";
+  return capa;
+}
+
 export default function ImoveisPage() {
   const router = useRouter();
-
   const [currentHero, setCurrentHero] = useState(0);
 
-  // busca da página
   const [buscaTexto, setBuscaTexto] = useState("");
   const [buscaTipo, setBuscaTipo] = useState("");
   const [buscaCidade, setBuscaCidade] = useState("");
 
-  // lista geral
   const [imoveis, setImoveis] = useState([]);
   const [loadingImoveis, setLoadingImoveis] = useState(true);
 
-  // hero rotativo
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
+    const interval = setInterval(() => setCurrentHero((prev) => (prev + 1) % heroImages.length), 6000);
     return () => clearInterval(interval);
   }, []);
 
-  // busca imóveis
   useEffect(() => {
     async function fetchImoveis() {
       try {
@@ -162,6 +145,7 @@ export default function ImoveisPage() {
           .from("anuncios")
           .select("*")
           .eq("categoria", "imoveis")
+          .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(80);
 
@@ -193,36 +177,27 @@ export default function ImoveisPage() {
         break;
 
       case "aluguel-residencial":
-        filtrados = filtrados.filter((a) => {
-          const tipo = norm(a.tipo_imovel);
-          return isFinalidadeAluguel(a.finalidade) && !TIPOS_COMERCIAIS.includes(tipo);
-        });
+        filtrados = filtrados.filter(
+          (a) => isFinalidadeAluguel(a.finalidade) && a.tipo_imovel && !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+        );
         break;
 
       case "casas-venda":
-        filtrados = filtrados.filter(
-          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa"
-        );
+        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa");
         break;
 
       case "apartamentos-venda":
-        filtrados = filtrados.filter(
-          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento"
-        );
+        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento");
         break;
 
       case "aluguel-comercial":
-        filtrados = filtrados.filter((a) => {
-          const tipo = norm(a.tipo_imovel);
-          return isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(tipo);
-        });
+        filtrados = filtrados.filter(
+          (a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+        );
         break;
 
       case "comercial-venda":
-        filtrados = filtrados.filter((a) => {
-          const tipo = norm(a.tipo_imovel);
-          return norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(tipo);
-        });
+        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel));
         break;
 
       case "terrenos-lotes":
@@ -230,25 +205,14 @@ export default function ImoveisPage() {
         break;
 
       case "lancamentos": {
-        // prioriza título/descrição com "lançamento"
         const comPalavra = filtrados.filter((a) => {
           const t = norm(a.titulo);
           const d = norm(a.descricao);
           return t.includes("lançamento") || t.includes("lancamento") || d.includes("lançamento") || d.includes("lancamento");
         });
 
-        if (comPalavra.length > 0) {
-          filtrados = comPalavra;
-        } else {
-          // fallback: venda + últimos 45 dias
-          const agora = new Date();
-          const dias45 = new Date(agora.getTime() - 45 * 24 * 60 * 60 * 1000);
-          filtrados = filtrados.filter((a) => {
-            if (norm(a.finalidade) !== "venda") return false;
-            if (!a.created_at) return false;
-            return new Date(a.created_at) >= dias45;
-          });
-        }
+        if (comPalavra.length > 0) filtrados = comPalavra;
+        else filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda");
         break;
       }
 
@@ -258,13 +222,15 @@ export default function ImoveisPage() {
 
     if (filtrados.length === 0) return null;
 
-    // se tiver destaque, prioriza (mas sem depender disso)
+    // prioriza destaque dentro do grupo
     const emDestaque = filtrados.find((a) => a.destaque === true);
     return emDestaque || filtrados[0];
   }
 
-  const ultimosPublicados = useMemo(() => {
+  const listaDestaques = useMemo(() => {
     if (!imoveis || imoveis.length === 0) return [];
+    const soDestaques = imoveis.filter((a) => a.destaque === true);
+    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
     return imoveis.slice(0, 8);
   }, [imoveis]);
 
@@ -313,24 +279,19 @@ export default function ImoveisPage() {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
           <p className="text-sm md:text-base font-medium drop-shadow">
-            Encontre casas, apartamentos, terrenos e oportunidades imobiliárias
-            em toda a Região dos Lagos.
+            Encontre casas, apartamentos, terrenos e oportunidades imobiliárias em toda a Região dos Lagos.
           </p>
-          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-            Classilagos – Imóveis
-          </h1>
+          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">Classilagos – Imóveis</h1>
         </div>
       </section>
 
-      {/* BUSCA LIGADA */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Busca
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
                 <input
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
@@ -342,9 +303,7 @@ export default function ImoveisPage() {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Tipo
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
                 <select
                   value={buscaTipo}
                   onChange={(e) => setBuscaTipo(e.target.value)}
@@ -360,9 +319,7 @@ export default function ImoveisPage() {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Cidade
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
                 <select
                   value={buscaCidade}
                   onChange={(e) => setBuscaCidade(e.target.value)}
@@ -389,36 +346,30 @@ export default function ImoveisPage() {
             </div>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">
-            Busca ligada ao motor do Classilagos.
-          </p>
+          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
         </div>
       </section>
 
       <div className="h-4 sm:h-6" />
 
-      {/* 8 CARDS (ORDEM NOVA) */}
+      {/* CARDS + DESTAQUES */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {cardsOrdem.map((cat) => {
+          {cards.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
             const capa = anuncio ? pegarCapaDoAnuncio(anuncio) : null;
-            const href = montarUrlDoCard(cat.slug);
+            const hrefCategoria = montarUrlDaCategoria(cat.slug);
 
             return (
               <Link
                 key={cat.slug}
-                href={href}
+                href={hrefCategoria}
                 className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
               >
-                {/* ✅ altura igual em todos (conserta “apartamento menor”) */}
+                {/* padroniza tamanho para nenhum card ficar “menor” */}
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
-                    <img
-                      src={capa}
-                      alt={anuncio?.titulo || cat.nome}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={capa} alt={anuncio?.titulo || cat.nome} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
                       Em breve, imóveis aqui
@@ -426,7 +377,8 @@ export default function ImoveisPage() {
                   )}
                 </div>
 
-                <div className="bg-slate-900 text-white px-3 py-2">
+                {/* garante mesma altura do bloco de texto */}
+                <div className="bg-slate-900 text-white px-3 py-2 min-h-[64px]">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
                   {anuncio && (
                     <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
@@ -439,21 +391,17 @@ export default function ImoveisPage() {
           })}
         </div>
 
-        {/* ÚLTIMOS PUBLICADOS (por enquanto) */}
+        {/* IMÓVEIS EM DESTAQUE */}
         <div className="mt-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">
-            Últimos imóveis publicados
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">Imóveis em destaque</h2>
 
           {loadingImoveis ? (
-            <p className="text-xs text-slate-500">Carregando...</p>
-          ) : ultimosPublicados.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!
-            </p>
+            <p className="text-xs text-slate-500">Carregando imóveis em destaque...</p>
+          ) : listaDestaques.length === 0 ? (
+            <p className="text-xs text-slate-500">Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              {ultimosPublicados.map((anuncio) => {
+              {listaDestaques.map((anuncio) => {
                 const href = `/anuncios/${anuncio.id}`;
                 const capa = pegarCapaDoAnuncio(anuncio);
 
@@ -464,25 +412,16 @@ export default function ImoveisPage() {
                     className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
                   >
                     <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
-                      <img
-                        src={capa}
-                        alt={anuncio.titulo || "Imóvel"}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={capa} alt={anuncio.titulo || "Imóvel"} className="w-full h-full object-cover" />
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">
-                        {anuncio.titulo}
-                      </p>
+                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">{anuncio.titulo}</p>
                       <p className="text-[11px] text-slate-300">
-                        {anuncio.cidade}{" "}
-                        {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
+                        {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
                       </p>
                       {anuncio.preco && (
-                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
-                          {anuncio.preco}
-                        </p>
+                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">{anuncio.preco}</p>
                       )}
                     </div>
                   </Link>
@@ -493,56 +432,36 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* FAIXA FINAL */}
+      {/* FAIXA SERVIÇOS */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">
-            Serviços e informações para imóveis
-          </h2>
+          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para imóveis</h2>
           <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para entender tributos, documentos
-            e serviços importantes na hora de comprar, vender ou alugar um
-            imóvel na Região dos Lagos.
+            Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                IPTU e tributos
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
               <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultar IPTU, taxas municipais e
-                informações das prefeituras da região.
+                Em breve, links diretos para consultar IPTU, taxas municipais e informações das prefeituras.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Financiamento imobiliário
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Dicas básicas sobre crédito, simulações e contato com bancos
-                para financiar seu imóvel.
-              </p>
+              <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
+              <p className="text-[11px] text-slate-300">Dicas básicas sobre crédito, simulações e contato com bancos.</p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Regularização e documentos
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Orientações sobre escritura, registro em cartório, habite-se e
-                outros documentos essenciais.
-              </p>
+              <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
+              <p className="text-[11px] text-slate-300">Orientações sobre escritura, registro, habite-se e etc.</p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Serviços para o seu imóvel
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Serviços para o seu imóvel</h3>
               <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para você encontrar
-                arquitetos, pedreiros, eletricistas e outros profissionais.
+                Em breve, integração com o LagoListas para encontrar profissionais.
               </p>
             </div>
           </div>
