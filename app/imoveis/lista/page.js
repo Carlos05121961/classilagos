@@ -29,7 +29,7 @@ const tiposImovel = [
   "Outros",
 ];
 
-// IMPORTANTE: agora temporada = "aluguel temporada" (padronizado no banco)
+// Padrão do banco agora: "venda" | "aluguel" | "aluguel temporada"
 const finalidades = [
   { label: "Qualquer", value: "" },
   { label: "Venda", value: "venda" },
@@ -37,11 +37,57 @@ const finalidades = [
   { label: "Temporada", value: "aluguel temporada" },
 ];
 
+function normaliza(s = "") {
+  return String(s)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 function normalizarFinalidade(v) {
   if (!v) return "";
-  const s = String(v).toLowerCase().trim();
-  if (s === "temporada") return "aluguel temporada"; // compatibilidade com urls antigas
+  const s = normaliza(v);
+  if (s === "temporada") return "aluguel temporada"; // compat com links antigos
+  if (s === "aluguel por temporada") return "aluguel temporada";
   return v;
+}
+
+// Detecta finalidade a partir do texto digitado
+function extrairFinalidadeDaBusca(busca) {
+  const t = normaliza(busca);
+
+  // temporada
+  if (t.includes("temporada") || t.includes("por temporada")) {
+    return "aluguel temporada";
+  }
+
+  // aluguel (mas não temporada)
+  if (t.includes("aluguel") || t.includes("alugar")) {
+    return "aluguel";
+  }
+
+  // venda
+  if (t.includes("venda") || t.includes("comprar") || t.includes("vende")) {
+    return "venda";
+  }
+
+  return "";
+}
+
+// remove palavras de finalidade do texto, pra melhorar o FTS
+function limparBusca(busca) {
+  let q = String(busca || "");
+  q = q.replace(/aluguel por temporada/gi, "");
+  q = q.replace(/\bpor temporada\b/gi, "");
+  q = q.replace(/\btemporada\b/gi, "");
+  q = q.replace(/\baluguel\b/gi, "");
+  q = q.replace(/\balugar\b/gi, "");
+  q = q.replace(/\bvenda\b/gi, "");
+  q = q.replace(/\bcomprar\b/gi, "");
+  q = q.replace(/\bvende\b/gi, "");
+  q = q.replace(/\s+/g, " ").trim();
+  return q;
 }
 
 export default function ListaImoveisPage() {
@@ -50,14 +96,13 @@ export default function ListaImoveisPage() {
   const [erro, setErro] = useState("");
 
   const [filtros, setFiltros] = useState({
-    busca: "", // NOVO: texto livre
+    busca: "",
     finalidade: "",
     tipoImovel: "",
     cidade: "",
     destaque: "",
   });
 
-  // Lê query params da URL no navegador (sem useSearchParams)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -73,19 +118,27 @@ export default function ListaImoveisPage() {
     setFiltros({ busca, finalidade, tipoImovel, cidade, destaque });
   }, []);
 
-  // Busca imóveis sempre que os filtros mudarem
   useEffect(() => {
     async function carregarImoveis() {
       try {
         setCarregando(true);
         setErro("");
 
-        // 1) Busca principal via RPC (FTS + filtros básicos)
+        // Se o usuário não escolheu finalidade no select,
+        // tentamos inferir pela busca (aluguel/temporada/venda)
+        const finInferida = !filtros.finalidade
+          ? extrairFinalidadeDaBusca(filtros.busca)
+          : "";
+
+        const finFinal = filtros.finalidade || finInferida;
+
+        const qLimpa = limparBusca(filtros.busca);
+
         const { data, error } = await supabase.rpc("buscar_anuncios", {
-          q: filtros.busca ? filtros.busca : null,
+          q: qLimpa ? qLimpa : null,
           cat: "imoveis",
           cid: filtros.cidade ? filtros.cidade : null,
-          fin: filtros.finalidade ? filtros.finalidade : null,
+          fin: finFinal ? finFinal : null,
           lim: 300,
           off: 0,
         });
@@ -94,7 +147,6 @@ export default function ListaImoveisPage() {
 
         let lista = Array.isArray(data) ? data : [];
 
-        // 2) Filtros que não estão na RPC (tipo_imovel + destaque) aplicamos aqui
         if (filtros.tipoImovel) {
           lista = lista.filter((x) => x.tipo_imovel === filtros.tipoImovel);
         }
@@ -107,8 +159,7 @@ export default function ListaImoveisPage() {
           lista = lista.filter((x) => x.destaque === true);
         }
 
-        // 3) Ordenação no padrão Classilagos:
-        // Destaque primeiro, depois rank (se tiver busca), depois created_at
+        // Destaque primeiro, depois rank, depois data
         lista.sort((a, b) => {
           const ad = a?.destaque ? 1 : 0;
           const bd = b?.destaque ? 1 : 0;
@@ -142,7 +193,14 @@ export default function ListaImoveisPage() {
     if (filtros.finalidade) {
       const f = finalidades.find((x) => x.value === filtros.finalidade);
       if (f) partes.push(f.label.toLowerCase());
+    } else {
+      const finInferida = extrairFinalidadeDaBusca(filtros.busca);
+      if (finInferida) {
+        const f = finalidades.find((x) => x.value === finInferida);
+        if (f) partes.push(f.label.toLowerCase());
+      }
     }
+
     if (filtros.tipoImovel) partes.push(filtros.tipoImovel.toLowerCase());
     if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
 
@@ -175,10 +233,8 @@ export default function ListaImoveisPage() {
           {descricaoFiltro}
         </p>
 
-        {/* FILTROS RÁPIDOS */}
         <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
           <div className="grid gap-3 md:grid-cols-5 items-end">
-            {/* NOVO: Busca por texto */}
             <div className="md:col-span-2">
               <label className="block text-[11px] font-semibold text-slate-700">
                 Busca
@@ -198,7 +254,9 @@ export default function ListaImoveisPage() {
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.finalidade}
-                onChange={(e) => atualizarFiltro("finalidade", e.target.value)}
+                onChange={(e) =>
+                  atualizarFiltro("finalidade", normalizarFinalidade(e.target.value))
+                }
               >
                 {finalidades.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -264,7 +322,6 @@ export default function ListaImoveisPage() {
           </div>
         </div>
 
-        {/* LISTA DE IMÓVEIS */}
         {erro && (
           <p className="text-xs text-red-600 mb-3 border border-red-100 rounded-md px-3 py-2 bg-red-50">
             {erro}
@@ -292,7 +349,6 @@ export default function ListaImoveisPage() {
                   href={`/anuncios/${anuncio.id}`}
                   className="group rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-[1px] transition overflow-hidden flex flex-col md:flex-row"
                 >
-                  {/* Imagem */}
                   <div className="relative w-full md:w-56 h-40 md:h-32 bg-slate-100 overflow-hidden">
                     <img
                       src={capa}
@@ -306,7 +362,6 @@ export default function ListaImoveisPage() {
                     )}
                   </div>
 
-                  {/* Texto */}
                   <div className="flex-1 px-3 py-2 md:px-4 md:py-3 flex flex-col justify-between">
                     <div>
                       <h2 className="text-sm font-semibold text-slate-900 line-clamp-2">
