@@ -47,17 +47,20 @@ function BuscaContent() {
         }
 
         // FINALIDADE
-        if (termoLower.includes("temporada")) {
-          query = query.eq("finalidade", "Aluguel por temporada");
-        } else if (termoLower.includes("aluguel")) {
-          query = query.eq("finalidade", "Aluguel");
-        } else if (
-          termoLower.includes("venda") ||
-          termoLower.includes("comprar")
-        ) {
-          query = query.eq("finalidade", "Venda");
-        }
-      }
+    if (termoLower.includes("temporada")) {
+  query = query.ilike("finalidade", "%temporada%");
+}
+
+if (termoLower.includes("aluguel")) {
+  query = query.ilike("finalidade", "%aluguel%");
+}
+
+if (
+  termoLower.includes("venda") ||
+  termoLower.includes("comprar")
+) {
+  query = query.ilike("finalidade", "%venda%");
+}
 
       // TEXTO LIVRE (título + descrição)
       if (termo) {
