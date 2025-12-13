@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 
@@ -29,12 +29,20 @@ const tiposImovel = [
   "Outros",
 ];
 
+// IMPORTANTE: agora temporada = "aluguel temporada" (padronizado no banco)
 const finalidades = [
   { label: "Qualquer", value: "" },
   { label: "Venda", value: "venda" },
   { label: "Aluguel", value: "aluguel" },
-  { label: "Temporada", value: "temporada" },
+  { label: "Temporada", value: "aluguel temporada" },
 ];
+
+function normalizarFinalidade(v) {
+  if (!v) return "";
+  const s = String(v).toLowerCase().trim();
+  if (s === "temporada") return "aluguel temporada"; // compatibilidade com urls antigas
+  return v;
+}
 
 export default function ListaImoveisPage() {
   const [imoveis, setImoveis] = useState([]);
@@ -42,10 +50,11 @@ export default function ListaImoveisPage() {
   const [erro, setErro] = useState("");
 
   const [filtros, setFiltros] = useState({
+    busca: "", // NOVO: texto livre
     finalidade: "",
     tipoImovel: "",
     cidade: "",
-    destaque: "", // novo
+    destaque: "",
   });
 
   // Lê query params da URL no navegador (sem useSearchParams)
@@ -53,12 +62,15 @@ export default function ListaImoveisPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
 
-    const finalidade = params.get("finalidade") || "";
+    const busca = params.get("q") || params.get("busca") || "";
+    const finalidadeRaw = params.get("finalidade") || "";
+    const finalidade = normalizarFinalidade(finalidadeRaw);
+
     const tipoImovel = params.get("tipo_imovel") || params.get("tipo") || "";
     const cidade = params.get("cidade") || "";
     const destaque = params.get("destaque") || "";
 
-    setFiltros({ finalidade, tipoImovel, cidade, destaque });
+    setFiltros({ busca, finalidade, tipoImovel, cidade, destaque });
   }, []);
 
   // Busca imóveis sempre que os filtros mudarem
@@ -68,35 +80,50 @@ export default function ListaImoveisPage() {
         setCarregando(true);
         setErro("");
 
-        let query = supabase
-          .from("anuncios")
-          .select("*")
-          .eq("categoria", "imoveis")
-          .order("destaque", { ascending: false })
-          .order("created_at", { ascending: false });
+        // 1) Busca principal via RPC (FTS + filtros básicos)
+        const { data, error } = await supabase.rpc("buscar_anuncios", {
+          q: filtros.busca ? filtros.busca : null,
+          cat: "imoveis",
+          cid: filtros.cidade ? filtros.cidade : null,
+          fin: filtros.finalidade ? filtros.finalidade : null,
+          lim: 300,
+          off: 0,
+        });
 
-        if (filtros.finalidade) {
-          query = query.eq("finalidade", filtros.finalidade);
-        }
+        if (error) throw error;
+
+        let lista = Array.isArray(data) ? data : [];
+
+        // 2) Filtros que não estão na RPC (tipo_imovel + destaque) aplicamos aqui
         if (filtros.tipoImovel) {
-          query = query.eq("tipo_imovel", filtros.tipoImovel);
+          lista = lista.filter((x) => x.tipo_imovel === filtros.tipoImovel);
         }
-        if (filtros.cidade) {
-          query = query.eq("cidade", filtros.cidade);
-        }
+
         if (
           filtros.destaque === "1" ||
           filtros.destaque === "true" ||
           filtros.destaque === "sim"
         ) {
-          query = query.eq("destaque", true);
+          lista = lista.filter((x) => x.destaque === true);
         }
 
-        const { data, error } = await query;
+        // 3) Ordenação no padrão Classilagos:
+        // Destaque primeiro, depois rank (se tiver busca), depois created_at
+        lista.sort((a, b) => {
+          const ad = a?.destaque ? 1 : 0;
+          const bd = b?.destaque ? 1 : 0;
+          if (bd !== ad) return bd - ad;
 
-        if (error) throw error;
+          const ar = typeof a?.rank === "number" ? a.rank : 0;
+          const br = typeof b?.rank === "number" ? b.rank : 0;
+          if (br !== ar) return br - ar;
 
-        setImoveis(data || []);
+          const at = new Date(a?.created_at || 0).getTime();
+          const bt = new Date(b?.created_at || 0).getTime();
+          return bt - at;
+        });
+
+        setImoveis(lista);
       } catch (e) {
         console.error("Erro ao carregar imóveis:", e);
         setErro("Não foi possível carregar os imóveis agora.");
@@ -108,14 +135,17 @@ export default function ListaImoveisPage() {
     carregarImoveis();
   }, [filtros]);
 
-  const descricaoFiltro = (() => {
+  const descricaoFiltro = useMemo(() => {
     const partes = [];
+    if (filtros.busca) partes.push(`"${filtros.busca}"`);
+
     if (filtros.finalidade) {
       const f = finalidades.find((x) => x.value === filtros.finalidade);
       if (f) partes.push(f.label.toLowerCase());
     }
     if (filtros.tipoImovel) partes.push(filtros.tipoImovel.toLowerCase());
     if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
+
     if (
       filtros.destaque === "1" ||
       filtros.destaque === "true" ||
@@ -123,9 +153,10 @@ export default function ListaImoveisPage() {
     ) {
       partes.push("em destaque");
     }
+
     if (partes.length === 0) return "Todos os imóveis cadastrados";
-    return "Filtrando: " + partes.join(" ") + (partes.length > 0 ? "." : "");
-  })();
+    return "Filtrando: " + partes.join(" ") + ".";
+  }, [filtros]);
 
   function atualizarFiltro(campo, valor) {
     setFiltros((prev) => ({
@@ -146,7 +177,20 @@ export default function ListaImoveisPage() {
 
         {/* FILTROS RÁPIDOS */}
         <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
-          <div className="grid gap-3 md:grid-cols-4 items-end">
+          <div className="grid gap-3 md:grid-cols-5 items-end">
+            {/* NOVO: Busca por texto */}
+            <div className="md:col-span-2">
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Busca
+              </label>
+              <input
+                className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
+                placeholder='Ex: "casa aluguel", "apartamento temporada saquarema"...'
+                value={filtros.busca}
+                onChange={(e) => atualizarFiltro("busca", e.target.value)}
+              />
+            </div>
+
             <div>
               <label className="block text-[11px] font-semibold text-slate-700">
                 Finalidade
@@ -154,9 +198,7 @@ export default function ListaImoveisPage() {
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.finalidade}
-                onChange={(e) =>
-                  atualizarFiltro("finalidade", e.target.value)
-                }
+                onChange={(e) => atualizarFiltro("finalidade", e.target.value)}
               >
                 {finalidades.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -173,9 +215,7 @@ export default function ListaImoveisPage() {
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.tipoImovel}
-                onChange={(e) =>
-                  atualizarFiltro("tipoImovel", e.target.value)
-                }
+                onChange={(e) => atualizarFiltro("tipoImovel", e.target.value)}
               >
                 <option value="">Todos</option>
                 {tiposImovel.map((t) => (
@@ -193,9 +233,7 @@ export default function ListaImoveisPage() {
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.cidade}
-                onChange={(e) =>
-                  atualizarFiltro("cidade", e.target.value)
-                }
+                onChange={(e) => atualizarFiltro("cidade", e.target.value)}
               >
                 <option value="">Todas</option>
                 {cidades.map((c) => (
@@ -206,12 +244,13 @@ export default function ListaImoveisPage() {
               </select>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end md:col-span-5">
               <button
                 type="button"
                 className="w-full md:w-auto rounded-full bg-slate-900 text-white px-4 py-2 text-xs md:text-sm font-semibold hover:bg-slate-800"
                 onClick={() =>
                   setFiltros({
+                    busca: "",
                     finalidade: "",
                     tipoImovel: "",
                     cidade: "",
