@@ -43,92 +43,134 @@ export default function AnuncioDetalhePage() {
       setAnuncio(data);
       setFotoIndex(0);
 
-     const campos =
-  "id, titulo, cidade, bairro, preco, tipo_imovel, finalidade, imagens, categoria, subcategoria_servico, created_at, destaque";
+      const campos =
+        "id, titulo, cidade, bairro, preco, tipo_imovel, finalidade, imagens, categoria, subcategoria_servico, created_at, destaque";
 
-let lista = [];
+      // helpers (só para esta função)
+      const norm = (v) => (v || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+      const isTemporada = (v) => {
+        const f = norm(v);
+        return f === "temporada" || f === "aluguel temporada" || f === "aluguel_temporada";
+      };
+      const isAluguel = (v) => {
+        const f = norm(v);
+        return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
+      };
 
-// 1) mesma categoria + mesma finalidade + mesma cidade
-if (data.finalidade && data.cidade) {
-  const r1 = await supabase
-    .from("anuncios")
-    .select(campos)
-    .eq("categoria", data.categoria || "imoveis")
-    .eq("finalidade", data.finalidade)
-    .eq("cidade", data.cidade)
-    .neq("id", data.id)
-    .order("destaque", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(8);
+      // normaliza a finalidade do anúncio atual para montar o filtro certo
+      const fAtual = norm(data.finalidade);
 
-  if (!r1.error) lista = r1.data || [];
-}
+      // monta um "filtro SQL" de finalidade robusto
+      // (porque no banco pode estar vindo "aluguel temporada" etc.)
+      const aplicarFiltroFinalidade = (q) => {
+        if (isTemporada(fAtual)) {
+          return q.or(
+            "finalidade.eq.temporada,finalidade.eq.aluguel temporada,finalidade.eq.aluguel_temporada"
+          );
+        }
+        if (isAluguel(fAtual)) {
+          return q.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
+        }
+        if (fAtual) {
+          // venda e outros diretos
+          return q.eq("finalidade", data.finalidade);
+        }
+        return q;
+      };
 
-// 2) mesma categoria + mesma finalidade (qualquer cidade)
-if (lista.length < 4 && data.finalidade) {
-  const r2 = await supabase
-    .from("anuncios")
-    .select(campos)
-    .eq("categoria", data.categoria || "imoveis")
-    .eq("finalidade", data.finalidade)
-    .neq("id", data.id)
-    .order("destaque", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(12);
+      let lista = [];
 
-  if (!r2.error) {
-    const ids = new Set(lista.map((x) => x.id));
-    for (const item of r2.data || []) {
-      if (!ids.has(item.id)) lista.push(item);
-      if (lista.length >= 8) break;
-    }
-  }
-}
+      // 1) MESMA CATEGORIA + MESMA FINALIDADE + MESMA CIDADE + MESMO TIPO (quando existir)
+      try {
+        let q1 = supabase
+          .from("anuncios")
+          .select(campos)
+          .eq("categoria", "imoveis") // aqui é imóveis mesmo, pra não misturar
+          .neq("id", data.id)
+          .order("destaque", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(12);
 
-// 3) mesma categoria + mesma cidade (qualquer finalidade)
-if (lista.length < 4 && data.cidade) {
-  const r3 = await supabase
-    .from("anuncios")
-    .select(campos)
-    .eq("categoria", data.categoria || "imoveis")
-    .eq("cidade", data.cidade)
-    .neq("id", data.id)
-    .order("destaque", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(12);
+        q1 = aplicarFiltroFinalidade(q1);
 
-  if (!r3.error) {
-    const ids = new Set(lista.map((x) => x.id));
-    for (const item of r3.data || []) {
-      if (!ids.has(item.id)) lista.push(item);
-      if (lista.length >= 8) break;
-    }
-  }
-}
+        if (data.cidade) q1 = q1.eq("cidade", data.cidade);
+        if (data.tipo_imovel) q1 = q1.eq("tipo_imovel", data.tipo_imovel);
 
-// 4) fallback final: mesma categoria (qualquer coisa)
-if (lista.length < 4) {
-  const r4 = await supabase
-    .from("anuncios")
-    .select(campos)
-    .eq("categoria", data.categoria || "imoveis")
-    .neq("id", data.id)
-    .order("destaque", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(12);
+        const r1 = await q1;
 
-  if (!r4.error) {
-    const ids = new Set(lista.map((x) => x.id));
-    for (const item of r4.data || []) {
-      if (!ids.has(item.id)) lista.push(item);
-      if (lista.length >= 8) break;
-    }
-  }
-}
-      
-setSimilares(lista.slice(0, 4));
+        if (!r1.error && Array.isArray(r1.data)) {
+          lista = r1.data;
+        }
+      } catch (e) {
+        console.warn("Falha ao buscar similares (r1):", e);
+      }
+
+      // 2) Se ainda não tem suficientes: MESMA FINALIDADE + MESMA CIDADE (sem tipo)
+      if (lista.length < 4) {
+        try {
+          let q2 = supabase
+            .from("anuncios")
+            .select(campos)
+            .eq("categoria", "imoveis")
+            .neq("id", data.id)
+            .order("destaque", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(12);
+
+          q2 = aplicarFiltroFinalidade(q2);
+          if (data.cidade) q2 = q2.eq("cidade", data.cidade);
+
+          const r2 = await q2;
+
+          if (!r2.error && Array.isArray(r2.data)) {
+            const ids = new Set(lista.map((x) => x.id));
+            r2.data.forEach((x) => {
+              if (!ids.has(x.id)) {
+                ids.add(x.id);
+                lista.push(x);
+              }
+            });
+          }
+        } catch (e) {
+          console.warn("Falha ao buscar similares (r2):", e);
+        }
+      }
+
+      // 3) Se ainda não tem suficientes: MESMA FINALIDADE (sem cidade/tipo)
+      if (lista.length < 4) {
+        try {
+          let q3 = supabase
+            .from("anuncios")
+            .select(campos)
+            .eq("categoria", "imoveis")
+            .neq("id", data.id)
+            .order("destaque", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(12);
+
+          q3 = aplicarFiltroFinalidade(q3);
+
+          const r3 = await q3;
+
+          if (!r3.error && Array.isArray(r3.data)) {
+            const ids = new Set(lista.map((x) => x.id));
+            r3.data.forEach((x) => {
+              if (!ids.has(x.id)) {
+                ids.add(x.id);
+                lista.push(x);
+              }
+            });
+          }
+        } catch (e) {
+          console.warn("Falha ao buscar similares (r3):", e);
+        }
+      }
+
+      // pega só 4 para a UI
+      setSimilares(lista.slice(0, 4));
 
       setLoading(false);
+
     };
 
     fetchAnuncio();
