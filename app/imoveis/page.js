@@ -362,7 +362,9 @@ export default function ImoveisPage() {
               ? anuncio.imagens
               : [];
             const capa =
-              imagensValidas.length > 0 ? imagensValidas[0] : null;
+  (Array.isArray(imagens) ? imagens.find((u) => typeof u === "string" && u.trim() !== "") : null) ||
+  "/imoveis/sem-foto.jpg";
+
 
             const hrefCategoria = montarUrlDaCategoria(cat.slug);
 
