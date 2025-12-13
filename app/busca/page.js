@@ -8,9 +8,9 @@ import { supabase } from "../supabaseClient";
 function BuscaContent() {
   const searchParams = useSearchParams();
 
-  const termo = searchParams.get("q") || "";
-  const categoria = searchParams.get("categoria") || "";
-  const cidade = searchParams.get("cidade") || "";
+  const termo = (searchParams.get("q") || "").trim();
+  const categoria = (searchParams.get("categoria") || "").trim();
+  const cidade = (searchParams.get("cidade") || "").trim();
 
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,10 @@ function BuscaContent() {
     async function buscar() {
       setLoading(true);
 
-      let query = supabase.from("anuncios").select("*");
+      let query = supabase
+        .from("anuncios")
+        .select("*")
+        .eq("status", "ativo");
 
       // CATEGORIA
       if (categoria) {
@@ -31,49 +34,44 @@ function BuscaContent() {
         query = query.eq("cidade", cidade);
       }
 
+      const termoLower = termo.toLowerCase();
+
       // ===== REFINO ESPECÍFICO PARA IMÓVEIS =====
       if (categoria === "imoveis") {
-        const termoLower = termo.toLowerCase();
-
-        // TIPO DE IMÓVEL
+        // TIPO DE IMÓVEL (se o texto contiver)
         if (termoLower.includes("casa")) {
           query = query.eq("tipo_imovel", "Casa");
-        }
-        if (termoLower.includes("apartamento")) {
+        } else if (termoLower.includes("apartamento")) {
           query = query.eq("tipo_imovel", "Apartamento");
-        }
-        if (termoLower.includes("terreno")) {
+        } else if (termoLower.includes("terreno")) {
           query = query.eq("tipo_imovel", "Terreno");
         }
 
-        // FINALIDADE
-    if (termoLower.includes("temporada")) {
-  query = query.ilike("finalidade", "%temporada%");
-}
+        // FINALIDADE (aceita variações: aluguel fixo, temporada, venda etc.)
+        if (termoLower.includes("temporada")) {
+          query = query.ilike("finalidade", "%temporada%");
+        }
 
-if (termoLower.includes("aluguel")) {
-  query = query.ilike("finalidade", "%aluguel%");
-}
+        if (termoLower.includes("aluguel")) {
+          query = query.ilike("finalidade", "%aluguel%");
+        }
 
-if (
-  termoLower.includes("venda") ||
-  termoLower.includes("comprar")
-) {
-  query = query.ilike("finalidade", "%venda%");
-}
+        if (termoLower.includes("venda") || termoLower.includes("comprar")) {
+          query = query.ilike("finalidade", "%venda%");
+        }
+      }
 
       // TEXTO LIVRE (título + descrição)
       if (termo) {
-        query = query.or(
-          `titulo.ilike.%${termo}%,descricao.ilike.%${termo}%`
-        );
+        // ilike já é case-insensitive
+        query = query.or(`titulo.ilike.%${termo}%,descricao.ilike.%${termo}%`);
       }
 
       query = query.order("created_at", { ascending: false });
 
       const { data, error } = await query;
 
-      if (!error && data) {
+      if (!error && Array.isArray(data)) {
         setResultados(data);
       } else {
         setResultados([]);
@@ -88,18 +86,12 @@ if (
   return (
     <main className="bg-slate-950 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-white text-xl font-bold mb-4">
-          Resultado da busca
-        </h1>
+        <h1 className="text-white text-xl font-bold mb-4">Resultado da busca</h1>
 
-        {loading && (
-          <p className="text-slate-300 text-sm">Carregando...</p>
-        )}
+        {loading && <p className="text-slate-300 text-sm">Carregando...</p>}
 
         {!loading && resultados.length === 0 && (
-          <p className="text-slate-300 text-sm">
-            Nenhum resultado encontrado.
-          </p>
+          <p className="text-slate-300 text-sm">Nenhum resultado encontrado.</p>
         )}
 
         {!loading && resultados.length > 0 && (
@@ -113,6 +105,7 @@ if (
                 <h2 className="text-white font-semibold text-sm mb-1">
                   {item.titulo}
                 </h2>
+
                 <p className="text-slate-300 text-xs">
                   {item.categoria} • {item.cidade}
                 </p>
@@ -120,6 +113,12 @@ if (
                 {item.finalidade && (
                   <p className="text-slate-400 text-xs mt-1">
                     {item.finalidade}
+                  </p>
+                )}
+
+                {item.tipo_imovel && (
+                  <p className="text-slate-400 text-xs mt-1">
+                    {item.tipo_imovel}
                   </p>
                 )}
               </Link>
