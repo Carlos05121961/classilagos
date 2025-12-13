@@ -6,9 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-const heroImages = ["/imoveis/imovel-01.jpg", "/imoveis/imovel-02.jpg", "/imoveis/imovel-03.jpg"];
-
-const cidades = [
+const CIDADES = [
   "Maricá",
   "Saquarema",
   "Araruama",
@@ -20,7 +18,7 @@ const cidades = [
   "Rio das Ostras",
 ];
 
-const tiposImovel = [
+const TIPOS_IMOVEL = [
   "Casa",
   "Apartamento",
   "Cobertura",
@@ -33,438 +31,347 @@ const tiposImovel = [
   "Outros",
 ];
 
-function norm(s) {
-  return (s || "").toString().trim().toLowerCase();
+const TIPOS_COMERCIAIS = ["Comercial", "Loja / Sala", "Galpão"];
+
+// ===== helpers =====
+function normalizar(str) {
+  return String(str || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
-function isFinalidadeTemporada(finalidade) {
-  const f = norm(finalidade);
+function finalidadeEhTemporada(v) {
+  const s = normalizar(v);
   return (
-    f === "temporada" ||
-    f === "aluguel temporada" ||
-    f === "aluguel_temporada" ||
-    f === "aluguel-por-temporada"
+    s === "temporada" ||
+    s === "aluguel temporada" ||
+    s === "aluguel_temporada" ||
+    s === "aluguel-por-temporada"
   );
 }
 
-function isFinalidadeAluguel(finalidade) {
-  const f = norm(finalidade);
-  return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
+function finalidadeEhAluguel(v) {
+  const s = normalizar(v);
+  return s === "aluguel" || s === "aluguel fixo" || s === "aluguel_fixo";
 }
 
-const TIPOS_COMERCIAIS = ["Comercial", "Loja / Sala", "Galpão"];
-
-// Cards na ORDEM NOVA
-const cards = [
-  { nome: "Aluguel por temporada", slug: "aluguel-temporada" },
-  { nome: "Aluguel residencial", slug: "aluguel-residencial" },
-  { nome: "Casas à venda", slug: "casas-venda" },
-  { nome: "Apartamentos à venda", slug: "apartamentos-venda" },
-  { nome: "Aluguel comercial", slug: "aluguel-comercial" },
-  { nome: "Imóvel comercial (venda)", slug: "comercial-venda" },
-  { nome: "Terrenos & Lotes", slug: "terrenos-lotes" },
-  { nome: "Lançamentos", slug: "lancamentos" },
-];
-
-function montarUrlDaCategoria(slug) {
-  const params = new URLSearchParams();
-
-  switch (slug) {
-    case "aluguel-temporada":
-      params.set("finalidade", "temporada"); // lista entende temporada e "aluguel temporada"
-      break;
-
-    case "aluguel-residencial":
-      params.set("finalidade", "aluguel");
-      params.set("aluguel_tipo", "residencial");
-      break;
-
-    case "casas-venda":
-      params.set("finalidade", "venda");
-      params.set("tipo_imovel", "Casa");
-      break;
-
-    case "apartamentos-venda":
-      params.set("finalidade", "venda");
-      params.set("tipo_imovel", "Apartamento");
-      break;
-
-    case "aluguel-comercial":
-      params.set("finalidade", "aluguel");
-      params.set("aluguel_tipo", "comercial");
-      break;
-
-    case "comercial-venda":
-      params.set("comercial_venda", "1"); // filtro de grupo no /lista
-      break;
-
-    case "terrenos-lotes":
-      params.set("tipo_imovel", "Terreno / Lote");
-      break;
-
-    case "lancamentos":
-      params.set("lancamento", "1");
-      break;
-
-    default:
-      break;
-  }
-
-  const qs = params.toString();
-  return qs ? `/imoveis/lista?${qs}` : "/imoveis/lista";
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = normalizar(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
 }
 
-function pegarCapaDoAnuncio(anuncio) {
-  const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
-  const capa = imgs.find((u) => typeof u === "string" && u.trim() !== "") || "/imoveis/sem-foto.jpg";
-  return capa;
+function isLancamento(anuncio) {
+  const t = normalizar(anuncio?.titulo);
+  const d = normalizar(anuncio?.descricao);
+  return (
+    t.includes("lancamento") ||
+    t.includes("lançamento") ||
+    d.includes("lancamento") ||
+    d.includes("lançamento")
+  );
+}
+
+function getCapa(anuncio) {
+  const imagens = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
+  return imagens?.[0] || "/imoveis/sem-foto.jpg";
 }
 
 export default function ImoveisPage() {
   const router = useRouter();
-  const [currentHero, setCurrentHero] = useState(0);
 
-  const [buscaTexto, setBuscaTexto] = useState("");
-  const [buscaTipo, setBuscaTipo] = useState("");
-  const [buscaCidade, setBuscaCidade] = useState("");
+  // ===== busca do topo =====
+  const [busca, setBusca] = useState("");
+  const [tipo, setTipo] = useState("");
+  const [cidade, setCidade] = useState("");
 
-  const [imoveis, setImoveis] = useState([]);
-  const [loadingImoveis, setLoadingImoveis] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentHero((prev) => (prev + 1) % heroImages.length), 6000);
-    return () => clearInterval(interval);
-  }, []);
+  // ===== cards =====
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+  const [listaBase, setListaBase] = useState([]);
 
   useEffect(() => {
-    async function fetchImoveis() {
+    async function carregarBase() {
       try {
-        setLoadingImoveis(true);
+        setCarregando(true);
+        setErro("");
 
+        // Pega uma base "grande" e ordenada (destaque primeiro, depois mais recentes)
+        // e faz o filtro dos cards em JS (evita bugs de query e “troca” no refresh).
         const { data, error } = await supabase
           .from("anuncios")
-          .select("*")
+          .select(
+            "id, titulo, descricao, cidade, bairro, imagens, finalidade, tipo_imovel, created_at, destaque, status, categoria"
+          )
           .eq("categoria", "imoveis")
           .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
-          .limit(80);
+          .limit(250);
 
-        if (error) {
-          console.error("Erro ao buscar imóveis:", error);
-          setImoveis([]);
-        } else {
-          setImoveis(data || []);
-        }
-      } catch (e) {
-        console.error("Erro inesperado ao buscar imóveis:", e);
-        setImoveis([]);
-      } finally {
-        setLoadingImoveis(false);
-      }
-    }
+        if (error) throw error;
 
-    fetchImoveis();
-  }, []);
-
-  function escolherAnuncioParaCard(slug) {
-    if (!imoveis || imoveis.length === 0) return null;
-
-    let filtrados = [...imoveis];
-
-    switch (slug) {
-      case "aluguel-temporada":
-        filtrados = filtrados.filter((a) => isFinalidadeTemporada(a.finalidade));
-        break;
-
-      case "aluguel-residencial":
-        filtrados = filtrados.filter(
-          (a) => isFinalidadeAluguel(a.finalidade) && a.tipo_imovel && !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
-        );
-        break;
-
-      case "casas-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa");
-        break;
-
-      case "apartamentos-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento");
-        break;
-
-      case "aluguel-comercial":
-        filtrados = filtrados.filter(
-          (a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
-        );
-        break;
-
-      case "comercial-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel));
-        break;
-
-      case "terrenos-lotes":
-        filtrados = filtrados.filter((a) => norm(a.tipo_imovel).includes("terreno"));
-        break;
-
-      case "lancamentos": {
-        const comPalavra = filtrados.filter((a) => {
-          const t = norm(a.titulo);
-          const d = norm(a.descricao);
-          return t.includes("lançamento") || t.includes("lancamento") || d.includes("lançamento") || d.includes("lancamento");
+        // se existir status, prioriza ativos
+        const base = (data || []).filter((a) => {
+          const st = normalizar(a?.status);
+          return !st || st === "ativo";
         });
 
-        if (comPalavra.length > 0) filtrados = comPalavra;
-        else filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda");
-        break;
+        setListaBase(base);
+      } catch (e) {
+        console.error(e);
+        setErro("Não foi possível carregar os imóveis agora.");
+      } finally {
+        setCarregando(false);
       }
-
-      default:
-        break;
     }
 
-    if (filtrados.length === 0) return null;
+    carregarBase();
+  }, []);
 
-    // prioriza destaque dentro do grupo
-    const emDestaque = filtrados.find((a) => a.destaque === true);
-    return emDestaque || filtrados[0];
-  }
+  // ===== escolhe 1 anúncio por card (sempre o primeiro da base ordenada) =====
+  const picks = useMemo(() => {
+    const base = Array.isArray(listaBase) ? listaBase : [];
 
-  const listaDestaques = useMemo(() => {
-    if (!imoveis || imoveis.length === 0) return [];
-    const soDestaques = imoveis.filter((a) => a.destaque === true);
-    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
-    return imoveis.slice(0, 8);
-  }, [imoveis]);
+    const pick = (fn) => base.find(fn) || null;
 
-  function executarBusca() {
-    const partes = [];
-    if (buscaTexto?.trim()) partes.push(buscaTexto.trim());
-    if (buscaTipo) partes.push(buscaTipo);
-    if (buscaCidade) partes.push(buscaCidade);
+    const aluguelTemporada = pick((a) => finalidadeEhTemporada(a.finalidade));
+    const aluguelResidencial = pick(
+      (a) => finalidadeEhAluguel(a.finalidade) && !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+    );
 
-    const q = partes.join(" ").trim();
-    router.push(`/busca?q=${encodeURIComponent(q)}&categoria=imoveis`);
+    const casasVenda = pick(
+      (a) => normalizar(a.finalidade) === "venda" && normalizar(a.tipo_imovel) === "casa"
+    );
+
+    const aptsVenda = pick(
+      (a) => normalizar(a.finalidade) === "venda" && normalizar(a.tipo_imovel) === "apartamento"
+    );
+
+    const aluguelComercial = pick(
+      (a) => finalidadeEhAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+    );
+
+    const comercialVenda = pick(
+      (a) => normalizar(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+    );
+
+    const terrenos = pick((a) => normalizar(a.tipo_imovel) === "terreno / lote");
+
+    const lancamentos = pick((a) => isLancamento(a));
+
+    return {
+      aluguelTemporada,
+      aluguelResidencial,
+      casasVenda,
+      aptsVenda,
+      aluguelComercial,
+      comercialVenda,
+      terrenos,
+      lancamentos,
+    };
+  }, [listaBase]);
+
+  const cards = useMemo(() => {
+    return [
+      {
+        key: "aluguel-temporada",
+        titulo: "Aluguel por temporada",
+        href: "/imoveis/lista?finalidade=aluguel%20temporada",
+        anuncio: picks.aluguelTemporada,
+      },
+      {
+        key: "aluguel-residencial",
+        titulo: "Aluguel residencial",
+        href: "/imoveis/lista?finalidade=aluguel&aluguel_tipo=residencial",
+        anuncio: picks.aluguelResidencial,
+      },
+      {
+        key: "casas-venda",
+        titulo: "Casas à venda",
+        href: "/imoveis/lista?finalidade=venda&tipo_imovel=Casa",
+        anuncio: picks.casasVenda,
+      },
+      {
+        key: "apts-venda",
+        titulo: "Apartamentos à venda",
+        href: "/imoveis/lista?finalidade=venda&tipo_imovel=Apartamento",
+        anuncio: picks.aptsVenda,
+      },
+      {
+        key: "aluguel-comercial",
+        titulo: "Aluguel comercial",
+        href: "/imoveis/lista?finalidade=aluguel&aluguel_tipo=comercial",
+        anuncio: picks.aluguelComercial,
+      },
+      {
+        key: "comercial-venda",
+        titulo: "Imóveis comercial (venda)",
+        href: "/imoveis/lista?comercial_venda=1",
+        anuncio: picks.comercialVenda,
+      },
+      {
+        key: "terrenos",
+        titulo: "Terrenos & Lotes",
+        href: "/imoveis/lista?tipo_imovel=Terreno%20%2F%20Lote",
+        anuncio: picks.terrenos,
+      },
+      {
+        key: "lancamentos",
+        titulo: "Lançamentos",
+        href: "/imoveis/lista?lancamento=1",
+        anuncio: picks.lancamentos,
+      },
+    ];
+  }, [picks]);
+
+  function irParaLista() {
+    const params = new URLSearchParams();
+
+    if (busca.trim()) params.set("q", busca.trim());
+    if (tipo) params.set("tipo_imovel", tipo);
+    if (cidade) params.set("cidade", cidade);
+
+    // não depende disso existir na lista (se não existir, não quebra nada)
+    router.push(`/imoveis/lista?${params.toString()}`);
   }
 
   return (
-    <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie seu IMÓVEL totalmente GRÁTIS - Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* HERO */}
-      <section className="relative w-full">
-        <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Imóveis"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
-          />
-        </div>
-
-        <div className="absolute inset-0 bg-black/25" />
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-          <p className="text-sm md:text-base font-medium drop-shadow">
-            Encontre casas, apartamentos, terrenos e oportunidades imobiliárias em toda a Região dos Lagos.
-          </p>
-          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">Classilagos – Imóveis</h1>
-        </div>
-      </section>
-
-      {/* CAIXA DE BUSCA */}
-      <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
-          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
-                <input
-                  value={buscaTexto}
-                  onChange={(e) => setBuscaTexto(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && executarBusca()}
-                  type="text"
-                  placeholder="Ex.: casa 2 quartos, frente para a lagoa"
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  value={buscaTipo}
-                  onChange={(e) => setBuscaTipo(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todos</option>
-                  {tiposImovel.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  value={buscaCidade}
-                  onChange={(e) => setBuscaCidade(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
-                  onClick={executarBusca}
-                >
-                  Buscar
-                </button>
-              </div>
+    <main className="bg-slate-50 min-h-screen pb-10">
+      <section className="max-w-6xl mx-auto px-4 pt-6">
+        {/* topo / busca */}
+        <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-4 md:p-6">
+          <div className="flex items-start justify-between gap-4 flex-col md:flex-row">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900">Imóveis</h1>
+              <p className="mt-1 text-xs md:text-sm text-slate-600">
+                Busca ligada ao motor do Classilagos.
+              </p>
             </div>
+
+            <Link
+              href="/anunciar/formulario?tipo=imoveis"
+              className="inline-flex items-center justify-center rounded-full bg-sky-600 text-white px-5 py-2 text-xs md:text-sm font-semibold hover:bg-sky-700 transition"
+            >
+              Anunciar grátis
+            </Link>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
-        </div>
-      </section>
+          <div className="mt-5 grid gap-3 md:grid-cols-[1fr,200px,200px,140px] items-end">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Busca</label>
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="mt-1 w-full border border-slate-200 rounded-full px-4 py-2 text-xs md:text-sm"
+                placeholder="Ex.: casa 2 quartos, frente para a lagoa"
+              />
+            </div>
 
-      <div className="h-4 sm:h-6" />
-
-      {/* CARDS + DESTAQUES */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {cards.map((cat) => {
-            const anuncio = escolherAnuncioParaCard(cat.slug);
-            const capa = anuncio ? pegarCapaDoAnuncio(anuncio) : null;
-            const hrefCategoria = montarUrlDaCategoria(cat.slug);
-
-            return (
-              <Link
-                key={cat.slug}
-                href={hrefCategoria}
-                className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Tipo</label>
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="mt-1 w-full border border-slate-200 rounded-full px-4 py-2 text-xs md:text-sm bg-white"
               >
-                {/* padroniza tamanho para nenhum card ficar “menor” */}
-                <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
-                  {capa ? (
-                    <img src={capa} alt={anuncio?.titulo || cat.nome} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
-                      Em breve, imóveis aqui
-                    </div>
-                  )}
-                </div>
-
-                {/* garante mesma altura do bloco de texto */}
-                <div className="bg-slate-900 text-white px-3 py-2 min-h-[64px]">
-                  <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
-                  {anuncio && (
-                    <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
-                      {anuncio.titulo} • {anuncio.cidade}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* IMÓVEIS EM DESTAQUE */}
-        <div className="mt-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Imóveis em destaque</h2>
-
-          {loadingImoveis ? (
-            <p className="text-xs text-slate-500">Carregando imóveis em destaque...</p>
-          ) : listaDestaques.length === 0 ? (
-            <p className="text-xs text-slate-500">Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!</p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              {listaDestaques.map((anuncio) => {
-                const href = `/anuncios/${anuncio.id}`;
-                const capa = pegarCapaDoAnuncio(anuncio);
-
-                return (
-                  <Link
-                    key={anuncio.id}
-                    href={href}
-                    className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
-                  >
-                    <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
-                      <img src={capa} alt={anuncio.titulo || "Imóvel"} className="w-full h-full object-cover" />
-                    </div>
-
-                    <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">{anuncio.titulo}</p>
-                      <p className="text-[11px] text-slate-300">
-                        {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
-                      </p>
-                      {anuncio.preco && (
-                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">{anuncio.preco}</p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
+                <option value="">Todos</option>
+                {TIPOS_IMOVEL.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* FAIXA SERVIÇOS */}
-      <section className="bg-slate-900 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para imóveis</h2>
-          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
-          </p>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Cidade</label>
+              <select
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                className="mt-1 w-full border border-slate-200 rounded-full px-4 py-2 text-xs md:text-sm bg-white"
+              >
+                <option value="">Todas</option>
+                {CIDADES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={irParaLista}
+              className="rounded-full bg-blue-600 text-white px-5 py-2 text-xs md:text-sm font-semibold hover:bg-blue-700 transition"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+
+        {/* cards */}
+        <div className="mt-7">
+          {erro && (
+            <p className="text-xs md:text-sm text-red-600 border border-red-100 rounded-xl px-4 py-3 bg-red-50 mb-4">
+              {erro}
+            </p>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultar IPTU, taxas municipais e informações das prefeituras.
-              </p>
-            </div>
+            {cards.map((c) => {
+              const a = c.anuncio;
+              const capa = getCapa(a);
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
-              <p className="text-[11px] text-slate-300">Dicas básicas sobre crédito, simulações e contato com bancos.</p>
-            </div>
+              return (
+                <Link
+                  key={c.key}
+                  href={c.href}
+                  className="group rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-md transition"
+                >
+                  {/* imagem com altura fixa (resolve card menor) */}
+                  <div className="relative w-full h-44 bg-slate-100">
+                    <Image
+                      src={capa}
+                      alt={c.titulo}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 25vw"
+                      className="object-cover group-hover:scale-[1.03] transition-transform"
+                      priority={false}
+                    />
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
-              <p className="text-[11px] text-slate-300">Orientações sobre escritura, registro, habite-se e etc.</p>
-            </div>
+                    {a && isDestaqueTruthy(a.destaque) && (
+                      <span className="absolute top-3 left-3 rounded-full bg-amber-500 text-[10px] font-semibold text-white px-2 py-1 shadow">
+                        Destaque
+                      </span>
+                    )}
+                  </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Serviços para o seu imóvel</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para encontrar profissionais.
-              </p>
-            </div>
+                  <div className="p-4 bg-slate-900 text-white">
+                    <h2 className="font-semibold text-sm">{c.titulo}</h2>
+
+                    {a ? (
+                      <p className="mt-1 text-[11px] text-slate-200 line-clamp-2">
+                        {a.titulo}
+                        {a.cidade ? ` • ${a.cidade}` : ""}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-slate-300">
+                        Ainda sem anúncios nessa seção.
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
+
+          {/* dica de estabilidade */}
+          {!carregando && (
+            <p className="mt-4 text-[11px] text-slate-500">
+              Obs.: Os cards pegam sempre o anúncio mais recente (com destaque primeiro) de cada categoria,
+              evitando “trocar” no refresh.
+            </p>
+          )}
         </div>
       </section>
     </main>
