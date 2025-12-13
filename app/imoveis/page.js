@@ -57,6 +57,12 @@ function norm(s) {
   return (s || "").toString().trim().toLowerCase();
 }
 
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = norm(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
 function isFinalidadeTemporada(finalidade) {
   const f = norm(finalidade);
   return (
@@ -69,7 +75,6 @@ function isFinalidadeTemporada(finalidade) {
 
 function isFinalidadeAluguel(finalidade) {
   const f = norm(finalidade);
-  // aluguel comum (fixo/residencial/comercial)
   return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
 }
 
@@ -89,8 +94,8 @@ function montarUrlDaCategoria(slug) {
       break;
 
     case "lancamentos":
-      // mostra venda (mais recentes)
-      params.set("finalidade", "venda");
+      // ✅ MODO ESPECIAL: lista entende lançamentos por regra (não por "finalidade=venda")
+      params.set("lancamento", "1");
       break;
 
     case "oportunidades":
@@ -107,7 +112,7 @@ function montarUrlDaCategoria(slug) {
       break;
 
     case "temporada":
-      // IMPORTANTE: hoje no banco está vindo "aluguel temporada"
+      // mantém compatível com seu banco atual
       params.set("finalidade", "aluguel temporada");
       break;
 
@@ -200,17 +205,21 @@ export default function ImoveisPage() {
 
       case "apartamentos-venda":
         filtrados = filtrados.filter(
-          (a) =>
-            norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento"
+          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento"
         );
         break;
 
       case "lancamentos": {
-        // Melhor lógica: se o título/descrição tiver "lançamento", prioriza.
+        // ✅ pega com e sem acento
         const comPalavra = filtrados.filter((a) => {
           const t = norm(a.titulo);
           const d = norm(a.descricao);
-          return t.includes("lançamento") || d.includes("lançamento");
+          return (
+            t.includes("lançamento") ||
+            d.includes("lançamento") ||
+            t.includes("lancamento") ||
+            d.includes("lancamento")
+          );
         });
 
         if (comPalavra.length > 0) {
@@ -229,7 +238,8 @@ export default function ImoveisPage() {
       }
 
       case "oportunidades":
-        filtrados = filtrados.filter((a) => a.destaque === true);
+        // ✅ robusto
+        filtrados = filtrados.filter((a) => isDestaqueTruthy(a.destaque));
         break;
 
       case "aluguel-residencial":
@@ -260,15 +270,19 @@ export default function ImoveisPage() {
 
     if (filtrados.length === 0) return null;
 
-    // Prioriza um anúncio em destaque dentro dessa categoria
-    const emDestaque = filtrados.find((a) => a.destaque === true);
-    return emDestaque || filtrados[0];
+    // Prioriza um anúncio em destaque dentro dessa categoria (exceto lançamentos)
+    if (slug !== "lancamentos") {
+      const emDestaque = filtrados.find((a) => isDestaqueTruthy(a.destaque));
+      if (emDestaque) return emDestaque;
+    }
+
+    return filtrados[0];
   }
 
   // Lista de destaques para a seção "Imóveis em destaque"
   const listaDestaques = useMemo(() => {
     if (!imoveis || imoveis.length === 0) return [];
-    const soDestaques = imoveis.filter((a) => a.destaque === true);
+    const soDestaques = imoveis.filter((a) => isDestaqueTruthy(a.destaque));
     if (soDestaques.length > 0) return soDestaques.slice(0, 8);
     return imoveis.slice(0, 8);
   }, [imoveis]);
@@ -280,8 +294,6 @@ export default function ImoveisPage() {
     if (buscaCidade) partes.push(buscaCidade);
 
     const q = partes.join(" ").trim();
-
-    // vai para o motor global (já ligado)
     router.push(`/busca?q=${encodeURIComponent(q)}&categoria=imoveis`);
   }
 
@@ -329,12 +341,11 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (AGORA LIGADA) */}
+      {/* CAIXA DE BUSCA (LIGADA AO MOTOR) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              {/* Busca livre */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Busca
@@ -349,7 +360,6 @@ export default function ImoveisPage() {
                 />
               </div>
 
-              {/* Tipo */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Tipo
@@ -368,7 +378,6 @@ export default function ImoveisPage() {
                 </select>
               </div>
 
-              {/* Cidade */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Cidade
@@ -387,7 +396,6 @@ export default function ImoveisPage() {
                 </select>
               </div>
 
-              {/* Botão */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -410,7 +418,7 @@ export default function ImoveisPage() {
 
       {/* CATEGORIAS + DESTAQUES */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
-        {/* CATEGORIAS LINHA 1 */}
+        {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -449,7 +457,7 @@ export default function ImoveisPage() {
           })}
         </div>
 
-        {/* CATEGORIAS LINHA 2 */}
+        {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {categoriasLinha2.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -488,7 +496,7 @@ export default function ImoveisPage() {
           })}
         </div>
 
-        {/* IMÓVEIS EM DESTAQUE – anúncios reais do Supabase */}
+        {/* DESTAQUES */}
         <div className="mt-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">
             Imóveis em destaque
@@ -527,7 +535,8 @@ export default function ImoveisPage() {
                         {anuncio.titulo}
                       </p>
                       <p className="text-[11px] text-slate-300">
-                        {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
+                        {anuncio.cidade}{" "}
+                        {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
                       </p>
                       {anuncio.preco && (
                         <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
@@ -543,7 +552,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* NOVA FAIXA – SERVIÇOS E INFORMAÇÕES PARA IMÓVEIS */}
+      {/* FAIXA FINAL */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-sm font-semibold text-white mb-1">
@@ -557,42 +566,30 @@ export default function ImoveisPage() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                IPTU e tributos
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
               <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultar IPTU, taxas municipais e
-                informações das prefeituras da região.
+                Em breve, links diretos para consultar IPTU, taxas municipais e informações das prefeituras da região.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Financiamento imobiliário
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
               <p className="text-[11px] text-slate-300">
-                Dicas básicas sobre crédito, simulações e contato com bancos
-                para financiar seu imóvel.
+                Dicas básicas sobre crédito, simulações e contato com bancos para financiar seu imóvel.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Regularização e documentos
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
               <p className="text-[11px] text-slate-300">
-                Orientações sobre escritura, registro em cartório, habite-se e
-                outros documentos essenciais.
+                Orientações sobre escritura, registro em cartório, habite-se e outros documentos essenciais.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Serviços para o seu imóvel
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Serviços para o seu imóvel</h3>
               <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para você encontrar
-                arquitetos, pedreiros, eletricistas e outros profissionais.
+                Em breve, integração com o LagoListas para você encontrar arquitetos, pedreiros, eletricistas e outros profissionais.
               </p>
             </div>
           </div>
@@ -601,3 +598,4 @@ export default function ImoveisPage() {
     </main>
   );
 }
+
