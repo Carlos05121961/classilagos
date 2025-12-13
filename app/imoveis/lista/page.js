@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
 const cidades = [
@@ -33,7 +34,7 @@ const finalidades = [
   { label: "Qualquer", value: "" },
   { label: "Venda", value: "venda" },
   { label: "Aluguel", value: "aluguel" },
-  { label: "Temporada", value: "temporada" },
+  { label: "Aluguel por temporada", value: "temporada" }, // inclui aluguel temporada
 ];
 
 // ===== helpers =====
@@ -52,7 +53,12 @@ function isDestaqueTruthy(v) {
 
 function finalidadeEhTemporada(v) {
   const s = normalizar(v);
-  return s === "temporada" || s === "aluguel temporada" || s === "aluguel_temporada";
+  return (
+    s === "temporada" ||
+    s === "aluguel temporada" ||
+    s === "aluguel_temporada" ||
+    s === "aluguel-por-temporada"
+  );
 }
 
 function finalidadeEhAluguel(v) {
@@ -60,89 +66,120 @@ function finalidadeEhAluguel(v) {
   return s === "aluguel" || s === "aluguel fixo" || s === "aluguel_fixo";
 }
 
-function textoEhLancamento(anuncio) {
-  const t = normalizar(anuncio?.titulo);
-  const d = normalizar(anuncio?.descricao);
-  // pega com e sem acento
-  return (
-    t.includes("lançamento") ||
-    d.includes("lançamento") ||
-    t.includes("lancamento") ||
-    d.includes("lancamento")
-  );
-}
+const TIPOS_COMERCIAIS = ["Comercial", "Loja / Sala", "Galpão"];
 
-export default function ListaImoveisPage() {
+function ListaImoveisContent() {
+  const searchParams = useSearchParams();
+
   const [imoveis, setImoveis] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
+  // ===== lê sempre da URL (sempre que mudar) =====
+  const filtrosUrl = useMemo(() => {
+    const finalidade = searchParams.get("finalidade") || "";
+    const tipoImovel = searchParams.get("tipo_imovel") || searchParams.get("tipo") || "";
+    const cidade = searchParams.get("cidade") || "";
+    const destaque = searchParams.get("destaque") || "";
+    const lancamento = searchParams.get("lancamento") || "";
+
+    // novos:
+    const aluguelTipo = searchParams.get("aluguel_tipo") || ""; // residencial | comercial
+    const comercialVenda = searchParams.get("comercial_venda") || ""; // 1 | true | sim
+
+    return { finalidade, tipoImovel, cidade, destaque, lancamento, aluguelTipo, comercialVenda };
+  }, [searchParams]);
+
+  // ===== estado editável dos selects =====
   const [filtros, setFiltros] = useState({
     finalidade: "",
     tipoImovel: "",
     cidade: "",
     destaque: "",
     lancamento: "",
+    aluguelTipo: "",
+    comercialVenda: "",
   });
 
-  // Lê query params da URL no navegador (sem useSearchParams)
+  // sincroniza estado quando URL muda (isso impede “ficar preso” no filtro anterior)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
+    setFiltros(filtrosUrl);
+  }, [filtrosUrl]);
 
-    const finalidade = params.get("finalidade") || "";
-    const tipoImovel = params.get("tipo_imovel") || params.get("tipo") || "";
-    const cidade = params.get("cidade") || "";
-    const destaque = params.get("destaque") || "";
-    const lancamento = params.get("lancamento") || "";
-
-    setFiltros({ finalidade, tipoImovel, cidade, destaque, lancamento });
-  }, []);
-
+  // Busca imóveis sempre que filtros mudarem
   useEffect(() => {
     async function carregarImoveis() {
       try {
         setCarregando(true);
         setErro("");
 
-        const destaqueAtivo =
-          filtros.destaque === "1" ||
-          filtros.destaque === "true" ||
-          filtros.destaque === "sim";
+        let query = supabase.from("anuncios").select("*").eq("categoria", "imoveis");
 
+        // ===== regra: Lançamentos =====
         const lancamentoAtivo =
-          filtros.lancamento === "1" ||
-          filtros.lancamento === "true" ||
-          filtros.lancamento === "sim";
+          filtros.lancamento === "1" || filtros.lancamento === "true" || filtros.lancamento === "sim";
 
-        // 🔥 Base: sempre puxa do banco, mas sem arriscar ORs frágeis.
-        // Depois filtramos no JS quando necessário (destaque/lancamento).
-        let query = supabase
-          .from("anuncios")
-          .select("*")
-          .eq("categoria", "imoveis")
-          .order("created_at", { ascending: false })
-          .limit(120);
+        if (lancamentoAtivo) {
+          // pega "lançamento" ou "lancamento"
+          query = query
+            .or("titulo.ilike.%lan%C3%A7%,titulo.ilike.%lancamento%,descricao.ilike.%lan%C3%A7%,descricao.ilike.%lancamento%")
+            .order("created_at", { ascending: false });
+        } else {
+          // padrão do site: destaque primeiro
+          query = query.order("destaque", { ascending: false }).order("created_at", { ascending: false });
+        }
 
-        // ===== filtros do banco (seguros) =====
-        if (filtros.tipoImovel) query = query.eq("tipo_imovel", filtros.tipoImovel);
-        if (filtros.cidade) query = query.eq("cidade", filtros.cidade);
+        // ===== regra: Comercial Venda (grupo) =====
+        const comercialVendaAtivo =
+          filtros.comercialVenda === "1" ||
+          filtros.comercialVenda === "true" ||
+          filtros.comercialVenda === "sim";
 
-        // Finalidade: fazemos de forma híbrida (banco + reforço JS)
-        if (filtros.finalidade) {
-          const f = normalizar(filtros.finalidade);
+        if (comercialVendaAtivo) {
+          query = query.eq("finalidade", "venda").in("tipo_imovel", TIPOS_COMERCIAIS);
+        } else {
+          // ===== regra: aluguel_tipo =====
+          const aluguelTipo = normalizar(filtros.aluguelTipo);
 
-          if (f === "temporada") {
-            query = query.or(
-              "finalidade.eq.temporada,finalidade.eq.aluguel temporada,finalidade.eq.aluguel_temporada"
-            );
-          } else if (f === "aluguel") {
-            query = query.or(
-              "finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo"
-            );
-          } else {
-            query = query.eq("finalidade", filtros.finalidade);
+          if (aluguelTipo === "residencial") {
+            // aluguel residencial = aluguel (não temporada) e NÃO comercial
+            query = query.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
+            query = query.not("tipo_imovel", "in", `(${TIPOS_COMERCIAIS.join(",")})`);
           }
+
+          if (aluguelTipo === "comercial") {
+            // aluguel comercial = aluguel (não temporada) e tipos comerciais
+            query = query.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
+            query = query.in("tipo_imovel", TIPOS_COMERCIAIS);
+          }
+
+          // ===== filtros normais =====
+          if (filtros.finalidade) {
+            const f = normalizar(filtros.finalidade);
+
+            if (f === "temporada" || f === "aluguel temporada") {
+              query = query.or(
+                "finalidade.eq.temporada,finalidade.eq.aluguel temporada,finalidade.eq.aluguel_temporada,finalidade.eq.aluguel-por-temporada"
+              );
+            } else if (f === "aluguel") {
+              query = query.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
+            } else {
+              query = query.eq("finalidade", filtros.finalidade);
+            }
+          }
+
+          if (filtros.tipoImovel) query = query.eq("tipo_imovel", filtros.tipoImovel);
+          if (filtros.cidade) query = query.eq("cidade", filtros.cidade);
+        }
+
+        // Destaque (robusto)
+        const destaqueAtivo =
+          filtros.destaque === "1" || filtros.destaque === "true" || filtros.destaque === "sim";
+
+        if (destaqueAtivo) {
+          query = query.or(
+            "destaque.eq.true,destaque.eq.TRUE,destaque.eq.1,destaque.eq.sim,destaque.eq.Sim,destaque.eq.true"
+          );
         }
 
         const { data, error } = await query;
@@ -150,40 +187,38 @@ export default function ListaImoveisPage() {
 
         let lista = data || [];
 
-        // ===== regras especiais (JS robusto) =====
+        // reforço JS (pra não depender 100% do tipo do campo)
+        if (destaqueAtivo) lista = lista.filter((a) => isDestaqueTruthy(a.destaque));
 
-        // Lançamentos: filtra por palavra-chave real (título OU descrição)
-        if (lancamentoAtivo) {
-          lista = lista.filter(textoEhLancamento);
-
-          // Se quiser que “Lançamentos” seja mais “venda”, descomente:
-          // lista = lista.filter((a) => normalizar(a.finalidade) === "venda");
-        }
-
-        // Destaques/Oportunidades: filtra no JS para pegar boolean OU texto
-        if (destaqueAtivo) {
-          lista = lista.filter((a) => isDestaqueTruthy(a.destaque));
-        }
-
-        // Reforço de finalidade no JS (garante mesmo se o OR não pegar)
-        if (normalizar(filtros.finalidade) === "temporada") {
+        if (normalizar(filtros.finalidade) === "temporada" || normalizar(filtros.finalidade) === "aluguel temporada") {
           lista = lista.filter((a) => finalidadeEhTemporada(a.finalidade));
         }
         if (normalizar(filtros.finalidade) === "aluguel") {
           lista = lista.filter((a) => finalidadeEhAluguel(a.finalidade));
         }
 
-        // Ordenação final: se não é lançamento, destaque primeiro
-        if (!lancamentoAtivo) {
-          lista.sort((a, b) => {
-            const da = isDestaqueTruthy(a.destaque) ? 1 : 0;
-            const db = isDestaqueTruthy(b.destaque) ? 1 : 0;
-            if (db !== da) return db - da;
-            return new Date(b.created_at) - new Date(a.created_at);
-          });
-        } else {
-          // lançamentos: só por data
-          lista.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        // reforço do aluguel_tipo via JS
+        if (normalizar(filtros.aluguelTipo) === "residencial") {
+          lista = lista.filter(
+            (a) => finalidadeEhAluguel(a.finalidade) && !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          );
+        }
+        if (normalizar(filtros.aluguelTipo) === "comercial") {
+          lista = lista.filter(
+            (a) => finalidadeEhAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          );
+        }
+
+        // reforço do comercial_venda via JS
+        const comercialVendaAtivo2 =
+          filtros.comercialVenda === "1" ||
+          filtros.comercialVenda === "true" ||
+          filtros.comercialVenda === "sim";
+
+        if (comercialVendaAtivo2) {
+          lista = lista.filter(
+            (a) => normalizar(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          );
         }
 
         setImoveis(lista);
@@ -198,47 +233,53 @@ export default function ListaImoveisPage() {
     carregarImoveis();
   }, [filtros]);
 
-  const descricaoFiltro = (() => {
+  const descricaoFiltro = useMemo(() => {
     const partes = [];
-    const lanc = filtros.lancamento && ["1", "true", "sim"].includes(filtros.lancamento);
-    const dest = filtros.destaque && ["1", "true", "sim"].includes(filtros.destaque);
 
-    if (lanc) partes.push("lançamentos");
+    const lancAtivo = filtros.lancamento === "1" || filtros.lancamento === "true" || filtros.lancamento === "sim";
+    if (lancAtivo) partes.push("lançamentos");
+
+    const comVenda = filtros.comercialVenda === "1" || filtros.comercialVenda === "true" || filtros.comercialVenda === "sim";
+    if (comVenda) partes.push("comercial (venda)");
+
+    if (filtros.aluguelTipo) partes.push(`aluguel ${normalizar(filtros.aluguelTipo)}`);
+
     if (filtros.finalidade) {
       const f = finalidades.find((x) => x.value === filtros.finalidade);
       if (f) partes.push(f.label.toLowerCase());
     }
     if (filtros.tipoImovel) partes.push(filtros.tipoImovel.toLowerCase());
     if (filtros.cidade) partes.push(`em ${filtros.cidade}`);
-    if (dest) partes.push("em destaque");
+
+    const destAtivo = filtros.destaque === "1" || filtros.destaque === "true" || filtros.destaque === "sim";
+    if (destAtivo) partes.push("em destaque");
 
     if (partes.length === 0) return "Todos os imóveis cadastrados";
     return "Filtrando: " + partes.join(" ") + ".";
-  })();
+  }, [filtros]);
 
   function atualizarFiltro(campo, valor) {
     setFiltros((prev) => ({
       ...prev,
       [campo]: valor,
+      // se mexer manual, zera “atalhos” especiais
       ...(campo !== "lancamento" ? { lancamento: "" } : {}),
+      ...(campo !== "aluguelTipo" ? { aluguelTipo: "" } : {}),
+      ...(campo !== "comercialVenda" ? { comercialVenda: "" } : {}),
     }));
   }
 
   return (
     <main className="bg-slate-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-          Imóveis – Lista
-        </h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">Imóveis – Lista</h1>
         <p className="text-xs md:text-sm text-slate-600 mb-4">{descricaoFiltro}</p>
 
-        {/* FILTROS */}
+        {/* FILTROS RÁPIDOS */}
         <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
           <div className="grid gap-3 md:grid-cols-4 items-end">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Finalidade
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Finalidade</label>
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.finalidade}
@@ -253,9 +294,7 @@ export default function ListaImoveisPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Tipo de imóvel
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Tipo de imóvel</label>
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.tipoImovel}
@@ -271,9 +310,7 @@ export default function ListaImoveisPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Cidade
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Cidade</label>
               <select
                 className="mt-1 w-full border rounded-full px-3 py-2 text-xs md:text-sm bg-white text-slate-900"
                 value={filtros.cidade}
@@ -299,6 +336,8 @@ export default function ListaImoveisPage() {
                     cidade: "",
                     destaque: "",
                     lancamento: "",
+                    aluguelTipo: "",
+                    comercialVenda: "",
                   })
                 }
               >
@@ -310,22 +349,18 @@ export default function ListaImoveisPage() {
 
         {/* LISTA */}
         {erro && (
-          <p className="text-xs text-red-600 mb-3 border border-red-100 rounded-md px-3 py-2 bg-red-50">
-            {erro}
-          </p>
+          <p className="text-xs text-red-600 mb-3 border border-red-100 rounded-md px-3 py-2 bg-red-50">{erro}</p>
         )}
 
         {carregando ? (
           <p className="text-xs text-slate-500">Carregando imóveis...</p>
         ) : imoveis.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            Nenhum imóvel encontrado com esses filtros.
-          </p>
+          <p className="text-xs text-slate-500">Nenhum imóvel encontrado com esses filtros.</p>
         ) : (
           <div className="grid gap-3">
             {imoveis.map((anuncio) => {
               const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
-              const capa = imagens.find((u) => typeof u === "string" && u.trim()) || "/imoveis/sem-foto.jpg";
+              const capa = imagens.length > 0 ? imagens[0] : "/imoveis/sem-foto.jpg";
 
               return (
                 <Link
@@ -348,33 +383,24 @@ export default function ListaImoveisPage() {
 
                   <div className="flex-1 px-3 py-2 md:px-4 md:py-3 flex flex-col justify-between">
                     <div>
-                      <h2 className="text-sm font-semibold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h2>
+                      <h2 className="text-sm font-semibold text-slate-900 line-clamp-2">{anuncio.titulo}</h2>
                       <p className="mt-1 text-[11px] text-slate-600">
                         {anuncio.cidade}
                         {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
+
                       {(anuncio.finalidade || anuncio.tipo_imovel) && (
                         <p className="mt-1 text-[11px] text-slate-500">
                           {anuncio.tipo_imovel ? anuncio.tipo_imovel : ""}
                           {anuncio.tipo_imovel && anuncio.finalidade ? " • " : ""}
-                          {finalidadeEhTemporada(anuncio.finalidade)
-                            ? "aluguel temporada"
-                            : anuncio.finalidade || ""}
+                          {finalidadeEhTemporada(anuncio.finalidade) ? "aluguel temporada" : anuncio.finalidade || ""}
                         </p>
                       )}
                     </div>
 
                     <div className="mt-2 flex items-center justify-between">
-                      {anuncio.preco && (
-                        <span className="text-xs font-semibold text-emerald-700">
-                          {anuncio.preco}
-                        </span>
-                      )}
-                      <span className="text-[11px] text-slate-500 group-hover:text-slate-700">
-                        Ver detalhes →
-                      </span>
+                      {anuncio.preco && <span className="text-xs font-semibold text-emerald-700">{anuncio.preco}</span>}
+                      <span className="text-[11px] text-slate-500 group-hover:text-slate-700">Ver detalhes →</span>
                     </div>
                   </div>
                 </Link>
@@ -384,6 +410,14 @@ export default function ListaImoveisPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ListaImoveisPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-xs text-slate-500">Carregando...</div>}>
+      <ListaImoveisContent />
+    </Suspense>
   );
 }
 
