@@ -1211,10 +1211,9 @@ setSimilares(lista.slice(0, 4));
             {similares.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
                 {similares.map((item) => {
-                  const img =
-                    Array.isArray(item.imagens) && item.imagens.length > 0
-                      ? item.imagens[0]
-                      : null;
+                 const img = Array.isArray(item.imagens)
+  ? item.imagens.find((u) => typeof u === "string" && u.trim() !== "")
+  : null;
 
                   return (
                     <Link
