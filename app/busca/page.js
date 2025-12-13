@@ -1,63 +1,76 @@
-// /app/busca/page.js
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
+function BuscaContent() {
+  const searchParams = useSearchParams();
 
-export default function BuscaPage() {
+  const q = searchParams.get("q") || "";
+  const categoria = searchParams.get("categoria") || "";
+  const cidade = searchParams.get("cidade") || "";
+
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  // Pega os parâmetros da busca
-  const query = router.query;
 
   useEffect(() => {
-    if (!query) return;
-
-    const buscarAnuncios = async () => {
+    async function buscar() {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("*")
-        .ilike("titulo", `%${query.texto}%`)  // busca texto
-        .eq("cidade", query.cidade)  // cidade
-        .eq("categoria", query.categoria)  // categoria
-        .limit(10);
+      let query = supabase.from("anuncios").select("*");
 
-      if (error) {
-        console.error(error);
-        setLoading(false);
-        return;
-      }
+      if (q) query = query.ilike("titulo", `%${q}%`);
+      if (categoria && categoria !== "todas")
+        query = query.eq("categoria", categoria);
+      if (cidade && cidade !== "todas")
+        query = query.eq("cidade", cidade);
 
-      setResultados(data);
+      const { data } = await query.order("created_at", {
+        ascending: false,
+      });
+
+      setResultados(data || []);
       setLoading(false);
-    };
+    }
 
-    buscarAnuncios();
-  }, [query]);
+    buscar();
+  }, [q, categoria, cidade]);
 
-  if (loading) {
-    return <p>Carregando...</p>;
-  }
+  if (loading) return <p className="p-6">Carregando...</p>;
 
   return (
-    <main>
-      <h1>Resultados da Busca</h1>
-      <div>
-        {resultados.map((item) => (
-          <div key={item.id}>
-            <h2>{item.titulo}</h2>
-            <p>{item.descricao}</p>
-            <p>Cidade: {item.cidade}</p>
-            <p>Categoria: {item.categoria}</p>
-          </div>
-        ))}
-      </div>
+    <main className="max-w-7xl mx-auto px-4 py-6">
+      <h1 className="text-lg font-bold mb-4">Resultado da busca</h1>
+
+      {resultados.length === 0 ? (
+        <p>Nenhum resultado encontrado.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {resultados.map((item) => (
+            <Link
+              key={item.id}
+              href={`/anuncios/${item.id}`}
+              className="border rounded-xl p-4 hover:shadow"
+            >
+              <h2 className="font-semibold">{item.titulo}</h2>
+              <p className="text-xs text-slate-600">
+                {item.categoria} • {item.cidade}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
+
+export default function BuscaPage() {
+  return (
+    <Suspense fallback={<p className="p-6">Carregando...</p>}>
+      <BuscaContent />
+    </Suspense>
+  );
+}
+
