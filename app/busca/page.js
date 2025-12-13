@@ -51,72 +51,55 @@ function BuscaContent() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    async function buscar() {
-      setLoading(true);
+  async function buscar() {
+    try {
+      setCarregando(true);
       setErro("");
 
-      try {
-        let query = supabase.from("anuncios").select("*");
+      const fin = extrairFinalidadeDaBusca(q);
+      const qLimpa = limparBusca(q);
 
-        // CATEGORIA
-        if (categoria) {
-          query = query.eq("categoria", categoria);
+      // 1️⃣ Tenta busca completa
+      let { data, error } = await supabase.rpc("buscar_anuncios", {
+        q: qLimpa ? qLimpa : null,
+        cat: categoria ? categoria : null,
+        cid: null,
+        fin: fin ? fin : null,
+        lim: 80,
+        off: 0,
+      });
+
+      if (error) throw error;
+
+      let lista = Array.isArray(data) ? data : [];
+
+      // 2️⃣ FALLBACK — se não achou nada, mostra o que tem na categoria
+      if (lista.length === 0) {
+        const fallback = await supabase
+          .from("anuncios")
+          .select("*")
+          .eq("categoria", categoria || "imoveis")
+          .order("destaque", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (!fallback.error) {
+          lista = fallback.data || [];
         }
-
-        // CIDADE
-        if (cidade && cidade !== "Toda a região") {
-          query = query.eq("cidade", cidade);
-        }
-
-        // ===== REFINO ESPECÍFICO PARA IMÓVEIS =====
-        if (categoria === "imoveis") {
-          const tipoImovel = detectarTipoImovel(termoNorm);
-          const finalidade = detectarFinalidadeImovel(termoNorm);
-
-          // Tipo do imóvel (se o termo indicar)
-          if (tipoImovel) {
-            query = query.eq("tipo_imovel", tipoImovel);
-          }
-
-          // Finalidade (se o termo indicar)
-          // Como no seu formulário é EXATO: Venda / Aluguel / Aluguel temporada
-          if (finalidade) {
-            query = query.eq("finalidade", finalidade);
-          }
-        }
-
-        // TEXTO LIVRE (título + descrição)
-        // Importante: não atrapalhar buscas tipo "casa" / "apartamento"
-        // então só aplica OR quando tiver termo de verdade.
-        if (termoNorm) {
-          const termoOriginal = termo.trim();
-          query = query.or(
-            `titulo.ilike.%${termoOriginal}%,descricao.ilike.%${termoOriginal}%`
-          );
-        }
-
-        query = query.order("created_at", { ascending: false });
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error("Erro busca:", error);
-          setErro(error.message || "Erro inesperado na busca.");
-          setResultados([]);
-        } else {
-          setResultados(data || []);
-        }
-      } catch (e) {
-        console.error(e);
-        setErro(e?.message || "Erro inesperado na busca.");
-        setResultados([]);
       }
 
-      setLoading(false);
+      setResultados(lista);
+    } catch (e) {
+      console.error(e);
+      setErro("Não foi possível buscar agora.");
+      setResultados([]);
+    } finally {
+      setCarregando(false);
     }
+  }
 
-    buscar();
-  }, [termo, termoNorm, categoria, cidade]);
+  buscar();
+}, [q, categoria]);
 
   return (
     <main className="bg-slate-950 min-h-screen py-10">
