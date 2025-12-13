@@ -9,28 +9,21 @@ import { useRouter } from "next/navigation";
 import { supabase } from "./supabaseClient";
 
 export default function Home() {
+  const router = useRouter();
+
   // HERO (agora em WEBP na pasta /public/hero)
-  const heroImages = [
-    "/hero/home-01.webp",
-    "/hero/home-02.webp",
-    "/hero/home-03.webp",
-  ];
+  const heroImages = ["/hero/home-01.webp", "/hero/home-02.webp", "/hero/home-03.webp"];
 
   // ORDEM DOS ÍCONES (como você definiu)
   const categorias = [
-    { label: "Turismo", href: "/turismo", icon: "/icons/turismo.png" },
-    { label: "Imóveis", href: "/imoveis", icon: "/icons/imoveis.png" },
-    { label: "Serviços", href: "/servicos", icon: "/icons/servicos.png" },
-    {
-      label: "LagoListas",
-      href: "/lagolistas",
-      icon: "/icons/lagolistas.png",
-    },
-
-    { label: "Empregos", href: "/empregos", icon: "/icons/empregos.png" },
-    { label: "Veículos", href: "/veiculos", icon: "/icons/veiculos.png" },
-    { label: "Náutica", href: "/nautica", icon: "/icons/nautica.png" },
-    { label: "Pets", href: "/pets", icon: "/icons/pets.png" },
+    { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.png" },
+    { label: "Imóveis", value: "imoveis", href: "/imoveis", icon: "/icons/imoveis.png" },
+    { label: "Serviços", value: "servico", href: "/servicos", icon: "/icons/servicos.png" },
+    { label: "LagoListas", value: "lagolistas", href: "/lagolistas", icon: "/icons/lagolistas.png" },
+    { label: "Empregos", value: "emprego", href: "/empregos", icon: "/icons/empregos.png" },
+    { label: "Veículos", value: "veiculos", href: "/veiculos", icon: "/icons/veiculos.png" },
+    { label: "Náutica", value: "nautica", href: "/nautica", icon: "/icons/nautica.png" },
+    { label: "Pets", value: "pets", href: "/pets", icon: "/icons/pets.png" },
   ];
 
   const cidades = [
@@ -73,6 +66,28 @@ export default function Home() {
   // CLASSILAGOS TV
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
 
+  // BUSCA (AGORA LIGADA)
+  const [q, setQ] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [cidade, setCidade] = useState("");
+
+  const handleBuscar = () => {
+    const params = new URLSearchParams();
+    if (q?.trim()) params.set("q", q.trim());
+    if (categoria) params.set("categoria", categoria);
+    if (cidade) params.set("cidade", cidade);
+
+    router.push(`/busca?${params.toString()}`);
+  };
+
+  // permitir Enter no campo texto
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleBuscar();
+    }
+  };
+
   // DESTAQUES
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
@@ -94,7 +109,7 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER COMERCIAL */}
+      {/* BANNER TOPO (rotator) */}
       <BannerRotator />
 
       {/* HERO */}
@@ -112,8 +127,7 @@ export default function Home() {
                   [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]
                 "
               >
-                O seu guia de compras, serviços, turismo e oportunidades em toda
-                a Região dos Lagos.
+                O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
               {/* TEXTO VERÃO (amarelo/laranja/vermelho) + sombra */}
@@ -136,7 +150,6 @@ export default function Home() {
       {/* CAIXA DE BUSCA — GRADIENTE “PRAIA” */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-700">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-5">
-          {/* tarja da busca com tom mais “praia” e menos turquesa chapado */}
           <div className="rounded-3xl bg-slate-950/92 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.65)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
               <div className="flex flex-col">
@@ -145,7 +158,10 @@ export default function Home() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: eletricista, pousada, casa em Cabo Frio..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ex.: aluguel temporada, veterinário, eletricista..."
                   className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-yellow-200/60 transition"
                 />
               </div>
@@ -155,9 +171,16 @@ export default function Home() {
                 <label className="text-[11px] font-semibold text-white/90 mb-1">
                   Categoria
                 </label>
-                <select className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white">
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white"
+                >
+                  <option value="" className="text-slate-900">
+                    Todas
+                  </option>
                   {categorias.map((c) => (
-                    <option key={c.label} className="text-slate-900">
+                    <option key={c.value} value={c.value} className="text-slate-900">
                       {c.label}
                     </option>
                   ))}
@@ -169,24 +192,34 @@ export default function Home() {
                 <label className="text-[11px] font-semibold text-white/90 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white">
-                  <option className="text-slate-900">Toda a região</option>
+                <select
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white"
+                >
+                  <option value="" className="text-slate-900">
+                    Toda a região
+                  </option>
                   {cidades.map((c) => (
-                    <option key={c} className="text-slate-900">
+                    <option key={c} value={c} className="text-slate-900">
                       {c}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <button className="rounded-full bg-white text-slate-900 hover:bg-yellow-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition">
+              <button
+                type="button"
+                onClick={handleBuscar}
+                className="rounded-full bg-white text-slate-900 hover:bg-yellow-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition"
+              >
                 Buscar
               </button>
             </div>
           </div>
 
           <p className="mt-2 text-[11px] text-center text-white/85">
-            Em breve, essa busca estará totalmente integrada aos anúncios reais.
+            Agora a busca já direciona para a página de resultados (/busca).
           </p>
         </div>
       </section>
@@ -202,12 +235,7 @@ export default function Home() {
                 className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
               >
                 <div className="relative w-24 h-24 mb-1">
-                  <Image
-                    src={cat.icon}
-                    alt={cat.label}
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src={cat.icon} alt={cat.label} fill className="object-contain" />
                 </div>
 
                 <p className="text-center text-[13px] font-semibold text-slate-700">
@@ -228,15 +256,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
-                Anúncios em destaque
-              </h2>
+              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
               <p className="text-xs text-slate-500">
                 Os anúncios mais vistos e marcados como destaque.
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
-                Anúncios marcados como <strong>destaque</strong> aparecem aqui
-                na página principal da Classilagos.
+                Anúncios marcados como <strong>destaque</strong> aparecem aqui na página principal.
               </p>
             </div>
 
@@ -257,9 +282,7 @@ export default function Home() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {destaques.map((item) => {
-                const imagensValidas = Array.isArray(item.imagens)
-                  ? item.imagens
-                  : [];
+                const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
                 const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
 
                 return (
@@ -270,15 +293,9 @@ export default function Home() {
                   >
                     <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
                       {thumb ? (
-                        <img
-                          src={thumb}
-                          alt={item.titulo}
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={thumb} alt={item.titulo} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-[11px] text-slate-200">
-                          Imagem do anúncio
-                        </span>
+                        <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
                       )}
                     </div>
 
@@ -286,16 +303,12 @@ export default function Home() {
                       <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
                         • Destaque
                       </span>
-                      <h3 className="text-sm font-semibold line-clamp-2">
-                        {item.titulo}
-                      </h3>
+                      <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
                       <p className="text-[11px] text-slate-600">
                         {formatCategoria(item.categoria)} • {item.cidade}
                       </p>
                       {item.preco && (
-                        <p className="text-[11px] font-semibold text-slate-900">
-                          R$ {item.preco}
-                        </p>
+                        <p className="text-[11px] font-semibold text-slate-900">R$ {item.preco}</p>
                       )}
                     </div>
                   </Link>
@@ -305,10 +318,7 @@ export default function Home() {
           )}
 
           <div className="mt-4 text-center sm:hidden">
-            <Link
-              href="/anunciar"
-              className="text-xs font-semibold text-cyan-700"
-            >
+            <Link href="/anunciar" className="text-xs font-semibold text-cyan-700">
               Quero anunciar em destaque →
             </Link>
           </div>
@@ -322,8 +332,7 @@ export default function Home() {
           <div className="rounded-2xl border border-slate-200 p-4 sm:p-6 bg-slate-50 shadow-sm flex flex-col md:col-span-1">
             <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
             <p className="text-xs sm:text-sm text-slate-600 mb-3">
-              Reportagens, vídeos locais, clipes e transmissões especiais da
-              Região dos Lagos.
+              Reportagens, vídeos locais, clipes e transmissões especiais da Região dos Lagos.
             </p>
 
             <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900/80">
@@ -364,9 +373,7 @@ export default function Home() {
               href="/noticias"
               className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
             >
-              <h3 className="font-semibold text-slate-900 mb-1">
-                Notícias da Região
-              </h3>
+              <h3 className="font-semibold text-slate-900 mb-1">Notícias da Região</h3>
               <p className="text-sm text-slate-600">
                 Atualizações locais, economia, clima e acontecimentos.
               </p>
@@ -381,9 +388,7 @@ export default function Home() {
       {/* “PAINEL RÁPIDO” NOVO: EMPREGOS (Vagas + Currículos) */}
       <section className="bg-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-lg font-bold text-white mb-4">
-            Empregos – Vagas e Currículos
-          </h2>
+          <h2 className="text-lg font-bold text-white mb-4">Empregos – Vagas e Currículos</h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* VAGAS */}
@@ -392,16 +397,12 @@ export default function Home() {
               className="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-base font-semibold text-white">
-                  Vagas de emprego
-                </p>
+                <p className="text-base font-semibold text-white">Vagas de emprego</p>
                 <p className="text-[12px] text-slate-300 mt-1">
                   Encontre oportunidades nas 9 cidades da região.
                 </p>
               </div>
-              <span className="mt-4 text-[11px] text-cyan-300 font-semibold">
-                Ver vagas →
-              </span>
+              <span className="mt-4 text-[11px] text-cyan-300 font-semibold">Ver vagas →</span>
             </Link>
 
             {/* CURRÍCULOS */}
@@ -410,9 +411,7 @@ export default function Home() {
               className="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
             >
               <div>
-                <p className="text-base font-semibold text-white">
-                  Currículos cadastrados
-                </p>
+                <p className="text-base font-semibold text-white">Currículos cadastrados</p>
                 <p className="text-[12px] text-slate-300 mt-1">
                   Empresas podem encontrar profissionais prontos para trabalhar.
                 </p>
@@ -421,6 +420,19 @@ export default function Home() {
                 Ver currículos →
               </span>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* BANNER 02 (rodapé acima do footer do layout) */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 overflow-hidden">
+            <img
+              src="/banners/anuncio-02.png"
+              alt="Banner Classilagos"
+              className="w-full h-auto"
+            />
           </div>
         </div>
       </section>
