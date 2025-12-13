@@ -43,18 +43,91 @@ export default function AnuncioDetalhePage() {
       setAnuncio(data);
       setFotoIndex(0);
 
-      const { data: similaresData } = await supabase
-        .from("anuncios")
-        .select(
-          "id, titulo, cidade, bairro, preco, tipo_imovel, imagens, categoria, subcategoria_servico"
-        )
-        .eq("categoria", data.categoria || "imoveis")
-        .eq("cidade", data.cidade)
-        .neq("id", data.id)
-        .order("created_at", { ascending: false })
-        .limit(4);
+     const campos =
+  "id, titulo, cidade, bairro, preco, tipo_imovel, finalidade, imagens, categoria, subcategoria_servico, created_at, destaque";
 
-      setSimilares(similaresData || []);
+let lista = [];
+
+// 1) mesma categoria + mesma finalidade + mesma cidade
+if (data.finalidade && data.cidade) {
+  const r1 = await supabase
+    .from("anuncios")
+    .select(campos)
+    .eq("categoria", data.categoria || "imoveis")
+    .eq("finalidade", data.finalidade)
+    .eq("cidade", data.cidade)
+    .neq("id", data.id)
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(8);
+
+  if (!r1.error) lista = r1.data || [];
+}
+
+// 2) mesma categoria + mesma finalidade (qualquer cidade)
+if (lista.length < 4 && data.finalidade) {
+  const r2 = await supabase
+    .from("anuncios")
+    .select(campos)
+    .eq("categoria", data.categoria || "imoveis")
+    .eq("finalidade", data.finalidade)
+    .neq("id", data.id)
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (!r2.error) {
+    const ids = new Set(lista.map((x) => x.id));
+    for (const item of r2.data || []) {
+      if (!ids.has(item.id)) lista.push(item);
+      if (lista.length >= 8) break;
+    }
+  }
+}
+
+// 3) mesma categoria + mesma cidade (qualquer finalidade)
+if (lista.length < 4 && data.cidade) {
+  const r3 = await supabase
+    .from("anuncios")
+    .select(campos)
+    .eq("categoria", data.categoria || "imoveis")
+    .eq("cidade", data.cidade)
+    .neq("id", data.id)
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (!r3.error) {
+    const ids = new Set(lista.map((x) => x.id));
+    for (const item of r3.data || []) {
+      if (!ids.has(item.id)) lista.push(item);
+      if (lista.length >= 8) break;
+    }
+  }
+}
+
+// 4) fallback final: mesma categoria (qualquer coisa)
+if (lista.length < 4) {
+  const r4 = await supabase
+    .from("anuncios")
+    .select(campos)
+    .eq("categoria", data.categoria || "imoveis")
+    .neq("id", data.id)
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  if (!r4.error) {
+    const ids = new Set(lista.map((x) => x.id));
+    for (const item of r4.data || []) {
+      if (!ids.has(item.id)) lista.push(item);
+      if (lista.length >= 8) break;
+    }
+  }
+}
+      
+setSimilares(lista.slice(0, 4));
+
       setLoading(false);
     };
 
