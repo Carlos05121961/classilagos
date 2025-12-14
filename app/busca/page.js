@@ -52,9 +52,13 @@ function montarQLimpo(parsed, qOriginal) {
   const q1 = termos.join(" ").trim();
   if (q1) return q1;
 
-  // fallback: mantém o que o usuário digitou (normalizado leve)
+  // ✅ se o parser identificou tipo_imovel (ex.: "Apartamento"), usa isso como texto
+  if (parsed?.tipo_imovel) return String(parsed.tipo_imovel).trim();
+
+  // fallback final: mantém o que o usuário digitou
   return String(qOriginal || "").trim();
 }
+
 
 // =========================
 // Page
