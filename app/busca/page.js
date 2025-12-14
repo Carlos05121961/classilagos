@@ -30,16 +30,15 @@ function detalheUrl(id) {
  */
 function normalizarFinalidade(fin) {
   const t = normaliza(fin);
-
   if (!t) return null;
 
-  // aceita variações antigas
-  if (t.includes("temporada")) return "aluguel_temporada";
+  if (t.includes("temporada")) return "temporada"; // ✅ padrão do SUPABASE
   if (t.includes("aluguel")) return "aluguel";
   if (t.includes("venda")) return "venda";
 
   return null;
 }
+
 
 /**
  * Monta o q "limpo" para o RPC buscar_anuncios:
