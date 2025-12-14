@@ -32,12 +32,14 @@ function normalizarFinalidade(fin) {
   const t = normaliza(fin);
   if (!t) return null;
 
-  if (t.includes("temporada")) return "temporada"; // ✅ padrão do SUPABASE
-  if (t.includes("aluguel")) return "aluguel";
-  if (t.includes("venda")) return "venda";
+  // manda com % para o ILIKE bater com qualquer variação salva no banco
+  if (t.includes("temporada")) return "%temporada%";
+  if (t.includes("aluguel")) return "%aluguel%";
+  if (t.includes("venda")) return "%venda%";
 
   return null;
 }
+
 
 
 /**
