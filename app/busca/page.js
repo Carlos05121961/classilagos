@@ -5,7 +5,8 @@ import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
 // ✅ Parser oficial (ajuste o caminho se você colocou em outro lugar)
-import { parseBusca } from "../../lib/parserbusca/parser";
+import { parseBusca } from "../../lib/busca/parser";
+
 
 // =========================
 // Helpers
