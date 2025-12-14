@@ -42,10 +42,13 @@ function isFinalidadeTemporada(finalidade) {
   return (
     f === "temporada" ||
     f === "aluguel temporada" ||
+    f === "aluguel por temporada" ||
+    f === "aluguelpor temporada" ||
     f === "aluguel_temporada" ||
     f === "aluguel-por-temporada"
   );
 }
+
 
 function isFinalidadeAluguel(finalidade) {
   const f = norm(finalidade);
