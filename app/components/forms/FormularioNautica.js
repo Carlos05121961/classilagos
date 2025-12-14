@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
@@ -11,6 +11,18 @@ function parseNumberOrNull(value) {
   if (!trimmed) return null;
   const n = Number(trimmed.replace(",", "."));
   return Number.isNaN(n) ? null : n;
+}
+
+// validação simples de URL youtube (opcional)
+function isValidYoutubeUrl(url) {
+  if (!url) return true;
+  const u = String(url).trim();
+  if (!u) return true;
+  return (
+    u.includes("youtube.com/watch") ||
+    u.includes("youtu.be/") ||
+    u.includes("youtube.com/shorts/")
+  );
 }
 
 export default function FormularioNautica() {
@@ -95,17 +107,17 @@ export default function FormularioNautica() {
   ];
 
   const subcategoriasNautica = [
-  "Lancha",
-  "Veleiro",
-  "Jetski",
-  "Barco de pesca",
-  "Stand-up / Caiaque",
-  "Motores & equipamentos",
-  "Peças & acessórios",
-  "Vaga em marina / guardaria",
-  "Serviços náuticos",
-  "Outros",
-];
+    "Lancha",
+    "Veleiro",
+    "Jetski",
+    "Barco de pesca",
+    "Stand-up / Caiaque",
+    "Motores & equipamentos",
+    "Peças & acessórios",
+    "Vaga em marina / guardaria",
+    "Serviços náuticos",
+    "Outros",
+  ];
 
   const finalidadesNautica = [
     { value: "venda", label: "Venda" },
@@ -118,9 +130,7 @@ export default function FormularioNautica() {
   // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
+      if (!data.user) router.push("/login");
     });
   }, [router]);
 
@@ -128,6 +138,19 @@ export default function FormularioNautica() {
     const files = Array.from(e.target.files || []);
     setArquivos(files.slice(0, 8));
   };
+
+  // Preview das imagens selecionadas
+  const previews = useMemo(() => {
+    if (!arquivos?.length) return [];
+    return arquivos.map((f) => URL.createObjectURL(f));
+  }, [arquivos]);
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((p) => URL.revokeObjectURL(p));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previews]);
 
   const enviarAnuncio = async (e) => {
     e.preventDefault();
@@ -150,16 +173,17 @@ export default function FormularioNautica() {
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
-      );
+      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
+      return;
+    }
+
+    if (!isValidYoutubeUrl(videoUrl)) {
+      setErro("O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).");
       return;
     }
 
@@ -171,7 +195,6 @@ export default function FormularioNautica() {
 
     // Upload de imagens
     let urlsUpload = [];
-
     try {
       if (arquivos.length > 0) {
         setUploading(true);
@@ -227,9 +250,14 @@ export default function FormularioNautica() {
         email,
         contato: contatoPrincipal,
 
+        // Campos específicos
         subcategoria_nautica: subcategoria,
         finalidade_nautica: finalidade,
-        // coluna genérica
+
+        // ✅ Campo genérico usado no site inteiro (ajuda cards e busca)
+        tipo_imovel: subcategoria,
+
+        // ✅ Campo genérico (já usado em outros pilares)
         finalidade,
 
         marca_embarcacao: marcaEmbarcacao,
@@ -267,88 +295,52 @@ export default function FormularioNautica() {
 
     if (error) {
       console.error("Erro ao salvar anúncio de náutica:", error);
-      setErro(
-        `Erro ao salvar anúncio: ${
-          error.message || "Tente novamente em instantes."
-        }`
-      );
+      setErro(`Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`);
       return;
     }
 
     setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
 
-    // Limpa formulário
-    setTitulo("");
-    setDescricao("");
-    setCidade("");
-    setBairro("");
-    setPontoEmbarque("");
-    setSubcategoria("");
-    setFinalidade("");
-    setMarcaEmbarcacao("");
-    setModeloEmbarcacao("");
-    setAnoEmbarcacao("");
-    setComprimentoPes("");
-    setMaterialCasco("");
-    setMarcaMotor("");
-    setPotenciaMotorHp("");
-    setQtdMotores("");
-    setHorasMotor("");
-    setCombustivel("");
-    setCapacidadePessoas("");
-    setQtdCabines("");
-    setQtdBanheiros("");
-    setTipoPasseio("");
-    setDuracaoPasseio("");
-    setValorPessoa("");
-    setValorFechado("");
-    setItensInclusos("");
-    setTipoVaga("");
-    setComprimentoMaximoPes("");
-    setEstruturaDisponivel("");
-    setPreco("");
-    setArquivos([]);
-    setVideoUrl("");
-    setNomeContato("");
-    setTelefone("");
-    setWhatsapp("");
-    setEmail("");
-    setAceitoTermos(false);
-
     setTimeout(() => {
-      if (data && data.id) {
-        router.push(`/anuncios/${data.id}`);
-      } else {
-        router.push("/painel/meus-anuncios");
-      }
-    }, 1500);
+      router.push(`/anuncios/${data.id}`);
+    }, 1200);
   };
 
+  const Card = ({ title, subtitle, children }) => (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
+    <form onSubmit={enviarAnuncio} className="space-y-4">
       {erro && (
-        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-700">
           {erro}
-        </p>
+        </div>
       )}
       {sucesso && (
-        <p className="text-emerald-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs md:text-sm text-emerald-700">
           {sucesso}
-        </p>
+        </div>
       )}
 
-      {/* BLOCO: TIPO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Tipo de anúncio náutico
-        </h2>
+      {/* TIPO */}
+      <Card
+        title="Tipo de anúncio náutico"
+        subtitle="Escolha a categoria e a finalidade para o formulário se adaptar automaticamente."
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Subcategoria *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Subcategoria <span className="text-red-500">*</span>
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={subcategoria}
               onChange={(e) => setSubcategoria(e.target.value)}
               required
@@ -363,11 +355,11 @@ export default function FormularioNautica() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Finalidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Finalidade <span className="text-red-500">*</span>
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={finalidade}
               onChange={(e) => setFinalidade(e.target.value)}
               required
@@ -381,55 +373,55 @@ export default function FormularioNautica() {
             </select>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* BLOCO: TÍTULO / DESCRIÇÃO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações principais
-        </h2>
+      {/* PRINCIPAL */}
+      <Card
+        title="Informações principais"
+        subtitle="Título e descrição caprichados fazem o anúncio aparecer melhor na busca e nos cards."
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Título do anúncio <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Ex.: Lancha 30 pés com 2 motores Mercury"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Título do anúncio *
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: Lancha 30 pés com 2 motores Mercury"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Descrição detalhada <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Descreva estado, manutenção, documentos, itens, rotas do passeio, etc."
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              required
+            />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Dica: informe cidade, ponto de embarque, e o que está incluso.
+            </p>
+          </div>
         </div>
+      </Card>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Descrição detalhada *
-          </label>
-          <textarea
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
-            placeholder="Descreva os principais detalhes da embarcação ou serviço..."
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      {/* BLOCO: LOCALIZAÇÃO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Localização / ponto de embarque
-        </h2>
-
+      {/* LOCALIZAÇÃO */}
+      <Card title="Localização e ponto de embarque" subtitle="Ajuda muito quem está filtrando por cidade.">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Cidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Cidade <span className="text-red-500">*</span>
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
@@ -444,12 +436,10 @@ export default function FormularioNautica() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Bairro / região
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Bairro / região</label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               placeholder="Ex.: Centro, Praia do Forte..."
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
@@ -457,427 +447,359 @@ export default function FormularioNautica() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Ponto de embarque (opcional)
-          </label>
+        <div className="mt-3">
+          <label className="block text-[11px] font-semibold text-slate-700">Ponto de embarque (opcional)</label>
           <input
             type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
             placeholder="Ex.: Marina X, píer da Praia Y..."
             value={pontoEmbarque}
             onChange={(e) => setPontoEmbarque(e.target.value)}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* BLOCO: DETALHES (para venda/aluguel de embarcação) */}
+      {/* DETALHES (venda/aluguel) */}
       {(finalidade === "venda" || finalidade === "aluguel") && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Detalhes da embarcação
-          </h2>
-
+        <Card title="Detalhes da embarcação" subtitle="Preencha o que tiver — quanto mais completo, melhor.">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Marca</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={marcaEmbarcacao}
                 onChange={(e) => setMarcaEmbarcacao(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Modelo
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Modelo</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={modeloEmbarcacao}
                 onChange={(e) => setModeloEmbarcacao(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 mt-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Ano
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Ano</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={anoEmbarcacao}
                 onChange={(e) => setAnoEmbarcacao(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Comprimento (pés)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Comprimento (pés)</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={comprimentoPes}
                 onChange={(e) => setComprimentoPes(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Material do casco
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Material do casco</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={materialCasco}
                 onChange={(e) => setMaterialCasco(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 mt-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Marca do motor
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Marca do motor</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={marcaMotor}
                 onChange={(e) => setMarcaMotor(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Potência total (HP)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Potência total (HP)</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={potenciaMotorHp}
                 onChange={(e) => setPotenciaMotorHp(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Qtde. de motores
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Qtde. de motores</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={qtdMotores}
                 onChange={(e) => setQtdMotores(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 mt-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Horas de motor
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Horas de motor</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={horasMotor}
                 onChange={(e) => setHorasMotor(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Combustível
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Combustível</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={combustivel}
                 onChange={(e) => setCombustivel(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Capacidade (pessoas)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Capacidade (pessoas)</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={capacidadePessoas}
                 onChange={(e) => setCapacidadePessoas(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 mt-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Cabines
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Cabines</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={qtdCabines}
                 onChange={(e) => setQtdCabines(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Banheiros
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Banheiros</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={qtdBanheiros}
                 onChange={(e) => setQtdBanheiros(e.target.value)}
               />
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* BLOCO: PASSEIOS */}
+      {/* PASSEIOS */}
       {finalidade === "passeio" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações do passeio
-          </h2>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Tipo de passeio
-            </label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Ex.: passeio de lancha exclusivo, escuna, mergulho..."
-              value={tipoPasseio}
-              onChange={(e) => setTipoPasseio(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
+        <Card title="Informações do passeio" subtitle="Conteúdo claro aqui vira vendas rápido.">
+          <div className="space-y-3">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Duração média
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Tipo de passeio</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                placeholder="Ex.: 3h, 6h, dia inteiro"
-                value={duracaoPasseio}
-                onChange={(e) => setDuracaoPasseio(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Ex.: lancha exclusiva, escuna, mergulho..."
+                value={tipoPasseio}
+                onChange={(e) => setTipoPasseio(e.target.value)}
               />
             </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">Duração média</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  placeholder="Ex.: 3h, 6h, dia inteiro"
+                  value={duracaoPasseio}
+                  onChange={(e) => setDuracaoPasseio(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">Valor por pessoa</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  value={valorPessoa}
+                  onChange={(e) => setValorPessoa(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Valor por pessoa
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Valor passeio fechado</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-                value={valorPessoa}
-                onChange={(e) => setValorPessoa(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                value={valorFechado}
+                onChange={(e) => setValorFechado(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Itens inclusos</label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Ex.: bebidas, coletes, máscara, churrasco..."
+                value={itensInclusos}
+                onChange={(e) => setItensInclusos(e.target.value)}
               />
             </div>
           </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Valor passeio fechado
-            </label>
-            <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              value={valorFechado}
-              onChange={(e) => setValorFechado(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Itens inclusos
-            </label>
-            <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
-              placeholder="Ex.: bebidas, coletes, máscara, churrasco..."
-              value={itensInclusos}
-              onChange={(e) => setItensInclusos(e.target.value)}
-            />
-          </div>
-        </div>
+        </Card>
       )}
 
-      {/* BLOCO: VAGA EM MARINA */}
+      {/* VAGA EM MARINA */}
       {finalidade === "vaga_marina" && (
-        <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações da vaga em marina / guardaria
-          </h2>
-
+        <Card title="Informações da vaga em marina / guardaria" subtitle="Quanto mais claro, menos perguntas no WhatsApp.">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Tipo de vaga
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Tipo de vaga</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex.: seca, molhada..."
                 value={tipoVaga}
                 onChange={(e) => setTipoVaga(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Comprimento máximo (pés)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Comprimento máximo (pés)</label>
               <input
                 type="text"
-                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={comprimentoMaximoPes}
                 onChange={(e) => setComprimentoMaximoPes(e.target.value)}
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Estrutura disponível
-            </label>
+          <div className="mt-3">
+            <label className="block text-[11px] font-semibold text-slate-700">Estrutura disponível</label>
             <textarea
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-24"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-sky-400"
               placeholder="Ex.: água, luz, banheiro, segurança 24h..."
               value={estruturaDisponivel}
               onChange={(e) => setEstruturaDisponivel(e.target.value)}
             />
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* BLOCO: VALOR */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
+      {/* VALOR */}
+      <Card title="Valor" subtitle="Se for passeio, você pode colocar “a partir de…” também.">
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Preço (R$)
-          </label>
+          <label className="block text-[11px] font-semibold text-slate-700">Preço (R$)</label>
           <input
             type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
             placeholder="Ex.: R$ 250.000, R$ 800 / passeio..."
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* BLOCO: FOTOS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Enviar fotos (upload) – até 8 imagens
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-1 w-full text-xs"
-          />
-          {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              {arquivos.length} arquivo(s) selecionado(s).
-            </p>
-          )}
-        </div>
-      </div>
+      {/* FOTOS */}
+      <Card title="Fotos" subtitle="Até 8 imagens. Capricha na primeira, ela vira a capa do anúncio.">
+        <label className="block text-[11px] font-semibold text-slate-700">
+          Enviar fotos (upload) – até 8 imagens
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleArquivosChange}
+          className="mt-2 w-full text-xs"
+        />
 
-      {/* BLOCO: VÍDEO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Vídeo (opcional)
-        </h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            URL do vídeo (YouTube)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-        </div>
-      </div>
+        {arquivos.length > 0 && (
+          <>
+            <p className="mt-2 text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
+            <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+              {previews.map((src, idx) => (
+                <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </Card>
 
-      {/* BLOCO: CONTATO */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Dados de contato
-        </h2>
+      {/* VÍDEO */}
+      <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
+        <label className="block text-[11px] font-semibold text-slate-700">URL do vídeo</label>
+        <input
+          type="text"
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+        />
+      </Card>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Nome de contato
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Nome do proprietário ou empresa"
-            value={nomeContato}
-            onChange={(e) => setNomeContato(e.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
+      {/* CONTATO */}
+      <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
+        <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Nome de contato</label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Telefone para contato"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Nome do proprietário ou empresa"
+              value={nomeContato}
+              onChange={(e) => setNomeContato(e.target.value)}
             />
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Telefone para contato"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="DDD + número"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="DDD + número"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
+              type="email"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Seu e-mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
+      </Card>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            E-mail
-          </label>
-          <input
-            type="email"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Seu e-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* BLOCO: TERMOS */}
-      <div className="space-y-2 border-t border-slate-100 pt-4">
+      {/* TERMOS + BOTÃO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
             type="checkbox"
@@ -886,9 +808,8 @@ export default function FormularioNautica() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que
-            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
-            e de acordo com os{" "}
+            Declaro que as informações deste anúncio são verdadeiras e assumo total responsabilidade
+            pelo conteúdo publicado. Estou de acordo com os{" "}
             <a
               href="/termos-de-uso"
               className="text-cyan-700 underline hover:text-cyan-800"
@@ -900,15 +821,16 @@ export default function FormularioNautica() {
             .
           </span>
         </label>
-      </div>
 
-      <button
-        type="submit"
-        className="mt-2 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
-        disabled={uploading}
-      >
-        {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
-      </button>
+        <button
+          type="submit"
+          className="mt-4 w-full rounded-full bg-sky-600 py-3 text-sm font-semibold text-white hover:bg-sky-700 transition disabled:opacity-60"
+          disabled={uploading}
+        >
+          {uploading ? "Enviando anúncio..." : "Publicar anúncio em Náutica"}
+        </button>
+      </div>
     </form>
   );
 }
+
