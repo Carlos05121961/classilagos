@@ -120,14 +120,16 @@ const finFallback =
         // -----------------------------
         // 1) tenta: q + fin + cidade + categoria (mais preciso)
         // -----------------------------
-        let resp1 = await supabase.rpc("buscar_anuncios", {
-          q: qParam,
-          cat: catFinal,
-          cid: cidFinal,
-          fin: finFinal,
-          lim: 80,
-          off: 0,
-        });
+       let resp1 = await supabase.rpc("buscar_anuncios", {
+  q: qParam,
+  cat: catFinal,
+  cid: cidFinal,
+  fin: finFinal,
+  tip: p?.tipo_imovel || null,   // ✅ NOVO
+  lim: 80,
+  off: 0,
+});
+
 
         if (resp1.error) throw resp1.error;
 
