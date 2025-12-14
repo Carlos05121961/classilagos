@@ -1,8 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+
+function isValidEmail(v) {
+  const s = String(v || "").trim();
+  if (!s) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
+function isValidUrl(v) {
+  const s = String(v || "").trim();
+  if (!s) return true;
+  try {
+    // aceita com ou sem https:// (vamos normalizar depois se quiser)
+    new URL(s.startsWith("http") ? s : `https://${s}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export default function FormularioProfissionais() {
   const router = useRouter();
@@ -26,14 +44,15 @@ export default function FormularioProfissionais() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // AGORA: várias imagens (array)
+  // várias imagens (até 8)
   const [imagensFiles, setImagensFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
+  // login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) router.push("/login");
@@ -94,14 +113,69 @@ export default function FormularioProfissionais() {
     "Outros serviços profissionais",
   ];
 
+  // preview das imagens
+  const previews = useMemo(() => {
+    return (imagensFiles || []).map((f) => URL.createObjectURL(f));
+  }, [imagensFiles]);
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((p) => URL.revokeObjectURL(p));
+    };
+  }, [previews]);
+
+  // ✅ acumula até 8, valida imagem e tamanho
+  const handleImagensChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const maxBytes = 2 * 1024 * 1024; // 2MB
+    const onlyImages = files.filter((f) => f?.type?.startsWith("image/"));
+
+    const valid = [];
+    for (const f of onlyImages) {
+      if (f.size > maxBytes) continue;
+      valid.push(f);
+    }
+
+    if (onlyImages.length !== files.length) {
+      setErro("Apenas imagens (JPG/PNG) são aceitas.");
+    } else if (valid.length !== onlyImages.length) {
+      setErro("Alguma imagem passou de 2MB e foi ignorada.");
+    } else {
+      setErro("");
+    }
+
+    setImagensFiles((prev) => {
+      const combinado = [...prev, ...valid];
+      return combinado.slice(0, 8);
+    });
+
+    // permite escolher o mesmo arquivo novamente se quiser
+    e.target.value = "";
+  };
+
+  const removerImagem = (idx) => {
+    setImagensFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const Card = ({ title, subtitle, children }) => (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
 
     if (!user) {
       setErro("Você precisa estar logado para anunciar um serviço.");
@@ -110,22 +184,28 @@ export default function FormularioProfissionais() {
     }
 
     if (!titulo || !cidade || !areaProfissional) {
-      setErro("Preencha título, cidade e tipo de serviço profissional.");
+      setErro("Preencha Título, Cidade e o Tipo de serviço profissional.");
       return;
     }
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setErro("Digite um e-mail válido (ou deixe em branco).");
+      return;
+    }
+
+    if (!isValidUrl(siteUrl)) {
+      setErro("O site informado parece inválido. Ex.: meusite.com.br ou https://meusite.com.br");
       return;
     }
 
     if (!aceitoResponsabilidade) {
-      setErro(
-        "Para publicar o anúncio, marque a declaração de responsabilidade pelas informações."
-      );
+      setErro("Para publicar, marque a declaração de responsabilidade.");
       return;
     }
 
@@ -134,76 +214,82 @@ export default function FormularioProfissionais() {
     try {
       const bucket = "anuncios";
 
-      // -----------------------------
-      // UPLOAD DE VÁRIAS IMAGENS
-      // -----------------------------
+      // upload (até 8)
       let imagensUrls = [];
 
-      if (imagensFiles && imagensFiles.length > 0) {
-        let index = 0;
-        for (const file of imagensFiles) {
-          if (!file) continue;
+      if (imagensFiles?.length) {
+        const uploads = await Promise.all(
+          imagensFiles.slice(0, 8).map(async (file, index) => {
+            const ext = file.name.split(".").pop();
+            const path = `servicos/${user.id}/profissionais-${Date.now()}-${index}.${ext}`;
 
-          const ext = file.name.split(".").pop();
-          const path = `servicos/${user.id}/profissionais-${Date.now()}-${index}.${ext}`;
-          index++;
+            const { error: uploadErro } = await supabase.storage
+              .from(bucket)
+              .upload(path, file);
 
-          const { error: uploadErro } = await supabase.storage
-            .from(bucket)
-            .upload(path, file);
+            if (uploadErro) throw uploadErro;
 
-          if (uploadErro) {
-            console.error("Erro upload imagem serviço:", uploadErro);
-            throw uploadErro;
-          }
+            const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+            return data?.publicUrl || null;
+          })
+        );
 
-          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-          if (data?.publicUrl) {
-            imagensUrls.push(data.publicUrl);
-          }
-        }
+        imagensUrls = uploads.filter(Boolean);
       }
 
-      const { error: insertError } = await supabase.from("anuncios").insert({
-        user_id: user.id,
-        categoria: "servico",
-        subcategoria_servico: "profissionais",
+      // normaliza siteUrl (se veio sem http)
+      const siteUrlFinal = siteUrl?.trim()
+        ? siteUrl.trim().startsWith("http")
+          ? siteUrl.trim()
+          : `https://${siteUrl.trim()}`
+        : null;
 
-        titulo,
-        descricao,
-        cidade,
-        bairro,
+      const { data: inserted, error: insertError } = await supabase
+        .from("anuncios")
+        .insert({
+          user_id: user.id,
+          categoria: "servico",
+          subcategoria_servico: "profissionais",
 
-        nome_contato: nomeProfissional,
-        nome_negocio: nomeNegocio,
-        area_profissional: areaProfissional,
+          titulo,
+          descricao,
+          cidade,
+          bairro,
 
-        atende_domicilio: atendeDomicilio,
-        horario_atendimento: horarioAtendimento,
-        faixa_preco: faixaPreco,
+          nome_contato: nomeProfissional || null,
+          nome_negocio: nomeNegocio || null,
+          area_profissional: areaProfissional,
 
-        telefone,
-        whatsapp,
-        email,
-        contato: contatoPrincipal,
-        site_url: siteUrl,
-        instagram,
+          atende_domicilio: atendeDomicilio,
+          horario_atendimento: horarioAtendimento || null,
+          faixa_preco: faixaPreco || null,
 
-        // agora é um ARRAY de imagens
-        imagens: imagensUrls.length > 0 ? imagensUrls : null,
-        status: "ativo",
-      });
+          telefone: telefone || null,
+          whatsapp: whatsapp || null,
+          email: email || null,
+          contato: contatoPrincipal,
+
+          site_url: siteUrlFinal,
+          instagram: instagram || null,
+
+          imagens: imagensUrls.length ? imagensUrls : null,
+
+          status: "ativo",
+          destaque: false,
+        })
+        .select("id")
+        .single();
 
       if (insertError) {
         console.error("Erro ao salvar serviço:", insertError);
-        setErro("Erro ao salvar o anúncio. Tente novamente em alguns instantes.");
+        setErro(`Erro ao salvar o anúncio: ${insertError.message || "tente novamente."}`);
         setUploading(false);
         return;
       }
 
-      setSucesso("Serviço profissional cadastrado com sucesso!");
+      setSucesso("Serviço profissional cadastrado com sucesso! Redirecionando…");
 
-      // limpa formulário
+      // limpa
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -223,336 +309,299 @@ export default function FormularioProfissionais() {
       setAceitoResponsabilidade(false);
 
       setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1800);
+        router.push(`/anuncios/${inserted.id}`);
+      }, 1200);
     } catch (err) {
       console.error(err);
-      setErro(
-        `Erro ao salvar seu anúncio de serviço: ${
-          err.message || "tente novamente."
-        }`
-      );
+      setErro(`Erro ao salvar seu anúncio de serviço: ${err?.message || "tente novamente."}`);
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {erro && (
-        <p className="text-red-700 text-sm border border-red-200 p-3 rounded-2xl bg-red-50">
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-700">
           {erro}
-        </p>
+        </div>
       )}
       {sucesso && (
-        <p className="text-emerald-700 text-sm border border-emerald-200 p-3 rounded-2xl bg-emerald-50">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs md:text-sm text-emerald-700">
           {sucesso}
-        </p>
+        </div>
       )}
 
-      {/* DADOS DO SERVIÇO */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações do serviço profissional
-        </h2>
-
-        {/* TÍTULO DO ANÚNCIO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Título do anúncio *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Esse será o título em destaque no card do seu serviço profissional."
-            >
-              i
-            </span>
-          </div>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Eletricista residencial, Diarista de confiança, Aulas de violão..."
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* CIDADE / BAIRRO */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card
+        title="Informações do serviço"
+        subtitle="Capriche no título e na descrição: isso é o que mais traz contatos."
+      >
+        <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Cidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Título do anúncio <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Ex.: Eletricista residencial, Diarista de confiança, Aulas de violão..."
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Cidade <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                required
+              >
+                <option value="">Selecione...</option>
+                {cidades.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Bairro / Região
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Tipo de serviço profissional <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={areaProfissional}
+              onChange={(e) => setAreaProfissional(e.target.value)}
               required
             >
               <option value="">Selecione...</option>
-              {cidades.map((c) => (
-                <option key={c}>{c}</option>
+              {servicosProfissionais.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
               ))}
             </select>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Isso melhora a busca e organiza o Classilagos.
+            </p>
           </div>
+
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Bairro / Região
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Descrição do serviço <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
+            <textarea
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Explique o que você faz, experiência, regiões atendidas, formas de pagamento, urgência etc."
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              required
             />
           </div>
         </div>
+      </Card>
 
-        {/* TIPO DE SERVIÇO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Tipo de serviço profissional *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Escolha o serviço principal. Isso organiza o portal e facilita a busca pelos clientes."
-            >
-              i
-            </span>
+      <Card
+        title="Profissional / empresa"
+        subtitle="Opcional, mas dá mais confiança e melhora a conversão."
+      >
+        <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Nome do profissional / responsável
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={nomeProfissional}
+                onChange={(e) => setNomeProfissional(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Nome da empresa (se tiver)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={nomeNegocio}
+                onChange={(e) => setNomeNegocio(e.target.value)}
+              />
+            </div>
           </div>
-          <select
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-            value={areaProfissional}
-            onChange={(e) => setAreaProfissional(e.target.value)}
-            required
-          >
-            <option value="">Selecione...</option>
-            {servicosProfissionais.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Escolha o serviço principal. Essa seleção já organiza o portal e
-            melhora a busca.
-          </p>
-        </div>
 
-        {/* DESCRIÇÃO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Descrição do serviço *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Descreva o que você faz, sua experiência, diferenciais, cidades atendidas e formas de atendimento."
-            >
-              i
-            </span>
-          </div>
-          <textarea
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
-            placeholder="Descreva o que você faz, tipos de serviços, cidades em que atende, experiência, diferenciais, formas de pagamento etc."
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      {/* PROFISSIONAL / NEGÓCIO */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Profissional / empresa (se houver)
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nome do profissional / responsável
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={nomeProfissional}
-              onChange={(e) => setNomeProfissional(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nome da empresa (se tiver)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={nomeNegocio}
-              onChange={(e) => setNomeNegocio(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-1 mb-1">
-              <label className="block text-xs font-semibold text-slate-700">
+          <div className="grid gap-3 md:grid-cols-[2fr,1fr] items-center">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
                 Horário de atendimento
               </label>
-              <span
-                className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-                title="Informe os dias e horários em que você costuma atender ou responder clientes."
-              >
-                i
-              </span>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Ex.: Seg a sáb, 8h às 18h / Emergências"
+                value={horarioAtendimento}
+                onChange={(e) => setHorarioAtendimento(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: Seg a sáb, 8h às 18h / Atendo emergências"
-              value={horarioAtendimento}
-              onChange={(e) => setHorarioAtendimento(e.target.value)}
-            />
-          </div>
-          <label className="flex items-center gap-2 text-[11px] text-slate-700">
-            <input
-              type="checkbox"
-              className="h-4 w-4"
-              checked={atendeDomicilio}
-              onChange={(e) => setAtendeDomicilio(e.target.checked)}
-            />
-            Atendo em domicílio
-          </label>
-        </div>
 
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
+            <label className="mt-6 md:mt-0 inline-flex items-center gap-2 text-xs text-slate-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={atendeDomicilio}
+                onChange={(e) => setAtendeDomicilio(e.target.checked)}
+              />
+              Atendo em domicílio
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
               Faixa de preço (opcional)
             </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Você pode informar valores iniciais ou uma faixa, sem precisar definir um preço fechado."
-            >
-              i
-            </span>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Ex.: a partir de R$ 120 / a combinar"
+              value={faixaPreco}
+              onChange={(e) => setFaixaPreco(e.target.value)}
+            />
           </div>
+        </div>
+      </Card>
+
+      <Card title="Contatos" subtitle="Pelo menos um canal é obrigatório.">
+        <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Telefone
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                WhatsApp
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                E-mail
+              </label>
+              <input
+                type="email"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Site (opcional)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="meusite.com.br ou https://meusite.com.br"
+                value={siteUrl}
+                onChange={(e) => setSiteUrl(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Instagram / rede social (opcional)
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="@meuservico"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-500">
+            Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido.
+          </p>
+        </div>
+      </Card>
+
+      <Card
+        title="Fotos do serviço / logo"
+        subtitle="Até 8 imagens. A primeira vira destaque no card."
+      >
+        <div className="space-y-3">
           <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Diárias a partir de R$ 120, Serviços a combinar"
-            value={faixaPreco}
-            onChange={(e) => setFaixaPreco(e.target.value)}
+            type="file"
+            accept="image/*"
+            multiple
+            className="text-sm"
+            onChange={handleImagensChange}
           />
+
+          {previews?.length > 0 && (
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+              {previews.map((src, idx) => (
+                <div key={src} className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Imagem ${idx + 1}`} className="h-24 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removerImagem(idx)}
+                    className="absolute top-1 right-1 rounded-full bg-white/90 border border-slate-200 px-2 py-1 text-[10px] text-slate-700 hover:bg-white"
+                    title="Remover"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-[11px] text-slate-500">
+            JPG/PNG até 2MB cada. Total máximo: 8 imagens.
+          </p>
         </div>
-      </div>
+      </Card>
 
-      {/* CONTATOS */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Telefone
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              WhatsApp
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              E-mail
-            </label>
-            <input
-              type="email"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Site / página (opcional)
-            </label>
-            <input
-              type="url"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: https://meuservico.com.br"
-              value={siteUrl}
-              onChange={(e) => setSiteUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Instagram ou rede social (opcional)
-            </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="@meuservico"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para contato.
-        </p>
-      </div>
-
-      {/* IMAGENS */}
-      <div className="space-y-2 border-t border-slate-200 pt-4">
-        <div className="flex items-center gap-1 mb-1">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Fotos do serviço / logo (opcional)
-          </h2>
-          <span
-            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-            title="Envie fotos do seu serviço ou sua logo. A primeira imagem será usada em destaque no card."
-          >
-            i
-          </span>
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          className="text-sm"
-          onChange={(e) =>
-            setImagensFiles(Array.from(e.target.files || []))
-          }
-        />
-        <p className="text-[11px] text-slate-500">
-          Você pode enviar várias imagens em JPG ou PNG, até 1 MB cada. A
-          primeira será usada como destaque no anúncio.
-        </p>
-      </div>
-
-      {/* RESPONSABILIDADE */}
-      <div className="border-t border-slate-200 pt-4">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <label className="flex items-start gap-2 text-[11px] text-slate-700">
           <input
             type="checkbox"
@@ -561,20 +610,20 @@ export default function FormularioProfissionais() {
             onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que sou
-            responsável por qualquer negociação realizada a partir deste
-            serviço. Estou de acordo com os termos de uso do Classilagos.
+            Declaro que as informações deste anúncio são verdadeiras e que sou responsável por qualquer
+            negociação realizada a partir deste serviço.
           </span>
         </label>
-      </div>
 
-      <button
-        type="submit"
-        disabled={uploading}
-        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-      >
-        {uploading ? "Publicando serviço..." : "Publicar serviço profissional"}
-      </button>
+        <button
+          type="submit"
+          disabled={uploading}
+          className="mt-4 w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {uploading ? "Publicando serviço..." : "Publicar serviço profissional"}
+        </button>
+      </div>
     </form>
   );
 }
+
