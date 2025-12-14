@@ -122,8 +122,9 @@ function ListaImoveisContent() {
         if (lancamentoAtivo) {
           // pega "lançamento" ou "lancamento"
           query = query
-            .or("titulo.ilike.%lan%C3%A7%,titulo.ilike.%lancamento%,descricao.ilike.%lan%C3%A7%,descricao.ilike.%lancamento%")
-            .order("created_at", { ascending: false });
+  .or("titulo.ilike.%lanç%,titulo.ilike.%lancamento%,descricao.ilike.%lanç%,descricao.ilike.%lancamento%")
+  .order("created_at", { ascending: false });
+
         } else {
           // padrão do site: destaque primeiro
           query = query.order("destaque", { ascending: false }).order("created_at", { ascending: false });
