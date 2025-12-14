@@ -144,7 +144,9 @@ function ListaImoveisContent() {
           if (aluguelTipo === "residencial") {
             // aluguel residencial = aluguel (não temporada) e NÃO comercial
             query = query.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
-            query = query.not("tipo_imovel", "in", `(${TIPOS_COMERCIAIS.join(",")})`);
+            const tiposComerciaisIn = `(${TIPOS_COMERCIAIS.map((t) => `"${t}"`).join(",")})`;
+query = query.not("tipo_imovel", "in", tiposComerciaisIn);
+
           }
 
           if (aluguelTipo === "comercial") {
