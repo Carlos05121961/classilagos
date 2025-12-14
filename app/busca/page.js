@@ -92,12 +92,26 @@ export default function BuscaPage() {
 
         // 1) parser oficial
         const p = parseBusca(q || "");
+        // 🔁 Fallback de finalidade direto do texto digitado
+const textoNorm = normaliza(q || "");
+
+const finFallback =
+  textoNorm.includes("temporada")
+    ? "%temporada%"
+    : textoNorm.includes("aluguel") || textoNorm.includes("alugar")
+    ? "%aluguel%"
+    : textoNorm.includes("venda") ||
+      textoNorm.includes("comprar") ||
+      textoNorm.includes("vende")
+    ? "%venda%"
+    : null;
+
         if (!cancelado) setParsed(p);
 
         // 2) decide filtros finais (URL tem prioridade se vier preenchida)
         const catFinal = categoriaUrl || p?.categoria || null;
         const cidFinal = p?.cidade || null;
-        const finFinal = normalizarFinalidade(p?.finalidade);
+       const finFinal = normalizarFinalidade(p?.finalidade) || finFallback;
 
         // 3) q "limpa" (termos livres)
         const qLimpa = montarQLimpo(p, q);
