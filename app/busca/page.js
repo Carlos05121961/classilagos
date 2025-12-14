@@ -48,16 +48,56 @@ function normalizarFinalidade(fin) {
  * - senão, usamos o texto original normalizado (sem mexer demais)
  */
 function montarQLimpo(parsed, qOriginal) {
+  // 1) base: termos livres do parser (se existirem)
   const termos = Array.isArray(parsed?.termosLivres) ? parsed.termosLivres : [];
-  const q1 = termos.join(" ").trim();
-  if (q1) return q1;
+  let q1 = (termos.join(" ").trim() || String(qOriginal || "").trim());
 
-  // ✅ se o parser identificou tipo_imovel (ex.: "Apartamento"), usa isso como texto
-  if (parsed?.tipo_imovel) return String(parsed.tipo_imovel).trim();
+  // 2) limpar palavras que “atrapalham” porque já viraram filtro
+  //    (principalmente o caso: aluguel + temporada)
+  const fin = normaliza(parsed?.finalidade || "");
 
-  // fallback final: mantém o que o usuário digitou
-  return String(qOriginal || "").trim();
+  if (fin.includes("temporada")) {
+    // Se a finalidade é TEMPORADA, a palavra "aluguel" não pode ficar no texto livre,
+    // senão vira filtro duplo e zera a busca.
+    q1 = q1
+      .replace(/\baluguel\b/gi, " ")
+      .replace(/\balugar\b/gi, " ")
+      .replace(/\balugo\b/gi, " ")
+      .replace(/\blocacao\b/gi, " ")
+      .replace(/\blocação\b/gi, " ")
+      .replace(/\bmensal\b/gi, " ")
+      .replace(/\banual\b/gi, " ")
+      .replace(/\bpor temporada\b/gi, " ")
+      .replace(/\btemporada\b/gi, " ")
+      .replace(/\bdiaria\b/gi, " ")
+      .replace(/\bdiária\b/gi, " ")
+      .replace(/\bdiarias\b/gi, " ")
+      .replace(/\bdiárias\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  } else if (fin.includes("aluguel")) {
+    // Se a finalidade é ALUGUEL, remover "temporada" do texto livre (quando digitarem errado)
+    q1 = q1
+      .replace(/\btemporada\b/gi, " ")
+      .replace(/\bpor temporada\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  } else if (fin.includes("venda")) {
+    // Se for VENDA, remover palavras típicas de venda do texto livre
+    q1 = q1
+      .replace(/\bvenda\b/gi, " ")
+      .replace(/\bvender\b/gi, " ")
+      .replace(/\bvendo\b/gi, " ")
+      .replace(/\bcomprar\b/gi, " ")
+      .replace(/\bcompra\b/gi, " ")
+      .replace(/\bvende\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  return q1 || String(qOriginal || "").trim();
 }
+
 
 
 // =========================
