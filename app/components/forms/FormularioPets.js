@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+
+// validação simples de URL youtube (opcional)
+function isValidYoutubeUrl(url) {
+  if (!url) return true;
+  const u = String(url).trim();
+  if (!u) return true;
+  return (
+    u.includes("youtube.com/watch") ||
+    u.includes("youtu.be/") ||
+    u.includes("youtube.com/shorts/")
+  );
+}
 
 export default function FormularioPets() {
   const router = useRouter();
@@ -13,13 +25,13 @@ export default function FormularioPets() {
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Tipo de anúncio (simples)
-  const [subcategoria, setSubcategoria] = useState(""); // Animais / Acessórios / Serviços pet
+  // Tipo de anúncio
+  const [subcategoria, setSubcategoria] = useState(""); // Animais / Adoção / Achados / Serviços
 
   // Valor
   const [preco, setPreco] = useState("");
 
-  // Upload de fotos
+  // Upload de fotos (acumulativo até 8)
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
@@ -49,36 +61,51 @@ export default function FormularioPets() {
     "Rio das Ostras",
   ];
 
-const subcategoriasPets = [
-  "Animais",
-  "Adoção / Doação",
-  "Achados e perdidos",
-  "Serviços pet & acessórios",
-];
-
+  const subcategoriasPets = [
+    "Animais",
+    "Adoção / Doação",
+    "Achados e perdidos",
+    "Serviços pet & acessórios",
+  ];
 
   // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
+      if (!data.user) router.push("/login");
     });
   }, [router]);
 
-  // ✅ ACUMULA ARQUIVOS ATÉ 8, NÃO APAGA OS ANTERIORES
+  // ✅ ACUMULA ARQUIVOS ATÉ 8 (não apaga os anteriores)
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setArquivos((prev) => {
-      const combinado = [...prev, ...files]; // junta o que já tinha com os novos
-      const limitado = combinado.slice(0, 8); // garante no máximo 8
-      return limitado;
+      const combinado = [...prev, ...files];
+      return combinado.slice(0, 8);
     });
+
+    // permite selecionar o mesmo arquivo de novo se quiser
+    e.target.value = "";
   };
 
-  // ✅ ENVIO DO ANÚNCIO
+  const removerArquivo = (index) => {
+    setArquivos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Preview das imagens selecionadas
+  const previews = useMemo(() => {
+    if (!arquivos?.length) return [];
+    return arquivos.map((f) => URL.createObjectURL(f));
+  }, [arquivos]);
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((p) => URL.revokeObjectURL(p));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previews]);
+
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -94,24 +121,24 @@ const subcategoriasPets = [
       return;
     }
 
-if (!subcategoria) {
-  setErro("Selecione o tipo de anúncio para pets.");
-  return;
-}
- 
+    if (!subcategoria) {
+      setErro("Selecione o tipo de anúncio para pets.");
+      return;
+    }
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
-      );
+      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
+      return;
+    }
+
+    if (!isValidYoutubeUrl(videoUrl)) {
+      setErro("O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).");
       return;
     }
 
@@ -154,33 +181,37 @@ if (!subcategoria) {
 
     const imagens = urlsUpload;
 
-    // 👉 INSERT no Supabase (SEM tipo_pet)
-    const { error } = await supabase.from("anuncios").insert({
-      user_id: user.id,
-      categoria: "pets",
+    // INSERT no Supabase
+    const { data, error } = await supabase
+      .from("anuncios")
+      .insert({
+        user_id: user.id,
+        categoria: "pets",
 
-      titulo,
-      descricao,
-      cidade,
-      bairro,
-      preco,
-      imagens,
-      video_url: videoUrl || null,
+        titulo,
+        descricao,
+        cidade,
+        bairro,
+        preco,
+        imagens,
+        video_url: videoUrl || null,
 
-      telefone: telefone || null,
-      whatsapp: whatsapp || null,
-      email: email || null,
-      contato: contatoPrincipal,
-      nome_contato: nomeContato || null,
+        telefone: telefone || null,
+        whatsapp: whatsapp || null,
+        email: email || null,
+        contato: contatoPrincipal,
+        nome_contato: nomeContato || null,
 
-      // campos específicos de pets
-      subcategoria_pet: subcategoria, // existe no banco
-      // tipo_pet removido — não existe na tabela
-      tipo_imovel: subcategoria, // compatibilidade com código antigo
+        // específicos de pets
+        subcategoria_pet: subcategoria,
+        // compatibilidade com motores/buscas existentes
+        tipo_imovel: subcategoria,
 
-      status: "ativo",
-      destaque: false,
-    });
+        status: "ativo",
+        destaque: false,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("Erro ao salvar anúncio de pets:", error);
@@ -191,9 +222,14 @@ if (!subcategoria) {
       return;
     }
 
-    setSucesso("Anúncio de pets enviado com sucesso!");
+    setSucesso("Anúncio de pets enviado com sucesso! Redirecionando…");
 
-    // Limpa formulário
+    // ✅ Redireciona para a página do anúncio novo (padrão)
+    setTimeout(() => {
+      router.push(`/anuncios/${data.id}`);
+    }, 1200);
+
+    // Limpa formulário (opcional — se você quiser manter preenchido, eu tiro)
     setTitulo("");
     setDescricao("");
     setCidade("");
@@ -207,97 +243,110 @@ if (!subcategoria) {
     setWhatsapp("");
     setEmail("");
     setAceitoTermos(false);
-
-    setTimeout(() => {
-      router.push("/painel/meus-anuncios");
-    }, 2000);
   };
 
+  const Card = ({ title, subtitle, children }) => (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+
   return (
-    <form onSubmit={enviarAnuncio} className="space-y-6 text-xs md:text-sm">
+    <form onSubmit={enviarAnuncio} className="space-y-4">
       {/* Mensagens */}
       {erro && (
-        <p className="text-red-600 border border-red-200 bg-red-50 rounded-lg px-3 py-2">
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-700">
           {erro}
-        </p>
+        </div>
       )}
       {sucesso && (
-        <p className="text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-lg px-3 py-2">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs md:text-sm text-emerald-700">
           {sucesso}
-        </p>
+        </div>
       )}
 
-      {/* TIPO DE ANÚNCIO */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Tipo de anúncio para pets
-        </h2>
+      {/* TIPO */}
+      <Card
+        title="Tipo de anúncio para Pets"
+        subtitle="Escolha o tipo correto para o anúncio aparecer nas listas certas."
+      >
+        <label className="block text-[11px] font-semibold text-slate-700">
+          Categoria <span className="text-red-500">*</span>
+        </label>
+        <select
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          value={subcategoria}
+          onChange={(e) => setSubcategoria(e.target.value)}
+          required
+        >
+          <option value="">Selecione...</option>
+          {subcategoriasPets.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Categoria *
-          </label>
-          <select
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            value={subcategoria}
-            onChange={(e) => setSubcategoria(e.target.value)}
-            required
-          >
-            <option value="">Selecione...</option>
-            {subcategoriasPets.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+        {subcategoria === "Adoção / Doação" && (
+          <p className="mt-2 text-[11px] text-slate-500">
+            Dica: descreva idade aproximada, vacinas, castração e temperamento.
+          </p>
+        )}
+        {subcategoria === "Achados e perdidos" && (
+          <p className="mt-2 text-[11px] text-slate-500">
+            Dica: informe data/local onde foi visto e um ponto de referência.
+          </p>
+        )}
+      </Card>
+
+      {/* PRINCIPAL */}
+      <Card
+        title="Informações do anúncio"
+        subtitle="Título bom + descrição clara = mais contatos no WhatsApp."
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Título do anúncio <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Ex.: Filhotes para adoção, banho e tosa, hotel para pets..."
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Descrição detalhada <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Descreva o animal, produto ou serviço com detalhes honestos."
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              required
+            />
+          </div>
         </div>
-      </div>
-
-      {/* TÍTULO / DESCRIÇÃO */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações do anúncio
-        </h2>
-
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Título do anúncio *
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: Filhotes para adoção, banho e tosa, hotel para pets..."
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Descrição detalhada *
-          </label>
-          <textarea
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
-            placeholder="Descreva o animal, produto ou serviço com detalhes honestos."
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
+      </Card>
 
       {/* LOCALIZAÇÃO */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
-
+      <Card title="Localização" subtitle="Isso ajuda muito na busca por cidade.">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Cidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Cidade <span className="text-red-500">*</span>
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
@@ -312,140 +361,153 @@ if (!subcategoria) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Bairro / Região
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               placeholder="Ex.: Centro, Itaipuaçu..."
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* VALOR */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Valor</h2>
-
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Preço (R$)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Ex.: taxa simbólica, valor do serviço ou produto"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-          />
-        </div>
-      </div>
+      <Card title="Valor" subtitle="Se for adoção, pode deixar vazio ou colocar “taxa simbólica”.">
+        <label className="block text-[11px] font-semibold text-slate-700">Preço (R$)</label>
+        <input
+          type="text"
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          placeholder="Ex.: taxa simbólica, valor do serviço ou produto"
+          value={preco}
+          onChange={(e) => setPreco(e.target.value)}
+        />
+      </Card>
 
       {/* FOTOS */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
+      <Card title="Fotos" subtitle="Até 8 imagens. A primeira vira a capa do anúncio.">
+        <label className="block text-[11px] font-semibold text-slate-700">
+          Enviar fotos (upload) – até 8 imagens
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleArquivosChange}
+          className="mt-2 w-full text-xs"
+        />
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Enviar fotos (upload) – até 8 imagens
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-1 w-full text-xs"
-          />
-          {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              {arquivos.length} arquivo(s) selecionado(s).
-            </p>
-          )}
-        </div>
-      </div>
+        {arquivos.length > 0 && (
+          <>
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-[11px] text-slate-500">
+                {arquivos.length} arquivo(s) selecionado(s).
+              </p>
+              <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+              {previews.map((src, idx) => (
+                <div
+                  key={idx}
+                  className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+
+                  <button
+                    type="button"
+                    onClick={() => removerArquivo(idx)}
+                    className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[10px] px-2 py-1 hover:bg-black/75"
+                    aria-label="Remover imagem"
+                  >
+                    ✕
+                  </button>
+
+                  {idx === 0 && (
+                    <div className="absolute bottom-1 left-1 rounded-full bg-sky-600 text-white text-[10px] px-2 py-0.5">
+                      Capa
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </Card>
 
       {/* VÍDEO */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
-
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            URL do vídeo (YouTube)
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Se tiver, cole aqui o link de um vídeo"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-        </div>
-      </div>
+      <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
+        <label className="block text-[11px] font-semibold text-slate-700">
+          URL do vídeo (YouTube)
+        </label>
+        <input
+          type="text"
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          placeholder="Se tiver, cole aqui o link de um vídeo"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+        />
+      </Card>
 
       {/* CONTATO */}
-      <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
-
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Nome para contato
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Seu nome ou nome da empresa"
-            value={nomeContato}
-            onChange={(e) => setNomeContato(e.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
+      <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
+        <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Telefone
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Nome para contato
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Telefone para contato"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Seu nome ou nome da empresa"
+              value={nomeContato}
+              onChange={(e) => setNomeContato(e.target.value)}
             />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Telefone para contato"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="DDD + número"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
             <input
-              type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="DDD + número"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
+              type="email"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Seu e-mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
+      </Card>
 
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            E-mail
-          </label>
-          <input
-            type="email"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Seu e-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* TERMOS */}
-      <div className="space-y-2 border-t border-slate-200 pt-4">
+      {/* TERMOS + BOTÃO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
             type="checkbox"
@@ -454,9 +516,8 @@ if (!subcategoria) {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que assumo
-            total responsabilidade pelo conteúdo publicado. Estou ciente e de
-            acordo com os{" "}
+            Declaro que as informações deste anúncio são verdadeiras e assumo total responsabilidade
+            pelo conteúdo publicado. Estou de acordo com os{" "}
             <a
               href="/termos-de-uso"
               className="text-cyan-700 underline hover:text-cyan-800"
@@ -468,15 +529,16 @@ if (!subcategoria) {
             .
           </span>
         </label>
-      </div>
 
-      <button
-        type="submit"
-        className="mt-2 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
-        disabled={uploading}
-      >
-        {uploading ? "Enviando anúncio..." : "Publicar anúncio de pets"}
-      </button>
+        <button
+          type="submit"
+          className="mt-4 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
+          disabled={uploading}
+        >
+          {uploading ? "Enviando anúncio..." : "Publicar anúncio de Pets"}
+        </button>
+      </div>
     </form>
   );
 }
+
