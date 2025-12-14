@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
+// ✅ Parser oficial (ajuste o caminho se você colocou em outro lugar)
+import { parseBusca } from "../../lib/parserbusca/parser";
+
 // =========================
 // Helpers
 // =========================
@@ -15,32 +18,40 @@ function normaliza(s = "") {
     .trim();
 }
 
-function extrairFinalidadeDaBusca(busca) {
-  const t = normaliza(busca);
-
-  if (t.includes("temporada") || t.includes("por temporada")) return "aluguel temporada";
-  if (t.includes("aluguel") || t.includes("alugar")) return "aluguel";
-  if (t.includes("venda") || t.includes("comprar") || t.includes("vende")) return "venda";
-
-  return "";
-}
-
-function limparBusca(busca) {
-  let q = String(busca || "");
-  q = q.replace(/aluguel por temporada/gi, "");
-  q = q.replace(/\bpor temporada\b/gi, "");
-  q = q.replace(/\btemporada\b/gi, "");
-  q = q.replace(/\baluguel\b/gi, "");
-  q = q.replace(/\balugar\b/gi, "");
-  q = q.replace(/\bvenda\b/gi, "");
-  q = q.replace(/\bcomprar\b/gi, "");
-  q = q.replace(/\bvende\b/gi, "");
-  q = q.replace(/\s+/g, " ").trim();
-  return q;
-}
-
 function detalheUrl(id) {
   return `/anuncios/${id}`;
+}
+
+/**
+ * Normaliza a finalidade para o padrão do Classilagos/Supabase
+ * (padrão oficial recomendado)
+ * venda | aluguel | aluguel_temporada
+ */
+function normalizarFinalidade(fin) {
+  const t = normaliza(fin);
+
+  if (!t) return null;
+
+  // aceita variações antigas
+  if (t.includes("temporada")) return "aluguel_temporada";
+  if (t.includes("aluguel")) return "aluguel";
+  if (t.includes("venda")) return "venda";
+
+  return null;
+}
+
+/**
+ * Monta o q "limpo" para o RPC buscar_anuncios:
+ * - se o parser extrair termos livres, usamos eles
+ * - senão, usamos o texto original normalizado (sem mexer demais)
+ */
+function montarQLimpo(parsed, qOriginal) {
+  const termos = Array.isArray(parsed?.termosLivres) ? parsed.termosLivres : [];
+  const q1 = termos.join(" ").trim();
+  if (q1) return q1;
+
+  // fallback: mantém o que o usuário digitou (normalizado leve)
+  return String(qOriginal || "").trim();
 }
 
 // =========================
@@ -48,17 +59,20 @@ function detalheUrl(id) {
 // =========================
 export default function BuscaPage() {
   const [q, setQ] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [categoriaUrl, setCategoriaUrl] = useState("");
   const [resultados, setResultados] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+
+  // debug / chips
+  const [parsed, setParsed] = useState(null);
 
   // Lê querystring
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     setQ(params.get("q") || "");
-    setCategoria(params.get("categoria") || "");
+    setCategoriaUrl(params.get("categoria") || "");
   }, []);
 
   // Busca com fallback (NUNCA fica vazio)
@@ -70,15 +84,27 @@ export default function BuscaPage() {
         setCarregando(true);
         setErro("");
 
-        const fin = extrairFinalidadeDaBusca(q);
-        const qLimpa = limparBusca(q);
+        // 1) parser oficial
+        const p = parseBusca(q || "");
+        if (!cancelado) setParsed(p);
 
-        // 1) tenta: q + fin (mais preciso)
+        // 2) decide filtros finais (URL tem prioridade se vier preenchida)
+        const catFinal = categoriaUrl || p?.categoria || null;
+        const cidFinal = p?.cidade || null;
+        const finFinal = normalizarFinalidade(p?.finalidade);
+
+        // 3) q "limpa" (termos livres)
+        const qLimpa = montarQLimpo(p, q);
+        const qParam = qLimpa ? qLimpa : null;
+
+        // -----------------------------
+        // 1) tenta: q + fin + cidade + categoria (mais preciso)
+        // -----------------------------
         let resp1 = await supabase.rpc("buscar_anuncios", {
-          q: qLimpa ? qLimpa : null,
-          cat: categoria ? categoria : null,
-          cid: null,
-          fin: fin ? fin : null,
+          q: qParam,
+          cat: catFinal,
+          cid: cidFinal,
+          fin: finFinal,
           lim: 80,
           off: 0,
         });
@@ -87,12 +113,14 @@ export default function BuscaPage() {
 
         let lista = Array.isArray(resp1.data) ? resp1.data : [];
 
+        // -----------------------------
         // 2) fallback: q sem fin (ainda relevante)
-        if (lista.length === 0 && qLimpa) {
+        // -----------------------------
+        if (lista.length === 0 && qParam) {
           let resp2 = await supabase.rpc("buscar_anuncios", {
-            q: qLimpa,
-            cat: categoria ? categoria : null,
-            cid: null,
+            q: qParam,
+            cat: catFinal,
+            cid: cidFinal,
             fin: null,
             lim: 80,
             off: 0,
@@ -103,12 +131,14 @@ export default function BuscaPage() {
           }
         }
 
+        // -----------------------------
         // 3) fallback final: últimos anúncios da categoria (sem q, sem fin)
+        // -----------------------------
         if (lista.length === 0) {
           let resp3 = await supabase.rpc("buscar_anuncios", {
             q: null,
-            cat: categoria ? categoria : null,
-            cid: null,
+            cat: catFinal,
+            cid: cidFinal, // mantém cidade se tiver, ajuda muito
             fin: null,
             lim: 24,
             off: 0,
@@ -150,14 +180,22 @@ export default function BuscaPage() {
     return () => {
       cancelado = true;
     };
-  }, [q, categoria]);
+  }, [q, categoriaUrl]);
 
   const chips = useMemo(() => {
     const arr = [];
     if (q) arr.push({ k: "Texto", v: q });
-    if (categoria) arr.push({ k: "Categoria", v: categoria });
+
+    // categoria (URL ou parser)
+    const catChip = categoriaUrl || parsed?.categoria;
+    if (catChip) arr.push({ k: "Categoria", v: catChip });
+
+    if (parsed?.cidade) arr.push({ k: "Cidade", v: parsed.cidade });
+    if (parsed?.finalidade) arr.push({ k: "Finalidade", v: parsed.finalidade });
+    if (parsed?.tipo_imovel) arr.push({ k: "Tipo", v: parsed.tipo_imovel });
+
     return arr;
-  }, [q, categoria]);
+  }, [q, categoriaUrl, parsed]);
 
   return (
     <main className="bg-slate-950 min-h-screen text-white">
@@ -228,3 +266,4 @@ export default function BuscaPage() {
     </main>
   );
 }
+
