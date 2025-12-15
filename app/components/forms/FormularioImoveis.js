@@ -34,6 +34,10 @@ export default function FormularioImoveis() {
   const [mobiliado, setMobiliado] = useState("nao"); // sim / nao
   const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao"); // sim / nao
 
+  // ✅ NOVO: corretor / imobiliária + logo
+  const [isImobiliaria, setIsImobiliaria] = useState(false);
+  const [logoArquivo, setLogoArquivo] = useState(null);
+
   // Upload de arquivos (fotos)
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -101,6 +105,11 @@ export default function FormularioImoveis() {
     setArquivos(files.slice(0, 8));
   };
 
+  const handleLogoChange = (e) => {
+    const file = (e.target.files || [])[0] || null;
+    setLogoArquivo(file);
+  };
+
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -119,9 +128,7 @@ export default function FormularioImoveis() {
     // Pelo menos um meio de contato
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
@@ -131,51 +138,66 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // ✅ Se marcou corretor/imobiliária, exige logo
+    if (isImobiliaria && !logoArquivo) {
+      setErro("Você marcou corretor/imobiliária. Envie a logomarca (1 imagem).");
+      return;
+    }
+
     // Termos de responsabilidade
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
-      );
+      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
       return;
     }
 
     let urlsUpload = [];
+    let logoUrl = null;
 
     try {
+      setUploading(true);
+
+      const bucketName = "anuncios";
+
+      // ✅ 1) upload das fotos (até 8)
       if (arquivos.length > 0) {
-        setUploading(true);
-
-        const bucketName = "anuncios";
-
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
             const fileExt = file.name.split(".").pop();
             const filePath = `${user.id}/${Date.now()}-${index}.${fileExt}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from(bucketName)
-              .upload(filePath, file);
+            const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
 
             if (uploadError) {
               console.error("Erro ao subir imagem:", uploadError);
               throw uploadError;
             }
 
-            const { data: publicData } = supabase.storage
-              .from(bucketName)
-              .getPublicUrl(filePath);
-
+            const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
             return publicData.publicUrl;
           })
         );
 
         urlsUpload = uploads;
       }
+
+      // ✅ 2) upload da logo (1)
+      if (isImobiliaria && logoArquivo) {
+        const ext = logoArquivo.name.split(".").pop();
+        const filePath = `${user.id}/logos/${Date.now()}-logo.${ext}`;
+
+        const { error: logoErr } = await supabase.storage.from(bucketName).upload(filePath, logoArquivo);
+
+        if (logoErr) {
+          console.error("Erro ao subir logomarca:", logoErr);
+          throw logoErr;
+        }
+
+        const { data: publicDataLogo } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+        logoUrl = publicDataLogo?.publicUrl || null;
+      }
     } catch (err) {
       console.error(err);
-      setErro(
-        "Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes."
-      );
+      setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
       setUploading(false);
       return;
     } finally {
@@ -216,6 +238,9 @@ export default function FormularioImoveis() {
       area_construida: areaConstruida,
       area_terreno: areaTerreno,
       nome_contato: nomeContato,
+
+      // ✅ NOVO: logo opcional
+      logo_url: logoUrl,
     });
 
     if (error) {
@@ -255,6 +280,10 @@ export default function FormularioImoveis() {
     setEmail("");
     setAceitoTermos(false);
 
+    // ✅ limpa logo
+    setIsImobiliaria(false);
+    setLogoArquivo(null);
+
     // Depois de 2 segundos, vai para Meus anúncios
     setTimeout(() => {
       router.push("/painel/meus-anuncios");
@@ -276,15 +305,11 @@ export default function FormularioImoveis() {
 
       {/* BLOCO: TIPO DO ANÚNCIO */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Tipo de anúncio
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Finalidade *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Finalidade *</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={finalidade}
@@ -301,9 +326,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Tipo de imóvel *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Tipo de imóvel *</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={tipoImovel}
@@ -321,16 +344,61 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
+      {/* ✅ NOVO BLOCO: LOGOMARCA (corretor / imobiliária) */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Corretor / Imobiliária</h2>
+
+        <label className="flex items-start gap-2 text-[12px] text-slate-700">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            checked={isImobiliaria}
+            onChange={(e) => setIsImobiliaria(e.target.checked)}
+          />
+          <span>
+            Sou corretor/imobiliária e quero exibir minha <b>logomarca</b> no anúncio.
+            <span className="block text-[11px] text-slate-500">
+              (A capa do imóvel continua sendo a foto do imóvel — a logo é só um “selo”.)
+            </span>
+          </span>
+        </label>
+
+        {isImobiliaria && (
+          <div>
+            <label className="block text-xs font-medium text-slate-700">
+              Enviar logomarca (1 imagem) *
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="mt-1 w-full text-xs"
+            />
+            {logoArquivo?.name && (
+              <p className="mt-1 text-[11px] text-slate-500">
+                Logomarca selecionada: <b>{logoArquivo.name}</b>{" "}
+                <button
+                  type="button"
+                  onClick={() => setLogoArquivo(null)}
+                  className="ml-2 underline text-slate-700"
+                >
+                  remover
+                </button>
+              </p>
+            )}
+            <p className="mt-1 text-[11px] text-slate-500">
+              Recomendado: PNG com fundo transparente (ou JPG). Até ~2MB.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* BLOCO: INFORMAÇÕES DO IMÓVEL */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações do imóvel
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Informações do imóvel</h2>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Título do anúncio *
-          </label>
+          <label className="block text-xs font-medium text-slate-700">Título do anúncio *</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -342,9 +410,7 @@ export default function FormularioImoveis() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Descrição detalhada *
-          </label>
+          <label className="block text-xs font-medium text-slate-700">Descrição detalhada *</label>
           <textarea
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
             placeholder="Descreva os principais detalhes do imóvel, vista, estado de conservação, proximidade da praia, lagoa, comércio, escolas etc."
@@ -353,8 +419,7 @@ export default function FormularioImoveis() {
             required
           />
           <p className="mt-1 text-[11px] text-slate-500">
-            Dica: um bom texto com detalhes honestos aumenta muito as chances de
-            contato.
+            Dica: um bom texto com detalhes honestos aumenta muito as chances de contato.
           </p>
         </div>
       </div>
@@ -365,9 +430,7 @@ export default function FormularioImoveis() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Cidade *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Cidade *</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={cidade}
@@ -384,9 +447,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Bairro / Região
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Bairro / Região</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -399,9 +460,7 @@ export default function FormularioImoveis() {
 
         <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Endereço (opcional)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Endereço (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -412,9 +471,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              CEP (opcional)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">CEP (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -427,15 +484,11 @@ export default function FormularioImoveis() {
 
       {/* BLOCO: DETALHES DO IMÓVEL */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Detalhes do imóvel
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Detalhes do imóvel</h2>
 
         <div className="grid gap-4 md:grid-cols-4">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Dormitórios
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Dormitórios</label>
             <input
               type="number"
               min="0"
@@ -445,9 +498,7 @@ export default function FormularioImoveis() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Suítes
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Suítes</label>
             <input
               type="number"
               min="0"
@@ -457,9 +508,7 @@ export default function FormularioImoveis() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Banheiros
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Banheiros</label>
             <input
               type="number"
               min="0"
@@ -469,9 +518,7 @@ export default function FormularioImoveis() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Vagas de garagem
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Vagas de garagem</label>
             <input
               type="number"
               min="0"
@@ -484,9 +531,7 @@ export default function FormularioImoveis() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Área construída (m²)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Área construída (m²)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -495,9 +540,7 @@ export default function FormularioImoveis() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Área total / terreno (m²)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Área total / terreno (m²)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -506,9 +549,7 @@ export default function FormularioImoveis() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Imóvel mobiliado?
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Imóvel mobiliado?</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900"
               value={mobiliado}
@@ -527,9 +568,7 @@ export default function FormularioImoveis() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Preço (R$) *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Preço (R$) *</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -547,9 +586,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Condomínio (R$)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Condomínio (R$)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -559,9 +596,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              IPTU (R$)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">IPTU (R$)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -572,9 +607,7 @@ export default function FormularioImoveis() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Aceita financiamento?
-          </label>
+          <label className="block text-xs font-medium text-slate-700">Aceita financiamento?</label>
           <select
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm max-w-xs bg-white text-slate-900"
             value={aceitaFinanciamento}
@@ -602,9 +635,7 @@ export default function FormularioImoveis() {
             className="mt-1 w-full text-xs"
           />
           {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              {arquivos.length} arquivo(s) selecionado(s).
-            </p>
+            <p className="mt-1 text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
           )}
           <p className="mt-1 text-[11px] text-slate-500">
             Formatos recomendados: JPG ou PNG, até 2MB cada.
@@ -614,14 +645,10 @@ export default function FormularioImoveis() {
 
       {/* BLOCO: VÍDEO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Vídeo do imóvel (opcional)
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Vídeo do imóvel (opcional)</h2>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            URL do vídeo (YouTube)
-          </label>
+          <label className="block text-xs font-medium text-slate-700">URL do vídeo (YouTube)</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -637,9 +664,7 @@ export default function FormularioImoveis() {
         <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Nome de contato
-          </label>
+          <label className="block text-xs font-medium text-slate-700">Nome de contato</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -651,9 +676,7 @@ export default function FormularioImoveis() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Telefone</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -664,9 +687,7 @@ export default function FormularioImoveis() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-xs font-medium text-slate-700">WhatsApp</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -678,9 +699,7 @@ export default function FormularioImoveis() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700">
-            E-mail
-          </label>
+          <label className="block text-xs font-medium text-slate-700">E-mail</label>
           <input
             type="email"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -691,16 +710,13 @@ export default function FormularioImoveis() {
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para as pessoas entrarem em contato com você.
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para as pessoas entrarem em contato com você.
         </p>
       </div>
 
       {/* BLOCO: TERMOS */}
       <div className="space-y-2 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Termos de responsabilidade
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Termos de responsabilidade</h2>
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
             type="checkbox"
@@ -709,9 +725,7 @@ export default function FormularioImoveis() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que
-            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
-            e de acordo com os{" "}
+            Declaro que as informações deste anúncio são verdadeiras e que assumo total responsabilidade pelo conteúdo publicado. Estou ciente e de acordo com os{" "}
             <a
               href="/termos-de-uso"
               className="text-cyan-700 underline hover:text-cyan-800"
@@ -735,3 +749,4 @@ export default function FormularioImoveis() {
     </form>
   );
 }
+
