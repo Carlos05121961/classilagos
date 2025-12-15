@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-export default function ListaVeiculosPage() {
+function ListaVeiculosContent() {
+  const searchParams = useSearchParams();
+
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,23 +20,21 @@ export default function ListaVeiculosPage() {
     loja: false,
   });
 
-  // Lê os parâmetros da URL (tipo, condicao, financiado, consignado, loja)
+  // ✅ lê os parâmetros SEM travar (toda vez que a URL mudar)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const params = new URLSearchParams(window.location.search);
-
-    const tipo = params.get("tipo") || "";
-    const condicao = params.get("condicao") || "";
-    const financiado = params.get("financiado") === "1";
-    const consignado = params.get("consignado") === "1";
-    const loja = params.get("loja") === "1";
+    const tipo = searchParams.get("tipo") || "";
+    const condicao = searchParams.get("condicao") || "";
+    const financiado = searchParams.get("financiado") === "1";
+    const consignado = searchParams.get("consignado") === "1";
+    const loja = searchParams.get("loja") === "1";
 
     setFiltros({ tipo, condicao, financiado, consignado, loja });
-  }, []);
+  }, [searchParams]);
 
-  // Buscar anúncios de veículos conforme os filtros
+  // ✅ buscar anúncios conforme filtros
   useEffect(() => {
+    let cancelado = false;
+
     async function carregar() {
       try {
         setLoading(true);
@@ -41,28 +42,33 @@ export default function ListaVeiculosPage() {
         let query = supabase
           .from("anuncios")
           .select(
-            "id, titulo, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade"
+            "id, titulo, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade, destaque, created_at"
           )
           .eq("categoria", "veiculos")
+          .order("destaque", { ascending: false })
           .order("created_at", { ascending: false });
 
         if (filtros.tipo) {
           query = query.eq("tipo_imovel", filtros.tipo);
         }
+
+        // ✅ condicao: trata 0km de duas formas
         if (filtros.condicao) {
-          query = query.eq("condicao_veiculo", filtros.condicao);
-        }
-        if (filtros.financiado) {
-          query = query.eq("financiado", true);
-        }
-        if (filtros.consignado) {
-          query = query.eq("consignado", true);
-        }
-        if (filtros.loja) {
-          query = query.eq("loja_revenda", true);
+          if (filtros.condicao === "0km") {
+            // pega tanto por texto quanto boolean
+            query = query.or("condicao_veiculo.eq.0km,zero_km.eq.true");
+          } else {
+            query = query.eq("condicao_veiculo", filtros.condicao);
+          }
         }
 
+        if (filtros.financiado) query = query.eq("financiado", true);
+        if (filtros.consignado) query = query.eq("consignado", true);
+        if (filtros.loja) query = query.eq("loja_revenda", true);
+
         const { data, error } = await query;
+
+        if (cancelado) return;
 
         if (error) {
           console.error("Erro ao carregar veículos:", error);
@@ -72,16 +78,19 @@ export default function ListaVeiculosPage() {
         }
       } catch (e) {
         console.error("Erro inesperado ao carregar veículos:", e);
-        setAnuncios([]);
+        if (!cancelado) setAnuncios([]);
       } finally {
-        setLoading(false);
+        if (!cancelado) setLoading(false);
       }
     }
 
     carregar();
+    return () => {
+      cancelado = true;
+    };
   }, [filtros]);
 
-  const tituloPagina = (() => {
+  const tituloPagina = useMemo(() => {
     let titulo = "Veículos em destaque";
 
     if (filtros.tipo === "Carro") titulo = "Carros à venda";
@@ -96,7 +105,7 @@ export default function ListaVeiculosPage() {
     if (filtros.loja) titulo = "Veículos de loja / revenda";
 
     return titulo;
-  })();
+  }, [filtros]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -104,24 +113,24 @@ export default function ListaVeiculosPage() {
       <section className="border-b bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] text-slate-500 mb-1">
-              Classilagos &gt; Veículos
-            </p>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-900">
-              {tituloPagina}
-            </h1>
+            <p className="text-[11px] text-slate-500 mb-1">Classilagos &gt; Veículos</p>
+
+            <h1 className="text-lg md:text-2xl font-bold text-slate-900">{tituloPagina}</h1>
+
             <p className="text-xs md:text-sm text-slate-600 mt-1">
               Anúncios publicados pelos usuários em toda a Região dos Lagos.
             </p>
+
+            <div className="mt-2 text-[11px] text-slate-500">
+              {loading ? "Carregando..." : `${anuncios.length} resultado(s)`}
+            </div>
           </div>
 
           <div className="hidden sm:flex flex-col items-end gap-2">
-            <Link
-              href="/veiculos"
-              className="text-xs text-slate-600 underline"
-            >
+            <Link href="/veiculos" className="text-xs text-slate-600 underline">
               &larr; Voltar para veículos
             </Link>
+
             <Link
               href="/anunciar?tipo=veiculos"
               className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
@@ -137,10 +146,7 @@ export default function ListaVeiculosPage() {
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="overflow-hidden rounded-2xl shadow border border-slate-200"
-              >
+              <div key={i} className="overflow-hidden rounded-2xl shadow border border-slate-200">
                 <div className="h-28 md:h-32 w-full bg-slate-200 animate-pulse" />
                 <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
                   Carregando...
@@ -164,10 +170,7 @@ export default function ListaVeiculosPage() {
         {!loading && anuncios.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {anuncios.map((carro) => {
-              const img =
-                Array.isArray(carro.imagens) && carro.imagens.length > 0
-                  ? carro.imagens[0]
-                  : null;
+              const img = Array.isArray(carro.imagens) && carro.imagens.length > 0 ? carro.imagens[0] : null;
 
               return (
                 <Link
@@ -179,7 +182,7 @@ export default function ListaVeiculosPage() {
                     {img ? (
                       <Image
                         src={img}
-                        alt={carro.titulo}
+                        alt={carro.titulo || "Veículo"}
                         fill
                         sizes="300px"
                         className="object-cover group-hover:scale-105 transition-transform"
@@ -192,17 +195,15 @@ export default function ListaVeiculosPage() {
                   </div>
 
                   <div className="bg-slate-900 text-white px-3 py-2">
-                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">
-                      {carro.titulo}
-                    </p>
+                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">{carro.titulo}</p>
+
                     <p className="mt-1 text-[10px] text-slate-200">
                       {carro.cidade}
                       {carro.bairro ? ` • ${carro.bairro}` : ""}
                     </p>
+
                     {carro.preco && (
-                      <p className="mt-1 text-[11px] font-bold text-emerald-300">
-                        R$ {carro.preco}
-                      </p>
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>
                     )}
                   </div>
                 </Link>
@@ -214,3 +215,13 @@ export default function ListaVeiculosPage() {
     </main>
   );
 }
+
+// ✅ obrigatório pra usar useSearchParams sem erro de build
+export default function ListaVeiculosPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-slate-600">Carregando...</div>}>
+      <ListaVeiculosContent />
+    </Suspense>
+  );
+}
+
