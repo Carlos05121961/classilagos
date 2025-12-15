@@ -49,10 +49,12 @@ function ListaNauticaContent() {
         tituloPagina = "Anúncios náuticos";
         break;
     }
-  } else {
-    if (finalidade) tituloPagina = `Náutica — ${finalidade}`;
-    if (tipo) tituloPagina = `Náutica — ${tipo}`;
-    if (subcategoria) tituloPagina = `Náutica — ${subcategoria}`;
+  } else if (finalidade) {
+    tituloPagina = `Náutica — ${finalidade}`;
+  } else if (tipo) {
+    tituloPagina = `Náutica — ${tipo}`;
+  } else if (subcategoria) {
+    tituloPagina = `Náutica — ${subcategoria}`;
   }
 
   useEffect(() => {
@@ -62,9 +64,11 @@ function ListaNauticaContent() {
       let query = supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, categoria"
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, categoria, destaque, status"
         )
         .eq("categoria", "nautica")
+        .eq("status", "ativo")
+        .order("destaque", { ascending: false })
         .order("created_at", { ascending: false });
 
       // Filtro direto por finalidade (ex.: aluguel)
@@ -167,7 +171,6 @@ function ListaNauticaContent() {
             break;
         }
       } else {
-        // Compatibilidade com filtros antigos por tipo / subcategoria exata
         if (tipo) {
           const t = tipo.toLowerCase();
           filtrados = filtrados.filter(
@@ -331,3 +334,4 @@ export default function ListaNauticaPage() {
     </Suspense>
   );
 }
+
