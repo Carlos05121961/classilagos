@@ -348,10 +348,14 @@ export default function BuscaPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {resultados.map((a) => {
-              const imagens = Array.isArray(a.imagens) ? a.imagens : [];
-              const capa =
-                imagens.find((img) => typeof img === "string" && img.trim() !== "") ||
-                "/imoveis/sem-foto.jpg";
+             const imagens = Array.isArray(a.imagens) ? a.imagens : [];
+
+const capa =
+  a.categoria === "curriculo"
+    ? "/curriculos/avatar-neutro.png"
+    : (imagens.find((img) => typeof img === "string" && img.trim() !== "") ||
+       "/imoveis/sem-foto.jpg");
+
 
               return (
                 <Link
