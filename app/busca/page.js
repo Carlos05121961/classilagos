@@ -40,26 +40,26 @@ function normalizarFinalidade(fin) {
 // Tipos: Canonicalização (DB)
 // =========================
 const TIPO_CANONICO = {
-  "casa": "Casa",
-  "apartamento": "Apartamento",
-  "cobertura": "Cobertura",
+  casa: "Casa",
+  apartamento: "Apartamento",
+  cobertura: "Cobertura",
   "kitnet / studio": "Kitnet / Studio",
-  "kitnet": "Kitnet / Studio",
-  "studio": "Kitnet / Studio",
+  kitnet: "Kitnet / Studio",
+  studio: "Kitnet / Studio",
   "terreno / lote": "Terreno / Lote",
-  "terreno": "Terreno / Lote",
-  "lote": "Terreno / Lote",
-  "comercial": "Comercial",
+  terreno: "Terreno / Lote",
+  lote: "Terreno / Lote",
+  comercial: "Comercial",
   "loja / sala": "Loja / Sala",
-  "loja": "Comercial",          // ✅ loja vira GRUPO comercial
-  "sala": "Loja / Sala",
-  "galpao": "Galpão",
-  "galpão": "Galpão",
+  loja: "Comercial", // ✅ loja vira GRUPO comercial
+  sala: "Loja / Sala",
+  galpao: "Galpão",
+  galpão: "Galpão",
   "sitio / chacara": "Sítio / Chácara",
-  "sitio": "Sítio / Chácara",
-  "chacara": "Sítio / Chácara",
-  "chácara": "Sítio / Chácara",
-  "outros": "Outros",
+  sitio: "Sítio / Chácara",
+  chacara: "Sítio / Chácara",
+  chácara: "Sítio / Chácara",
+  outros: "Outros",
 };
 
 function canonizarTipo(tipo) {
@@ -85,7 +85,10 @@ function removerPalavras(q, palavras = []) {
   for (const p of palavras) {
     const pn = normaliza(p);
     if (!pn) continue;
-    const re = new RegExp(`(^|\\s)${pn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`, "gi");
+    const re = new RegExp(
+      `(^|\\s)${pn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`,
+      "gi"
+    );
     out = out.replace(re, " ");
   }
   return out.replace(/\s+/g, " ").trim();
@@ -99,19 +102,46 @@ function removerPalavras(q, palavras = []) {
  */
 function montarQLimpo(parsed, qOriginal, { cidFinal, tipFinal, finFinal } = {}) {
   const termos = Array.isArray(parsed?.termosLivres) ? parsed.termosLivres : [];
-  let q1 = (termos.join(" ").trim() || String(qOriginal || "").trim());
+  let q1 = termos.join(" ").trim() || String(qOriginal || "").trim();
 
   // remove palavras de finalidade (evitar "aluguel" + "temporada" etc)
   const finTxt = normaliza(parsed?.finalidade || "");
   if (finTxt.includes("temporada")) {
     q1 = removerPalavras(q1, [
-      "aluguel","alugar","alugo","locacao","locação","mensal","anual",
-      "por temporada","temporada","diaria","diária","diarias","diárias",
+      "aluguel",
+      "alugar",
+      "alugo",
+      "locacao",
+      "locação",
+      "mensal",
+      "anual",
+      "por temporada",
+      "temporada",
+      "diaria",
+      "diária",
+      "diarias",
+      "diárias",
     ]);
   } else if (finTxt.includes("aluguel")) {
-    q1 = removerPalavras(q1, ["temporada","por temporada","diaria","diária","diarias","diárias"]);
+    q1 = removerPalavras(q1, [
+      "temporada",
+      "por temporada",
+      "diaria",
+      "diária",
+      "diarias",
+      "diárias",
+    ]);
   } else if (finTxt.includes("venda")) {
-    q1 = removerPalavras(q1, ["venda","vender","vendo","comprar","compra","vende","à venda","a venda"]);
+    q1 = removerPalavras(q1, [
+      "venda",
+      "vender",
+      "vendo",
+      "comprar",
+      "compra",
+      "vende",
+      "à venda",
+      "a venda",
+    ]);
   }
 
   // ✅ remove cidade do texto livre quando houver filtro de cidade
@@ -122,16 +152,36 @@ function montarQLimpo(parsed, qOriginal, { cidFinal, tipFinal, finFinal } = {}) 
   const tipNorm = normaliza(tipFinal || "");
   if (tipFinal) {
     if (tipNorm.includes("sitio") || tipNorm.includes("chacara")) {
-      q1 = removerPalavras(q1, ["sitio", "sítio", "chacara", "chácara", "sitio / chacara", "sítio / chácara"]);
+      q1 = removerPalavras(q1, [
+        "sitio",
+        "sítio",
+        "chacara",
+        "chácara",
+        "sitio / chacara",
+        "sítio / chácara",
+      ]);
     } else if (tipNorm.includes("kitnet") || tipNorm.includes("studio")) {
       q1 = removerPalavras(q1, ["kitnet", "quitinete", "studio", "stúdio"]);
     } else if (tipNorm.includes("comercial")) {
       // aqui está o pulo do gato: não pode deixar "loja" e "comercial" apertando a FTS
-      q1 = removerPalavras(q1, ["loja", "comercial", "sala", "ponto", "ponto comercial"]);
+      q1 = removerPalavras(q1, [
+        "loja",
+        "comercial",
+        "sala",
+        "ponto",
+        "ponto comercial",
+      ]);
     } else if (tipNorm.includes("loja / sala")) {
       q1 = removerPalavras(q1, ["loja", "sala", "sala comercial", "office", "loja / sala"]);
     } else if (tipNorm.includes("galp")) {
-      q1 = removerPalavras(q1, ["galpao", "galpão", "deposito", "depósito", "armazem", "armazém"]);
+      q1 = removerPalavras(q1, [
+        "galpao",
+        "galpão",
+        "deposito",
+        "depósito",
+        "armazem",
+        "armazém",
+      ]);
     } else if (tipNorm.includes("cobertura")) {
       q1 = removerPalavras(q1, ["cobertura"]);
     } else if (tipNorm.includes("apartamento")) {
@@ -143,10 +193,67 @@ function montarQLimpo(parsed, qOriginal, { cidFinal, tipFinal, finFinal } = {}) 
     }
   }
 
-  // limpeza leve de tokens genéricos
+  // limpeza leve
   q1 = q1.replace(/\s+/g, " ").trim();
-
   return q1;
+}
+
+// =========================
+// Ranking Premium (relevância)
+// =========================
+function extrairAnosDoTexto(s = "") {
+  const t = String(s);
+  const anos = [];
+  const re = /\b(19\d{2}|20\d{2})\b/g; // 1900-2099
+  let m;
+  while ((m = re.exec(t)) !== null) {
+    const ano = Number(m[1]);
+    if (!Number.isNaN(ano)) anos.push(ano);
+  }
+  return anos;
+}
+
+function calcularScoreRelevancia(anuncio, termosNorm, anosBuscados) {
+  const titulo = normaliza(anuncio?.titulo || "");
+  const desc = normaliza(anuncio?.descricao || "");
+  const tipo = normaliza(anuncio?.tipo_imovel || "");
+  const cidade = normaliza(anuncio?.cidade || "");
+  const bairro = normaliza(anuncio?.bairro || "");
+  const texto = `${titulo} ${desc} ${tipo} ${cidade} ${bairro}`.trim();
+
+  let score = 0;
+
+  // termos: título > tipo > resto
+  for (const termo of termosNorm) {
+    if (!termo) continue;
+    if (titulo.includes(termo)) score += 8;
+    else if (tipo.includes(termo)) score += 5;
+    else if (texto.includes(termo)) score += 3;
+  }
+
+  // anos: bônus por proximidade (quando existir ano no anúncio)
+  if (anosBuscados.length > 0) {
+    const anosNoAnuncio = extrairAnosDoTexto(`${anuncio?.titulo || ""} ${anuncio?.descricao || ""}`);
+    if (anosNoAnuncio.length > 0) {
+      let melhor = Infinity;
+      for (const ab of anosBuscados) {
+        for (const aa of anosNoAnuncio) {
+          const d = Math.abs(aa - ab);
+          if (d < melhor) melhor = d;
+        }
+      }
+      if (melhor === 0) score += 12;
+      else if (melhor <= 1) score += 9;
+      else if (melhor <= 2) score += 7;
+      else if (melhor <= 5) score += 4;
+      else score += 1;
+    }
+  }
+
+  // destaque: empurrão leve
+  if (anuncio?.destaque === true) score += 2;
+
+  return score;
 }
 
 // =========================
@@ -203,29 +310,24 @@ export default function BuscaPage() {
         const finFinal = normalizarFinalidade(p0?.finalidade) || finFallback;
 
         // ✅ tipo final: canonizado + regra especial para LOJA
-        // - se digitar "loja", tratamos como Comercial (grupo)
         let tipFinal = canonizarTipo(p0?.tipo_imovel) || null;
         if (textoNorm.includes("loja")) tipFinal = "Comercial";
-        // se parser vier "Loja / Sala", mas o usuário digitou "loja", também vira Comercial
         if (tipFinal === "Loja / Sala" && textoNorm.includes("loja")) tipFinal = "Comercial";
 
         const p = { ...p0, tipo_imovel: tipFinal };
-
         if (!cancelado) setParsed(p);
 
         // 3) q "limpa"
         const qLimpa = montarQLimpo(p, q, { cidFinal, tipFinal, finFinal });
-        const qParam = qLimpa ? qLimpa : null; // ✅ se ficar vazio, manda null
+        const qParam = qLimpa ? qLimpa : null;
 
-        // -----------------------------
         // 1) tenta: q + fin + cidade + categoria (+ tipo)
-        // -----------------------------
         let resp1 = await supabase.rpc("buscar_anuncios", {
           q: qParam,
           cat: catFinal,
           cid: cidFinal,
           fin: finFinal,
-          tip: tipFinal, // ✅ agora vem corrigido
+          tip: tipFinal,
           lim: 80,
           off: 0,
         });
@@ -234,16 +336,14 @@ export default function BuscaPage() {
 
         let lista = Array.isArray(resp1.data) ? resp1.data : [];
 
-        // -----------------------------
         // 2) fallback: q sem fin
-        // -----------------------------
         if (lista.length === 0 && qParam) {
           let resp2 = await supabase.rpc("buscar_anuncios", {
             q: qParam,
             cat: catFinal,
             cid: cidFinal,
             fin: null,
-            tip: tipFinal, // ✅ mantém tipo
+            tip: tipFinal,
             lim: 80,
             off: 0,
           });
@@ -253,16 +353,14 @@ export default function BuscaPage() {
           }
         }
 
-        // -----------------------------
         // 3) fallback final: últimos anúncios da categoria (sem q, sem fin)
-        // -----------------------------
         if (lista.length === 0) {
           let resp3 = await supabase.rpc("buscar_anuncios", {
             q: null,
             cat: catFinal,
             cid: cidFinal,
             fin: null,
-            tip: tipFinal, // ✅ mantém tipo se houver (ex: Sítio/Chácara + Araruama)
+            tip: tipFinal,
             lim: 24,
             off: 0,
           });
@@ -272,8 +370,28 @@ export default function BuscaPage() {
           }
         }
 
-        // Ordena: destaque > rank > data
+        // ===== Ranking Premium (relevância) =====
+        const qNorm = normaliza(q || "");
+        const termosNorm = qNorm
+          .split(/\s+/g)
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .filter((t) => t.length >= 2);
+
+        const anosBuscados = extrairAnosDoTexto(qNorm);
+
+        // adiciona score sem mexer no banco
+        lista = lista.map((a) => ({
+          ...a,
+          _score: calcularScoreRelevancia(a, termosNorm, anosBuscados),
+        }));
+
+        // Ordena: score > destaque > rank > data
         lista.sort((a, b) => {
+          const as = typeof a?._score === "number" ? a._score : 0;
+          const bs = typeof b?._score === "number" ? b._score : 0;
+          if (bs !== as) return bs - as;
+
           const ad = a?.destaque ? 1 : 0;
           const bd = b?.destaque ? 1 : 0;
           if (bd !== ad) return bd - ad;
@@ -348,14 +466,13 @@ export default function BuscaPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {resultados.map((a) => {
-             const imagens = Array.isArray(a.imagens) ? a.imagens : [];
+              const imagens = Array.isArray(a.imagens) ? a.imagens : [];
 
-const capa =
-  a.categoria === "curriculo"
-    ? "/curriculos/avatar-neutro.png"
-    : (imagens.find((img) => typeof img === "string" && img.trim() !== "") ||
-       "/imoveis/sem-foto.jpg");
-
+              const capa =
+                a.categoria === "curriculo"
+                  ? "/curriculos/avatar-neutro.png"
+                  : imagens.find((img) => typeof img === "string" && img.trim() !== "") ||
+                    "/imoveis/sem-foto.jpg";
 
               return (
                 <Link
