@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-const heroImages = ["/imoveis/imovel-01.jpg", "/imoveis/imovel-02.jpg", "/imoveis/imovel-03.jpg"];
+const heroImages = ["/hero/imoveis-01.webp", "/hero/imoveis-02.webp", "/hero/imoveis-03.webp"];
 
 const cidades = [
   "Maricá",
