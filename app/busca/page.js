@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
-// ✅ Parser oficial (ajuste o caminho se você colocou em outro lugar)
+// ✅ Parser oficial
 import { parseBusca } from "../../lib/busca/parser";
-
 
 // =========================
 // Helpers
@@ -24,15 +23,12 @@ function detalheUrl(id) {
 }
 
 /**
- * Normaliza a finalidade para o padrão do Classilagos/Supabase
- * (padrão oficial recomendado)
- * venda | aluguel | aluguel_temporada
+ * Normaliza a finalidade para o padrão do Supabase/RPC (usando LIKE)
  */
 function normalizarFinalidade(fin) {
   const t = normaliza(fin);
   if (!t) return null;
 
-  // manda com % para o ILIKE bater com qualquer variação salva no banco
   if (t.includes("temporada")) return "%temporada%";
   if (t.includes("aluguel")) return "%aluguel%";
   if (t.includes("venda")) return "%venda%";
@@ -40,65 +36,118 @@ function normalizarFinalidade(fin) {
   return null;
 }
 
+// =========================
+// Tipos: Canonicalização (DB)
+// =========================
+const TIPO_CANONICO = {
+  "casa": "Casa",
+  "apartamento": "Apartamento",
+  "cobertura": "Cobertura",
+  "kitnet / studio": "Kitnet / Studio",
+  "kitnet": "Kitnet / Studio",
+  "studio": "Kitnet / Studio",
+  "terreno / lote": "Terreno / Lote",
+  "terreno": "Terreno / Lote",
+  "lote": "Terreno / Lote",
+  "comercial": "Comercial",
+  "loja / sala": "Loja / Sala",
+  "loja": "Comercial",          // ✅ loja vira GRUPO comercial
+  "sala": "Loja / Sala",
+  "galpao": "Galpão",
+  "galpão": "Galpão",
+  "sitio / chacara": "Sítio / Chácara",
+  "sitio": "Sítio / Chácara",
+  "chacara": "Sítio / Chácara",
+  "chácara": "Sítio / Chácara",
+  "outros": "Outros",
+};
 
+function canonizarTipo(tipo) {
+  const t = normaliza(tipo || "");
+  if (!t) return null;
+
+  // tenta match direto
+  if (TIPO_CANONICO[t]) return TIPO_CANONICO[t];
+
+  // tenta ajustes comuns
+  const t2 = t.replace(/\s+/g, " ").trim();
+  if (TIPO_CANONICO[t2]) return TIPO_CANONICO[t2];
+
+  // fallback: mantém como veio
+  return tipo || null;
+}
+
+// =========================
+// Limpeza do q (evitar filtro duplo)
+// =========================
+function removerPalavras(q, palavras = []) {
+  let out = ` ${String(q || "")} `;
+  for (const p of palavras) {
+    const pn = normaliza(p);
+    if (!pn) continue;
+    const re = new RegExp(`(^|\\s)${pn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`, "gi");
+    out = out.replace(re, " ");
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
 
 /**
- * Monta o q "limpo" para o RPC buscar_anuncios:
- * - se o parser extrair termos livres, usamos eles
- * - senão, usamos o texto original normalizado (sem mexer demais)
+ * Monta q "limpo":
+ * - usa termosLivres do parser
+ * - remove palavras que já viraram filtros (finalidade/tipo/cidade)
+ * - se sobrar vazio, retorna "" (aí a gente manda q=null pro RPC)
  */
-function montarQLimpo(parsed, qOriginal) {
-  // 1) base: termos livres do parser (se existirem)
+function montarQLimpo(parsed, qOriginal, { cidFinal, tipFinal, finFinal } = {}) {
   const termos = Array.isArray(parsed?.termosLivres) ? parsed.termosLivres : [];
   let q1 = (termos.join(" ").trim() || String(qOriginal || "").trim());
 
-  // 2) limpar palavras que “atrapalham” porque já viraram filtro
-  //    (principalmente o caso: aluguel + temporada)
-  const fin = normaliza(parsed?.finalidade || "");
-
-  if (fin.includes("temporada")) {
-    // Se a finalidade é TEMPORADA, a palavra "aluguel" não pode ficar no texto livre,
-    // senão vira filtro duplo e zera a busca.
-    q1 = q1
-      .replace(/\baluguel\b/gi, " ")
-      .replace(/\balugar\b/gi, " ")
-      .replace(/\balugo\b/gi, " ")
-      .replace(/\blocacao\b/gi, " ")
-      .replace(/\blocação\b/gi, " ")
-      .replace(/\bmensal\b/gi, " ")
-      .replace(/\banual\b/gi, " ")
-      .replace(/\bpor temporada\b/gi, " ")
-      .replace(/\btemporada\b/gi, " ")
-      .replace(/\bdiaria\b/gi, " ")
-      .replace(/\bdiária\b/gi, " ")
-      .replace(/\bdiarias\b/gi, " ")
-      .replace(/\bdiárias\b/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  } else if (fin.includes("aluguel")) {
-    // Se a finalidade é ALUGUEL, remover "temporada" do texto livre (quando digitarem errado)
-    q1 = q1
-      .replace(/\btemporada\b/gi, " ")
-      .replace(/\bpor temporada\b/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  } else if (fin.includes("venda")) {
-    // Se for VENDA, remover palavras típicas de venda do texto livre
-    q1 = q1
-      .replace(/\bvenda\b/gi, " ")
-      .replace(/\bvender\b/gi, " ")
-      .replace(/\bvendo\b/gi, " ")
-      .replace(/\bcomprar\b/gi, " ")
-      .replace(/\bcompra\b/gi, " ")
-      .replace(/\bvende\b/gi, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+  // remove palavras de finalidade (evitar "aluguel" + "temporada" etc)
+  const finTxt = normaliza(parsed?.finalidade || "");
+  if (finTxt.includes("temporada")) {
+    q1 = removerPalavras(q1, [
+      "aluguel","alugar","alugo","locacao","locação","mensal","anual",
+      "por temporada","temporada","diaria","diária","diarias","diárias",
+    ]);
+  } else if (finTxt.includes("aluguel")) {
+    q1 = removerPalavras(q1, ["temporada","por temporada","diaria","diária","diarias","diárias"]);
+  } else if (finTxt.includes("venda")) {
+    q1 = removerPalavras(q1, ["venda","vender","vendo","comprar","compra","vende","à venda","a venda"]);
   }
 
-  return q1 || String(qOriginal || "").trim();
+  // ✅ remove cidade do texto livre quando houver filtro de cidade
+  if (cidFinal) q1 = removerPalavras(q1, [cidFinal]);
+
+  // ✅ remove palavras do tipo quando houver filtro de tipo
+  // (especial para Sitio/Chacara e Loja/Comercial)
+  const tipNorm = normaliza(tipFinal || "");
+  if (tipFinal) {
+    if (tipNorm.includes("sitio") || tipNorm.includes("chacara")) {
+      q1 = removerPalavras(q1, ["sitio", "sítio", "chacara", "chácara", "sitio / chacara", "sítio / chácara"]);
+    } else if (tipNorm.includes("kitnet") || tipNorm.includes("studio")) {
+      q1 = removerPalavras(q1, ["kitnet", "quitinete", "studio", "stúdio"]);
+    } else if (tipNorm.includes("comercial")) {
+      // aqui está o pulo do gato: não pode deixar "loja" e "comercial" apertando a FTS
+      q1 = removerPalavras(q1, ["loja", "comercial", "sala", "ponto", "ponto comercial"]);
+    } else if (tipNorm.includes("loja / sala")) {
+      q1 = removerPalavras(q1, ["loja", "sala", "sala comercial", "office", "loja / sala"]);
+    } else if (tipNorm.includes("galp")) {
+      q1 = removerPalavras(q1, ["galpao", "galpão", "deposito", "depósito", "armazem", "armazém"]);
+    } else if (tipNorm.includes("cobertura")) {
+      q1 = removerPalavras(q1, ["cobertura"]);
+    } else if (tipNorm.includes("apartamento")) {
+      q1 = removerPalavras(q1, ["apartamento", "apto", "apt", "ap"]);
+    } else if (tipNorm.includes("casa")) {
+      q1 = removerPalavras(q1, ["casa", "residencia", "residência"]);
+    } else if (tipNorm.includes("terreno") || tipNorm.includes("lote")) {
+      q1 = removerPalavras(q1, ["terreno", "lote", "loteamento"]);
+    }
+  }
+
+  // limpeza leve de tokens genéricos
+  q1 = q1.replace(/\s+/g, " ").trim();
+
+  return q1;
 }
-
-
 
 // =========================
 // Page
@@ -121,7 +170,7 @@ export default function BuscaPage() {
     setCategoriaUrl(params.get("categoria") || "");
   }, []);
 
-  // Busca com fallback (NUNCA fica vazio)
+  // Busca com fallback
   useEffect(() => {
     let cancelado = false;
 
@@ -131,52 +180,62 @@ export default function BuscaPage() {
         setErro("");
 
         // 1) parser oficial
-        const p = parseBusca(q || "");
-        // 🔁 Fallback de finalidade direto do texto digitado
-const textoNorm = normaliza(q || "");
+        const p0 = parseBusca(q || "");
+        const textoNorm = normaliza(q || "");
 
-const finFallback =
-  textoNorm.includes("temporada")
-    ? "%temporada%"
-    : textoNorm.includes("aluguel") || textoNorm.includes("alugar")
-    ? "%aluguel%"
-    : textoNorm.includes("venda") ||
-      textoNorm.includes("comprar") ||
-      textoNorm.includes("vende")
-    ? "%venda%"
-    : null;
+        // fallback de finalidade direto do texto
+        const finFallback =
+          textoNorm.includes("temporada")
+            ? "%temporada%"
+            : textoNorm.includes("aluguel") || textoNorm.includes("alugar")
+            ? "%aluguel%"
+            : textoNorm.includes("venda") ||
+              textoNorm.includes("comprar") ||
+              textoNorm.includes("vende")
+            ? "%venda%"
+            : null;
+
+        // 2) filtros finais
+        const catFinal = categoriaUrl || p0?.categoria || null;
+        const cidFinal = p0?.cidade || null;
+
+        // finalidade final (like)
+        const finFinal = normalizarFinalidade(p0?.finalidade) || finFallback;
+
+        // ✅ tipo final: canonizado + regra especial para LOJA
+        // - se digitar "loja", tratamos como Comercial (grupo)
+        let tipFinal = canonizarTipo(p0?.tipo_imovel) || null;
+        if (textoNorm.includes("loja")) tipFinal = "Comercial";
+        // se parser vier "Loja / Sala", mas o usuário digitou "loja", também vira Comercial
+        if (tipFinal === "Loja / Sala" && textoNorm.includes("loja")) tipFinal = "Comercial";
+
+        const p = { ...p0, tipo_imovel: tipFinal };
 
         if (!cancelado) setParsed(p);
 
-        // 2) decide filtros finais (URL tem prioridade se vier preenchida)
-        const catFinal = categoriaUrl || p?.categoria || null;
-        const cidFinal = p?.cidade || null;
-       const finFinal = normalizarFinalidade(p?.finalidade) || finFallback;
-
-        // 3) q "limpa" (termos livres)
-        const qLimpa = montarQLimpo(p, q);
-        const qParam = qLimpa ? qLimpa : null;
+        // 3) q "limpa"
+        const qLimpa = montarQLimpo(p, q, { cidFinal, tipFinal, finFinal });
+        const qParam = qLimpa ? qLimpa : null; // ✅ se ficar vazio, manda null
 
         // -----------------------------
-        // 1) tenta: q + fin + cidade + categoria (mais preciso)
+        // 1) tenta: q + fin + cidade + categoria (+ tipo)
         // -----------------------------
-       let resp1 = await supabase.rpc("buscar_anuncios", {
-  q: qParam,
-  cat: catFinal,
-  cid: cidFinal,
-  fin: finFinal,
-  tip: p?.tipo_imovel || null,   // ✅ NOVO
-  lim: 80,
-  off: 0,
-});
-
+        let resp1 = await supabase.rpc("buscar_anuncios", {
+          q: qParam,
+          cat: catFinal,
+          cid: cidFinal,
+          fin: finFinal,
+          tip: tipFinal, // ✅ agora vem corrigido
+          lim: 80,
+          off: 0,
+        });
 
         if (resp1.error) throw resp1.error;
 
         let lista = Array.isArray(resp1.data) ? resp1.data : [];
 
         // -----------------------------
-        // 2) fallback: q sem fin (ainda relevante)
+        // 2) fallback: q sem fin
         // -----------------------------
         if (lista.length === 0 && qParam) {
           let resp2 = await supabase.rpc("buscar_anuncios", {
@@ -184,6 +243,7 @@ const finFallback =
             cat: catFinal,
             cid: cidFinal,
             fin: null,
+            tip: tipFinal, // ✅ mantém tipo
             lim: 80,
             off: 0,
           });
@@ -200,8 +260,9 @@ const finFallback =
           let resp3 = await supabase.rpc("buscar_anuncios", {
             q: null,
             cat: catFinal,
-            cid: cidFinal, // mantém cidade se tiver, ajuda muito
+            cid: cidFinal,
             fin: null,
+            tip: tipFinal, // ✅ mantém tipo se houver (ex: Sítio/Chácara + Araruama)
             lim: 24,
             off: 0,
           });
@@ -248,7 +309,6 @@ const finFallback =
     const arr = [];
     if (q) arr.push({ k: "Texto", v: q });
 
-    // categoria (URL ou parser)
     const catChip = categoriaUrl || parsed?.categoria;
     if (catChip) arr.push({ k: "Categoria", v: catChip });
 
