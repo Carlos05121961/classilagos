@@ -286,11 +286,25 @@ function ListaImoveisContent() {
             query = query.eq("finalidade", "aluguel").in("tipo_imovel", TIPOS_COMERCIAIS);
           }
 
-          // ===== filtros normais (já auto-preenchidos pelo interpretador) =====
-          if (filtros.finalidade) query = query.eq("finalidade", filtros.finalidade);
-          if (filtros.tipoImovel) query = query.eq("tipo_imovel", filtros.tipoImovel);
-          if (filtros.cidade) query = query.eq("cidade", filtros.cidade);
-        }
+       // ===== filtros normais (com ajuste para "loja") =====
+if (filtros.finalidade) {
+  query = query.eq("finalidade", filtros.finalidade);
+}
+
+// 🔥 AJUSTE DEFINITIVO PARA "LOJA"
+if (filtros.tipoImovel) {
+  query = query.eq("tipo_imovel", filtros.tipoImovel);
+} else {
+  const buscaNorm = normalizarSemAcento(filtros.busca);
+  if (/\bloja\b/.test(` ${buscaNorm} `)) {
+    query = query.in("tipo_imovel", ["Comercial", "Loja / Sala"]);
+  }
+}
+
+if (filtros.cidade) {
+  query = query.eq("cidade", filtros.cidade);
+}
+
 
         // Destaque (quando pedirem explicitamente)
         const destaqueAtivo = filtros.destaque === "1" || filtros.destaque === "true" || filtros.destaque === "sim";
