@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 const heroImages = [
-  "/pets/animal-01.jpg",
-  "/pets/animal-02.jpg",
-  "/pets/animal-03.jpg",
+  "/hero/pets-01.webp",
+  "/hero/pets-02.webp",
+  "/hero/pets-03.webp",
 ];
 
 // CIDADES DA REGIÃO
