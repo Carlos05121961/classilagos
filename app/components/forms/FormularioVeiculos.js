@@ -15,8 +15,10 @@ function formatCEP(v) {
 }
 
 function formatBRLInput(v) {
+  // deixa o usuário digitar "75000" e vira "75.000"
   const d = onlyDigits(v);
   if (!d) return "";
+  // sem centavos (pra não inventar)
   const n = Number(d);
   if (!Number.isFinite(n)) return "";
   return n.toLocaleString("pt-BR");
@@ -41,9 +43,6 @@ export default function FormularioVeiculos() {
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
   const [isLojaRevenda, setIsLojaRevenda] = useState(false);
-
-  // ✅ NOVO: logomarca (1 arquivo)
-  const [logoFile, setLogoFile] = useState(null);
 
   // Campos básicos
   const [titulo, setTitulo] = useState("");
@@ -78,6 +77,9 @@ export default function FormularioVeiculos() {
   // Upload de arquivos (fotos)
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // ✅ Upload separado: LOGOMARCA (Loja/Revenda)
+  const [logoArquivo, setLogoArquivo] = useState(null);
 
   // Vídeo (URL – apenas YouTube)
   const [videoUrl, setVideoUrl] = useState("");
@@ -120,7 +122,9 @@ export default function FormularioVeiculos() {
   ];
 
   const finalidades = ["Venda", "Troca", "Aluguel"];
+
   const combustiveis = ["Gasolina", "Etanol", "Flex", "Diesel", "GNV", "Elétrico"];
+
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
 
   // ====== previews das fotos ======
@@ -134,25 +138,35 @@ export default function FormularioVeiculos() {
 
   // ✅ preview da logo
   const logoPreview = useMemo(() => {
-    if (!logoFile) return null;
-    return URL.createObjectURL(logoFile);
-  }, [logoFile]);
+    if (!logoArquivo) return null;
+    return {
+      name: logoArquivo.name,
+      url: URL.createObjectURL(logoArquivo),
+    };
+  }, [logoArquivo]);
 
   useEffect(() => {
+    // cleanup blob urls (fotos)
     return () => {
       previews.forEach((p) => {
         try {
           URL.revokeObjectURL(p.url);
         } catch {}
       });
-      if (logoPreview) {
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arquivos]);
+
+  useEffect(() => {
+    // cleanup blob url (logo)
+    return () => {
+      if (logoPreview?.url) {
         try {
-          URL.revokeObjectURL(logoPreview);
+          URL.revokeObjectURL(logoPreview.url);
         } catch {}
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arquivos, logoFile]);
+  }, [logoPreview]);
 
   // Garante login
   useEffect(() => {
@@ -161,17 +175,14 @@ export default function FormularioVeiculos() {
     });
   }, [router]);
 
-  // ✅ logo (1 arquivo)
-  const handleLogoChange = (e) => {
-    const file = (e.target.files && e.target.files[0]) || null;
-    setLogoFile(file);
-  };
-
-  // fotos (até 8 no total — MAS se tiver logo, fica logo + 7)
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
-    const maxFotos = logoFile ? 7 : 8;
-    setArquivos(files.slice(0, maxFotos));
+    setArquivos(files.slice(0, 8));
+  };
+
+  const handleLogoChange = (e) => {
+    const f = (e.target.files && e.target.files[0]) || null;
+    setLogoArquivo(f || null);
   };
 
   function validarAntesDeEnviar() {
@@ -204,17 +215,6 @@ export default function FormularioVeiculos() {
     return "";
   }
 
-  async function uploadOneFile({ bucketName, userId, file, prefix }) {
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${userId}/${prefix}-${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
-    if (uploadError) throw uploadError;
-
-    const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-    return publicData.publicUrl;
-  }
-
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -238,36 +238,47 @@ export default function FormularioVeiculos() {
 
     const contatoPrincipal = whatsapp || telefone || email;
 
-    let urlsFotos = [];
-    let urlLogo = null;
+    let urlsUploadFotos = [];
+    let urlUploadLogo = null;
 
     try {
       setUploading(true);
       const bucketName = "anuncios";
 
-      // ✅ 1) upload logo (se houver)
-      if (logoFile) {
-        urlLogo = await uploadOneFile({
-          bucketName,
-          userId: user.id,
-          file: logoFile,
-          prefix: "logo",
-        });
+      // ✅ 1) upload da LOGO (se houver)
+      if (logoArquivo) {
+        const ext = logoArquivo.name.split(".").pop();
+        const filePath = `${user.id}/logo-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, logoArquivo);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+        urlUploadLogo = publicData.publicUrl;
       }
 
-      // ✅ 2) upload fotos
+      // ✅ 2) upload das fotos do veículo (até 8)
       if (arquivos.length > 0) {
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
-            return uploadOneFile({
-              bucketName,
-              userId: user.id,
-              file,
-              prefix: `foto-${index}`,
-            });
+            const fileExt = file.name.split(".").pop();
+            const filePath = `${user.id}/${Date.now()}-${index}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from(bucketName)
+              .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+            return publicData.publicUrl;
           })
         );
-        urlsFotos = uploads;
+
+        urlsUploadFotos = uploads;
       }
     } catch (err) {
       console.error(err);
@@ -278,11 +289,11 @@ export default function FormularioVeiculos() {
       setUploading(false);
     }
 
-    // ✅ imagens finais: logo primeiro (se tiver), depois fotos — máx 8
-    const imagensFinal = [
-      ...(urlLogo ? [urlLogo] : []),
-      ...urlsFotos,
-    ].slice(0, 8);
+    // ✅ imagens: logo primeiro (se existir), depois fotos
+    const imagens = [
+      ...(urlUploadLogo ? [urlUploadLogo] : []),
+      ...(urlsUploadFotos || []),
+    ];
 
     const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
@@ -322,7 +333,7 @@ ${detalhesVeiculoTexto}
         endereco: endereco.trim(),
         cep: cep.trim(),
         preco: preco.trim(),
-        imagens: imagensFinal,
+        imagens,
         video_url: videoUrl.trim(),
         telefone: telefone.trim(),
         whatsapp: whatsapp.trim(),
@@ -365,8 +376,6 @@ ${detalhesVeiculoTexto}
     setIsConsignado(false);
     setIsLojaRevenda(false);
 
-    setLogoFile(null);
-
     setTitulo("");
     setDescricao("");
     setCidade("");
@@ -388,6 +397,7 @@ ${detalhesVeiculoTexto}
     setAceitaTroca("nao");
     setPreco("");
     setArquivos([]);
+    setLogoArquivo(null);
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
@@ -434,7 +444,6 @@ ${detalhesVeiculoTexto}
               <li>Use um título bem claro (ano, modelo, versão).</li>
               <li>Suba 6–8 fotos (frente, traseira, interior, painel).</li>
               <li>Informe “0 km”, “seminovo” ou “usado” corretamente.</li>
-              <li>Se for loja/revenda, envie a logomarca.</li>
             </ul>
           </div>
         </div>
@@ -470,56 +479,33 @@ ${detalhesVeiculoTexto}
 
             <div className="grid gap-2 text-xs text-slate-700">
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={isFinanciado} onChange={(e) => setIsFinanciado(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isFinanciado}
+                  onChange={(e) => setIsFinanciado(e.target.checked)}
+                />
                 <span>Financiado</span>
               </label>
 
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={isConsignado} onChange={(e) => setIsConsignado(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isConsignado}
+                  onChange={(e) => setIsConsignado(e.target.checked)}
+                />
                 <span>Consignado</span>
               </label>
 
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={isLojaRevenda} onChange={(e) => setIsLojaRevenda(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isLojaRevenda}
+                  onChange={(e) => setIsLojaRevenda(e.target.checked)}
+                />
                 <span>Loja / Revenda</span>
               </label>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ✅ NOVO BLOCO: LOGOMARCA (APARECE BEM PRA LOJA/REVENDA) */}
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-        <h3 className="text-sm font-bold text-slate-900">Logomarca (opcional)</h3>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Ideal para <b>Loja / Revenda</b>. Se enviar, ela vira a <b>capa</b> (1ª imagem) do anúncio.
-        </p>
-
-        <div className="mt-4">
-          <label className="block text-[11px] font-semibold text-slate-700">Enviar logomarca</label>
-          <input type="file" accept="image/*" onChange={handleLogoChange} className="mt-2 w-full text-xs" />
-
-          {logoFile && (
-            <div className="mt-3 grid gap-3 sm:grid-cols-[140px,1fr] items-start">
-              <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoPreview} alt="Logo preview" className="w-full h-28 object-contain bg-white" />
-              </div>
-              <div className="text-xs text-slate-700">
-                <p className="font-semibold">{logoFile.name}</p>
-                <button
-                  type="button"
-                  onClick={() => setLogoFile(null)}
-                  className="mt-2 text-xs font-semibold text-slate-700 underline"
-                >
-                  Remover logomarca
-                </button>
-                <p className="mt-2 text-[11px] text-slate-500">
-                  Dica: PNG com fundo transparente fica top.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -569,11 +555,492 @@ ${detalhesVeiculoTexto}
             </select>
           </div>
         </div>
+
+        {finalidade === "Troca" && (
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-xs text-amber-800">
+              ℹ️ Você marcou <b>Troca</b>. Lembre de reforçar no texto o que aceita (carro, moto, volta em dinheiro, etc.).
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* (o restante do seu formulário permanece igual — fotos, vídeo, contato, termos...) */}
-      {/* ✅ Para não ficar gigantesco aqui, eu mantive o resto igual ao seu, SEM alterar layout.
-          Se quiser, eu te devolvo 100% com tudo junto, mas o essencial já está acima e funciona. */}
+      {/* 3) INFORMAÇÕES PRINCIPAIS */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Informações principais</h3>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">
+            Título do anúncio <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: Honda Civic 2019 LXR, único dono, 60 mil km"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Capricha aqui. Esse título aparece nos cards.
+          </p>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">
+            Descrição detalhada <span className="text-red-600">*</span>
+          </label>
+          <textarea
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[130px]"
+            placeholder="Estado geral, manutenção, pneus, documentação, histórico, opcionais, detalhes…"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            required
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Dica: informações claras e honestas geram mais confiança e contatos.
+          </p>
+        </div>
+      </div>
+
+      {/* 4) LOCALIZAÇÃO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Localização</h3>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Cidade <span className="text-red-600">*</span>
+            </label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              required
+            >
+              <option value="">Selecione…</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ex: Centro, Itaipuaçu, Ponta Negra…"
+              value={bairro}
+              onChange={(e) => setBairro(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-[2fr,1fr]">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Endereço (opcional)</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Rua, número, complemento…"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">CEP (opcional)</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={cep}
+              onChange={(e) => setCep(formatCEP(e.target.value))}
+              placeholder="00000-000"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 5) DETALHES DO VEÍCULO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Detalhes do veículo</h3>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Marca</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              placeholder="Ex: Chevrolet"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Modelo</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={modelo}
+              onChange={(e) => setModelo(e.target.value)}
+              placeholder="Ex: Onix LT"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Ano</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={ano}
+              onChange={(e) => setAno(e.target.value)}
+              placeholder="Ex: 2019"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Quilometragem</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ex: 65.000 km"
+              value={km}
+              onChange={(e) => setKm(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Cor</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={cor}
+              onChange={(e) => setCor(e.target.value)}
+              placeholder="Ex: Prata"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Portas</label>
+            <input
+              type="number"
+              min="0"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={portas}
+              onChange={(e) => setPortas(e.target.value)}
+              placeholder="Ex: 4"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Combustível</label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={combustivel}
+              onChange={(e) => setCombustivel(e.target.value)}
+            >
+              <option value="">Selecione…</option>
+              {combustiveis.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Câmbio</label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={cambio}
+              onChange={(e) => setCambio(e.target.value)}
+            >
+              <option value="">Selecione…</option>
+              {cambios.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">IPVA pago?</label>
+              <select
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={ipvaPago}
+                onChange={(e) => setIpvaPago(e.target.value)}
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Licenciamento em dia?</label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={licenciado}
+              onChange={(e) => setLicenciado(e.target.value)}
+            >
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Aceita troca?</label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={aceitaTroca}
+              onChange={(e) => setAceitaTroca(e.target.value)}
+            >
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 6) VALORES */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Valores</h3>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="max-w-sm">
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Preço (R$) <span className="text-red-600">*</span>
+            </label>
+            <div className="mt-1 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+              <span className="text-sm font-semibold text-slate-600">R$</span>
+              <input
+                type="text"
+                className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                placeholder="Ex: 75.000"
+                value={preco}
+                onChange={(e) => setPreco(formatBRLInput(e.target.value))}
+                required
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Digite números. Ex: 75000 → vira 75.000.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ 6.1) LOGOMARCA DA LOJA (se Loja/Revenda) */}
+      {isLojaRevenda && (
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (recomendado)</h3>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Essa imagem fica <b>separada</b> e entra como <b>primeira foto</b> do anúncio (ótimo para cards e identidade da revenda).
+          </p>
+
+          <div className="mt-4">
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Enviar logomarca (1 arquivo)
+            </label>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="mt-2 w-full text-xs"
+            />
+
+            {logoPreview && (
+              <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoPreview.url} alt={logoPreview.name} className="w-full h-40 object-contain bg-white" />
+                <div className="px-2 py-2">
+                  <p className="text-[10px] text-slate-600 line-clamp-1">{logoPreview.name}</p>
+                </div>
+              </div>
+            )}
+
+            {logoArquivo && (
+              <button
+                type="button"
+                onClick={() => setLogoArquivo(null)}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover logomarca
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 7) FOTOS */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Fotos do veículo</h3>
+        <p className="mt-1 text-[11px] text-slate-500">Até 8 imagens. Recomendado: JPG/PNG.</p>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">
+            Enviar fotos (upload)
+          </label>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleArquivosChange}
+            className="mt-2 w-full text-xs"
+          />
+
+          {arquivos.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] text-slate-600">
+                {arquivos.length} arquivo(s) selecionado(s).
+              </p>
+
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {previews.map((p) => (
+                  <div
+                    key={p.url}
+                    className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
+                    <div className="px-2 py-2">
+                      <p className="text-[10px] text-slate-600 line-clamp-1">{p.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setArquivos([])}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover todas as fotos
+              </button>
+            </div>
+          )}
+
+          <p className="mt-2 text-[11px] text-slate-500">
+            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG.
+          </p>
+        </div>
+      </div>
+
+      {/* 8) VÍDEO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Vídeo do veículo (opcional)</h3>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">URL do vídeo (YouTube)</label>
+          <input
+            type="text"
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Cole aqui o link do YouTube (youtube.com / youtu.be)"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+          />
+          {!isYoutubeUrl(videoUrl.trim()) && (
+            <p className="mt-2 text-[11px] text-red-600">
+              A URL parece não ser do YouTube.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 9) CONTATO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Dados de contato</h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Pelo menos um canal (telefone, WhatsApp ou e-mail) precisa estar preenchido.
+        </p>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">Nome de contato</label>
+          <input
+            type="text"
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Nome do proprietário, lojista ou revenda"
+            value={nomeContato}
+            onChange={(e) => setNomeContato(e.target.value)}
+          />
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Telefone para contato"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="DDD + número"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
+          <input
+            type="email"
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 10) TERMOS */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Termos e responsabilidade</h3>
+
+        <div className="mt-3 text-xs text-slate-700">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={aceitoTermos}
+              onChange={(e) => setAceitoTermos(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Declaro que todas as informações deste anúncio são verdadeiras e estou de acordo com os{" "}
+              <a
+                href="/termos-de-uso"
+                target="_blank"
+                rel="noreferrer"
+                className="underline font-semibold"
+              >
+                Termos de Uso do Classilagos
+              </a>
+              .
+            </span>
+          </label>
+        </div>
+      </div>
 
       {/* BOTÃO FINAL */}
       <button
