@@ -90,6 +90,12 @@ const STOPWORDS = new Set([
   "o",
   "as",
   "os",
+  "um",
+  "uma",
+  "uns",
+  "umas",
+  "por",
+  "sem",
 ]);
 
 function tokensFromQuery(q) {
@@ -98,11 +104,91 @@ function tokensFromQuery(q) {
   return t.split(" ").filter((w) => w && !STOPWORDS.has(w));
 }
 
-function matchAllTokens(query, haystack) {
+/**
+ * ✅ Sinônimos/variações (bem simples, mas resolve MUITO)
+ * Tudo aqui já deve estar sem acento e em minúsculo (a normalizeText garante isso).
+ */
+const SYNONYMS = {
+  caes: ["cao", "cachorro", "dog", "canino"],
+  cao: ["caes", "cachorro", "dog", "canino"],
+  cachorro: ["cao", "caes", "dog", "canino"],
+  gatos: ["gato", "felino", "cat"],
+  gato: ["gatos", "felino", "cat"],
+
+  adocao: ["adotar", "doacao", "doar", "adocao", "adocao"],
+  doacao: ["doar", "adocao", "adotar"],
+  doar: ["doacao", "adocao"],
+
+  clinica: ["veterinaria", "veterinario", "vet", "hospital"],
+  veterinaria: ["veterinario", "vet", "clinica"],
+  veterinario: ["veterinaria", "vet", "clinica"],
+  vet: ["veterinaria", "veterinario", "clinica"],
+
+  banho: ["tosa", "banhoetosa", "higiene"],
+  tosa: ["banho", "banhoetosa", "higiene"],
+  racao: ["ração", "alimento", "alimentacao"], // (a normalizeText tira o acento de "ração")
+  alimentacao: ["racao", "alimento"],
+
+  filhotes: ["filhote", "bebe", "bb"],
+  filhote: ["filhotes", "bebe", "bb"],
+
+  perdido: ["desaparecido", "sumiu", "fugiu", "perdida"],
+  achado: ["encontrado", "encontrei", "achei", "achada"],
+};
+
+function singularize(tok) {
+  // regras simples para PT
+  if (!tok) return tok;
+
+  if (tok === "caes") return "cao";
+  if (tok.endsWith("oes")) return tok.slice(0, -3) + "ao"; // adoções -> adocao (mas já vem normalizado geralmente)
+  if (tok.endsWith("ais")) return tok.slice(0, -3) + "al"; // animais -> animal
+  if (tok.endsWith("eis")) return tok.slice(0, -3) + "el";
+  if (tok.endsWith("is")) return tok.slice(0, -2) + "il";
+  if (tok.endsWith("es") && tok.length > 3) return tok.slice(0, -2); // filhotes -> filhot (não é perfeito, mas ajuda pouco)
+  if (tok.endsWith("s") && tok.length > 3) return tok.slice(0, -1); // gatos -> gato
+  return tok;
+}
+
+function expandToken(tok) {
+  const t = normalizeText(tok);
+  const set = new Set();
+  if (!t) return set;
+
+  set.add(t);
+
+  const sing = singularize(t);
+  if (sing && sing !== t) set.add(sing);
+
+  const syn = SYNONYMS[t];
+  if (Array.isArray(syn)) syn.forEach((w) => set.add(normalizeText(w)));
+
+  const syn2 = SYNONYMS[sing];
+  if (Array.isArray(syn2)) syn2.forEach((w) => set.add(normalizeText(w)));
+
+  // remove vazios
+  [...set].forEach((x) => {
+    if (!x) set.delete(x);
+  });
+
+  return set;
+}
+
+/**
+ * ✅ Match AND, mas cada token pode bater em QUALQUER variante/sinônimo.
+ * Ex.: "caes adocao" bate se o texto tiver "cao" e "adotar".
+ */
+function matchAllTokensSmart(query, haystack) {
   const tokens = tokensFromQuery(query);
   if (tokens.length === 0) return true;
+
   const text = normalizeText(haystack);
-  return tokens.every((tok) => text.includes(tok));
+
+  return tokens.every((tok) => {
+    const variants = expandToken(tok);
+    if (variants.size === 0) return true;
+    return [...variants].some((v) => text.includes(v));
+  });
 }
 
 export default function PetsPage() {
@@ -180,7 +266,12 @@ export default function PetsPage() {
     const desc = norm(item.descricao || "");
 
     // Achados e perdidos
-    if (cat.includes("achado") || cat.includes("perdido") || titulo.includes("achado") || titulo.includes("perdido"))
+    if (
+      cat.includes("achado") ||
+      cat.includes("perdido") ||
+      titulo.includes("achado") ||
+      titulo.includes("perdido")
+    )
       return "achados";
 
     // Adoção / doação
@@ -257,7 +348,7 @@ export default function PetsPage() {
           a.cidade,
           a.bairro,
         ].join(" ");
-        return matchAllTokens(busca, haystack);
+        return matchAllTokensSmart(busca, haystack);
       });
     }
 
@@ -387,6 +478,10 @@ export default function PetsPage() {
                     setBusca("");
                     setTipoFiltro("");
                     setCidadeFiltro("");
+                    setTimeout(() => {
+                      const el = document.getElementById("resultados-pets");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
                   }}
                   className="w-full md:w-auto rounded-full bg-slate-200 px-4 py-2 text-xs md:text-sm font-semibold text-slate-800 hover:bg-slate-300"
                 >
@@ -394,6 +489,10 @@ export default function PetsPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    const el = document.getElementById("resultados-pets");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
                   className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Buscar
@@ -403,7 +502,7 @@ export default function PetsPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            ✅ Busca ligada aos anúncios reais (com normalização de acentos).
+            ✅ Busca ligada aos anúncios reais (com normalização + sinônimos).
           </p>
         </div>
       </section>
@@ -456,7 +555,7 @@ export default function PetsPage() {
       </section>
 
       {/* ANÚNCIOS RECENTES (AGORA RESPEITA O MOTORZINHO) */}
-      <section className="bg-white pb-10">
+      <section className="bg-white pb-10" id="resultados-pets">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
