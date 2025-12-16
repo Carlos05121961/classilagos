@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 const heroImages = [
@@ -61,17 +60,61 @@ const cardsPets = [
   },
 ];
 
-export default function PetsPage() {
-  const router = useRouter();
+function normalizeText(str) {
+  return (str || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ") // tira pontuação
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
+const STOPWORDS = new Set([
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "para",
+  "pra",
+  "em",
+  "no",
+  "na",
+  "nos",
+  "nas",
+  "com",
+  "e",
+  "a",
+  "o",
+  "as",
+  "os",
+]);
+
+function tokensFromQuery(q) {
+  const t = normalizeText(q);
+  if (!t) return [];
+  return t.split(" ").filter((w) => w && !STOPWORDS.has(w));
+}
+
+function matchAllTokens(query, haystack) {
+  const tokens = tokensFromQuery(query);
+  if (tokens.length === 0) return true;
+  const text = normalizeText(haystack);
+  return tokens.every((tok) => text.includes(tok));
+}
+
+export default function PetsPage() {
   const [currentHero, setCurrentHero] = useState(0);
+
   const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
-  // ✅ MOTOR DA BUSCA
+  // ✅ motorzinho (busca real)
   const [busca, setBusca] = useState("");
-  const [tipo, setTipo] = useState("");
-  const [cidade, setCidade] = useState("");
+  const [tipoFiltro, setTipoFiltro] = useState(""); // Animais | Adoção... | Achados... | Serviços...
+  const [cidadeFiltro, setCidadeFiltro] = useState("");
 
   // Troca das fotos do hero
   useEffect(() => {
@@ -94,6 +137,7 @@ export default function PetsPage() {
             `
             id,
             titulo,
+            descricao,
             cidade,
             bairro,
             preco,
@@ -133,9 +177,11 @@ export default function PetsPage() {
   function classificarAnuncio(item) {
     const cat = norm(item.subcategoria_pet || item.tipo_imovel || "");
     const titulo = norm(item.titulo || "");
+    const desc = norm(item.descricao || "");
 
     // Achados e perdidos
-    if (cat.includes("achado") || cat.includes("perdido")) return "achados";
+    if (cat.includes("achado") || cat.includes("perdido") || titulo.includes("achado") || titulo.includes("perdido"))
+      return "achados";
 
     // Adoção / doação
     if (
@@ -144,7 +190,9 @@ export default function PetsPage() {
       cat.includes("doação") ||
       cat.includes("doacao") ||
       titulo.includes("adoção") ||
-      titulo.includes("adocao")
+      titulo.includes("adocao") ||
+      desc.includes("adoção") ||
+      desc.includes("adocao")
     ) {
       return "adocao";
     }
@@ -164,40 +212,72 @@ export default function PetsPage() {
       cat.includes("hosped") ||
       cat.includes("clínica") ||
       cat.includes("clinica") ||
-      cat.includes("veterin")
+      cat.includes("veterin") ||
+      titulo.includes("veterin") ||
+      desc.includes("veterin") ||
+      desc.includes("banho") ||
+      desc.includes("tosa") ||
+      desc.includes("clinica") ||
+      desc.includes("clínica")
     ) {
       return "servicos";
     }
 
-    // Default
     return "animais";
   }
 
-  // Escolhe um anúncio para ilustrar cada card
+  // ✅ aplica filtros do motorzinho (busca + tipo + cidade)
+  const anunciosFiltrados = useMemo(() => {
+    let lista = Array.isArray(anuncios) ? [...anuncios] : [];
+
+    if (cidadeFiltro) {
+      lista = lista.filter((a) => (a.cidade || "").trim() === cidadeFiltro);
+    }
+
+    if (tipoFiltro) {
+      const slug =
+        tipoFiltro === "Animais"
+          ? "animais"
+          : tipoFiltro === "Adoção / Doação"
+          ? "adocao"
+          : tipoFiltro === "Achados e perdidos"
+          ? "achados"
+          : "servicos";
+
+      lista = lista.filter((a) => classificarAnuncio(a) === slug);
+    }
+
+    if (busca.trim()) {
+      lista = lista.filter((a) => {
+        const haystack = [
+          a.titulo,
+          a.descricao,
+          a.subcategoria_pet,
+          a.tipo_imovel,
+          a.cidade,
+          a.bairro,
+        ].join(" ");
+        return matchAllTokens(busca, haystack);
+      });
+    }
+
+    return lista;
+  }, [anuncios, busca, tipoFiltro, cidadeFiltro]);
+
+  // Escolhe um anúncio para ilustrar cada card (usa base total, não a busca)
   function escolherParaCard(slugGrupo) {
     if (!anuncios || anuncios.length === 0) return null;
-    const filtrados = anuncios.filter(
-      (a) => classificarAnuncio(a) === slugGrupo
-    );
+    const filtrados = anuncios.filter((a) => classificarAnuncio(a) === slugGrupo);
     if (filtrados.length === 0) return null;
 
     const emDestaque = filtrados.find((a) => a.destaque === true);
     return emDestaque || filtrados[0];
   }
 
-  // Anúncios recentes (até 12)
-  const anunciosRecentes =
-    anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
+  // Anúncios recentes (agora respeita o motorzinho)
+  const anunciosRecentes = anunciosFiltrados.slice(0, 12);
 
-  // ✅ AÇÃO DO MOTOR: manda pra lista por URL
-  const executarBusca = () => {
-    const params = new URLSearchParams();
-    if (busca.trim()) params.set("q", busca.trim());
-    if (tipo) params.set("tipo", tipo);
-    if (cidade) params.set("cidade", cidade);
-    const qs = params.toString();
-    router.push(`/pets/lista${qs ? `?${qs}` : ""}`);
-  };
+  const temFiltroAtivo = !!(busca.trim() || tipoFiltro || cidadeFiltro);
 
   return (
     <main className="bg-white min-h-screen">
@@ -216,7 +296,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* HERO – FOTO + TEXTO */}
+      {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -246,7 +326,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ✅ CAIXA DE BUSCA (AGORA REAL) */}
+      {/* ✅ CAIXA DE BUSCA (AGORA LIGADA) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -257,16 +337,10 @@ export default function PetsPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: adoção de cachorro, banho e tosa, veterinário"
+                  placeholder="Ex.: clinica veterinaria, filhotes de caes, banho e tosa"
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      executarBusca();
-                    }
-                  }}
                 />
               </div>
 
@@ -276,8 +350,8 @@ export default function PetsPage() {
                 </label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={tipo}
-                  onChange={(e) => setTipo(e.target.value)}
+                  value={tipoFiltro}
+                  onChange={(e) => setTipoFiltro(e.target.value)}
                 >
                   <option value="">Todos</option>
                   {tiposPet.map((t) => (
@@ -294,8 +368,8 @@ export default function PetsPage() {
                 </label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={cidade}
-                  onChange={(e) => setCidade(e.target.value)}
+                  value={cidadeFiltro}
+                  onChange={(e) => setCidadeFiltro(e.target.value)}
                 >
                   <option value="">Todas</option>
                   {cidades.map((c) => (
@@ -306,10 +380,20 @@ export default function PetsPage() {
                 </select>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={executarBusca}
+                  onClick={() => {
+                    setBusca("");
+                    setTipoFiltro("");
+                    setCidadeFiltro("");
+                  }}
+                  className="w-full md:w-auto rounded-full bg-slate-200 px-4 py-2 text-xs md:text-sm font-semibold text-slate-800 hover:bg-slate-300"
+                >
+                  Limpar
+                </button>
+                <button
+                  type="button"
                   className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Buscar
@@ -319,7 +403,7 @@ export default function PetsPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Busca ligada ao motor do Classilagos (Pets).
+            ✅ Busca ligada aos anúncios reais (com normalização de acentos).
           </p>
         </div>
       </section>
@@ -331,9 +415,7 @@ export default function PetsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {cardsPets.map((card) => {
             const anuncio = escolherParaCard(card.slug);
-            const imagensValidas = Array.isArray(anuncio?.imagens)
-              ? anuncio.imagens
-              : [];
+            const imagensValidas = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
             const capa = imagensValidas.length > 0 ? imagensValidas[0] : null;
 
             return (
@@ -357,9 +439,7 @@ export default function PetsPage() {
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
                 <div className="bg-slate-900 text-white px-3 py-2">
-                  <p className="text-xs md:text-sm font-semibold">
-                    {card.titulo}
-                  </p>
+                  <p className="text-xs md:text-sm font-semibold">{card.titulo}</p>
                   <p className="mt-1 text-[10px] text-slate-300 line-clamp-2">
                     {card.subtitulo}
                   </p>
@@ -375,18 +455,18 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* RECENTES */}
+      {/* ANÚNCIOS RECENTES (AGORA RESPEITA O MOTORZINHO) */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              Anúncios recentes de pets
+              {temFiltroAtivo ? "Resultados da sua busca" : "Anúncios recentes de pets"}
             </h2>
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
                 ? "Carregando anúncios..."
                 : anunciosRecentes.length === 0
-                ? "Nenhum anúncio cadastrado ainda."
+                ? "Nenhum anúncio encontrado."
                 : `${anunciosRecentes.length} anúncio(s)`}
             </span>
           </div>
@@ -397,24 +477,41 @@ export default function PetsPage() {
 
           {!loadingAnuncios && anunciosRecentes.length === 0 && (
             <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
-              Ainda não há anúncios de pets cadastrados.
-              <br />
-              <Link
-                href="/anunciar?tipo=pets"
-                className="inline-flex mt-3 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-              >
-                Seja o primeiro a anunciar
-              </Link>
+              {temFiltroAtivo ? (
+                <>
+                  Nenhum anúncio bateu com sua busca.
+                  <br />
+                  <button
+                    onClick={() => {
+                      setBusca("");
+                      setTipoFiltro("");
+                      setCidadeFiltro("");
+                    }}
+                    className="inline-flex mt-3 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black"
+                  >
+                    Limpar filtros
+                  </button>
+                </>
+              ) : (
+                <>
+                  Ainda não há anúncios de pets cadastrados.
+                  <br />
+                  <Link
+                    href="/anunciar?tipo=pets"
+                    className="inline-flex mt-3 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                  >
+                    Seja o primeiro a anunciar
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
           {!loadingAnuncios && anunciosRecentes.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
               {anunciosRecentes.map((a) => {
-                const img =
-                  Array.isArray(a.imagens) && a.imagens.length > 0
-                    ? a.imagens[0]
-                    : null;
+                const img = Array.isArray(a.imagens) && a.imagens.length > 0 ? a.imagens[0] : null;
+                const grupo = classificarAnuncio(a);
 
                 return (
                   <Link
@@ -441,13 +538,13 @@ export default function PetsPage() {
                         {a.titulo}
                       </p>
                       <p className="text-[10px] text-slate-300">
-                        {classificarAnuncio(a) === "animais" && "Animais"}
-                        {classificarAnuncio(a) === "adocao" &&
-                          "Adoção / Doação"}
-                        {classificarAnuncio(a) === "achados" &&
-                          "Achados e perdidos"}
-                        {classificarAnuncio(a) === "servicos" &&
-                          "Serviços pet & acessórios"}
+                        {grupo === "animais" && "Animais"}
+                        {grupo === "adocao" && "Adoção / Doação"}
+                        {grupo === "achados" && "Achados e perdidos"}
+                        {grupo === "servicos" && "Serviços pet & acessórios"}
+                        {" • "}
+                        {a.cidade}
+                        {a.bairro ? ` • ${a.bairro}` : ""}
                       </p>
                     </div>
                   </Link>
@@ -458,7 +555,60 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* (o resto do seu arquivo pode continuar igual daqui pra baixo) */}
+      {/* LINKS ÚTEIS */}
+      <section className="bg-slate-900 py-8 border-t border-slate-800">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-sm font-semibold text-white mb-1">
+            Links úteis para pets
+          </h2>
+          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+            Use o Classilagos também como guia para cuidar bem dos seus animais
+            na Região dos Lagos.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Campanhas de vacinação
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Informações sobre vacinação antirrábica e campanhas oficiais
+                nas cidades da região.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Centro de Zoonoses
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Endereços e orientações sobre saúde pública, resgate e animais
+                em situação de rua.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                ONGs e proteção animal
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Projetos de adoção, lares temporários e feiras de adoção na
+                Região dos Lagos.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-white mb-1">
+                Dicas de bem-estar pet
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Em breve, conteúdos especiais sobre alimentação, comportamento e
+                cuidados gerais.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
