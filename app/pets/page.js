@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-const heroImages = [
-  "/hero/pets-01.webp",
-  "/hero/pets-02.webp",
-  "/hero/pets-03.webp",
-];
+const heroImages = ["/hero/pets-01.webp", "/hero/pets-02.webp", "/hero/pets-03.webp"];
 
 // CIDADES DA REGIÃO
 const cidades = [
@@ -60,147 +57,18 @@ const cardsPets = [
   },
 ];
 
-function normalizeText(str) {
-  return (str || "")
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acentos
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ") // tira pontuação
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-const STOPWORDS = new Set([
-  "de",
-  "da",
-  "do",
-  "das",
-  "dos",
-  "para",
-  "pra",
-  "em",
-  "no",
-  "na",
-  "nos",
-  "nas",
-  "com",
-  "e",
-  "a",
-  "o",
-  "as",
-  "os",
-  "um",
-  "uma",
-  "uns",
-  "umas",
-  "por",
-  "sem",
-]);
-
-function tokensFromQuery(q) {
-  const t = normalizeText(q);
-  if (!t) return [];
-  return t.split(" ").filter((w) => w && !STOPWORDS.has(w));
-}
-
-/**
- * ✅ Sinônimos/variações (bem simples, mas resolve MUITO)
- * Tudo aqui já deve estar sem acento e em minúsculo (a normalizeText garante isso).
- */
-const SYNONYMS = {
-  caes: ["cao", "cachorro", "dog", "canino"],
-  cao: ["caes", "cachorro", "dog", "canino"],
-  cachorro: ["cao", "caes", "dog", "canino"],
-  gatos: ["gato", "felino", "cat"],
-  gato: ["gatos", "felino", "cat"],
-
-  adocao: ["adotar", "doacao", "doar", "adocao", "adocao"],
-  doacao: ["doar", "adocao", "adotar"],
-  doar: ["doacao", "adocao"],
-
-  clinica: ["veterinaria", "veterinario", "vet", "hospital"],
-  veterinaria: ["veterinario", "vet", "clinica"],
-  veterinario: ["veterinaria", "vet", "clinica"],
-  vet: ["veterinaria", "veterinario", "clinica"],
-
-  banho: ["tosa", "banhoetosa", "higiene"],
-  tosa: ["banho", "banhoetosa", "higiene"],
-  racao: ["ração", "alimento", "alimentacao"], // (a normalizeText tira o acento de "ração")
-  alimentacao: ["racao", "alimento"],
-
-  filhotes: ["filhote", "bebe", "bb"],
-  filhote: ["filhotes", "bebe", "bb"],
-
-  perdido: ["desaparecido", "sumiu", "fugiu", "perdida"],
-  achado: ["encontrado", "encontrei", "achei", "achada"],
-};
-
-function singularize(tok) {
-  // regras simples para PT
-  if (!tok) return tok;
-
-  if (tok === "caes") return "cao";
-  if (tok.endsWith("oes")) return tok.slice(0, -3) + "ao"; // adoções -> adocao (mas já vem normalizado geralmente)
-  if (tok.endsWith("ais")) return tok.slice(0, -3) + "al"; // animais -> animal
-  if (tok.endsWith("eis")) return tok.slice(0, -3) + "el";
-  if (tok.endsWith("is")) return tok.slice(0, -2) + "il";
-  if (tok.endsWith("es") && tok.length > 3) return tok.slice(0, -2); // filhotes -> filhot (não é perfeito, mas ajuda pouco)
-  if (tok.endsWith("s") && tok.length > 3) return tok.slice(0, -1); // gatos -> gato
-  return tok;
-}
-
-function expandToken(tok) {
-  const t = normalizeText(tok);
-  const set = new Set();
-  if (!t) return set;
-
-  set.add(t);
-
-  const sing = singularize(t);
-  if (sing && sing !== t) set.add(sing);
-
-  const syn = SYNONYMS[t];
-  if (Array.isArray(syn)) syn.forEach((w) => set.add(normalizeText(w)));
-
-  const syn2 = SYNONYMS[sing];
-  if (Array.isArray(syn2)) syn2.forEach((w) => set.add(normalizeText(w)));
-
-  // remove vazios
-  [...set].forEach((x) => {
-    if (!x) set.delete(x);
-  });
-
-  return set;
-}
-
-/**
- * ✅ Match AND, mas cada token pode bater em QUALQUER variante/sinônimo.
- * Ex.: "caes adocao" bate se o texto tiver "cao" e "adotar".
- */
-function matchAllTokensSmart(query, haystack) {
-  const tokens = tokensFromQuery(query);
-  if (tokens.length === 0) return true;
-
-  const text = normalizeText(haystack);
-
-  return tokens.every((tok) => {
-    const variants = expandToken(tok);
-    if (variants.size === 0) return true;
-    return [...variants].some((v) => text.includes(v));
-  });
-}
-
 export default function PetsPage() {
+  const router = useRouter();
+
   const [currentHero, setCurrentHero] = useState(0);
 
   const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
-  // ✅ motorzinho (busca real)
-  const [busca, setBusca] = useState("");
-  const [tipoFiltro, setTipoFiltro] = useState(""); // Animais | Adoção... | Achados... | Serviços...
-  const [cidadeFiltro, setCidadeFiltro] = useState("");
+  // ✅ Busca PREMIUM (padrão Náutica: redireciona para /busca)
+  const [textoBusca, setTextoBusca] = useState("");
+  const [tipoBusca, setTipoBusca] = useState("");
+  const [cidadeBusca, setCidadeBusca] = useState("");
 
   // Troca das fotos do hero
   useEffect(() => {
@@ -211,7 +79,7 @@ export default function PetsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Buscar anúncios de pets no Supabase
+  // Buscar anúncios de pets no Supabase (para vitrine e recentes)
   useEffect(() => {
     const fetchAnuncios = async () => {
       try {
@@ -238,6 +106,7 @@ export default function PetsPage() {
           )
           .eq("categoria", "pets")
           .eq("status", "ativo")
+          .order("destaque", { ascending: false })
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -259,7 +128,7 @@ export default function PetsPage() {
 
   const norm = (s) => (s || "").toLowerCase();
 
-  // CLASSIFICA UM ANÚNCIO EM UM DOS 4 GRUPOS
+  // CLASSIFICA UM ANÚNCIO EM UM DOS 4 GRUPOS (para escolher capa dos cards)
   function classificarAnuncio(item) {
     const cat = norm(item.subcategoria_pet || item.tipo_imovel || "");
     const titulo = norm(item.titulo || "");
@@ -317,45 +186,7 @@ export default function PetsPage() {
     return "animais";
   }
 
-  // ✅ aplica filtros do motorzinho (busca + tipo + cidade)
-  const anunciosFiltrados = useMemo(() => {
-    let lista = Array.isArray(anuncios) ? [...anuncios] : [];
-
-    if (cidadeFiltro) {
-      lista = lista.filter((a) => (a.cidade || "").trim() === cidadeFiltro);
-    }
-
-    if (tipoFiltro) {
-      const slug =
-        tipoFiltro === "Animais"
-          ? "animais"
-          : tipoFiltro === "Adoção / Doação"
-          ? "adocao"
-          : tipoFiltro === "Achados e perdidos"
-          ? "achados"
-          : "servicos";
-
-      lista = lista.filter((a) => classificarAnuncio(a) === slug);
-    }
-
-    if (busca.trim()) {
-      lista = lista.filter((a) => {
-        const haystack = [
-          a.titulo,
-          a.descricao,
-          a.subcategoria_pet,
-          a.tipo_imovel,
-          a.cidade,
-          a.bairro,
-        ].join(" ");
-        return matchAllTokensSmart(busca, haystack);
-      });
-    }
-
-    return lista;
-  }, [anuncios, busca, tipoFiltro, cidadeFiltro]);
-
-  // Escolhe um anúncio para ilustrar cada card (usa base total, não a busca)
+  // Escolhe um anúncio para ilustrar cada card (usa base total)
   function escolherParaCard(slugGrupo) {
     if (!anuncios || anuncios.length === 0) return null;
     const filtrados = anuncios.filter((a) => classificarAnuncio(a) === slugGrupo);
@@ -365,10 +196,24 @@ export default function PetsPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Anúncios recentes (agora respeita o motorzinho)
-  const anunciosRecentes = anunciosFiltrados.slice(0, 12);
+  // Anúncios recentes (sempre os mais novos/mais destaque primeiro — padrão Náutica)
+  const destaques = anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
 
-  const temFiltroAtivo = !!(busca.trim() || tipoFiltro || cidadeFiltro);
+  // ✅ Busca PREMIUM: manda para /busca (igual Náutica)
+  function handleBuscar() {
+    const partes = [];
+    if (textoBusca.trim()) partes.push(textoBusca.trim());
+    if (tipoBusca) partes.push(tipoBusca);
+    if (cidadeBusca) partes.push(cidadeBusca);
+
+    const q = partes.join(" ").trim();
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    params.set("categoria", "pets");
+
+    router.push(`/busca?${params.toString()}`);
+  }
 
   return (
     <main className="bg-white min-h-screen">
@@ -403,21 +248,19 @@ export default function PetsPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
             <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
-              Encontre animais, acessórios, serviços pet e muito mais na Região
-              dos Lagos.
+              Encontre animais, acessórios, serviços pet e muito mais na Região dos Lagos.
             </p>
             <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
               Classilagos – Pets
             </h1>
             <p className="mt-2 text-[11px] sm:text-xs text-amber-100/90">
-              Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio,
-              Búzios e toda a região.
+              Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio, Búzios e toda a região.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ✅ CAIXA DE BUSCA (AGORA LIGADA) */}
+      {/* CAIXA DE BUSCA (✅ padrão Náutica: redireciona /busca) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -428,10 +271,16 @@ export default function PetsPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: clinica veterinaria, filhotes de caes, banho e tosa"
+                  placeholder="Ex.: clinica veterinaria, filhotes, banho e tosa"
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
+                  value={textoBusca}
+                  onChange={(e) => setTextoBusca(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleBuscar();
+                    }
+                  }}
                 />
               </div>
 
@@ -441,8 +290,8 @@ export default function PetsPage() {
                 </label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={tipoFiltro}
-                  onChange={(e) => setTipoFiltro(e.target.value)}
+                  value={tipoBusca}
+                  onChange={(e) => setTipoBusca(e.target.value)}
                 >
                   <option value="">Todos</option>
                   {tiposPet.map((t) => (
@@ -459,8 +308,8 @@ export default function PetsPage() {
                 </label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={cidadeFiltro}
-                  onChange={(e) => setCidadeFiltro(e.target.value)}
+                  value={cidadeBusca}
+                  onChange={(e) => setCidadeBusca(e.target.value)}
                 >
                   <option value="">Todas</option>
                   {cidades.map((c) => (
@@ -475,24 +324,18 @@ export default function PetsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setBusca("");
-                    setTipoFiltro("");
-                    setCidadeFiltro("");
-                    setTimeout(() => {
-                      const el = document.getElementById("resultados-pets");
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 50);
+                    setTextoBusca("");
+                    setTipoBusca("");
+                    setCidadeBusca("");
                   }}
                   className="w-full md:w-auto rounded-full bg-slate-200 px-4 py-2 text-xs md:text-sm font-semibold text-slate-800 hover:bg-slate-300"
                 >
                   Limpar
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => {
-                    const el = document.getElementById("resultados-pets");
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
+                  onClick={handleBuscar}
                   className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Buscar
@@ -502,14 +345,14 @@ export default function PetsPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            ✅ Busca ligada aos anúncios reais (com normalização + sinônimos).
+            Busca ligada ao motor do Classilagos.
           </p>
         </div>
       </section>
 
       <div className="h-4 sm:h-6" />
 
-      {/* 4 CARDS PRINCIPAIS */}
+      {/* 4 CARDS PRINCIPAIS (vitrine) */}
       <section className="max-w-6xl mx-auto px-4 pb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {cardsPets.map((card) => {
@@ -525,6 +368,7 @@ export default function PetsPage() {
               >
                 <div className="relative h-24 md:h-28 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={capa}
                       alt={anuncio?.titulo || card.titulo}
@@ -537,6 +381,7 @@ export default function PetsPage() {
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
+
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{card.titulo}</p>
                   <p className="mt-1 text-[10px] text-slate-300 line-clamp-2">
@@ -554,62 +399,44 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ANÚNCIOS RECENTES (AGORA RESPEITA O MOTORZINHO) */}
-      <section className="bg-white pb-10" id="resultados-pets">
+      {/* ANÚNCIOS RECENTES DE PETS (padrão Náutica) */}
+      <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              {temFiltroAtivo ? "Resultados da sua busca" : "Anúncios recentes de pets"}
+              Anúncios recentes de pets
             </h2>
+
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
                 ? "Carregando anúncios..."
-                : anunciosRecentes.length === 0
-                ? "Nenhum anúncio encontrado."
-                : `${anunciosRecentes.length} anúncio(s)`}
+                : destaques.length === 0
+                ? "Nenhum anúncio cadastrado ainda."
+                : `${destaques.length} anúncio(s)`}
             </span>
           </div>
 
-          {loadingAnuncios && (
-            <p className="text-xs text-slate-500">Buscando anúncios…</p>
-          )}
+          {loadingAnuncios && <p className="text-xs text-slate-500">Buscando anúncios…</p>}
 
-          {!loadingAnuncios && anunciosRecentes.length === 0 && (
+          {!loadingAnuncios && destaques.length === 0 && (
             <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
-              {temFiltroAtivo ? (
-                <>
-                  Nenhum anúncio bateu com sua busca.
-                  <br />
-                  <button
-                    onClick={() => {
-                      setBusca("");
-                      setTipoFiltro("");
-                      setCidadeFiltro("");
-                    }}
-                    className="inline-flex mt-3 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-black"
-                  >
-                    Limpar filtros
-                  </button>
-                </>
-              ) : (
-                <>
-                  Ainda não há anúncios de pets cadastrados.
-                  <br />
-                  <Link
-                    href="/anunciar?tipo=pets"
-                    className="inline-flex mt-3 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                  >
-                    Seja o primeiro a anunciar
-                  </Link>
-                </>
-              )}
+              Ainda não há anúncios de pets cadastrados.
+              <br />
+              <Link
+                href="/anunciar?tipo=pets"
+                className="inline-flex mt-3 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              >
+                Seja o primeiro a anunciar
+              </Link>
             </div>
           )}
 
-          {!loadingAnuncios && anunciosRecentes.length > 0 && (
+          {!loadingAnuncios && destaques.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-              {anunciosRecentes.map((a) => {
-                const img = Array.isArray(a.imagens) && a.imagens.length > 0 ? a.imagens[0] : null;
+              {destaques.map((a) => {
+                const img =
+                  Array.isArray(a.imagens) && a.imagens.length > 0 ? a.imagens[0] : null;
+
                 const grupo = classificarAnuncio(a);
 
                 return (
@@ -620,13 +447,14 @@ export default function PetsPage() {
                   >
                     <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
                       {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={img}
                           alt={a.titulo}
                           className="w-full h-full object-cover group-hover:scale-105 transition"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[11px] text-amber-50 bg-gradient-to-br from-amber-500 to-rose-500">
+                        <div className="w-full h-28 md:h-32 bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-[11px] text-amber-50">
                           Sem foto
                         </div>
                       )}
@@ -645,6 +473,11 @@ export default function PetsPage() {
                         {a.cidade}
                         {a.bairro ? ` • ${a.bairro}` : ""}
                       </p>
+                      {a.preco && (
+                        <p className="mt-1 text-[11px] font-semibold text-emerald-300">
+                          {a.preco}
+                        </p>
+                      )}
                     </div>
                   </Link>
                 );
@@ -657,52 +490,37 @@ export default function PetsPage() {
       {/* LINKS ÚTEIS */}
       <section className="bg-slate-900 py-8 border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">
-            Links úteis para pets
-          </h2>
+          <h2 className="text-sm font-semibold text-white mb-1">Links úteis para pets</h2>
           <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para cuidar bem dos seus animais
-            na Região dos Lagos.
+            Use o Classilagos também como guia para cuidar bem dos seus animais na Região dos Lagos.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Campanhas de vacinação
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Campanhas de vacinação</h3>
               <p className="text-[11px] text-slate-300">
-                Informações sobre vacinação antirrábica e campanhas oficiais
-                nas cidades da região.
+                Informações sobre vacinação antirrábica e campanhas oficiais nas cidades da região.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Centro de Zoonoses
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Centro de Zoonoses</h3>
               <p className="text-[11px] text-slate-300">
-                Endereços e orientações sobre saúde pública, resgate e animais
-                em situação de rua.
+                Endereços e orientações sobre saúde pública, resgate e animais em situação de rua.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                ONGs e proteção animal
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">ONGs e proteção animal</h3>
               <p className="text-[11px] text-slate-300">
-                Projetos de adoção, lares temporários e feiras de adoção na
-                Região dos Lagos.
+                Projetos de adoção, lares temporários e feiras de adoção na Região dos Lagos.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">
-                Dicas de bem-estar pet
-              </h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Dicas de bem-estar pet</h3>
               <p className="text-[11px] text-slate-300">
-                Em breve, conteúdos especiais sobre alimentação, comportamento e
-                cuidados gerais.
+                Em breve, conteúdos especiais sobre alimentação, comportamento e cuidados gerais.
               </p>
             </div>
           </div>
