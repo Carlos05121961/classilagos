@@ -47,7 +47,8 @@ export default function AnuncioDetalhePage() {
         "id, titulo, cidade, bairro, preco, tipo_imovel, finalidade, imagens, categoria, subcategoria_servico, created_at, destaque";
 
       // helpers (só para esta função)
-      const norm = (v) => (v || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+      const norm = (v) =>
+        (v || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
       const isTemporada = (v) => {
         const f = norm(v);
         return f === "temporada" || f === "aluguel temporada" || f === "aluguel_temporada";
@@ -61,7 +62,6 @@ export default function AnuncioDetalhePage() {
       const fAtual = norm(data.finalidade);
 
       // monta um "filtro SQL" de finalidade robusto
-      // (porque no banco pode estar vindo "aluguel temporada" etc.)
       const aplicarFiltroFinalidade = (q) => {
         if (isTemporada(fAtual)) {
           return q.or(
@@ -72,7 +72,6 @@ export default function AnuncioDetalhePage() {
           return q.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
         }
         if (fAtual) {
-          // venda e outros diretos
           return q.eq("finalidade", data.finalidade);
         }
         return q;
@@ -85,7 +84,7 @@ export default function AnuncioDetalhePage() {
         let q1 = supabase
           .from("anuncios")
           .select(campos)
-          .eq("categoria", "imoveis") // aqui é imóveis mesmo, pra não misturar
+          .eq("categoria", "imoveis")
           .neq("id", data.id)
           .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
@@ -170,7 +169,6 @@ export default function AnuncioDetalhePage() {
       setSimilares(lista.slice(0, 4));
 
       setLoading(false);
-
     };
 
     fetchAnuncio();
@@ -206,11 +204,12 @@ export default function AnuncioDetalhePage() {
   const isServico = anuncio.categoria === "servico";
   const isLagolistas = anuncio.categoria === "lagolistas";
   const isPets = anuncio.categoria === "pets";
+  const isImoveis = anuncio.categoria === "imoveis";
 
-  // Imagens (galeria não é usada para currículo, vagas, nem LagoListas)
+  // Imagens
   const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
   const temImagens = imagens.length > 0;
-   // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
+  // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
   const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
 
   // Contatos
@@ -230,6 +229,11 @@ export default function AnuncioDetalhePage() {
         )}`
       : null;
 
+  // ✅ WhatsApp do PARCEIRO (financiamento/seguro)
+  // Se você quiser, depois a gente troca para um número fixo do parceiro.
+  // Por enquanto, se não tiver número do parceiro, usamos o WhatsApp do anunciante (sem quebrar nada).
+  const parceiroDigits = whatsappDigits;
+
   // Compartilhamento
   const encodedUrl = encodeURIComponent(shareUrl || "");
   const shareText = encodeURIComponent(
@@ -239,11 +243,7 @@ export default function AnuncioDetalhePage() {
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
   // Endereço para mapa
-  const enderecoCompleto = [
-    anuncio.endereco || "",
-    anuncio.bairro || "",
-    anuncio.cidade || "",
-  ]
+  const enderecoCompleto = [anuncio.endereco || "", anuncio.bairro || "", anuncio.cidade || ""]
     .join(" ")
     .trim();
 
@@ -319,6 +319,14 @@ export default function AnuncioDetalhePage() {
       : anuncio.categoria === "pets"
       ? "Pets"
       : "a lista";
+
+  // ✅ helper: preço numérico para simulação (robusto)
+  const precoNumero = (() => {
+    const raw = (anuncio?.preco ?? "").toString();
+    const digits = raw.replace(/[^\d]/g, "");
+    const n = Number(digits);
+    return Number.isFinite(n) ? n : 0;
+  })();
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-12">
@@ -445,13 +453,9 @@ export default function AnuncioDetalhePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
-        {/* GALERIA DE FOTOS (não mostra para VAGAS, CURRÍCULO nem LAGOLISTAS) */}
+        {/* GALERIA DE FOTOS */}
         {mostrarGaleria && (
-          <section
-            className="w-full flex flex-col gap-3"
-            id="fachada" // âncora p/outros tipos
-          >
-            {/* FOTO PRINCIPAL – padrão Classilagos bonito */}
+          <section className="w-full flex flex-col gap-3" id="fachada">
             <div className="w-full flex justify-center">
               <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
                 <img
@@ -462,7 +466,6 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
 
-            {/* MINIATURAS (todas as fotos) */}
             {imagens.length > 1 && (
               <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                 {imagens.map((url, index) => (
@@ -488,32 +491,27 @@ export default function AnuncioDetalhePage() {
           </section>
         )}
 
-        {/* GRID PRINCIPAL: ESQUERDA / DIREITA */}
+        {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
             {/* ===================== CURRÍCULO ===================== */}
             {isCurriculo ? (
               <>
-                {/* Card principal do candidato */}
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <div className="flex items-start gap-4">
-                    {/* FOTO DO CANDIDATO */}
                     {anuncio.curriculo_foto_url && (
                       <div className="flex-shrink-0">
                         <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
                           <img
                             src={anuncio.curriculo_foto_url}
-                            alt={
-                              anuncio.nome_contato || "Foto do candidato"
-                            }
+                            alt={anuncio.nome_contato || "Foto do candidato"}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       </div>
                     )}
 
-                    {/* TEXTOS CABEÇALHO */}
                     <div className="space-y-1">
                       <h2 className="text-base md:text-lg font-bold text-slate-900">
                         {anuncio.titulo?.startsWith("Currículo - ")
@@ -537,18 +535,15 @@ export default function AnuncioDetalhePage() {
                   </div>
                 </section>
 
-                {/* Resumo profissional */}
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-900 mb-1">
                     Resumo profissional
                   </h3>
                   <p className="text-xs text-slate-700 whitespace-pre-line">
-                    {anuncio.descricao ||
-                      "O candidato ainda não preencheu o resumo profissional."}
+                    {anuncio.descricao || "O candidato ainda não preencheu o resumo profissional."}
                   </p>
                 </section>
 
-                {/* Experiências profissionais */}
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-900 mb-1">
                     Experiências profissionais
@@ -559,7 +554,6 @@ export default function AnuncioDetalhePage() {
                   </p>
                 </section>
 
-                {/* Formação acadêmica / cursos + Escolaridade */}
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-900 mb-1">
                     Formação acadêmica / cursos
@@ -578,15 +572,13 @@ export default function AnuncioDetalhePage() {
                     </p>
                   )}
 
-                  {!anuncio.escolaridade_minima &&
-                    !anuncio.formacao_academica && (
-                      <p className="text-xs text-slate-500">
-                        O candidato ainda não informou formação acadêmica.
-                      </p>
-                    )}
+                  {!anuncio.escolaridade_minima && !anuncio.formacao_academica && (
+                    <p className="text-xs text-slate-500">
+                      O candidato ainda não informou formação acadêmica.
+                    </p>
+                  )}
                 </section>
 
-                {/* Habilidades e competências */}
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-900 mb-1">
                     Habilidades e competências
@@ -597,7 +589,6 @@ export default function AnuncioDetalhePage() {
                   </p>
                 </section>
 
-                {/* Idiomas (mostra só se tiver) */}
                 {anuncio.idiomas && (
                   <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                     <h3 className="text-sm font-semibold text-slate-900 mb-1">
@@ -609,7 +600,6 @@ export default function AnuncioDetalhePage() {
                   </section>
                 )}
 
-                {/* Link para baixar PDF do currículo, se existir */}
                 {anuncio.curriculo_pdf_url && (
                   <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                     <h3 className="text-sm font-semibold text-slate-900 mb-1">
@@ -628,12 +618,11 @@ export default function AnuncioDetalhePage() {
               </>
             ) : (
               <>
-                {/* Aqui, para os outros tipos (imóvel, veículo, serviço etc.),
-                    segue o conteúdo padrão da página */}
+                {/* Outros tipos seguem o conteúdo padrão */}
               </>
             )}
 
-            {/* Resumo do anúncio (vale para todos os tipos) */}
+            {/* Resumo do anúncio */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Resumo do anúncio
@@ -642,133 +631,100 @@ export default function AnuncioDetalhePage() {
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
                 {anuncio.preco && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Valor:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Valor: </span>
                     R$ {anuncio.preco}
                   </div>
                 )}
                 {isEmprego && anuncio.faixa_salarial && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Faixa salarial:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Faixa salarial: </span>
                     {anuncio.faixa_salarial}
                   </div>
                 )}
                 {isServico && anuncio.faixa_preco && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Faixa de preço:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Faixa de preço: </span>
                     {anuncio.faixa_preco}
                   </div>
                 )}
 
                 {anuncio.tipo_imovel && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Tipo:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Tipo: </span>
                     {anuncio.tipo_imovel}
                   </div>
                 )}
                 {anuncio.finalidade && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Finalidade:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Finalidade: </span>
                     {anuncio.finalidade === "venda" && "Venda"}
                     {anuncio.finalidade === "aluguel_fixo" && "Aluguel fixo"}
                     {anuncio.finalidade === "aluguel" && "Aluguel"}
-                    {anuncio.finalidade === "temporada" &&
-                      "Aluguel por temporada"}
+                    {anuncio.finalidade === "temporada" && "Aluguel por temporada"}
                   </div>
                 )}
                 {anuncio.area && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Área:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Área: </span>
                     {anuncio.area} m²
                   </div>
                 )}
                 {anuncio.quartos && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Quartos:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Quartos: </span>
                     {anuncio.quartos}
                   </div>
                 )}
                 {anuncio.banheiros && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Banheiros:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Banheiros: </span>
                     {anuncio.banheiros}
                   </div>
                 )}
                 {anuncio.vagas && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Vagas:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Vagas: </span>
                     {anuncio.vagas}
                   </div>
                 )}
 
                 {isEmprego && anuncio.area_profissional && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Área:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Área: </span>
                     {anuncio.area_profissional}
                   </div>
                 )}
                 {isEmprego && anuncio.tipo_vaga && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Tipo de vaga:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Tipo de vaga: </span>
                     {anuncio.tipo_vaga}
                   </div>
                 )}
                 {isEmprego && anuncio.modelo_trabalho && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Modelo:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Modelo: </span>
                     {anuncio.modelo_trabalho}
                   </div>
                 )}
                 {isEmprego && anuncio.carga_horaria && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Carga horária:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Carga horária: </span>
                     {anuncio.carga_horaria}
                   </div>
                 )}
 
                 {isServico && anuncio.subcategoria_servico && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Tipo de serviço:{" "}
-                    </span>
-                    {anuncio.subcategoria_servico === "classimed" &&
-                      "Saúde (Classimed)"}
-                    {anuncio.subcategoria_servico === "eventos" &&
-                      "Festas & Eventos"}
+                    <span className="font-semibold text-slate-900">Tipo de serviço: </span>
+                    {anuncio.subcategoria_servico === "classimed" && "Saúde (Classimed)"}
+                    {anuncio.subcategoria_servico === "eventos" && "Festas & Eventos"}
                     {anuncio.subcategoria_servico === "profissionais" &&
                       "Profissionais & Serviços"}
                   </div>
                 )}
                 {isServico && anuncio.nome_negocio && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Nome do negócio:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Nome do negócio: </span>
                     {anuncio.nome_negocio}
                   </div>
                 )}
@@ -780,52 +736,43 @@ export default function AnuncioDetalhePage() {
                     {anuncio.horario_atendimento}
                   </div>
                 )}
-                {isServico &&
-                  typeof anuncio.atende_domicilio === "boolean" && (
-                    <div>
-                      <span className="font-semibold text-slate-900">
-                        Atende em domicílio:{" "}
-                      </span>
-                      {anuncio.atende_domicilio ? "Sim" : "Não"}
-                    </div>
-                  )}
+                {isServico && typeof anuncio.atende_domicilio === "boolean" && (
+                  <div>
+                    <span className="font-semibold text-slate-900">
+                      Atende em domicílio:{" "}
+                    </span>
+                    {anuncio.atende_domicilio ? "Sim" : "Não"}
+                  </div>
+                )}
 
                 {anuncio.marca && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Marca:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Marca: </span>
                     {anuncio.marca}
                   </div>
                 )}
                 {anuncio.modelo && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Modelo:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Modelo: </span>
                     {anuncio.modelo}
                   </div>
                 )}
                 {anuncio.ano && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Ano:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Ano: </span>
                     {anuncio.ano}
                   </div>
                 )}
                 {anuncio.km && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Km:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Km: </span>
                     {anuncio.km}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* BLOCO ESPECIAL LAGOLISTAS – INFORMAÇÕES DO ESTABELECIMENTO */}
+            {/* BLOCO ESPECIAL LAGOLISTAS */}
             {isLagolistas && (
               <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
                 <h2 className="text-sm font-semibold text-slate-900 mb-4">
@@ -833,7 +780,6 @@ export default function AnuncioDetalhePage() {
                 </h2>
 
                 <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
-                  {/* Logo / miniatura */}
                   <div className="flex-shrink-0">
                     {imagens && imagens.length > 0 && (
                       <div className="block">
@@ -849,27 +795,18 @@ export default function AnuncioDetalhePage() {
                     )}
                   </div>
 
-                  {/* Dados em colunas */}
                   <div className="grid gap-2 text-xs md:text-sm flex-1 md:grid-cols-2">
                     {anuncio.nome_negocio && (
                       <div>
-                        <p className="font-medium text-slate-800">
-                          Nome do comércio
-                        </p>
-                        <p className="text-slate-700">
-                          {anuncio.nome_negocio}
-                        </p>
+                        <p className="font-medium text-slate-800">Nome do comércio</p>
+                        <p className="text-slate-700">{anuncio.nome_negocio}</p>
                       </div>
                     )}
 
                     {anuncio.razao_social && (
                       <div>
-                        <p className="font-medium text-slate-800">
-                          Razão social
-                        </p>
-                        <p className="text-slate-700">
-                          {anuncio.razao_social}
-                        </p>
+                        <p className="font-medium text-slate-800">Razão social</p>
+                        <p className="text-slate-700">{anuncio.razao_social}</p>
                       </div>
                     )}
 
@@ -882,29 +819,19 @@ export default function AnuncioDetalhePage() {
 
                     {anuncio.inscricao_municipal && (
                       <div>
-                        <p className="font-medium text-slate-800">
-                          Inscrição municipal
-                        </p>
-                        <p className="text-slate-700">
-                          {anuncio.inscricao_municipal}
-                        </p>
+                        <p className="font-medium text-slate-800">Inscrição municipal</p>
+                        <p className="text-slate-700">{anuncio.inscricao_municipal}</p>
                       </div>
                     )}
 
                     {anuncio.registro_profissional && (
                       <div>
-                        <p className="font-medium text-slate-800">
-                          Registro profissional
-                        </p>
-                        <p className="text-slate-700">
-                          {anuncio.registro_profissional}
-                        </p>
+                        <p className="font-medium text-slate-800">Registro profissional</p>
+                        <p className="text-slate-700">{anuncio.registro_profissional}</p>
                       </div>
                     )}
 
-                    {(anuncio.endereco ||
-                      anuncio.bairro ||
-                      anuncio.cidade) && (
+                    {(anuncio.endereco || anuncio.bairro || anuncio.cidade) && (
                       <div className="md:col-span-2">
                         <p className="font-medium text-slate-800">Endereço</p>
                         <p className="text-slate-700">
@@ -932,10 +859,7 @@ export default function AnuncioDetalhePage() {
                             href={
                               anuncio.instagram.startsWith("http")
                                 ? anuncio.instagram
-                                : `https://instagram.com/${anuncio.instagram.replace(
-                                    "@",
-                                    ""
-                                  )}`
+                                : `https://instagram.com/${anuncio.instagram.replace("@", "")}`
                             }
                             target="_blank"
                             rel="noopener noreferrer"
@@ -961,23 +885,17 @@ export default function AnuncioDetalhePage() {
                   {anuncio.descricao}
                 </p>
 
-                {(anuncio.condominio ||
-                  anuncio.iptu ||
-                  anuncio.aceita_financiamento) && (
+                {(anuncio.condominio || anuncio.iptu || anuncio.aceita_financiamento) && (
                   <div className="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
                     {anuncio.condominio && (
                       <div>
-                        <span className="font-semibold text-slate-900">
-                          Condomínio:{" "}
-                        </span>
+                        <span className="font-semibold text-slate-900">Condomínio: </span>
                         R$ {anuncio.condominio}
                       </div>
                     )}
                     {anuncio.iptu && (
                       <div>
-                        <span className="font-semibold text-slate-900">
-                          IPTU (ano):{" "}
-                        </span>
+                        <span className="font-semibold text-slate-900">IPTU (ano): </span>
                         R$ {anuncio.iptu}
                       </div>
                     )}
@@ -997,9 +915,7 @@ export default function AnuncioDetalhePage() {
                   <div className="mt-4 space-y-1 text-xs text-slate-700">
                     {anuncio.site_url && (
                       <p>
-                        <span className="font-semibold text-slate-900">
-                          Site:{" "}
-                        </span>
+                        <span className="font-semibold text-slate-900">Site: </span>
                         <a
                           href={anuncio.site_url}
                           target="_blank"
@@ -1012,17 +928,12 @@ export default function AnuncioDetalhePage() {
                     )}
                     {anuncio.instagram && (
                       <p>
-                        <span className="font-semibold text-slate-900">
-                          Instagram:{" "}
-                        </span>
+                        <span className="font-semibold text-slate-900">Instagram: </span>
                         <a
                           href={
                             anuncio.instagram.startsWith("http")
                               ? anuncio.instagram
-                              : `https://instagram.com/${anuncio.instagram.replace(
-                                  "@",
-                                  ""
-                                )}`
+                              : `https://instagram.com/${anuncio.instagram.replace("@", "")}`
                           }
                           target="_blank"
                           rel="noreferrer"
@@ -1051,8 +962,7 @@ export default function AnuncioDetalhePage() {
                   />
                 </div>
                 <p className="mt-1 text-[10px] text-slate-500">
-                  O mapa é aproximado e pode não indicar o endereço exato.
-                  Confirme sempre com o anunciante.
+                  O mapa é aproximado e pode não indicar o endereço exato. Confirme sempre com o anunciante.
                 </p>
               </div>
             </div>
@@ -1078,13 +988,11 @@ export default function AnuncioDetalhePage() {
             )}
           </div>
 
-          {/* COLUNA DIREITA: CONTATO + MERCADO LIVRE */}
+          {/* COLUNA DIREITA: CONTATO + (NOVOS) FINANCIAMENTO + SEGURO + MERCADO LIVRE */}
           <div className="space-y-4">
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
-                {isCurriculo
-                  ? "Falar com o candidato"
-                  : "Fale com o anunciante"}
+                {isCurriculo ? "Falar com o candidato" : "Fale com o anunciante"}
               </h2>
 
               {whatsappLink && (
@@ -1104,25 +1012,19 @@ export default function AnuncioDetalhePage() {
               <div className="space-y-1 text-xs text-slate-700">
                 {whatsappRaw && (
                   <p>
-                    <span className="font-semibold text-slate-900">
-                      WhatsApp:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">WhatsApp: </span>
                     {whatsappRaw}
                   </p>
                 )}
                 {telefoneRaw && (
                   <p>
-                    <span className="font-semibold text-slate-900">
-                      Telefone:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Telefone: </span>
                     {telefoneRaw}
                   </p>
                 )}
                 {email && (
                   <p>
-                    <span className="font-semibold text-slate-900">
-                      E-mail:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">E-mail: </span>
                     {email}
                   </p>
                 )}
@@ -1132,25 +1034,19 @@ export default function AnuncioDetalhePage() {
                 <div className="mt-4 pt-3 border-t border-slate-200 space-y-1 text-xs text-slate-700">
                   {imobiliaria && (
                     <p>
-                      <span className="font-semibold text-slate-900">
-                        Imobiliária:{" "}
-                      </span>
+                      <span className="font-semibold text-slate-900">Imobiliária: </span>
                       {imobiliaria}
                     </p>
                   )}
                   {corretor && (
                     <p>
-                      <span className="font-semibold text-slate-900">
-                        Corretor:{" "}
-                      </span>
+                      <span className="font-semibold text-slate-900">Corretor: </span>
                       {corretor}
                     </p>
                   )}
                   {creci && (
                     <p>
-                      <span className="font-semibold text-slate-900">
-                        CRECI:{" "}
-                      </span>
+                      <span className="font-semibold text-slate-900">CRECI: </span>
                       {creci}
                     </p>
                   )}
@@ -1162,6 +1058,103 @@ export default function AnuncioDetalhePage() {
                 {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
               </p>
             </div>
+
+            {/* ✅ NOVO BLOCO PREMIUM: SIMULADOR (SÓ IMÓVEIS) */}
+            {isImoveis && precoNumero > 0 && (
+              <div className="bg-white rounded-3xl border border-emerald-200 px-5 py-4 shadow-sm">
+                <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                  Simule o financiamento deste imóvel
+                </h2>
+                <p className="text-[11px] text-slate-600 mb-3">
+                  Simulação aproximada. Valores reais dependem da análise de crédito.
+                </p>
+
+                {(() => {
+                  const valor = precoNumero;
+                  const entrada = Math.round(valor * 0.2);
+                  const financiamento = Math.max(0, valor - entrada);
+                  const meses = 360;
+                  const juros = 0.009; // 0,9% a.m. (estimado)
+                  const parcela =
+                    financiamento > 0
+                      ? Math.round(financiamento * (juros / (1 - Math.pow(1 + juros, -meses))))
+                      : 0;
+
+                  return (
+                    <div className="space-y-2 text-xs text-slate-700">
+                      <p>
+                        <span className="font-semibold text-slate-900">Valor do imóvel: </span>
+                        R$ {valor.toLocaleString("pt-BR")}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-900">Entrada estimada (20%): </span>
+                        R$ {entrada.toLocaleString("pt-BR")}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-900">Financiamento: </span>
+                        R$ {financiamento.toLocaleString("pt-BR")}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-slate-900">Parcela estimada: </span>
+                        <span className="font-semibold text-emerald-700">
+                          R$ {parcela.toLocaleString("pt-BR")} / mês
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {parceiroDigits ? (
+                  <a
+                    href={`https://wa.me/55${parceiroDigits}?text=${encodeURIComponent(
+                      `Olá! Vi este imóvel no Classilagos (ID ${anuncio.id}) e gostaria de uma simulação oficial de financiamento.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Falar com consultor de financiamento
+                  </a>
+                ) : (
+                  <p className="mt-3 text-[11px] text-slate-500">
+                    Em breve: atendimento com consultor parceiro.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* ✅ NOVO BLOCO PREMIUM: SEGURO (SÓ IMÓVEIS) */}
+            {isImoveis && (
+              <div className="bg-white rounded-3xl border border-blue-200 px-5 py-4 shadow-sm">
+                <h2 className="text-sm font-semibold text-slate-900 mb-2">
+                  Seguro residencial & fiança
+                </h2>
+                <p className="text-[11px] text-slate-600 mb-3">
+                  Proteja seu imóvel ou alugue com mais segurança.
+                </p>
+
+                {parceiroDigits ? (
+                  <a
+                    href={`https://wa.me/55${parceiroDigits}?text=${encodeURIComponent(
+                      `Olá! Vi um imóvel no Classilagos (ID ${anuncio.id}) e gostaria de cotar seguro residencial e/ou seguro fiança.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                  >
+                    Cotar seguro agora
+                  </a>
+                ) : (
+                  <span className="inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-4 py-2 text-xs font-semibold text-slate-700">
+                    Em breve no Classilagos
+                  </span>
+                )}
+
+                <p className="mt-2 text-[10px] text-slate-400">
+                  Atendimento com corretor parceiro.
+                </p>
+              </div>
+            )}
 
             {/* Bloco Mercado Livre continua igual para todos os tipos */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
@@ -1205,8 +1198,7 @@ export default function AnuncioDetalhePage() {
                 </li>
               </ul>
               <p className="mt-3 text-[10px] text-slate-400">
-                Em breve este bloco poderá usar seus links de afiliado
-                personalizados.
+                Em breve este bloco poderá usar seus links de afiliado personalizados.
               </p>
             </div>
           </div>
@@ -1245,17 +1237,15 @@ export default function AnuncioDetalhePage() {
             </h2>
 
             {similares.length === 0 && (
-              <p className="text-[11px] text-slate-600">
-                {textoSimilaresVazio}
-              </p>
+              <p className="text-[11px] text-slate-600">{textoSimilaresVazio}</p>
             )}
 
             {similares.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
                 {similares.map((item) => {
-                 const img = Array.isArray(item.imagens)
-  ? item.imagens.find((u) => typeof u === "string" && u.trim() !== "")
-  : null;
+                  const img = Array.isArray(item.imagens)
+                    ? item.imagens.find((u) => typeof u === "string" && u.trim() !== "")
+                    : null;
 
                   return (
                     <Link
@@ -1273,9 +1263,7 @@ export default function AnuncioDetalhePage() {
                         </div>
                       )}
                       <div className="px-3 py-2 space-y-1">
-                        <p className="font-semibold line-clamp-2">
-                          {item.titulo}
-                        </p>
+                        <p className="font-semibold line-clamp-2">{item.titulo}</p>
                         <p className="text-[11px] text-slate-600">
                           {item.cidade}
                           {item.bairro ? ` • ${item.bairro}` : ""}
