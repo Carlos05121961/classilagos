@@ -3,44 +3,36 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
-// =========================
-// Helpers (busca sem acento)
-// =========================
-function normalizeText(str = "") {
-  return String(str || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acentos
-    .replace(/[^a-z0-9\s]/g, " ") // tira pontuação
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export default function LagoListasPage() {
+  const router = useRouter();
+
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Busca (vai para /busca)
   const [buscaTexto, setBuscaTexto] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
 
   // HERO – 3 imagens em slide
-  const heroImages = [
-    "/lagolistas/hero-lagolistas-01.webp",
-    "/lagolistas/hero-lagolistas-02.webp",
-    "/lagolistas/hero-lagolistas-03.webp",
-  ];
+  const heroImages = useMemo(
+    () => [
+      "/lagolistas/hero-lagolistas-01.webp",
+      "/lagolistas/hero-lagolistas-02.webp",
+      "/lagolistas/hero-lagolistas-03.webp",
+    ],
+    []
+  );
   const [currentHero, setCurrentHero] = useState(0);
 
   useEffect(() => {
     if (heroImages.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
@@ -57,7 +49,7 @@ export default function LagoListasPage() {
     "Rio das Ostras",
   ];
 
-  // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
+  // Mesma lista de segmentos usada no LagoListas (ordem alfabética)
   const segmentosLagolistas = [
     "Academias, pilates & estúdios de treino",
     "Advogados & serviços jurídicos",
@@ -122,7 +114,7 @@ export default function LagoListasPage() {
     "Óticas & relojoarias",
   ];
 
-  // Buscar cadastros do LagoListas
+  // Buscar cadastros do LagoListas (lista base da página)
   useEffect(() => {
     const fetchLagolistas = async () => {
       setLoading(true);
@@ -150,45 +142,33 @@ export default function LagoListasPage() {
     fetchLagolistas();
   }, []);
 
-  function scrollResultados() {
-    const el = document.getElementById("resultados-lagolistas");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // ✅ Busca premium: manda para o motorzão (/busca)
+  function handleBuscar() {
+    const partes = [];
+
+    if (buscaTexto.trim()) partes.push(buscaTexto.trim());
+    if (filtroCategoria && filtroCategoria !== "Todos") partes.push(filtroCategoria);
+    if (filtroCidade && filtroCidade !== "Toda a região") partes.push(filtroCidade);
+
+    const q = partes.join(" ").trim();
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    params.set("categoria", "lagolistas");
+
+    router.push(`/busca?${params.toString()}`);
   }
 
-  // Filtro Premium (sem acento, case-insensitive)
-  const filtrados = useMemo(() => {
-    const q = normalizeText(buscaTexto);
-
-    return (Array.isArray(anuncios) ? anuncios : []).filter((item) => {
-      const textoBase = normalizeText(
-        [
-          item.titulo,
-          item.descricao,
-          item.nome_negocio, // se existir no futuro
-          item.area_profissional,
-          item.cidade,
-          item.bairro,
-        ]
-          .filter(Boolean)
-          .join(" ")
-      );
-
-      const atendeTexto = !q || textoBase.includes(q);
-
-      const atendeCategoria =
-        filtroCategoria === "Todos" || item.area_profissional === filtroCategoria;
-
-      const atendeCidade =
-        filtroCidade === "Toda a região" || item.cidade === filtroCidade;
-
-      return atendeTexto && atendeCategoria && atendeCidade;
-    });
-  }, [anuncios, buscaTexto, filtroCategoria, filtroCidade]);
+  function handleLimpar() {
+    setBuscaTexto("");
+    setFiltroCategoria("Todos");
+    setFiltroCidade("Toda a região");
+  }
 
   // Card de cada cadastro
   const CardLagoLista = ({ item }) => {
-    const thumb =
-      Array.isArray(item.imagens) && item.imagens.length > 0 ? item.imagens[0] : null;
+    const imagens = Array.isArray(item.imagens) ? item.imagens : [];
+    const thumb = imagens.length > 0 ? imagens[0] : null;
 
     return (
       <Link
@@ -201,7 +181,7 @@ export default function LagoListasPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumb}
-              alt={item.titulo}
+              alt={item.titulo || "LagoListas"}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
           ) : (
@@ -265,6 +245,12 @@ export default function LagoListasPage() {
     );
   };
 
+  // ✅ Lista da página (não fica “presa” por busca)
+  const listaDaPagina = useMemo(() => {
+    const base = Array.isArray(anuncios) ? anuncios : [];
+    return base.slice(0, 60); // página leve e premium
+  }, [anuncios]);
+
   return (
     <main className="bg-white min-h-screen">
       {/* BANNER FIXO NO TOPO */}
@@ -305,11 +291,12 @@ export default function LagoListasPage() {
               O maior guia comercial da Região dos Lagos.
             </p>
             <p className="mt-1 text-[11px] md:text-xs text-slate-100/90 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites, mapas e muito mais de
-              comércios, serviços, turismo, saúde e profissionais liberais.
+              Telefones, WhatsApp, endereços, sites e muito mais de comércios,
+              serviços, saúde, turismo e profissionais liberais.
             </p>
           </div>
 
+          {/* bolinhas do slider */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {heroImages.map((_, index) => (
               <button
@@ -321,13 +308,14 @@ export default function LagoListasPage() {
                     ? "bg-white"
                     : "bg-white/30 hover:bg-white/60"
                 }`}
+                aria-label={`Hero ${index + 1}`}
               />
             ))}
           </div>
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA LAGOLISTAS (AGORA PREMIUM) */}
+      {/* CAIXA DE BUSCA LAGOLISTAS (✅ PREMIUM -> /busca) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -338,14 +326,14 @@ export default function LagoListasPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: farmacia, pizzaria, encanador, clinica..."
+                  placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      scrollResultados();
+                      handleBuscar();
                     }
                   }}
                 />
@@ -390,20 +378,14 @@ export default function LagoListasPage() {
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setBuscaTexto("");
-                    setFiltroCategoria("Todos");
-                    setFiltroCidade("Toda a região");
-                    setTimeout(scrollResultados, 50);
-                  }}
+                  onClick={handleLimpar}
                   className="w-full md:w-auto rounded-full bg-slate-200 px-4 py-2 text-xs md:text-sm font-semibold text-slate-800 hover:bg-slate-300"
                 >
                   Limpar
                 </button>
-
                 <button
                   type="button"
-                  onClick={scrollResultados}
+                  onClick={handleBuscar}
                   className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Buscar
@@ -413,7 +395,7 @@ export default function LagoListasPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            ✅ Busca ligada aos cadastros reais (sem acento / sem “case”).
+            ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
           </p>
         </div>
       </section>
@@ -438,15 +420,15 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* LISTÃO LAGOLISTAS */}
-      <section className="max-w-5xl mx-auto px-4 pb-10" id="resultados-lagolistas">
+      {/* LISTÃO BASE (não fica “preso” por busca) */}
+      <section className="max-w-5xl mx-auto px-4 pb-10">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-900">
             Cadastros do LagoListas
           </h2>
           {!loading && (
             <p className="text-[11px] text-slate-500">
-              {filtrados.length} encontrado(s)
+              {anuncios.length} cadastro(s) no total
             </p>
           )}
         </div>
@@ -457,17 +439,25 @@ export default function LagoListasPage() {
           </p>
         )}
 
-        {!loading && filtrados.length === 0 && (
+        {!loading && anuncios.length === 0 && (
           <p className="text-[11px] text-slate-500">
-            Ainda não há cadastros no LagoListas para os filtros selecionados.
+            Ainda não há cadastros no LagoListas.
           </p>
         )}
 
-        <div className="mt-3 space-y-3">
-          {filtrados.map((item) => (
-            <CardLagoLista key={item.id} item={item} />
-          ))}
-        </div>
+        {!loading && anuncios.length > 0 && (
+          <>
+            <p className="text-[11px] text-slate-500 mb-3">
+              Mostrando {listaDaPagina.length} itens (página leve e rápida).
+            </p>
+
+            <div className="space-y-3">
+              {listaDaPagina.map((item) => (
+                <CardLagoLista key={item.id} item={item} />
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </main>
   );
