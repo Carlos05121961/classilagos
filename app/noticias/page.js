@@ -69,7 +69,7 @@ export default function NoticiasHomePage() {
   const destaques = noticiasFiltradas.slice(0, 3);
   const recentes = noticiasFiltradas.slice(3, 15);
 
-  const imagemFallback = "/banners/noticias-default.jpg";
+const imagemFallback = "/banners/noticias-default.webp";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
