@@ -152,7 +152,7 @@ export default function ServicosPage() {
     if (q) params.set("q", q);
 
     // ✅ categoria do motor (padrão do site)
-    params.set("categoria", "servicos");
+   params.set("categoria", "servico");
 
     router.push(`/busca?${params.toString()}`);
   }
