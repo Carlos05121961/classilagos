@@ -84,6 +84,10 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
+          <Link href="/noticias/correspondentes" className="hover:text-slate-600 transition">
+            Correspondentes
+          </Link>
+
           {isAdmin && (
             <Link
               href="/admin"
@@ -132,6 +136,14 @@ export default function SiteHeader() {
             className="block py-1 hover:text-cyan-300"
           >
             Notícias
+          </Link>
+
+          <Link
+            href="/noticias/correspondentes"
+            onClick={() => setOpen(false)}
+            className="block py-1 hover:text-cyan-300"
+          >
+            Correspondentes
           </Link>
 
           {isAdmin && (
