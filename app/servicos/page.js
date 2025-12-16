@@ -183,14 +183,15 @@ export default function ServicosPage() {
       {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            src="/servicos/hero-servicos.jpg"
-            alt="Classilagos Serviços"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+       <Image
+  src="/hero/servicos-01.webp"
+  alt="Classilagos Serviços"
+  fill
+  priority
+  sizes="100vw"
+  className="object-cover"
+/>
+ 
           <div className="absolute inset-0 bg-black/25" />
 
           {/* TEXTOS */}
