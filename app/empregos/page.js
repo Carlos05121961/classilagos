@@ -3,13 +3,50 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
+const cidades = [
+  "Maricá",
+  "Saquarema",
+  "Araruama",
+  "Iguaba Grande",
+  "São Pedro da Aldeia",
+  "Arraial do Cabo",
+  "Cabo Frio",
+  "Búzios",
+  "Rio das Ostras",
+];
+
 export default function EmpregosPage() {
+  const router = useRouter();
+
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [curriculosRecentes, setCurriculosRecentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
+
+  // ✅ BUSCA PREMIUM (padrão /busca)
+  const [textoBusca, setTextoBusca] = useState("");
+  const [cidadeBusca, setCidadeBusca] = useState("");
+  const [modoBusca, setModoBusca] = useState("emprego"); // "emprego" (vagas) | "curriculo" (currículos)
+
+  function handleBuscar() {
+    const partes = [];
+    if (textoBusca.trim()) partes.push(textoBusca.trim());
+    if (cidadeBusca) partes.push(cidadeBusca);
+
+    const q = partes.join(" ").trim();
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+
+    // ✅ aqui é o ponto chave do padrão:
+    // Empregos tem duas categorias distintas no banco: "emprego" e "curriculo"
+    params.set("categoria", modoBusca);
+
+    router.push(`/busca?${params.toString()}`);
+  }
 
   // HERO – alternando 2 imagens no topo (mesmo esquema antigo)
   const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
@@ -26,11 +63,14 @@ export default function EmpregosPage() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        setLoading(true);
+        setErro("");
+
         // VAGAS
         const { data: vagas, error: vagasError } = await supabase
           .from("anuncios")
           .select(
-            "id, titulo, cidade, bairro, faixa_salarial, tipo_vaga, modelo_trabalho, imagens"
+            "id, titulo, cidade, bairro, faixa_salarial, tipo_vaga, modelo_trabalho, imagens, created_at, status"
           )
           .eq("categoria", "emprego")
           .order("created_at", { ascending: false })
@@ -42,7 +82,7 @@ export default function EmpregosPage() {
         const { data: curriculos, error: curriculosError } = await supabase
           .from("anuncios")
           .select(
-            "id, titulo, cidade, bairro, area_profissional, curriculo_foto_url"
+            "id, titulo, cidade, bairro, area_profissional, curriculo_foto_url, created_at, status"
           )
           .eq("categoria", "curriculo")
           .order("created_at", { ascending: false })
@@ -52,12 +92,14 @@ export default function EmpregosPage() {
 
         setVagasRecentes(vagas || []);
         setCurriculosRecentes(curriculos || []);
-        setLoading(false);
       } catch (e) {
         console.error("Erro ao carregar empregos:", e);
         setErro(
           "Não foi possível carregar vagas e currículos neste momento. Tente novamente em alguns instantes."
         );
+        setVagasRecentes([]);
+        setCurriculosRecentes([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -82,7 +124,7 @@ export default function EmpregosPage() {
 
           {/* Textos centralizados sobre a imagem */}
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-black drop-shadow-md">
+            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-black объяс drop-shadow-md">
               Classilagos – Empregos
             </h1>
 
@@ -102,6 +144,96 @@ export default function EmpregosPage() {
         </div>
       </section>
 
+      {/* ✅ CAIXA DE BUSCA PREMIUM (padrão Náutica: manda pra /busca) */}
+      <section className="bg-[#F5FBFF]">
+        <div className="max-w-5xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="grid grid-cols-1 md:grid-cols-[1.4fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+              {/* Busca livre */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Busca
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex.: atendente, auxiliar, diarista, home office..."
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  value={textoBusca}
+                  onChange={(e) => setTextoBusca(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleBuscar();
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Buscar em */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Buscar em
+                </label>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  value={modoBusca}
+                  onChange={(e) => setModoBusca(e.target.value)}
+                >
+                  <option value="emprego">Vagas</option>
+                  <option value="curriculo">Currículos</option>
+                </select>
+              </div>
+
+              {/* Cidade */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Cidade
+                </label>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  value={cidadeBusca}
+                  onChange={(e) => setCidadeBusca(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {cidades.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Botão */}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTextoBusca("");
+                    setCidadeBusca("");
+                    setModoBusca("emprego");
+                  }}
+                  className="w-full md:w-auto rounded-full bg-slate-200 px-4 py-2 text-xs md:text-sm font-semibold text-slate-800 hover:bg-slate-300"
+                >
+                  Limpar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBuscar}
+                  className="w-full md:w-auto rounded-full bg-emerald-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Busca ligada ao motor do Classilagos (padrão Premium).
+          </p>
+        </div>
+      </section>
+
       {/* BLOCO – ESCOLHA CANDIDATO / EMPRESA */}
       <section className="max-w-5xl mx-auto px-4 mt-6 grid gap-4 md:grid-cols-2">
         {/* Card candidato */}
@@ -117,7 +249,7 @@ export default function EmpregosPage() {
             encontrado por empresas de toda a região.
           </p>
           <Link
-            href="/anunciar/curriculo" // ✅ rota corrigida
+            href="/anunciar/curriculo"
             className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
           >
             Começar agora →
@@ -137,7 +269,7 @@ export default function EmpregosPage() {
             qualificados de toda a Região dos Lagos.
           </p>
           <Link
-            href="/anunciar/empregos" // ✅ rota corrigida
+            href="/anunciar/empregos"
             className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
           >
             Publicar vaga →
@@ -188,6 +320,7 @@ export default function EmpregosPage() {
                     {logo && (
                       <div className="flex-shrink-0">
                         <div className="h-12 w-12 rounded-xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={logo}
                             alt={vaga.titulo}
@@ -252,6 +385,7 @@ export default function EmpregosPage() {
                     <div className="flex-shrink-0">
                       {cv.curriculo_foto_url ? (
                         <div className="h-12 w-12 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={cv.curriculo_foto_url}
                             alt={nomeLimpo}
@@ -288,7 +422,6 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-  
       {/* TARJA ANTES DO RODAPÉ DO PEIXINHO – SERVIÇOS E INFORMAÇÕES PARA EMPREGO */}
       <section className="mt-10 bg-slate-950 text-slate-50">
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
@@ -305,9 +438,7 @@ export default function EmpregosPage() {
           <div className="grid gap-4 md:grid-cols-3">
             {/* Card 1 */}
             <div className="rounded-3xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-[11px]">
-              <h3 className="text-xs font-semibold mb-1">
-                SINE / Emprega Brasil
-              </h3>
+              <h3 className="text-xs font-semibold mb-1">SINE / Emprega Brasil</h3>
               <p className="text-slate-300 mb-3">
                 Cadastro, consulta de vagas e serviços do sistema nacional de
                 emprego.
@@ -324,9 +455,7 @@ export default function EmpregosPage() {
 
             {/* Card 2 */}
             <div className="rounded-3xl border border-slate-700 bg-slate-900/50 px-4 py-4 text-[11px]">
-              <h3 className="text-xs font-semibold mb-1">
-                Ministério do Trabalho
-              </h3>
+              <h3 className="text-xs font-semibold mb-1">Ministério do Trabalho</h3>
               <p className="text-slate-300 mb-3">
                 Informações sobre carteira de trabalho, direitos trabalhistas,
                 programas e serviços.
@@ -362,3 +491,4 @@ export default function EmpregosPage() {
     </main>
   );
 }
+
