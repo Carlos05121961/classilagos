@@ -3,21 +3,43 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
+const cidades = [
+  "Maricá",
+  "Saquarema",
+  "Araruama",
+  "Iguaba Grande",
+  "São Pedro da Aldeia",
+  "Arraial do Cabo",
+  "Cabo Frio",
+  "Búzios",
+  "Rio das Ostras",
+];
+
 export default function ServicosPage() {
+  const router = useRouter();
+
   const [classimed, setClassimed] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [profissionais, setProfissionais] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Busca geral dos serviços no Supabase
+  // ✅ Busca Premium (ligada ao motor)
+  const [textoBusca, setTextoBusca] = useState("");
+  const [tipoServico, setTipoServico] = useState(""); // "", "classimed", "eventos", "profissionais"
+  const [cidadeBusca, setCidadeBusca] = useState("");
+
+  // Buscar serviços no Supabase (vitrine da página)
   useEffect(() => {
     const fetchServicos = async () => {
+      setLoading(true);
+
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens"
+          "id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens, created_at"
         )
         .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
         .eq("status", "ativo")
@@ -25,6 +47,9 @@ export default function ServicosPage() {
 
       if (error) {
         console.error("Erro ao carregar serviços:", error);
+        setClassimed([]);
+        setEventos([]);
+        setProfissionais([]);
         setLoading(false);
         return;
       }
@@ -63,13 +88,18 @@ export default function ServicosPage() {
         className="group flex gap-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition shadow-sm hover:shadow-md px-4 py-3 min-h-[110px]"
       >
         {/* Miniatura, se existir */}
-        {thumb && (
+        {thumb ? (
           <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thumb}
               alt={item.titulo}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
+          </div>
+        ) : (
+          <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] text-slate-400 flex-shrink-0">
+            Sem foto
           </div>
         )}
 
@@ -104,6 +134,35 @@ export default function ServicosPage() {
     );
   };
 
+  function handleBuscar() {
+    const partes = [];
+    if (textoBusca.trim()) partes.push(textoBusca.trim());
+
+    // ✅ adiciona o “tipo” como termo (sem inventar parâmetro novo)
+    // isso ajuda o motor a puxar resultados relacionados
+    if (tipoServico === "classimed") partes.push("classimed");
+    if (tipoServico === "eventos") partes.push("eventos");
+    if (tipoServico === "profissionais") partes.push("profissionais");
+
+    if (cidadeBusca) partes.push(cidadeBusca);
+
+    const q = partes.join(" ").trim();
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+
+    // ✅ categoria do motor (padrão do site)
+    params.set("categoria", "servicos");
+
+    router.push(`/busca?${params.toString()}`);
+  }
+
+  function handleLimpar() {
+    setTextoBusca("");
+    setTipoServico("");
+    setCidadeBusca("");
+  }
+
   return (
     <main className="bg-white min-h-screen">
       {/* BANNER FIXO NO TOPO */}
@@ -134,7 +193,7 @@ export default function ServicosPage() {
           />
           <div className="absolute inset-0 bg-black/25" />
 
-          {/* TEXTOS MAIS PARA CIMA */}
+          {/* TEXTOS */}
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center text-white">
             <p className="text-sm md:text-base font-medium drop-shadow">
               Encontre profissionais e empresas para tudo o que você precisar.
@@ -146,11 +205,11 @@ export default function ServicosPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (ainda ilustrativa) */}
+      {/* ✅ CAIXA DE BUSCA (Padrão Premium - ligada ao motor) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto,auto] gap-3 items-end text-xs md:text-sm">
               {/* Busca livre */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
@@ -158,21 +217,33 @@ export default function ServicosPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex.: eletricista, diarista, dentista, buffet de festa..."
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex.: eletricista, diarista, dentista, buffet..."
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  value={textoBusca}
+                  onChange={(e) => setTextoBusca(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleBuscar();
+                    }
+                  }}
                 />
               </div>
 
               {/* Tipo de serviço */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Tipo de serviço
+                  Tipo
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Todos</option>
-                  <option>Saúde (Classimed)</option>
-                  <option>Festas &amp; Eventos</option>
-                  <option>Profissionais &amp; Serviços</option>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  value={tipoServico}
+                  onChange={(e) => setTipoServico(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="classimed">Saúde (Classimed)</option>
+                  <option value="eventos">Festas &amp; Eventos</option>
+                  <option value="profissionais">Profissionais</option>
                 </select>
               </div>
 
@@ -181,25 +252,37 @@ export default function ServicosPage() {
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">
                   Cidade
                 </label>
-                <select className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Toda a região</option>
-                  <option>Maricá</option>
-                  <option>Saquarema</option>
-                  <option>Araruama</option>
-                  <option>Iguaba Grande</option>
-                  <option>São Pedro da Aldeia</option>
-                  <option>Arraial do Cabo</option>
-                  <option>Cabo Frio</option>
-                  <option>Búzios</option>
-                  <option>Rio das Ostras</option>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  value={cidadeBusca}
+                  onChange={(e) => setCidadeBusca(e.target.value)}
+                >
+                  <option value="">Toda a região</option>
+                  {cidades.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Botão */}
+              {/* Limpar */}
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                  onClick={handleLimpar}
+                  className="w-full md:w-auto rounded-full bg-slate-100 border border-slate-200 px-5 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-200"
+                >
+                  Limpar
+                </button>
+              </div>
+
+              {/* Buscar */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleBuscar}
+                  className="w-full md:w-auto rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
                 >
                   Buscar
                 </button>
@@ -208,15 +291,14 @@ export default function ServicosPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            Em breve, essa busca estará ligada aos anúncios reais da
-            plataforma.
+            Busca ligada ao motor do Classilagos (padrão Premium).
           </p>
         </div>
       </section>
 
       <div className="h-4 sm:h-6" />
 
-      {/* 3 PILARES: CLASSIMED / FESTAS / PROFISSIONAIS */}
+      {/* 3 PILARES: CLASSIMED / EVENTOS / PROFISSIONAIS */}
       <section className="max-w-5xl mx-auto px-4 pb-4">
         <h2 className="text-center text-sm font-semibold text-slate-900 mb-4">
           Escolha o tipo de serviço que deseja encontrar ou divulgar
@@ -422,7 +504,6 @@ export default function ServicosPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {/* Card Classimed */}
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">
                 Classimed – Saúde &amp; bem-estar
@@ -439,7 +520,6 @@ export default function ServicosPage() {
               </Link>
             </div>
 
-            {/* Card Eventos */}
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">
                 Festas &amp; Eventos
@@ -456,7 +536,6 @@ export default function ServicosPage() {
               </Link>
             </div>
 
-            {/* Card Profissionais */}
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">
                 Profissionais &amp; serviços
@@ -475,7 +554,9 @@ export default function ServicosPage() {
           </div>
         </div>
       </section>
+
       {/* Footer global do peixinho vem do layout geral */}
     </main>
   );
 }
+
