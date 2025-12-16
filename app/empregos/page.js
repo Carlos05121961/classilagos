@@ -48,8 +48,9 @@ export default function EmpregosPage() {
     router.push(`/busca?${params.toString()}`);
   }
 
-  // HERO – alternando 2 imagens no topo (mesmo esquema antigo)
-  const heroImages = ["/empregos/hero-empregos.png", "/empregos/hero-vagas.jpg"];
+  // HERO – alternando 2 imagens no topo (padrão novo)
+const heroImages = ["/empregos/empregos-01.webp", "/empregos/empregos-02.webp"];
+
   const [currentHero, setCurrentHero] = useState(0);
 
   useEffect(() => {
