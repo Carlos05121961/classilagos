@@ -1,76 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
-/**
- * BannerRotator – Padrão Classilagos
- *
- * variant:
- * - "home-topo"
- * - "home-rodape"
- * - "pilar"
- * - "comercial" (futuro)
- *
- * height: altura do banner em px
- */
+export default function BannerRotator({ interval = 6000, max = 5 }) {
+  const fallbackImages = useMemo(
+    () => [
+      "/banners/anuncio-01.png",
+      "/banners/anuncio-02.png",
+      "/banners/anuncio-03.png",
+    ],
+    []
+  );
 
-export default function BannerRotator({
-  variant = "home-topo",
-  height = 140,
-  interval = 6000,
-}) {
-  const bannersPorTipo = {
-    "home-topo": [
-      "/banners/home-topo/home-topo-01.webp",
-      "/banners/home-topo/home-topo-02.webp",
-      "/banners/home-topo/home-topo-03.webp",
-    ],
-    "home-rodape": [
-      "/banners/home-rodape/home-rodape-01.webp",
-      "/banners/home-rodape/home-rodape-02.webp",
-      "/banners/home-rodape/home-rodape-03.webp",
-    ],
-    "pilar": [
-      "/banners/pilar/pilar-imoveis.webp",
-      "/banners/pilar/pilar-veiculos.webp",
-      "/banners/pilar/pilar-turismo.webp",
-    ],
-    "comercial": [],
-  };
-
-  const images = bannersPorTipo[variant] || [];
+  const [images, setImages] = useState(fallbackImages);
   const [index, setIndex] = useState(0);
 
+  // carrega automaticamente os banners da pasta /public/banners/topo
   useEffect(() => {
-    if (images.length <= 1) return;
+    let alive = true;
 
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
+    async function load() {
+      try {
+        const res = await fetch("/api/banners/topo", { cache: "no-store" });
+        const json = await res.json();
+
+        const arr = Array.isArray(json?.images) ? json.images : [];
+        const cleaned = arr
+          .filter((x) => typeof x === "string" && x.trim().length > 0)
+          .slice(0, Math.max(1, max));
+
+        if (!alive) return;
+
+        if (cleaned.length > 0) {
+          setImages(cleaned);
+          setIndex(0);
+        } else {
+          setImages(fallbackImages);
+          setIndex(0);
+        }
+      } catch {
+        if (!alive) return;
+        setImages(fallbackImages);
+        setIndex(0);
+      }
+    }
+
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [fallbackImages, max]);
+
+  // rotação
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length);
     }, interval);
 
-    return () => clearInterval(timer);
-  }, [images.length, interval]);
-
-  if (images.length === 0) return null;
+    return () => clearInterval(t);
+  }, [images, interval]);
 
   return (
-    <section className="w-full flex justify-center bg-slate-100 py-3">
-      <div className="w-full max-w-7xl px-4">
-        <div
-          className="relative w-full rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden"
-          style={{ height: `${height}px` }}
-        >
+    <div className="w-full flex justify-center bg-slate-100 py-2">
+      {/* padrão “banner do topo” (não gigante) */}
+      <div className="w-full max-w-[980px] px-4">
+        <div className="relative w-full h-[110px] sm:h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
           <Image
             src={images[index]}
             alt="Banner Classilagos"
             fill
-            priority={variant === "home-topo"}
-            sizes="(max-width: 768px) 100vw, 1200px"
+            sizes="(max-width: 1024px) 92vw, 980px"
             className="object-contain"
+            priority
           />
         </div>
 
+        {/* bolinhas */}
         {images.length > 1 && (
           <div className="mt-2 flex justify-center gap-2">
             {images.map((_, i) => (
@@ -78,17 +86,16 @@ export default function BannerRotator({
                 key={i}
                 type="button"
                 onClick={() => setIndex(i)}
-                className={`h-2 w-2 rounded-full transition ${
+                aria-label={`Banner ${i + 1}`}
+                className={`h-2 w-2 rounded-full ${
                   i === index ? "bg-slate-800" : "bg-slate-300"
                 }`}
-                aria-label={`Banner ${i + 1}`}
               />
             ))}
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
-
 
