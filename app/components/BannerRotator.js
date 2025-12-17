@@ -6,29 +6,25 @@ import Image from "next/image";
 export default function BannerRotator({
   images = [],
   interval = 6000,
-  height = 120,         // topo padrão: 120
-  maxWidth = 900,       // topo padrão: 900
+  height = 120,
+  maxWidth = 900,
   bg = "bg-slate-100",
-  contain = true,       // true = não corta o banner (object-contain)
+  contain = true,
   rounded = "rounded-3xl",
   showDots = true,
   className = "",
 }) {
-  const safeImages = useMemo(() => (Array.isArray(images) ? images.filter(Boolean) : []), [images]);
+  const safeImages = useMemo(() => {
+    return Array.isArray(images) ? images.filter(Boolean) : [];
+  }, [images]);
+
   const [index, setIndex] = useState(0);
 
-  // se mudar a lista de imagens, reseta para 0 pra não “estourar” índice
-  useEffect(() => {
-    setIndex(0);
-  }, [safeImages.length]);
+  useEffect(() => setIndex(0), [safeImages.length]);
 
   useEffect(() => {
     if (safeImages.length <= 1) return;
-
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % safeImages.length);
-    }, interval);
-
+    const t = setInterval(() => setIndex((i) => (i + 1) % safeImages.length), interval);
     return () => clearInterval(t);
   }, [interval, safeImages.length]);
 
@@ -38,7 +34,7 @@ export default function BannerRotator({
     <div className={`w-full flex justify-center ${bg} py-3 ${className}`}>
       <div className="w-full px-4" style={{ maxWidth }}>
         <div
-          className={`relative w-full ${rounded} bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center`}
+          className={`relative w-full ${rounded} bg-white border border-slate-200 shadow overflow-hidden`}
           style={{ height }}
         >
           <Image
