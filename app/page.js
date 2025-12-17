@@ -14,6 +14,23 @@ export default function Home() {
   // HERO (WEBP em /public/hero)
   const heroImages = ["/hero/home-01.webp", "/hero/home-02.webp", "/hero/home-03.webp"];
 
+  // BANNERS (padrão fixo: você só troca as imagens no GitHub e pronto)
+  const bannersTopo = [
+    "/banners/topo/banner-topo-01.webp",
+    "/banners/topo/banner-topo-02.webp",
+    "/banners/topo/banner-topo-03.webp",
+    "/banners/topo/banner-topo-04.webp",
+    "/banners/topo/banner-topo-05.webp",
+  ];
+
+  const bannersRodape = [
+    "/banners/rodape/banner-rodape-01.webp",
+    "/banners/rodape/banner-rodape-02.webp",
+    "/banners/rodape/banner-rodape-03.webp",
+    "/banners/rodape/banner-rodape-04.webp",
+    "/banners/rodape/banner-rodape-05.webp",
+  ];
+
   // ORDEM DOS ÍCONES
   const categorias = [
     { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.png" },
@@ -77,8 +94,7 @@ export default function Home() {
     }
   };
 
-  // ANÚNCIOS EM DESTAQUE (LANÇAMENTO)
-  // Aqui fica do jeito que você pediu: sempre os mais recentes (vai entrando e substituindo)
+  // ANÚNCIOS EM DESTAQUE (LANÇAMENTO) — sempre os mais recentes
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -96,7 +112,7 @@ export default function Home() {
     carregarDestaquesLancamento();
   }, []);
 
-  // VITRINE PREMIUM (fixa)
+  // VITRINE PREMIUM (fixa por enquanto)
   const vitrine = [
     {
       titulo: "Passeio Turístico",
@@ -134,10 +150,8 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER TOPO (rotator) — um pouco maior sem exagero */}
-      <div className="scale-[1.03] origin-top">
-        <BannerRotator />
-      </div>
+      {/* BANNER TOPO (rotator) — padrão 900x120, sem ficar gigante */}
+      <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={900} contain />
 
       {/* HERO */}
       <section className="relative w-full">
@@ -275,9 +289,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-3">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900">
-                Vitrine Premium
-              </h2>
+              <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
               <p className="text-[11px] text-slate-500">
                 Turismo • Temporada • Hospedagem • Mobilidade
               </p>
@@ -473,36 +485,24 @@ export default function Home() {
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Destaques de hoje
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  O que realmente importa na Região.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Destaques de hoje</p>
+                <p className="text-[11px] text-slate-600">O que realmente importa na Região.</p>
               </Link>
 
               <Link
                 href="/noticias/correspondentes"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Correspondentes culturais
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  Gente local contando histórias e novidades.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Correspondentes culturais</p>
+                <p className="text-[11px] text-slate-600">Gente local contando histórias e novidades.</p>
               </Link>
 
               <Link
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Ver portal completo
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  Notícias organizadas por cidade.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Ver portal completo</p>
+                <p className="text-[11px] text-slate-600">Notícias organizadas por cidade.</p>
               </Link>
             </div>
 
@@ -515,27 +515,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BANNER “DE BAIXO” — PADRÃO IGUAL AO TOPO (sem ficar gigante) */}
-      <section className="bg-slate-100 py-3">
-        <div className="w-full max-w-[900px] mx-auto px-4">
-          <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <img
-              src="/banners/anuncio-02.png"
-              alt="Banner Classilagos"
-              className="w-full h-full object-contain"
-            />
-          </div>
-        </div>
-      </section>
+      {/* BANNER RODAPÉ (rotativo) — padrão 1200x300 */}
+      <BannerRotator images={bannersRodape} interval={6500} height={300} maxWidth={1200} contain />
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-4">
             <div>
-              <h2 className="text-lg font-extrabold text-white">
-                Empregos – Vagas e Currículos
-              </h2>
+              <h2 className="text-lg font-extrabold text-white">Empregos – Vagas e Currículos</h2>
               <p className="text-[12px] text-white/70">
                 O banco de oportunidades da Região dos Lagos, com padrão premium.
               </p>
@@ -600,4 +588,3 @@ export default function Home() {
     </main>
   );
 }
-
