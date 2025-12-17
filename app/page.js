@@ -11,8 +11,12 @@ import { supabase } from "./supabaseClient";
 export default function Home() {
   const router = useRouter();
 
-  // HERO (agora em WEBP na pasta /public/hero)
-  const heroImages = ["/hero/home-01.webp", "/hero/home-02.webp", "/hero/home-03.webp"];
+  // HERO (WEBP em /public/hero)
+  const heroImages = [
+    "/hero/home-01.webp",
+    "/hero/home-02.webp",
+    "/hero/home-03.webp",
+  ];
 
   // ORDEM DOS ÍCONES (como você definiu)
   const categorias = [
@@ -40,33 +44,24 @@ export default function Home() {
 
   const formatCategoria = (cat) => {
     switch (cat) {
-      case "imoveis":
-        return "Imóveis";
-      case "veiculos":
-        return "Veículos";
-      case "nautica":
-        return "Náutica";
-      case "pets":
-        return "Pets";
-      case "emprego":
-        return "Empregos";
-      case "curriculo":
-        return "Currículos";
-      case "servico":
-        return "Serviços";
-      case "turismo":
-        return "Turismo";
-      case "lagolistas":
-        return "LagoListas";
-      default:
-        return "Classificados";
+      case "imoveis": return "Imóveis";
+      case "veiculos": return "Veículos";
+      case "nautica": return "Náutica";
+      case "pets": return "Pets";
+      case "emprego": return "Empregos";
+      case "curriculo": return "Currículos";
+      case "servico": return "Serviços";
+      case "turismo": return "Turismo";
+      case "lagolistas": return "LagoListas";
+      default: return "Classificados";
     }
   };
 
-  // CLASSILAGOS TV
+  // TV CLASSILAGOS
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
+  const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
 
-  // BUSCA (AGORA LIGADA)
+  // BUSCA
   const [q, setQ] = useState("");
   const [categoria, setCategoria] = useState("");
   const [cidade, setCidade] = useState("");
@@ -76,11 +71,9 @@ export default function Home() {
     if (q?.trim()) params.set("q", q.trim());
     if (categoria) params.set("categoria", categoria);
     if (cidade) params.set("cidade", cidade);
-
     router.push(`/busca?${params.toString()}`);
   };
 
-  // permitir Enter no campo texto
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -88,7 +81,7 @@ export default function Home() {
     }
   };
 
-  // DESTAQUES
+  // DESTAQUES (reais do Supabase) — mantém, mas a “vitrine premium” fica acima
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -107,6 +100,43 @@ export default function Home() {
     carregarDestaques();
   }, []);
 
+  // VITRINE PREMIUM (fixa e bonita, sempre chama atenção)
+  // Obs: links podem ser refinados depois com filtros reais.
+  const vitrine = [
+    {
+      titulo: "Passeio Turístico",
+      subtitulo: "Escunas • City tour • Trilhas",
+      tag: "Turismo",
+      href: "/turismo",
+      emoji: "🏖️",
+      img: "/banners/anuncio-03.png",
+    },
+    {
+      titulo: "Aluguel por Temporada",
+      subtitulo: "Casas • Apto • Semana/feriado",
+      tag: "Imóveis",
+      href: "/imoveis",
+      emoji: "🏠",
+      img: "/banners/anuncio-01.png",
+    },
+    {
+      titulo: "Pousadas & Hotéis",
+      subtitulo: "Hospedagem com charme",
+      tag: "Turismo",
+      href: "/turismo",
+      emoji: "🏨",
+      img: "/banners/anuncio-05.png",
+    },
+    {
+      titulo: "Locadora de Veículos",
+      subtitulo: "Carro para viagem e praia",
+      tag: "Veículos",
+      href: "/veiculos",
+      emoji: "🚗",
+      img: "/banners/anuncio-02.png",
+    },
+  ];
+
   return (
     <main className="bg-white">
       {/* BANNER TOPO (rotator) */}
@@ -115,7 +145,7 @@ export default function Home() {
       {/* HERO */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
-          {/* “FUMAÇA” MAIS LEVE + CLIMA PRAIA */}
+          {/* Fumaça leve */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-950/10 to-slate-950/45" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
@@ -130,24 +160,29 @@ export default function Home() {
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-              {/* TEXTO VERÃO (amarelo/laranja/vermelho) + sombra */}
+              {/* TEXTO VERÃO MAIS FORTE (amarelo queimado → laranja → toque de vermelho) */}
               <h1
                 className="
                   text-2xl sm:text-3xl md:text-4xl font-extrabold
                   tracking-[0.10em] uppercase
-                  bg-gradient-to-r from-yellow-200 via-orange-300 to-rose-300
+                  bg-gradient-to-r from-amber-200 via-amber-400 to-orange-500
                   bg-clip-text text-transparent
-                  [text-shadow:0_6px_18px_rgba(0,0,0,0.50)]
+                  [text-shadow:0_10px_28px_rgba(0,0,0,0.55)]
                 "
               >
                 Classilagos – Região dos Lagos em um só lugar
               </h1>
+
+              {/* brilho “sol” discreto */}
+              <div className="mt-3 flex justify-center">
+                <div className="h-[3px] w-48 rounded-full bg-gradient-to-r from-transparent via-amber-300/80 to-transparent" />
+              </div>
             </div>
           </div>
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA — GRADIENTE “PRAIA” */}
+      {/* CAIXA DE BUSCA — PRAIA */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-700">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-5">
           <div className="rounded-3xl bg-slate-950/92 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.65)] px-6 py-5">
@@ -162,11 +197,10 @@ export default function Home() {
                   onChange={(e) => setQ(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ex.: aluguel temporada, veterinário, eletricista..."
-                  className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-yellow-200/60 transition"
+                  className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-amber-200/60 transition"
                 />
               </div>
 
-              {/* Categoria */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-white/90 mb-1">
                   Categoria
@@ -176,9 +210,7 @@ export default function Home() {
                   onChange={(e) => setCategoria(e.target.value)}
                   className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white"
                 >
-                  <option value="" className="text-slate-900">
-                    Todas
-                  </option>
+                  <option value="" className="text-slate-900">Todas</option>
                   {categorias.map((c) => (
                     <option key={c.value} value={c.value} className="text-slate-900">
                       {c.label}
@@ -187,7 +219,6 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* Cidade */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-white/90 mb-1">
                   Cidade
@@ -197,13 +228,9 @@ export default function Home() {
                   onChange={(e) => setCidade(e.target.value)}
                   className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white"
                 >
-                  <option value="" className="text-slate-900">
-                    Toda a região
-                  </option>
+                  <option value="" className="text-slate-900">Toda a região</option>
                   {cidades.map((c) => (
-                    <option key={c} value={c} className="text-slate-900">
-                      {c}
-                    </option>
+                    <option key={c} value={c} className="text-slate-900">{c}</option>
                   ))}
                 </select>
               </div>
@@ -211,7 +238,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={handleBuscar}
-                className="rounded-full bg-white text-slate-900 hover:bg-yellow-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition"
+                className="rounded-full bg-white text-slate-900 hover:bg-amber-50 px-6 py-2 font-semibold shadow-md hover:scale-105 transition"
               >
                 Buscar
               </button>
@@ -237,11 +264,9 @@ export default function Home() {
                 <div className="relative w-24 h-24 mb-1">
                   <Image src={cat.icon} alt={cat.label} fill className="object-contain" />
                 </div>
-
                 <p className="text-center text-[13px] font-semibold text-slate-700">
                   {cat.label}
                 </p>
-
                 <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
                   Abrir
                 </span>
@@ -251,7 +276,64 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES */}
+      {/* VITRINE PREMIUM (4 cards temáticos que chamam atenção) */}
+      <section className="bg-white -mt-2 pb-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">
+                Vitrine Premium (o que mais buscam na Região)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Turismo, hospedagem, temporada e mobilidade — direto ao ponto.
+              </p>
+            </div>
+
+            <Link href="/anunciar" className="hidden sm:inline-block text-xs font-semibold text-cyan-700">
+              Quero aparecer aqui →
+            </Link>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {vitrine.map((c) => (
+              <Link
+                key={c.titulo}
+                href={c.href}
+                className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+              >
+                <div className="relative h-28 bg-slate-100 overflow-hidden">
+                  <img
+                    src={c.img}
+                    alt={c.titulo}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
+                  <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                    <span>{c.emoji}</span>
+                    <span>{c.tag}</span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <p className="text-sm font-extrabold text-slate-900">{c.titulo}</p>
+                  <p className="mt-1 text-[12px] text-slate-600">{c.subtitulo}</p>
+                  <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                    Abrir agora →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 text-center sm:hidden">
+            <Link href="/anunciar" className="text-xs font-semibold text-cyan-700">
+              Quero aparecer aqui →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* DESTAQUES (reais do Supabase) — mantém como “o que está bombando” */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
@@ -260,15 +342,9 @@ export default function Home() {
               <p className="text-xs text-slate-500">
                 Os anúncios mais vistos e marcados como destaque.
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Anúncios marcados como <strong>destaque</strong> aparecem aqui na página principal.
-              </p>
             </div>
 
-            <Link
-              href="/anunciar"
-              className="hidden sm:inline-block text-xs font-semibold text-cyan-700"
-            >
+            <Link href="/anunciar" className="hidden sm:inline-block text-xs font-semibold text-cyan-700">
               Anuncie em destaque →
             </Link>
           </div>
@@ -325,17 +401,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TV + NOTÍCIAS (2 blocos) */}
+      {/* BLOCO PREMIUM: esquerda (mais notícias + clima), centro (TV), direita (notícias da região) */}
       <section className="bg-white pb-10 -mt-4">
-        <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3">
-          {/* TV */}
-          <div className="rounded-2xl border border-slate-200 p-4 sm:p-6 bg-slate-50 shadow-sm flex flex-col md:col-span-1">
-            <h3 className="font-semibold text-slate-900 mb-2">Classilagos TV</h3>
-            <p className="text-xs sm:text-sm text-slate-600 mb-3">
-              Reportagens, vídeos locais, clipes e transmissões especiais da Região dos Lagos.
+        <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
+          {/* ESQUERDA */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
+            <h3 className="font-extrabold text-slate-900 mb-2">Mais da Região</h3>
+            <p className="text-xs text-slate-600 mb-4">
+              Notícias rápidas, clima e marés (layout pronto para API).
             </p>
 
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900/80">
+            <div className="grid gap-3 text-[12px] text-slate-700">
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <p className="font-semibold text-slate-900">🌦️ Clima hoje</p>
+                <p className="text-slate-600">Parcialmente nublado • sensação de verão</p>
+              </div>
+
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <p className="font-semibold text-slate-900">🌊 Ondas & Marés</p>
+                <p className="text-slate-600">Ondas Saquarema • Marés Cabo Frio</p>
+              </div>
+
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <p className="font-semibold text-slate-900">📷 Câmeras ao vivo</p>
+                <Link href="/noticias/cameras" className="text-cyan-700 font-semibold">
+                  Abrir painel de câmeras →
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <Link href="/noticias" className="text-xs font-semibold text-cyan-700">
+                Ver mais notícias →
+              </Link>
+            </div>
+          </div>
+
+          {/* CENTRO: TV */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
+              <a
+                href={tvChannelUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+              >
+                YouTube →
+              </a>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-3">
+              Reportagens, cultura, turismo e acontecimentos da Região dos Lagos.
+            </p>
+
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-900/80">
               <iframe
                 src={tvEmbedUrl}
                 title="Classilagos TV"
@@ -346,88 +466,74 @@ export default function Home() {
               />
             </div>
 
-            <Link
-              href="/tv"
-              className="mt-3 inline-flex items-center text-xs sm:text-sm font-semibold text-cyan-700 hover:text-cyan-900"
+            <a
+              href={tvChannelUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center text-xs font-semibold text-cyan-700 hover:text-cyan-900"
             >
               Ver mais vídeos →
-            </Link>
+            </a>
           </div>
 
-          {/* NOTÍCIAS (2 cards ao lado) */}
-          <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-            <Link
-              href="/noticias"
-              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
-            >
-              <h3 className="font-semibold text-slate-900 mb-1">Notícias</h3>
-              <p className="text-sm text-slate-600">
-                Últimas notícias da Região dos Lagos e do Brasil.
-              </p>
-              <span className="mt-3 text-xs font-semibold text-cyan-700">
-                Acessar portal de notícias →
-              </span>
-            </Link>
+          {/* DIREITA */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
+            <h3 className="font-extrabold text-slate-900 mb-2">Notícias da Região</h3>
+            <p className="text-xs text-slate-600 mb-4">
+              Atualizações locais, economia, turismo e serviços (sem violência).
+            </p>
 
-            <Link
-              href="/noticias"
-              className="rounded-2xl border border-slate-200 p-6 bg-slate-50 hover:bg-slate-100 transition shadow-sm flex flex-col"
-            >
-              <h3 className="font-semibold text-slate-900 mb-1">Notícias da Região</h3>
-              <p className="text-sm text-slate-600">
-                Atualizações locais, economia, clima e acontecimentos.
-              </p>
-              <span className="mt-3 text-xs font-semibold text-cyan-700">
-                Ver destaques regionais →
-              </span>
-            </Link>
+            <div className="space-y-3">
+              <Link
+                href="/noticias"
+                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+              >
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Destaques de hoje
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  O que realmente importa na Região dos Lagos.
+                </p>
+              </Link>
+
+              <Link
+                href="/noticias/correspondentes"
+                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+              >
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Correspondentes culturais
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  Pessoas locais contando histórias e novidades da cidade.
+                </p>
+              </Link>
+
+              <Link
+                href="/noticias"
+                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+              >
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Ver portal completo
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  Notícias organizadas por cidade.
+                </p>
+              </Link>
+            </div>
+
+            <div className="mt-4">
+              <Link href="/noticias" className="text-xs font-semibold text-cyan-700">
+                Abrir Notícias →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* “PAINEL RÁPIDO” NOVO: EMPREGOS (Vagas + Currículos) */}
-      <section className="bg-slate-900 py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-lg font-bold text-white mb-4">Empregos – Vagas e Currículos</h2>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* VAGAS */}
-            <Link
-              href="/empregos"
-              className="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
-            >
-              <div>
-                <p className="text-base font-semibold text-white">Vagas de emprego</p>
-                <p className="text-[12px] text-slate-300 mt-1">
-                  Encontre oportunidades nas 9 cidades da região.
-                </p>
-              </div>
-              <span className="mt-4 text-[11px] text-cyan-300 font-semibold">Ver vagas →</span>
-            </Link>
-
-            {/* CURRÍCULOS */}
-            <Link
-              href="/empregos"
-              className="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-md hover:-translate-y-1 transition flex flex-col justify-between"
-            >
-              <div>
-                <p className="text-base font-semibold text-white">Currículos cadastrados</p>
-                <p className="text-[12px] text-slate-300 mt-1">
-                  Empresas podem encontrar profissionais prontos para trabalhar.
-                </p>
-              </div>
-              <span className="mt-4 text-[11px] text-cyan-300 font-semibold">
-                Ver currículos →
-              </span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* BANNER 02 (rodapé acima do footer do layout) */}
+      {/* BANNER GRANDE (SOBE) */}
       <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 pb-8">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
             <img
               src="/banners/anuncio-02.png"
               alt="Banner Classilagos"
@@ -436,6 +542,77 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* TARJA PREMIUM – Empregos e Currículos (links premium, sem cara de “tarja pobre”) */}
+      <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-white">
+                Empregos – Vagas e Currículos
+              </h2>
+              <p className="text-[12px] text-white/70">
+                O banco de oportunidades da Região dos Lagos, com padrão premium.
+              </p>
+            </div>
+
+            <Link
+              href="/empregos"
+              className="hidden sm:inline-flex rounded-full bg-white/10 border border-white/15 px-4 py-2 text-[12px] font-semibold text-white hover:bg-white/15 transition"
+            >
+              Abrir Empregos →
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Link
+              href="/empregos"
+              className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-md hover:-translate-y-1 hover:bg-white/7 transition"
+            >
+              <p className="text-sm font-extrabold text-white">🔎 Ver vagas</p>
+              <p className="mt-1 text-[12px] text-white/70">
+                Oportunidades em Maricá, Saquarema, Araruama e toda a região.
+              </p>
+              <span className="mt-4 inline-flex text-[12px] font-semibold text-cyan-300">
+                Acessar vagas →
+              </span>
+            </Link>
+
+            <Link
+              href="/empregos"
+              className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-md hover:-translate-y-1 hover:bg-white/7 transition"
+            >
+              <p className="text-sm font-extrabold text-white">📝 Cadastrar currículo</p>
+              <p className="mt-1 text-[12px] text-white/70">
+                Deixe seu perfil pronto e seja encontrado pelas empresas.
+              </p>
+              <span className="mt-4 inline-flex text-[12px] font-semibold text-cyan-300">
+                Enviar currículo →
+              </span>
+            </Link>
+
+            <Link
+              href="/empregos"
+              className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-md hover:-translate-y-1 hover:bg-white/7 transition"
+            >
+              <p className="text-sm font-extrabold text-white">🏢 Empresas</p>
+              <p className="mt-1 text-[12px] text-white/70">
+                Publique vagas e encontre profissionais com agilidade.
+              </p>
+              <span className="mt-4 inline-flex text-[12px] font-semibold text-cyan-300">
+                Anunciar vaga →
+              </span>
+            </Link>
+          </div>
+
+          <div className="mt-5 sm:hidden text-center">
+            <Link href="/empregos" className="text-[12px] font-semibold text-cyan-300">
+              Abrir Empregos →
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
+
