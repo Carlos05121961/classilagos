@@ -3,93 +3,63 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
-export default function BannerRotator({ interval = 6000, max = 5 }) {
-  const fallbackImages = useMemo(
-    () => [
-      "/banners/anuncio-01.png",
-      "/banners/anuncio-02.png",
-      "/banners/anuncio-03.png",
-    ],
-    []
-  );
-
-  const [images, setImages] = useState(fallbackImages);
+export default function BannerRotator({
+  images = [],
+  interval = 6000,
+  height = 120,         // topo padrão: 120
+  maxWidth = 900,       // topo padrão: 900
+  bg = "bg-slate-100",
+  contain = true,       // true = não corta o banner (object-contain)
+  rounded = "rounded-3xl",
+  showDots = true,
+  className = "",
+}) {
+  const safeImages = useMemo(() => (Array.isArray(images) ? images.filter(Boolean) : []), [images]);
   const [index, setIndex] = useState(0);
 
-  // carrega automaticamente os banners da pasta /public/banners/topo
+  // se mudar a lista de imagens, reseta para 0 pra não “estourar” índice
   useEffect(() => {
-    let alive = true;
+    setIndex(0);
+  }, [safeImages.length]);
 
-    async function load() {
-      try {
-        const res = await fetch("/api/banners/topo", { cache: "no-store" });
-        const json = await res.json();
-
-        const arr = Array.isArray(json?.images) ? json.images : [];
-        const cleaned = arr
-          .filter((x) => typeof x === "string" && x.trim().length > 0)
-          .slice(0, Math.max(1, max));
-
-        if (!alive) return;
-
-        if (cleaned.length > 0) {
-          setImages(cleaned);
-          setIndex(0);
-        } else {
-          setImages(fallbackImages);
-          setIndex(0);
-        }
-      } catch {
-        if (!alive) return;
-        setImages(fallbackImages);
-        setIndex(0);
-      }
-    }
-
-    load();
-    return () => {
-      alive = false;
-    };
-  }, [fallbackImages, max]);
-
-  // rotação
   useEffect(() => {
-    if (!images || images.length <= 1) return;
+    if (safeImages.length <= 1) return;
 
     const t = setInterval(() => {
-      setIndex((i) => (i + 1) % images.length);
+      setIndex((i) => (i + 1) % safeImages.length);
     }, interval);
 
     return () => clearInterval(t);
-  }, [images, interval]);
+  }, [interval, safeImages.length]);
+
+  if (safeImages.length === 0) return null;
 
   return (
-    <div className="w-full flex justify-center bg-slate-100 py-2">
-      {/* padrão “banner do topo” (não gigante) */}
-      <div className="w-full max-w-[980px] px-4">
-        <div className="relative w-full h-[110px] sm:h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+    <div className={`w-full flex justify-center ${bg} py-3 ${className}`}>
+      <div className="w-full px-4" style={{ maxWidth }}>
+        <div
+          className={`relative w-full ${rounded} bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center`}
+          style={{ height }}
+        >
           <Image
-            src={images[index]}
+            src={safeImages[index]}
             alt="Banner Classilagos"
             fill
-            sizes="(max-width: 1024px) 92vw, 980px"
-            className="object-contain"
+            sizes={`${maxWidth}px`}
+            className={contain ? "object-contain" : "object-cover"}
             priority
           />
         </div>
 
-        {/* bolinhas */}
-        {images.length > 1 && (
+        {showDots && safeImages.length > 1 && (
           <div className="mt-2 flex justify-center gap-2">
-            {images.map((_, i) => (
+            {safeImages.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setIndex(i)}
                 aria-label={`Banner ${i + 1}`}
-                className={`h-2 w-2 rounded-full ${
-                  i === index ? "bg-slate-800" : "bg-slate-300"
-                }`}
+                className={`h-2 w-2 rounded-full ${i === index ? "bg-slate-800" : "bg-slate-300"}`}
               />
             ))}
           </div>
@@ -98,4 +68,3 @@ export default function BannerRotator({ interval = 6000, max = 5 }) {
     </div>
   );
 }
-
