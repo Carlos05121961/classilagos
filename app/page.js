@@ -14,6 +14,7 @@ export default function Home() {
   // HERO (WEBP em /public/hero)
   const heroImages = ["/hero/home-01.webp", "/hero/home-02.webp", "/hero/home-03.webp"];
 
+  // ORDEM DOS ÍCONES
   const categorias = [
     { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.png" },
     { label: "Imóveis", value: "imoveis", href: "/imoveis", icon: "/icons/imoveis.png" },
@@ -52,6 +53,7 @@ export default function Home() {
     }
   };
 
+  // TV
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
 
@@ -75,26 +77,26 @@ export default function Home() {
     }
   };
 
-  // DESTAQUES
+  // ANÚNCIOS EM DESTAQUE (LANÇAMENTO)
+  // Aqui fica do jeito que você pediu: sempre os mais recentes (vai entrando e substituindo)
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
   useEffect(() => {
-    async function carregarDestaques() {
+    async function carregarDestaquesLancamento() {
       const { data, error } = await supabase
         .from("anuncios")
         .select("*")
-        .eq("destaque", true)
         .order("created_at", { ascending: false })
         .limit(4);
 
       if (!error) setDestaques(data || []);
       setLoadingDestaques(false);
     }
-    carregarDestaques();
+    carregarDestaquesLancamento();
   }, []);
 
-  // VITRINE PREMIUM
+  // VITRINE PREMIUM (fixa)
   const vitrine = [
     {
       titulo: "Passeio Turístico",
@@ -132,8 +134,10 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER TOPO (rotator) */}
-      <BannerRotator />
+      {/* BANNER TOPO (rotator) — um pouco maior sem exagero */}
+      <div className="scale-[1.03] origin-top">
+        <BannerRotator />
+      </div>
 
       {/* HERO */}
       <section className="relative w-full">
@@ -152,7 +156,6 @@ export default function Home() {
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-              {/* VERÃO */}
               <h1
                 className="
                   text-2xl sm:text-3xl md:text-4xl font-extrabold
@@ -173,7 +176,7 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* BUSCA */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-700">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-5">
           <div className="rounded-3xl bg-slate-950/92 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.65)] px-6 py-5">
@@ -237,7 +240,7 @@ export default function Home() {
           </div>
 
           <p className="mt-2 text-[11px] text-center text-white/85">
-            Agora a busca já direciona para a página de resultados (/busca).
+            Agora a busca já direciona para a página de resultados.
           </p>
         </div>
       </section>
@@ -267,16 +270,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VITRINE PREMIUM — título menor + só 1 linha discreta */}
+      {/* VITRINE PREMIUM — 1 TEXTO SÓ, DISCRETO */}
       <section className="bg-white -mt-2 pb-8">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-end justify-between gap-4 mb-4">
+          <div className="flex items-end justify-between gap-4 mb-3">
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
+              <h2 className="text-lg font-extrabold text-slate-900">
                 Vitrine Premium
               </h2>
               <p className="text-[11px] text-slate-500">
-                Turismo, temporada, pousadas e mobilidade.
+                Turismo • Temporada • Hospedagem • Mobilidade
               </p>
             </div>
 
@@ -316,7 +319,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-4 text-center sm:hidden">
+          <div className="mt-3 text-center sm:hidden">
             <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
               Quero aparecer aqui →
             </Link>
@@ -324,19 +327,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES */}
+      {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
-              <p className="text-xs text-slate-500">
-                Os anúncios mais vistos e marcados como destaque.
+              <p className="text-[11px] text-slate-500">
+                Lançamento: por um período, todos aparecem aqui e vão renovando automaticamente.
               </p>
             </div>
 
-            <Link href="/anunciar" className="hidden sm:inline-block text-xs font-semibold text-cyan-700">
-              Anuncie em destaque →
+            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
+              Anunciar →
             </Link>
           </div>
 
@@ -344,7 +347,7 @@ export default function Home() {
             <p className="text-center text-slate-500">Carregando...</p>
           ) : destaques.length === 0 ? (
             <p className="text-center text-slate-500">
-              Nenhum destaque ainda. Seja o primeiro a anunciar!
+              Ainda não há anúncios. Seja o primeiro a anunciar!
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -389,11 +392,10 @@ export default function Home() {
       {/* BLOCO PREMIUM 3 COLUNAS */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
-          {/* ESQUERDA */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
             <h3 className="font-extrabold text-slate-900 mb-2">Mais da Região</h3>
-            <p className="text-xs text-slate-600 mb-4">
-              Notícias rápidas, clima e marés (layout pronto para API).
+            <p className="text-[11px] text-slate-600 mb-4">
+              Clima, ondas, marés e câmeras (layout pronto para API).
             </p>
 
             <div className="grid gap-3 text-[12px] text-slate-700">
@@ -416,13 +418,12 @@ export default function Home() {
             </div>
 
             <div className="mt-4">
-              <Link href="/noticias" className="text-xs font-semibold text-cyan-700">
+              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
                 Ver mais notícias →
               </Link>
             </div>
           </div>
 
-          {/* CENTRO: TV */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
@@ -436,8 +437,8 @@ export default function Home() {
               </a>
             </div>
 
-            <p className="text-xs text-slate-600 mb-3">
-              Reportagens, cultura, turismo e acontecimentos da Região dos Lagos.
+            <p className="text-[11px] text-slate-600 mb-3">
+              Reportagens, cultura, turismo e acontecimentos da Região.
             </p>
 
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-900/80">
@@ -455,17 +456,16 @@ export default function Home() {
               href={tvChannelUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex items-center text-xs font-semibold text-cyan-700 hover:text-cyan-900"
+              className="mt-3 inline-flex items-center text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
             >
               Ver mais vídeos →
             </a>
           </div>
 
-          {/* DIREITA */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
             <h3 className="font-extrabold text-slate-900 mb-2">Notícias da Região</h3>
-            <p className="text-xs text-slate-600 mb-4">
-              Atualizações locais, economia, turismo e serviços (sem violência).
+            <p className="text-[11px] text-slate-600 mb-4">
+              Atualizações locais, turismo e serviços (sem violência).
             </p>
 
             <div className="space-y-3">
@@ -473,29 +473,41 @@ export default function Home() {
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">Destaques de hoje</p>
-                <p className="text-[11px] text-slate-600">O que realmente importa na Região.</p>
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Destaques de hoje
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  O que realmente importa na Região.
+                </p>
               </Link>
 
               <Link
                 href="/noticias/correspondentes"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">Correspondentes culturais</p>
-                <p className="text-[11px] text-slate-600">Histórias e novidades da cidade.</p>
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Correspondentes culturais
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  Gente local contando histórias e novidades.
+                </p>
               </Link>
 
               <Link
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">Ver portal completo</p>
-                <p className="text-[11px] text-slate-600">Organizado por cidade.</p>
+                <p className="text-[12px] font-semibold text-slate-900">
+                  Ver portal completo
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  Notícias organizadas por cidade.
+                </p>
               </Link>
             </div>
 
             <div className="mt-4">
-              <Link href="/noticias" className="text-xs font-semibold text-cyan-700">
+              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
                 Abrir Notícias →
               </Link>
             </div>
@@ -503,25 +515,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BANNER DE BAIXO — PADRONIZADO (não fica gigantesco) */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 pb-8">
-          <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      {/* BANNER “DE BAIXO” — PADRÃO IGUAL AO TOPO (sem ficar gigante) */}
+      <section className="bg-slate-100 py-3">
+        <div className="w-full max-w-[900px] mx-auto px-4">
+          <div className="relative w-full h-[120px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
             <img
               src="/banners/anuncio-02.png"
               alt="Banner Classilagos"
-              className="w-full h-[90px] sm:h-[110px] object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
       </section>
 
-      {/* TARJA PREMIUM EMPREGOS */}
+      {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-4">
             <div>
-              <h2 className="text-lg font-extrabold text-white">Empregos – Vagas e Currículos</h2>
+              <h2 className="text-lg font-extrabold text-white">
+                Empregos – Vagas e Currículos
+              </h2>
               <p className="text-[12px] text-white/70">
                 O banco de oportunidades da Região dos Lagos, com padrão premium.
               </p>
@@ -573,6 +587,12 @@ export default function Home() {
               <span className="mt-4 inline-flex text-[12px] font-semibold text-cyan-300">
                 Anunciar vaga →
               </span>
+            </Link>
+          </div>
+
+          <div className="mt-5 sm:hidden text-center">
+            <Link href="/empregos" className="text-[12px] font-semibold text-cyan-300">
+              Abrir Empregos →
             </Link>
           </div>
         </div>
