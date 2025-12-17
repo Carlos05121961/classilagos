@@ -81,7 +81,7 @@ export default function Home() {
     }
   };
 
-  // DESTAQUES (reais do Supabase) — mantém, mas a “vitrine premium” fica acima
+  // DESTAQUES (reais do Supabase)
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -100,8 +100,7 @@ export default function Home() {
     carregarDestaques();
   }, []);
 
-  // VITRINE PREMIUM (fixa e bonita, sempre chama atenção)
-  // Obs: links podem ser refinados depois com filtros reais.
+  // VITRINE PREMIUM (fixa)
   const vitrine = [
     {
       titulo: "Passeio Turístico",
@@ -160,7 +159,7 @@ export default function Home() {
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-              {/* TEXTO VERÃO MAIS FORTE (amarelo queimado → laranja → toque de vermelho) */}
+              {/* TEXTO VERÃO MAIS FORTE */}
               <h1
                 className="
                   text-2xl sm:text-3xl md:text-4xl font-extrabold
@@ -264,9 +263,11 @@ export default function Home() {
                 <div className="relative w-24 h-24 mb-1">
                   <Image src={cat.icon} alt={cat.label} fill className="object-contain" />
                 </div>
+
                 <p className="text-center text-[13px] font-semibold text-slate-700">
                   {cat.label}
                 </p>
+
                 <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
                   Abrir
                 </span>
@@ -276,7 +277,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VITRINE PREMIUM (4 cards temáticos que chamam atenção) */}
+      {/* VITRINE PREMIUM */}
       <section className="bg-white -mt-2 pb-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-4">
@@ -284,7 +285,9 @@ export default function Home() {
               <h2 className="text-lg font-extrabold text-slate-900">
                 Vitrine Premium (o que mais buscam na Região)
               </h2>
-              <p className="text-xs text-slate-500">
+
+              {/* ✅ AQUI: texto bem discreto */}
+              <p className="text-[10px] text-slate-400">
                 Turismo, hospedagem, temporada e mobilidade — direto ao ponto.
               </p>
             </div>
@@ -333,7 +336,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES (reais do Supabase) — mantém como “o que está bombando” */}
+      {/* DESTAQUES */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
@@ -401,7 +404,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BLOCO PREMIUM: esquerda (mais notícias + clima), centro (TV), direita (notícias da região) */}
+      {/* BLOCO PREMIUM */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
           {/* ESQUERDA */}
@@ -488,36 +491,24 @@ export default function Home() {
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Destaques de hoje
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  O que realmente importa na Região dos Lagos.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Destaques de hoje</p>
+                <p className="text-[11px] text-slate-600">O que realmente importa na Região dos Lagos.</p>
               </Link>
 
               <Link
                 href="/noticias/correspondentes"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Correspondentes culturais
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  Pessoas locais contando histórias e novidades da cidade.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Correspondentes culturais</p>
+                <p className="text-[11px] text-slate-600">Pessoas locais contando histórias e novidades da cidade.</p>
               </Link>
 
               <Link
                 href="/noticias"
                 className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
               >
-                <p className="text-[12px] font-semibold text-slate-900">
-                  Ver portal completo
-                </p>
-                <p className="text-[11px] text-slate-600">
-                  Notícias organizadas por cidade.
-                </p>
+                <p className="text-[12px] font-semibold text-slate-900">Ver portal completo</p>
+                <p className="text-[11px] text-slate-600">Notícias organizadas por cidade.</p>
               </Link>
             </div>
 
@@ -530,20 +521,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BANNER GRANDE (SOBE) */}
+      {/* BANNER GRANDE (padronizado em altura) */}
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 pb-8">
           <div className="rounded-3xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
-            <img
-              src="/banners/anuncio-02.png"
-              alt="Banner Classilagos"
-              className="w-full h-auto"
-            />
+            <div className="h-[120px] sm:h-[140px] md:h-[160px] w-full overflow-hidden">
+              <img
+                src="/banners/anuncio-02.png"
+                alt="Banner Classilagos"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* TARJA PREMIUM – Empregos e Currículos (links premium, sem cara de “tarja pobre”) */}
+      {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-4">
