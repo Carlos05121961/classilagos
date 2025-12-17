@@ -28,11 +28,7 @@ export default function SiteHeader() {
           .eq("id", user.id)
           .single();
 
-        if (!error && data?.role === "admin") {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
+        setIsAdmin(!error && data?.role === "admin");
       } catch (e) {
         console.error("Erro ao carregar perfil:", e);
         setIsAdmin(false);
@@ -54,60 +50,68 @@ export default function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-300 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-
-        {/* LOGO */}
-        <Link href="/" className="flex items-center">
+    <header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+        {/* LOGO (protagonista) */}
+        <Link href="/" className="flex items-center shrink-0">
           <Image
-            src="/logo-classilagos.png"
-            alt="Classilagos"
-            width={140}
-            height={140}
+            src="/logo-classilagos-shop.png"
+            alt="Classilagos.shop"
+            width={220}
+            height={70}
             priority
+            className="h-auto w-[165px] sm:w-[185px] md:w-[210px]"
           />
         </Link>
 
-        {/* DESKTOP: menu + user */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        {/* DESKTOP */}
+        <nav className="hidden md:flex items-center gap-4 lg:gap-5 text-[13px] font-semibold">
           {categorias.map((c) => (
             <Link
               key={c.href}
               href={c.href}
-              className="hover:text-slate-600 transition"
+              className="hover:text-slate-600 transition whitespace-nowrap"
             >
               {c.label}
             </Link>
           ))}
 
-          <Link href="/noticias" className="hover:text-slate-600 transition">
+          <Link
+            href="/noticias"
+            className="hover:text-slate-600 transition whitespace-nowrap"
+          >
             Notícias
           </Link>
 
-          <Link href="/noticias/correspondentes" className="hover:text-slate-600 transition">
+          {/* Premium: só em telas grandes pra não apertar o topo */}
+          <Link
+            href="/noticias/correspondentes"
+            className="hidden lg:inline-flex hover:text-slate-600 transition whitespace-nowrap"
+          >
             Correspondentes
           </Link>
 
           {isAdmin && (
             <Link
               href="/admin"
-              className="hover:text-slate-600 transition"
+              className="hover:text-slate-600 transition whitespace-nowrap"
             >
               Administração
             </Link>
           )}
 
-          {/* Aqui entra o botão ANUNCIE GRÁTIS, mas ele está dentro do UserMenu */}
-          <UserMenu />
+          {/* UserMenu (contém CTA pulsante) */}
+          <div className="shrink-0">
+            <UserMenu />
+          </div>
         </nav>
 
-        {/* MOBILE: UserMenu + botão hambúrguer */}
+        {/* MOBILE: CTA + User + Hambúrguer */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* O UserMenu no celular já aparece sempre */}
           <UserMenu />
 
           <button
-            className="text-slate-900 text-2xl"
+            className="text-slate-900 text-2xl leading-none px-2"
             onClick={() => setOpen((prev) => !prev)}
             aria-label="Abrir menu"
           >
