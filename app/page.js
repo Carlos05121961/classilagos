@@ -39,7 +39,7 @@ export default function Home() {
     { label: "LagoListas", value: "lagolistas", href: "/lagolistas", icon: "/icons/lagolistas.png" },
     { label: "Empregos", value: "emprego", href: "/empregos", icon: "/icons/empregos.png" },
     { label: "Veículos", value: "veiculos", href: "/veiculos", icon: "/icons/veiculos.png" },
-    { label: "Náutica", value: "nautica", href: "/nautica", icon: "/icons/nautica.png" },
+    { label: "Náutica", value: "nautica", href: "/nautica", icon: "/nautica", icon: "/icons/nautica.png" },
     { label: "Pets", value: "pets", href: "/pets", icon: "/icons/pets.png" },
   ];
 
@@ -148,9 +148,55 @@ export default function Home() {
     },
   ];
 
+  // OFERTAS MERCADO LIVRE (Afiliado) — você pode acrescentar mais quando quiser
+  const ofertasML = [
+    {
+      titulo: "Ar-condicionado (ofertas)",
+      desc: "Climatize a casa no verão",
+      url: "https://mercadolivre.com/sec/1UzHgU8",
+      badge: "Verão",
+      emoji: "❄️",
+    },
+    {
+      titulo: "Ventiladores (ofertas)",
+      desc: "Refresque com economia",
+      url: "https://mercadolivre.com/sec/1BrqyT5",
+      badge: "Top",
+      emoji: "🌀",
+    },
+    {
+      titulo: "Caixas de som (ofertas)",
+      desc: "Som pra praia e casa",
+      url: "https://mercadolivre.com/sec/17Q8mju",
+      badge: "Música",
+      emoji: "🔊",
+    },
+    {
+      titulo: "Perfumes (ofertas)",
+      desc: "Presentes e autocuidado",
+      url: "https://mercadolivre.com/sec/27p9TVx",
+      badge: "Cheiroso",
+      emoji: "🌸",
+    },
+    {
+      titulo: "Presentes (ofertas)",
+      desc: "Sugestões rápidas",
+      url: "https://mercadolivre.com/sec/2qsYQ8A",
+      badge: "🎁",
+      emoji: "🎁",
+    },
+    {
+      titulo: "TVs Smart (ofertas)",
+      desc: "Entretenimento e casa",
+      url: "https://mercadolivre.com/sec/2BbG4vr",
+      badge: "Casa",
+      emoji: "📺",
+    },
+  ];
+
   return (
     <main className="bg-white">
-      {/* BANNER TOPO (rotator) — padrão 900x120, sem ficar gigante */}
+      {/* BANNER TOPO (rotator) — padrão 900x120 */}
       <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={900} contain />
 
       {/* HERO */}
@@ -404,10 +450,11 @@ export default function Home() {
       {/* BLOCO PREMIUM 3 COLUNAS */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
+          {/* ESQUERDA */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
             <h3 className="font-extrabold text-slate-900 mb-2">Mais da Região</h3>
             <p className="text-[11px] text-slate-600 mb-4">
-              Clima, ondas, marés e câmeras (layout pronto para API).
+              Clima, ondas, marés, câmeras e ofertas.
             </p>
 
             <div className="grid gap-3 text-[12px] text-slate-700">
@@ -427,6 +474,48 @@ export default function Home() {
                   Abrir painel de câmeras →
                 </Link>
               </div>
+
+              {/* OFERTAS ML (afiliado) */}
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-slate-900">🛒 Ofertas do dia (Mercado Livre)</p>
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-[2px] rounded-full">
+                    Afiliado
+                  </span>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {ofertasML.map((o) => (
+                    <a
+                      key={o.url}
+                      href={o.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition px-3 py-2"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[12px] font-extrabold text-slate-900 leading-snug">
+                            {o.emoji} {o.titulo}
+                          </p>
+                          <p className="text-[11px] text-slate-600">{o.desc}</p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-semibold text-slate-700 bg-white border border-slate-200 px-2 py-[2px] rounded-full">
+                          {o.badge}
+                        </span>
+                      </div>
+
+                      <span className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
+                        Ver ofertas →
+                      </span>
+                    </a>
+                  ))}
+                </div>
+
+                <p className="mt-2 text-[10px] text-slate-500">
+                  Comprando por esses links, você apoia o Classilagos.
+                </p>
+              </div>
             </div>
 
             <div className="mt-4">
@@ -436,6 +525,7 @@ export default function Home() {
             </div>
           </div>
 
+          {/* CENTRO */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
@@ -474,6 +564,7 @@ export default function Home() {
             </a>
           </div>
 
+          {/* DIREITA */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
             <h3 className="font-extrabold text-slate-900 mb-2">Notícias da Região</h3>
             <p className="text-[11px] text-slate-600 mb-4">
@@ -588,3 +679,4 @@ export default function Home() {
     </main>
   );
 }
+
