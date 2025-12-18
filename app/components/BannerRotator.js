@@ -35,7 +35,7 @@ export default function BannerRotator({
 
   const BannerImg = (
     <div
-      className="relative w-full mx-auto overflow-hidden"
+      className="relative w-full mx-auto overflow-hidden bg-white rounded-xl border border-slate-200 shadow-sm"
       style={{ height: `${height}px`, maxWidth: `${maxWidth}px` }}
     >
       <img
@@ -65,3 +65,4 @@ export default function BannerRotator({
     </div>
   );
 }
+
