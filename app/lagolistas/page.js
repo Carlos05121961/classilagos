@@ -5,6 +5,65 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
+
+/* ✅ BANNERS AFILIADOS (TOPO) */
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
+/* ✅ BANNERS AFILIADOS (RODAPÉ) — PRINCIPAL */
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
 
 export default function LagoListasPage() {
   const router = useRouter();
@@ -145,7 +204,6 @@ export default function LagoListasPage() {
   // ✅ Busca premium: manda para o motorzão (/busca)
   function handleBuscar() {
     const partes = [];
-
     if (buscaTexto.trim()) partes.push(buscaTexto.trim());
     if (filtroCategoria && filtroCategoria !== "Todos") partes.push(filtroCategoria);
     if (filtroCidade && filtroCidade !== "Toda a região") partes.push(filtroCidade);
@@ -248,23 +306,15 @@ export default function LagoListasPage() {
   // ✅ Lista da página (não fica “presa” por busca)
   const listaDaPagina = useMemo(() => {
     const base = Array.isArray(anuncios) ? anuncios : [];
-    return base.slice(0, 60); // página leve e premium
+    return base.slice(0, 60);
   }, [anuncios]);
 
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie no Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+      {/* ✅ BANNER TOPO (Premium, rotativo, clicável) */}
+      <section className="bg-white py-6 border-b">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
@@ -281,18 +331,17 @@ export default function LagoListasPage() {
             className="object-cover transition-opacity duration-700"
           />
 
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/25 to-black/45" />
 
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-md">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.85)]">
               Classilagos – LagoListas
             </h1>
-            <p className="mt-2 text-sm md:text-base font-medium text-white drop-shadow">
+            <p className="mt-2 text-sm md:text-base font-medium text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
               O maior guia comercial da Região dos Lagos.
             </p>
             <p className="mt-1 text-[11px] md:text-xs text-slate-100/90 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites e muito mais de comércios,
-              serviços, saúde, turismo e profissionais liberais.
+              Telefones, WhatsApp, endereços, sites e muito mais de comércios, serviços, saúde, turismo e profissionais liberais.
             </p>
           </div>
 
@@ -304,9 +353,7 @@ export default function LagoListasPage() {
                 type="button"
                 onClick={() => setCurrentHero(index)}
                 className={`h-2.5 w-2.5 rounded-full border border-white/70 ${
-                  currentHero === index
-                    ? "bg-white"
-                    : "bg-white/30 hover:bg-white/60"
+                  currentHero === index ? "bg-white" : "bg-white/30 hover:bg-white/60"
                 }`}
                 aria-label={`Hero ${index + 1}`}
               />
@@ -400,15 +447,14 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* BLOCO CHAMADA PARA ANÚNCIO */}
+      {/* CHAMADA PARA ANUNCIAR */}
       <section className="max-w-6xl mx-auto px-4 pt-6 pb-4">
         <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
           <p className="text-sm font-semibold text-slate-900 mb-1">
             Quer colocar sua empresa no LagoListas?
           </p>
           <p className="text-xs text-slate-700 mb-4">
-            Cadastre gratuitamente seu comércio, serviço ou profissão e seja
-            encontrado por milhares de pessoas em toda a Região dos Lagos.
+            Cadastre gratuitamente seu comércio, serviço ou profissão e seja encontrado por milhares de pessoas em toda a Região dos Lagos.
           </p>
 
           <Link
@@ -420,7 +466,7 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* LISTÃO BASE (não fica “preso” por busca) */}
+      {/* LISTÃO BASE */}
       <section className="max-w-5xl mx-auto px-4 pb-10">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-900">
@@ -459,6 +505,15 @@ export default function LagoListasPage() {
           </>
         )}
       </section>
+
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) */}
+      <section className="bg-white py-10 border-t">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+        </div>
+      </section>
+
+      {/* Footer global do peixinho vem do layout */}
     </main>
   );
 }
