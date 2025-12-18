@@ -247,7 +247,7 @@ const bannersRodape = [
     <main className="bg-white">
      {/* BANNER TOPO (rotator) */}
 <div className="py-4">
- <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
+ <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720}
 
   />
 </div>
