@@ -661,7 +661,8 @@ const bannersRodape = [
       </section>
 
       {/* BANNER RODAPÉ (rotativo) — padrão 1200x300 */}
-      <BannerRotator images={bannersRodape} interval={6500} height={300} maxWidth={1200} contain />
+     <BannerRotator images={bannersRodape} interval={6500} height={300} maxWidth={1200} />
+
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
