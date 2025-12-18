@@ -5,8 +5,67 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
 
 const heroImages = ["/hero/pets-01.webp", "/hero/pets-02.webp", "/hero/pets-03.webp"];
+
+// ✅ BANNERS AFILIADOS (Topo)
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
+// ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
 
 // CIDADES DA REGIÃO
 const cidades = [
@@ -22,12 +81,7 @@ const cidades = [
 ];
 
 // OPÇÕES DO SELECT "Tipo"
-const tiposPet = [
-  "Animais",
-  "Adoção / Doação",
-  "Achados e perdidos",
-  "Serviços pet & acessórios",
-];
+const tiposPet = ["Animais", "Adoção / Doação", "Achados e perdidos", "Serviços pet & acessórios"];
 
 // CARDS – 4 GRUPOS
 const cardsPets = [
@@ -60,24 +114,51 @@ const cardsPets = [
 export default function PetsPage() {
   const router = useRouter();
 
-  const [currentHero, setCurrentHero] = useState(0);
+  // ✅ HERO premium (sem piscar)
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [loadedSet, setLoadedSet] = useState(() => new Set());
+  const [fadeIn, setFadeIn] = useState(false);
 
   const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
-  // ✅ Busca PREMIUM (padrão Náutica: redireciona para /busca)
+  // Busca premium (vai para /busca)
   const [textoBusca, setTextoBusca] = useState("");
   const [tipoBusca, setTipoBusca] = useState("");
   const [cidadeBusca, setCidadeBusca] = useState("");
 
-  // Troca das fotos do hero
+  // Preload das imagens do hero (evita “piscar”)
   useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentHero((prev) => (prev + 1) % heroImages.length),
-      6000
-    );
-    return () => clearInterval(interval);
+    heroImages.forEach((src) => {
+      const im = new window.Image();
+      im.src = src;
+      im.onload = () =>
+        setLoadedSet((prev) => {
+          const n = new Set(prev);
+          n.add(src);
+          return n;
+        });
+    });
   }, []);
+
+  // Rotação do hero
+  useEffect(() => {
+    if (!heroImages.length) return;
+    const t = setInterval(() => {
+      setFadeIn(false);
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 6500);
+    return () => clearInterval(t);
+  }, []);
+
+  // Ativa fade quando a imagem atual estiver carregada
+  useEffect(() => {
+    const src = heroImages[heroIndex];
+    if (loadedSet.has(src)) {
+      const id = setTimeout(() => setFadeIn(true), 30);
+      return () => clearTimeout(id);
+    }
+  }, [heroIndex, loadedSet]);
 
   // Buscar anúncios de pets no Supabase (para vitrine e recentes)
   useEffect(() => {
@@ -135,13 +216,9 @@ export default function PetsPage() {
     const desc = norm(item.descricao || "");
 
     // Achados e perdidos
-    if (
-      cat.includes("achado") ||
-      cat.includes("perdido") ||
-      titulo.includes("achado") ||
-      titulo.includes("perdido")
-    )
+    if (cat.includes("achado") || cat.includes("perdido") || titulo.includes("achado") || titulo.includes("perdido")) {
       return "achados";
+    }
 
     // Adoção / doação
     if (
@@ -196,10 +273,10 @@ export default function PetsPage() {
     return emDestaque || filtrados[0];
   }
 
-  // Anúncios recentes (sempre os mais novos/mais destaque primeiro — padrão Náutica)
+  // Anúncios recentes
   const destaques = anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
 
-  // ✅ Busca PREMIUM: manda para /busca (igual Náutica)
+  // ✅ Busca PREMIUM: manda para /busca
   function handleBuscar() {
     const partes = [];
     if (textoBusca.trim()) partes.push(textoBusca.trim());
@@ -215,60 +292,68 @@ export default function PetsPage() {
     router.push(`/busca?${params.toString()}`);
   }
 
+  const heroSrc = heroImages[heroIndex];
+
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie para pets no Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+      {/* ✅ BANNER TOPO (afiliado, rotativo, clicável) */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* HERO */}
+      {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Pets"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/70" />
+          {/* fundo “nuvem” */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-xs sm:text-sm md:text-base font-medium drop-shadow max-w-2xl">
-              Encontre animais, acessórios, serviços pet e muito mais na Região dos Lagos.
-            </p>
-            <h1 className="mt-2 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
-              Classilagos – Pets
-            </h1>
-            <p className="mt-2 text-[11px] sm:text-xs text-amber-100/90">
-              Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio, Búzios e toda a região.
-            </p>
+          {/* imagem em background com fade */}
+          <div
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{
+              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+
+          {/* pré-carregamento silencioso */}
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
+        </div>
+
+        {/* overlay premium */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/45" />
+
+        {/* textos mais altos + sombra premium */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-24px] sm:translate-y-[-32px]">
+          <p className="text-xs sm:text-sm md:text-base font-medium max-w-2xl [text-shadow:0_2px_10px_rgba(0,0,0,0.70)]">
+            Encontre animais, acessórios, serviços pet e muito mais na Região dos Lagos.
+          </p>
+
+          <h1 className="mt-2 text-3xl md:text-4xl font-extrabold [text-shadow:0_6px_20px_rgba(0,0,0,0.80)]">
+            Classilagos – Pets
+          </h1>
+
+          <p className="mt-2 text-[11px] sm:text-xs text-amber-100/95 [text-shadow:0_2px_10px_rgba(0,0,0,0.75)]">
+            Anúncios de pets em Maricá, Saquarema, Araruama, Cabo Frio, Búzios e toda a região.
+          </p>
+
+          <div className="mt-3 flex justify-center">
+            <div className="h-[3px] w-44 rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
           </div>
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (✅ padrão Náutica: redireciona /busca) */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Busca
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
                 <input
                   type="text"
                   placeholder="Ex.: clinica veterinaria, filhotes, banho e tosa"
@@ -285,9 +370,7 @@ export default function PetsPage() {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Tipo
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={tipoBusca}
@@ -303,9 +386,7 @@ export default function PetsPage() {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Cidade
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
                 <select
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={cidadeBusca}
@@ -344,15 +425,13 @@ export default function PetsPage() {
             </div>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">
-            Busca ligada ao motor do Classilagos.
-          </p>
+          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
         </div>
       </section>
 
       <div className="h-4 sm:h-6" />
 
-      {/* 4 CARDS PRINCIPAIS (vitrine) */}
+      {/* 4 CARDS PRINCIPAIS */}
       <section className="max-w-6xl mx-auto px-4 pb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {cardsPets.map((card) => {
@@ -384,9 +463,7 @@ export default function PetsPage() {
 
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{card.titulo}</p>
-                  <p className="mt-1 text-[10px] text-slate-300 line-clamp-2">
-                    {card.subtitulo}
-                  </p>
+                  <p className="mt-1 text-[10px] text-slate-300 line-clamp-2">{card.subtitulo}</p>
                   {anuncio && (
                     <p className="mt-1 text-[11px] text-amber-300 line-clamp-1">
                       {anuncio.titulo} • {anuncio.cidade}
@@ -399,13 +476,11 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ANÚNCIOS RECENTES DE PETS (padrão Náutica) */}
+      {/* ANÚNCIOS RECENTES */}
       <section className="bg-white pb-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base md:text-lg font-semibold text-slate-900">
-              Anúncios recentes de pets
-            </h2>
+            <h2 className="text-base md:text-lg font-semibold text-slate-900">Anúncios recentes de pets</h2>
 
             <span className="text-[11px] text-slate-500">
               {loadingAnuncios
@@ -434,9 +509,7 @@ export default function PetsPage() {
           {!loadingAnuncios && destaques.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
               {destaques.map((a) => {
-                const img =
-                  Array.isArray(a.imagens) && a.imagens.length > 0 ? a.imagens[0] : null;
-
+                const img = Array.isArray(a.imagens) && a.imagens.length > 0 ? a.imagens[0] : null;
                 const grupo = classificarAnuncio(a);
 
                 return (
@@ -448,11 +521,7 @@ export default function PetsPage() {
                     <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={img}
-                          alt={a.titulo}
-                          className="w-full h-full object-cover group-hover:scale-105 transition"
-                        />
+                        <img src={img} alt={a.titulo} className="w-full h-full object-cover group-hover:scale-105 transition" />
                       ) : (
                         <div className="w-full h-28 md:h-32 bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-[11px] text-amber-50">
                           Sem foto
@@ -461,9 +530,7 @@ export default function PetsPage() {
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] font-bold uppercase line-clamp-2">
-                        {a.titulo}
-                      </p>
+                      <p className="text-[11px] font-bold uppercase line-clamp-2">{a.titulo}</p>
                       <p className="text-[10px] text-slate-300">
                         {grupo === "animais" && "Animais"}
                         {grupo === "adocao" && "Adoção / Doação"}
@@ -473,17 +540,20 @@ export default function PetsPage() {
                         {a.cidade}
                         {a.bairro ? ` • ${a.bairro}` : ""}
                       </p>
-                      {a.preco && (
-                        <p className="mt-1 text-[11px] font-semibold text-emerald-300">
-                          {a.preco}
-                        </p>
-                      )}
+                      {a.preco && <p className="mt-1 text-[11px] font-semibold text-emerald-300">{a.preco}</p>}
                     </div>
                   </Link>
                 );
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) — com respiro */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
         </div>
       </section>
 
@@ -526,6 +596,8 @@ export default function PetsPage() {
           </div>
         </div>
       </section>
+
+      {/* Daqui pra baixo entra só o footer global */}
     </main>
   );
 }
