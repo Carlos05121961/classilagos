@@ -1,37 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 export default function BannerRotator({
   images = [],
-  links = [],          // ✅ novo
   interval = 6000,
   height = 120,
-  maxWidth = 900,
-  contain = false,
+  maxWidth, // (opcional, mas não vamos usar na Home)
+  contain = false, // (opcional, mas não vamos usar na Home)
 }) {
   const [index, setIndex] = useState(0);
 
+  const normalized = useMemo(() => {
+    return (images || [])
+      .map((it) => {
+        if (typeof it === "string") return { src: it, href: "", alt: "Banner" };
+        return {
+          src: it?.src || "",
+          href: it?.href || "",
+          alt: it?.alt || "Banner",
+        };
+      })
+      .filter((x) => x.src);
+  }, [images]);
+
   useEffect(() => {
-    if (!images?.length) return;
+    if (!normalized.length) return;
     const t = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
+      setIndex((prev) => (prev + 1) % normalized.length);
     }, interval);
     return () => clearInterval(t);
-  }, [images, interval]);
+  }, [normalized.length, interval]);
 
-  const src = images[index];
-  const href = links?.[index] || ""; // ✅ pega o link do mesmo índice
+  const current = normalized[index] || { src: "", href: "", alt: "Banner" };
+
+  const style = {
+    height: `${height}px`,
+    ...(maxWidth ? { maxWidth: `${maxWidth}px` } : {}),
+  };
 
   const BannerImg = (
-    <div
-      className="relative w-full"
-      style={{ height: `${height}px`, maxWidth: `${maxWidth}px` }}
-    >
+    <div className="relative w-full overflow-hidden" style={style}>
       <Image
-        src={src}
-        alt="Banner"
+        src={current.src}
+        alt={current.alt}
         fill
         className={contain ? "object-contain" : "object-cover"}
         priority={false}
@@ -40,9 +53,15 @@ export default function BannerRotator({
   );
 
   return (
-    <div className="w-full flex justify-center">
-      {href ? (
-        <a href={href} target="_blank" rel="noreferrer" aria-label="Abrir oferta no Mercado Livre">
+    <div className="w-full">
+      {current.href ? (
+        <a
+          href={current.href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={current.alt}
+          className="block w-full"
+        >
           {BannerImg}
         </a>
       ) : (
