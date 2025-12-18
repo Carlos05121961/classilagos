@@ -5,12 +5,67 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
 
 // ✅ HERO em WEBP (pasta /public/hero)
-const heroImages = [
-  "/hero/veiculos-01.webp",
-  "/hero/veiculos-02.webp",
-  "/hero/veiculos-03.webp",
+const heroImages = ["/hero/veiculos-01.webp", "/hero/veiculos-02.webp", "/hero/veiculos-03.webp"];
+
+// ✅ BANNERS AFILIADOS (Topo)
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
+// ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
 // Cidades padrão
@@ -38,7 +93,7 @@ function pegarCapaDoAnuncio(anuncio) {
   return imgs.find((u) => typeof u === "string" && u.trim() !== "") || "/imoveis/sem-foto.jpg";
 }
 
-// ✅ Cards na ordem final (sem “Oportunidades”)
+// ✅ Cards na ordem final
 const cards = [
   { nome: "Carros à venda", slug: "carros-venda", href: "/veiculos/lista?tipo=Carro" },
   { nome: "Motos à venda", slug: "motos-venda", href: "/veiculos/lista?tipo=Moto" },
@@ -47,14 +102,16 @@ const cards = [
   { nome: "Financiados", slug: "financiados", href: "/veiculos/lista?financiado=1" },
   { nome: "Consignados", slug: "consignados", href: "/veiculos/lista?consignado=1" },
   { nome: "Loja / Revenda", slug: "loja-revenda", href: "/veiculos/lista?loja=1" },
-  // ✅ novo card
   { nome: "Locação de carros", slug: "locadoras", href: "/veiculos/lista?loja=1" },
 ];
 
 export default function VeiculosPage() {
   const router = useRouter();
 
-  const [currentHero, setCurrentHero] = useState(0);
+  // ✅ HERO premium: preload + fade “nuvem”
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [loadedSet, setLoadedSet] = useState(() => new Set());
+  const [fadeIn, setFadeIn] = useState(false);
 
   // busca topo (ligada ao /busca)
   const [buscaTexto, setBuscaTexto] = useState("");
@@ -64,15 +121,40 @@ export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState([]);
   const [loadingVeiculos, setLoadingVeiculos] = useState(true);
 
-  // ROTATIVO DO HERO
+  // Preload das imagens do hero (evita “piscar”)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    heroImages.forEach((src) => {
+      const im = new window.Image();
+      im.src = src;
+      im.onload = () =>
+        setLoadedSet((prev) => {
+          const n = new Set(prev);
+          n.add(src);
+          return n;
+        });
+    });
   }, []);
 
-  // BUSCAR ANÚNCIOS DE VEÍCULOS NO SUPABASE
+  // Rotação do hero
+  useEffect(() => {
+    if (!heroImages.length) return;
+    const t = setInterval(() => {
+      setFadeIn(false);
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 6500);
+    return () => clearInterval(t);
+  }, []);
+
+  // Ativa fade quando a imagem atual estiver carregada
+  useEffect(() => {
+    const src = heroImages[heroIndex];
+    if (loadedSet.has(src)) {
+      const id = setTimeout(() => setFadeIn(true), 30);
+      return () => clearTimeout(id);
+    }
+  }, [heroIndex, loadedSet]);
+
+  // Buscar anúncios de veículos no Supabase
   useEffect(() => {
     const fetchVeiculos = async () => {
       try {
@@ -103,7 +185,7 @@ export default function VeiculosPage() {
     fetchVeiculos();
   }, []);
 
-  // ESCOLHE 1 ANÚNCIO PARA REPRESENTAR CADA CARD
+  // Escolhe 1 anúncio para representar cada card
   function escolherAnuncioParaCard(slug) {
     if (!veiculos || veiculos.length === 0) return null;
 
@@ -139,8 +221,6 @@ export default function VeiculosPage() {
         break;
 
       case "locadoras":
-        // ✅ por enquanto: usa o mesmo grupo "loja_revenda"
-        // (se você quiser separar de verdade, a gente cria o campo locadora=true no Supabase e filtra aqui)
         filtrados = filtrados.filter((a) => a.loja_revenda === true);
         break;
 
@@ -171,46 +251,52 @@ export default function VeiculosPage() {
     router.push(`/busca?q=${encodeURIComponent(q)}&categoria=veiculos`);
   }
 
+  const heroSrc = heroImages[heroIndex];
+
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie seu veículo totalmente GRÁTIS - Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+      {/* ✅ BANNER TOPO (afiliado, clicável, rotativo) */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* HERO */}
+      {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Veículos"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
+          {/* fundo “nuvem” */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
+
+          {/* imagem em background com fade */}
+          <div
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{
+              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
           />
+
+          {/* pré-carregamento silencioso */}
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
-        <div className="absolute inset-0 bg-black/25" />
+        {/* overlay premium em degradê */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-          <p className="text-sm md:text-base font-medium drop-shadow">
+        {/* textos mais altos + sombra premium */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
+          <p className="text-sm md:text-base font-medium [text-shadow:0_2px_8px_rgba(0,0,0,0.65)]">
             Encontre carros, motos, caminhões e oportunidades em toda a Região dos Lagos.
           </p>
-          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">
+          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold [text-shadow:0_6px_20px_rgba(0,0,0,0.75)]">
             Classilagos – Veículos
           </h1>
+          <div className="mt-3 flex justify-center">
+            <div className="h-[3px] w-44 rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+          </div>
         </div>
       </section>
 
@@ -361,6 +447,13 @@ export default function VeiculosPage() {
             })}
           </div>
         )}
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) — com respiro */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+        </div>
       </section>
 
       {/* FAIXA – SERVIÇOS */}
