@@ -668,7 +668,8 @@ const bannersRodape = [
       </section>
 
       {/* BANNER RODAPÉ (rotativo) — padrão 1200x300 */}
-     <BannerRotator images={bannersRodape} interval={6500} height={300} maxWidth={1200} />
+    <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+
 
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
