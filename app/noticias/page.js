@@ -16,6 +16,23 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
+const BANNERS_TOPO_NOTICIAS = [
+  "/banners/topo/topo-noticias-01.webp",
+  "/banners/topo/topo-noticias-02.webp",
+  "/banners/topo/topo-noticias-03.webp",
+  "/banners/topo/topo-noticias-04.webp",
+  "/banners/topo/topo-noticias-05.webp",
+];
+
+const BANNERS_RODAPE_NOTICIAS = [
+  "/banners/rodape/rodape-noticias-01.webp",
+  "/banners/rodape/rodape-noticias-02.webp",
+  "/banners/rodape/rodape-noticias-03.webp",
+  "/banners/rodape/rodape-noticias-04.webp",
+  "/banners/rodape/rodape-noticias-05.webp",
+];
+
+
 function formatDateBR(value) {
   try {
     return new Date(value).toLocaleDateString("pt-BR");
