@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 
 export default function BannerRotator({
   images = [],
@@ -39,11 +38,11 @@ export default function BannerRotator({
       className="relative w-full mx-auto overflow-hidden"
       style={{ height: `${height}px`, maxWidth: `${maxWidth}px` }}
     >
-      <Image
+      <img
         src={current.src}
         alt={current.alt}
-        fill
-        className="object-contain"
+        className="w-full h-full object-contain"
+        loading="lazy"
       />
     </div>
   );
