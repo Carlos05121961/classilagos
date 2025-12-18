@@ -246,7 +246,8 @@ const bannersRodape = [
   return (
     <main className="bg-white">
       {/* BANNER TOPO (rotator) — padrão 900x120, sem ficar gigante */}
-      <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={900} contain />
+    <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={900} />
+
 
       {/* HERO */}
       <section className="relative w-full">
