@@ -7,7 +7,7 @@ export default function BannerRotator({
   images = [],
   interval = 6000,
   height = 120,
-  maxWidth = 900,
+  maxWidth = 720,
 }) {
   const [index, setIndex] = useState(0);
 
@@ -36,7 +36,7 @@ export default function BannerRotator({
 
   const BannerImg = (
     <div
-      className="relative w-full mx-auto overflow-hidden bg-white"
+      className="relative w-full mx-auto overflow-hidden"
       style={{ height: `${height}px`, maxWidth: `${maxWidth}px` }}
     >
       <Image
@@ -44,7 +44,6 @@ export default function BannerRotator({
         alt={current.alt}
         fill
         className="object-contain"
-        priority={false}
       />
     </div>
   );
