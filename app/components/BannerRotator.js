@@ -53,9 +53,9 @@ export default function BannerRotator({
         <a
           href={current.href}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           aria-label={current.alt}
-          className="block"
+          className="block cursor-pointer"
         >
           {BannerImg}
         </a>
