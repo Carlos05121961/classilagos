@@ -5,12 +5,67 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
 
 // ✅ heros novos (public/hero)
-const heroImages = [
-  "/hero/nautica-01.webp",
-  "/hero/nautica-02.webp",
-  "/hero/nautica-03.webp",
+const heroImages = ["/hero/nautica-01.webp", "/hero/nautica-02.webp", "/hero/nautica-03.webp"];
+
+// ✅ BANNERS AFILIADOS (Topo)
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
+// ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
 const cidades = [
@@ -88,22 +143,51 @@ const categoriasLinha2 = [
 export default function NauticaPage() {
   const router = useRouter();
 
-  const [currentHero, setCurrentHero] = useState(0);
+  // ✅ HERO premium: preload + fade “nuvem”
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [loadedSet, setLoadedSet] = useState(() => new Set());
+  const [fadeIn, setFadeIn] = useState(false);
+
   const [anuncios, setAnuncios] = useState([]);
   const [loadingAnuncios, setLoadingAnuncios] = useState(true);
 
-  // ✅ busca (agora ligada ao motor)
+  // ✅ busca (ligada ao motor)
   const [textoBusca, setTextoBusca] = useState("");
   const [tipoBusca, setTipoBusca] = useState("");
   const [cidadeBusca, setCidadeBusca] = useState("");
 
-  // Troca de foto do hero
+  // Preload das imagens do hero (evita “piscar”)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    heroImages.forEach((src) => {
+      const im = new window.Image();
+      im.src = src;
+      im.onload = () =>
+        setLoadedSet((prev) => {
+          const n = new Set(prev);
+          n.add(src);
+          return n;
+        });
+    });
   }, []);
+
+  // Rotação do hero
+  useEffect(() => {
+    if (!heroImages.length) return;
+    const t = setInterval(() => {
+      setFadeIn(false);
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 6500);
+    return () => clearInterval(t);
+  }, []);
+
+  // Ativa fade quando a imagem atual estiver carregada
+  useEffect(() => {
+    const src = heroImages[heroIndex];
+    if (loadedSet.has(src)) {
+      const id = setTimeout(() => setFadeIn(true), 30);
+      return () => clearTimeout(id);
+    }
+  }, [heroIndex, loadedSet]);
 
   // Buscar anúncios de náutica no Supabase
   useEffect(() => {
@@ -183,7 +267,6 @@ export default function NauticaPage() {
           const sub = norm(a.subcategoria_nautica);
           if (fin !== "aluguel") return false;
 
-          // opcional: evita repetir jetski/standup/marina/serviço aqui
           if (
             sub.includes("jet") ||
             sub.includes("ski") ||
@@ -197,7 +280,6 @@ export default function NauticaPage() {
           ) {
             return false;
           }
-
           return true;
         });
         break;
@@ -261,54 +343,62 @@ export default function NauticaPage() {
     router.push(`/busca?${params.toString()}`);
   }
 
+  const heroSrc = heroImages[heroIndex];
+
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie na Náutica - Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+      {/* ✅ BANNER TOPO (afiliado, clicável, rotativo) */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* HERO */}
+      {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Náutica"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
+          {/* fundo “nuvem” */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
+
+          {/* imagem em background com fade */}
+          <div
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{
+              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
           />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-            <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-              Encontre lanchas, veleiros, jetski, motores e serviços náuticos em toda a Região dos Lagos.
-            </p>
+          {/* pré-carregamento silencioso */}
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
+        </div>
 
-            <h1 className="mt-1 text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]">
-              Classilagos – Náutica
-            </h1>
+        {/* overlay premium em degradê */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
+
+        {/* textos mais altos + sombra premium */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
+          <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl [text-shadow:0_2px_8px_rgba(0,0,0,0.70)]">
+            Encontre lanchas, veleiros, jetski, motores e serviços náuticos em toda a Região dos Lagos.
+          </p>
+
+          <h1 className="mt-1 text-3xl md:text-4xl font-extrabold tracking-tight [text-shadow:0_6px_20px_rgba(0,0,0,0.80)]">
+            Classilagos – Náutica
+          </h1>
+
+          <div className="mt-3 flex justify-center">
+            <div className="h-[3px] w-44 rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
           </div>
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (✅ agora ligada) */}
+      {/* CAIXA DE BUSCA (✅ ligada) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              {/* Busca livre */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
                 <input
@@ -326,7 +416,6 @@ export default function NauticaPage() {
                 />
               </div>
 
-              {/* Tipo */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
                 <select
@@ -343,7 +432,6 @@ export default function NauticaPage() {
                 </select>
               </div>
 
-              {/* Cidade */}
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
                 <select
@@ -360,7 +448,6 @@ export default function NauticaPage() {
                 </select>
               </div>
 
-              {/* Botão */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -379,9 +466,8 @@ export default function NauticaPage() {
 
       <div className="h-4 sm:h-6" />
 
-      {/* CATEGORIAS – CARDS COM FOTO E LINK PARA /nautica/lista */}
+      {/* CATEGORIAS – CARDS */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
-        {/* LINHA 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -409,6 +495,7 @@ export default function NauticaPage() {
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
+
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
                   {anuncio && (
@@ -422,7 +509,6 @@ export default function NauticaPage() {
           })}
         </div>
 
-        {/* LINHA 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {categoriasLinha2.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -450,6 +536,7 @@ export default function NauticaPage() {
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
+
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
                   {anuncio && (
@@ -496,9 +583,7 @@ export default function NauticaPage() {
           {!loadingAnuncios && destaques.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
               {destaques.map((item) => {
-                const img =
-                  Array.isArray(item.imagens) && item.imagens.length > 0 ? item.imagens[0] : null;
-
+                const img = Array.isArray(item.imagens) && item.imagens.length > 0 ? item.imagens[0] : null;
                 const finalidadeLabel = item.finalidade_nautica || "";
 
                 return (
@@ -525,18 +610,21 @@ export default function NauticaPage() {
                         {item.cidade}
                         {item.bairro ? ` • ${item.bairro}` : ""}
                       </p>
-                      {item.preco && (
-                        <p className="text-[11px] font-semibold text-emerald-700">{item.preco}</p>
-                      )}
-                      {finalidadeLabel && (
-                        <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>
-                      )}
+                      {item.preco && <p className="text-[11px] font-semibold text-emerald-700">{item.preco}</p>}
+                      {finalidadeLabel && <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>}
                     </div>
                   </Link>
                 );
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) — com respiro */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
         </div>
       </section>
 
@@ -581,7 +669,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* Daqui pra baixo entra só o footer global com os peixinhos */}
+      {/* Daqui pra baixo entra só o footer global */}
     </main>
   );
 }
