@@ -665,8 +665,18 @@ const bannersRodape = [
         </div>
       </section>
 
-      {/* BANNER RODAPÉ (rotativo) — padrão 1200x300 */}
-    <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+   {/* BANNER RODAPÉ (rotativo) — com respiro */}
+<section className="bg-white py-8">
+  <div className="max-w-7xl mx-auto px-4">
+    <BannerRotator
+      images={bannersRodape}
+      interval={6500}
+      height={170}
+      maxWidth={720}
+    />
+  </div>
+</section>
+
 
 
 
