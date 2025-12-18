@@ -7,8 +7,8 @@ export default function BannerRotator({
   images = [],
   interval = 6000,
   height = 120,
-  maxWidth, // (opcional, mas não vamos usar na Home)
-  contain = false, // (opcional, mas não vamos usar na Home)
+  maxWidth,     // opcional
+  contain = false, // opcional
 }) {
   const [index, setIndex] = useState(0);
 
@@ -41,7 +41,7 @@ export default function BannerRotator({
   };
 
   const BannerImg = (
-    <div className="relative w-full overflow-hidden" style={style}>
+    <div className="relative w-full mx-auto overflow-hidden" style={style}>
       <Image
         src={current.src}
         alt={current.alt}
@@ -53,7 +53,7 @@ export default function BannerRotator({
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full flex justify-center">
       {current.href ? (
         <a
           href={current.href}
