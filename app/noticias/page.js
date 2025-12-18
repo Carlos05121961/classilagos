@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
 const CIDADES = [
@@ -63,16 +64,36 @@ export default function NoticiasHomePage() {
 
   const noticiasFiltradas = useMemo(() => {
     if (cidadeFiltro === "Todas") return noticias;
-    return noticias.filter((n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase());
+    return noticias.filter(
+      (n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase()
+    );
   }, [noticias, cidadeFiltro]);
 
   const destaques = noticiasFiltradas.slice(0, 3);
   const recentes = noticiasFiltradas.slice(3, 15);
 
-const imagemFallback = "/banners/noticias-default.webp";
+  const imagemFallback = "/banners/noticias-default.webp";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
+      {/* ✅ BANNER FIXO NO TOPO (PADRÃO PREMIUM) */}
+      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Banners institucionais – Classilagos Notícias"
+              fill
+              sizes="900px"
+              className="object-contain"
+            />
+          </div>
+          <p className="mt-1 text-[10px] text-center text-slate-500">
+            Espaço para banners institucionais e Prefeituras (em breve).
+          </p>
+        </div>
+      </section>
+
       {/* TOPO MARCA + SLOGAN */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 pt-6 pb-4 space-y-1">
@@ -207,7 +228,8 @@ const imagemFallback = "/banners/noticias-default.webp";
               </div>
             </div>
             <p className="mt-2 text-[11px] text-slate-500">
-              Exibindo: <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
+              Exibindo:{" "}
+              <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
             </p>
           </div>
 
@@ -231,6 +253,7 @@ const imagemFallback = "/banners/noticias-default.webp";
                     className="md:col-span-2 group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col md:flex-row"
                   >
                     <div className="md:w-2/3 h-48 md:h-auto overflow-hidden bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={destaques[0].imagem_capa || imagemFallback}
                         alt={safeText(destaques[0].titulo) || "Notícia"}
@@ -240,7 +263,8 @@ const imagemFallback = "/banners/noticias-default.webp";
                     <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
                       <div>
                         <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
+                          {safeText(destaques[0].cidade)} •{" "}
+                          {safeText(destaques[0].categoria)}
                         </p>
                         <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
                           {safeText(destaques[0].titulo)}
@@ -263,6 +287,7 @@ const imagemFallback = "/banners/noticias-default.webp";
                     className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
                   >
                     <div className="h-32 overflow-hidden bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
                         alt={safeText(n.titulo) || "Notícia"}
@@ -314,6 +339,7 @@ const imagemFallback = "/banners/noticias-default.webp";
                     className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
                   >
                     <div className="h-32 overflow-hidden bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
                         alt={safeText(n.titulo) || "Notícia"}
@@ -435,7 +461,26 @@ const imagemFallback = "/banners/noticias-default.webp";
           </div>
         </aside>
       </section>
+
+      {/* ✅ BANNER DO RODAPÉ (ANTES DO FOOTER GLOBAL) */}
+      <section className="mt-10 w-full flex justify-center bg-slate-100 border-t py-4">
+        <div className="w-full max-w-[1000px] px-4">
+          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
+            <Image
+              src="/banners/anuncio-01.png"
+              alt="Banners institucionais – rodapé Notícias"
+              fill
+              sizes="900px"
+              className="object-contain"
+            />
+          </div>
+          <p className="mt-1 text-[10px] text-center text-slate-500">
+            Área reservada para campanhas públicas, utilidade e comunicados oficiais.
+          </p>
+        </div>
+      </section>
+
+      {/* Footer do peixinho vem do layout global */}
     </main>
   );
 }
-
