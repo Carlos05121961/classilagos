@@ -1,4 +1,4 @@
-use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -11,8 +11,13 @@ import { supabase } from "./supabaseClient";
 export default function Home() {
   const router = useRouter();
 
-  // HERO (WEBP em /public/hero)
-  const heroImages = ["/hero/home-01.webp", "/hero/home-02.webp", "/hero/home-03.webp"];
+  // HERO (WEBP em /public/hero) ✅ agora com 4
+  const heroImages = [
+    "/hero/home-01.webp",
+    "/hero/home-02.webp",
+    "/hero/home-03.webp",
+    "/hero/home-04.webp",
+  ];
 
   // BANNERS (padrão fixo: você só troca as imagens no GitHub e pronto)
   const bannersTopo = [
@@ -70,6 +75,14 @@ export default function Home() {
     }
   };
 
+  const formatarDataBR = (iso) => {
+    try {
+      return new Date(iso).toLocaleDateString("pt-BR");
+    } catch {
+      return "";
+    }
+  };
+
   // TV
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
@@ -110,6 +123,47 @@ export default function Home() {
       setLoadingDestaques(false);
     }
     carregarDestaquesLancamento();
+  }, []);
+
+  // ✅ NOTÍCIAS (para os blocos ao lado da TV)
+  const [ultimasNoticias, setUltimasNoticias] = useState([]);
+  const [noticiasCards, setNoticiasCards] = useState([]);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarNoticias() {
+      setLoadingNoticias(true);
+
+      // Esquerda: Últimas notícias (lista)
+      const { data: lista, error: errLista } = await supabase
+        .from("anuncios")
+        .select("id, created_at, titulo, cidade, categoria")
+        .eq("categoria", "noticias")
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      // Direita: Notícias (cards)
+      const { data: cards, error: errCards } = await supabase
+        .from("anuncios")
+        .select("id, created_at, titulo, descricao, cidade, imagens, categoria")
+        .eq("categoria", "noticias")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!ativo) return;
+
+      if (errLista) console.error("Erro últimas notícias:", errLista);
+      if (errCards) console.error("Erro cards notícias:", errCards);
+
+      setUltimasNoticias(lista || []);
+      setNoticiasCards(cards || []);
+      setLoadingNoticias(false);
+    }
+
+    carregarNoticias();
+    return () => { ativo = false; };
   }, []);
 
   // VITRINE PREMIUM (fixa por enquanto)
@@ -401,41 +455,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BLOCO PREMIUM 3 COLUNAS */}
+      {/* ✅ BLOCO PREMIUM 3 COLUNAS (CORRIGIDO: esquerda últimas notícias / direita notícias) */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
+          {/* ESQUERDA — ÚLTIMAS NOTÍCIAS */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
-            <h3 className="font-extrabold text-slate-900 mb-2">Mais da Região</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
+              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
+                Ver tudo →
+              </Link>
+            </div>
+
             <p className="text-[11px] text-slate-600 mb-4">
-              Clima, ondas, marés e câmeras (layout pronto para API).
+              O que saiu agora na Região dos Lagos (últimas publicações).
             </p>
 
-            <div className="grid gap-3 text-[12px] text-slate-700">
-              <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                <p className="font-semibold text-slate-900">🌦️ Clima hoje</p>
-                <p className="text-slate-600">Parcialmente nublado • sensação de verão</p>
-              </div>
-
-              <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                <p className="font-semibold text-slate-900">🌊 Ondas & Marés</p>
-                <p className="text-slate-600">Ondas Saquarema • Marés Cabo Frio</p>
-              </div>
-
-              <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                <p className="font-semibold text-slate-900">📷 Câmeras ao vivo</p>
-                <Link href="/noticias/cameras" className="text-cyan-700 font-semibold">
-                  Abrir painel de câmeras →
-                </Link>
-              </div>
+            <div className="space-y-3">
+              {loadingNoticias ? (
+                <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                  <p className="text-[12px] text-slate-600">Carregando...</p>
+                </div>
+              ) : ultimasNoticias.length === 0 ? (
+                <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                  <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
+                </div>
+              ) : (
+                ultimasNoticias.map((n) => (
+                  <Link
+                    key={n.id}
+                    href={`/anuncios/${n.id}`}
+                    className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+                  >
+                    <p className="text-[10px] text-slate-500">
+                      {formatarDataBR(n.created_at)} • <span className="font-semibold text-slate-700">{n.cidade}</span>
+                    </p>
+                    <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
+                      {n.titulo}
+                    </p>
+                  </Link>
+                ))
+              )}
             </div>
 
             <div className="mt-4">
               <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
-                Ver mais notícias →
+                Abrir portal de notícias →
               </Link>
             </div>
           </div>
 
+          {/* MEIO — TV (IGUAL, NÃO MEXI) */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
@@ -474,36 +544,69 @@ export default function Home() {
             </a>
           </div>
 
+          {/* DIREITA — NOTÍCIAS (CARDS) */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
-            <h3 className="font-extrabold text-slate-900 mb-2">Notícias da Região</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-extrabold text-slate-900">Notícias</h3>
+              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
+                Ver tudo →
+              </Link>
+            </div>
+
             <p className="text-[11px] text-slate-600 mb-4">
-              Atualizações locais, turismo e serviços (sem violência).
+              Destaques recentes com imagem (layout leve, sem estourar altura).
             </p>
 
             <div className="space-y-3">
-              <Link
-                href="/noticias"
-                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
-              >
-                <p className="text-[12px] font-semibold text-slate-900">Destaques de hoje</p>
-                <p className="text-[11px] text-slate-600">O que realmente importa na Região.</p>
-              </Link>
+              {loadingNoticias ? (
+                <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                  <p className="text-[12px] text-slate-600">Carregando...</p>
+                </div>
+              ) : noticiasCards.length === 0 ? (
+                <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                  <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
+                </div>
+              ) : (
+                noticiasCards.map((item) => {
+                  const imgs = Array.isArray(item.imagens) ? item.imagens : [];
+                  const thumb = imgs?.[0] || "";
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/anuncios/${item.id}`}
+                      className="group block rounded-2xl bg-white border border-slate-200 overflow-hidden hover:bg-slate-50 transition"
+                    >
+                      <div className="relative w-full h-24 bg-slate-200">
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={item.titulo}
+                            className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
+                            Sem imagem
+                          </div>
+                        )}
+                      </div>
 
-              <Link
-                href="/noticias/correspondentes"
-                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
-              >
-                <p className="text-[12px] font-semibold text-slate-900">Correspondentes culturais</p>
-                <p className="text-[11px] text-slate-600">Gente local contando histórias e novidades.</p>
-              </Link>
-
-              <Link
-                href="/noticias"
-                className="rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
-              >
-                <p className="text-[12px] font-semibold text-slate-900">Ver portal completo</p>
-                <p className="text-[11px] text-slate-600">Notícias organizadas por cidade.</p>
-              </Link>
+                      <div className="p-3">
+                        <p className="text-[10px] text-slate-500">
+                          {formatarDataBR(item.created_at)} • <span className="font-semibold text-slate-700">{item.cidade}</span>
+                        </p>
+                        <p className="mt-1 text-[12px] font-extrabold text-slate-900 line-clamp-2">
+                          {item.titulo}
+                        </p>
+                        {item.descricao && (
+                          <p className="mt-1 text-[11px] text-slate-600 line-clamp-2">
+                            {item.descricao}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
             </div>
 
             <div className="mt-4">
