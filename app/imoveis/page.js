@@ -13,7 +13,7 @@ const heroImages = [
   "/hero/imoveis-03.webp",
 ];
 
-// ✅ BANNERS AFILIADOS (mesmo padrão da Home)
+// ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
   {
     src: "/banners/topo/banner-topo-01.webp",
@@ -37,6 +37,35 @@ const bannersTopo = [
   },
   {
     src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
+// ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
     href: "https://mercadolivre.com/sec/32bqvEJ",
     alt: "Celulares e Tablets (Mercado Livre)",
   },
@@ -172,7 +201,6 @@ export default function ImoveisPage() {
   const [loadingImoveis, setLoadingImoveis] = useState(true);
 
   useEffect(() => {
-    // preload das imagens do hero (evita “piscar”)
     heroImages.forEach((src) => {
       const im = new window.Image();
       im.src = src;
@@ -195,7 +223,6 @@ export default function ImoveisPage() {
   }, []);
 
   useEffect(() => {
-    // dispara fade quando a imagem atual estiver carregada
     const src = heroImages[heroIndex];
     if (loadedSet.has(src)) {
       const id = setTimeout(() => setFadeIn(true), 30);
@@ -322,10 +349,8 @@ export default function ImoveisPage() {
       {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          {/* fundo “nuvem” enquanto carrega */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
 
-          {/* imagem do hero em background, com fade */}
           <div
             className="absolute inset-0 transition-opacity duration-700"
             style={{
@@ -336,17 +361,35 @@ export default function ImoveisPage() {
             }}
           />
 
-          {/* pré-carregamento silencioso */}
           <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
-        <div className="absolute inset-0 bg-black/25" />
+        {/* ✅ overlay premium em degradê */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
-          <p className="text-sm md:text-base font-medium drop-shadow">
+        {/* ✅ textos mais altos + sombra premium */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
+          <p
+            className="
+              text-sm md:text-base font-medium
+              [text-shadow:0_2px_8px_rgba(0,0,0,0.65)]
+            "
+          >
             Encontre casas, apartamentos, terrenos e oportunidades imobiliárias em toda a Região dos Lagos.
           </p>
-          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold drop-shadow-lg">Classilagos – Imóveis</h1>
+
+          <h1
+            className="
+              mt-3 text-3xl md:text-4xl font-extrabold
+              [text-shadow:0_6px_20px_rgba(0,0,0,0.75)]
+            "
+          >
+            Classilagos – Imóveis
+          </h1>
+
+          <div className="mt-3 flex justify-center">
+            <div className="h-[3px] w-44 rounded-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+          </div>
         </div>
       </section>
 
@@ -492,6 +535,13 @@ export default function ImoveisPage() {
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) — com respiro */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
         </div>
       </section>
 
