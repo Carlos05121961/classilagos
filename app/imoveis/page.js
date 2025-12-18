@@ -5,8 +5,42 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
 
-const heroImages = ["/hero/imoveis-01.webp", "/hero/imoveis-02.webp", "/hero/imoveis-03.webp"];
+const heroImages = [
+  "/hero/imoveis-01.webp",
+  "/hero/imoveis-02.webp",
+  "/hero/imoveis-03.webp",
+];
+
+// ✅ BANNERS AFILIADOS (mesmo padrão da Home)
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
 
 const cidades = [
   "Maricá",
@@ -49,7 +83,6 @@ function isFinalidadeTemporada(finalidade) {
   );
 }
 
-
 function isFinalidadeAluguel(finalidade) {
   const f = norm(finalidade);
   return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
@@ -74,7 +107,7 @@ function montarUrlDaCategoria(slug) {
 
   switch (slug) {
     case "aluguel-temporada":
-      params.set("finalidade", "temporada"); // lista entende temporada e "aluguel temporada"
+      params.set("finalidade", "temporada");
       break;
 
     case "aluguel-residencial":
@@ -98,7 +131,7 @@ function montarUrlDaCategoria(slug) {
       break;
 
     case "comercial-venda":
-      params.set("comercial_venda", "1"); // filtro de grupo no /lista
+      params.set("comercial_venda", "1");
       break;
 
     case "terrenos-lotes":
@@ -125,7 +158,11 @@ function pegarCapaDoAnuncio(anuncio) {
 
 export default function ImoveisPage() {
   const router = useRouter();
-  const [currentHero, setCurrentHero] = useState(0);
+
+  // ✅ HERO premium: preload + fade “nuvem”
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [loadedSet, setLoadedSet] = useState(() => new Set());
+  const [fadeIn, setFadeIn] = useState(false);
 
   const [buscaTexto, setBuscaTexto] = useState("");
   const [buscaTipo, setBuscaTipo] = useState("");
@@ -135,9 +172,36 @@ export default function ImoveisPage() {
   const [loadingImoveis, setLoadingImoveis] = useState(true);
 
   useEffect(() => {
-    const interval = setInterval(() => setCurrentHero((prev) => (prev + 1) % heroImages.length), 6000);
-    return () => clearInterval(interval);
+    // preload das imagens do hero (evita “piscar”)
+    heroImages.forEach((src) => {
+      const im = new window.Image();
+      im.src = src;
+      im.onload = () =>
+        setLoadedSet((prev) => {
+          const n = new Set(prev);
+          n.add(src);
+          return n;
+        });
+    });
   }, []);
+
+  useEffect(() => {
+    if (!heroImages.length) return;
+    const t = setInterval(() => {
+      setFadeIn(false);
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 6500);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    // dispara fade quando a imagem atual estiver carregada
+    const src = heroImages[heroIndex];
+    if (loadedSet.has(src)) {
+      const id = setTimeout(() => setFadeIn(true), 30);
+      return () => clearTimeout(id);
+    }
+  }, [heroIndex, loadedSet]);
 
   useEffect(() => {
     async function fetchImoveis() {
@@ -194,9 +258,7 @@ export default function ImoveisPage() {
         break;
 
       case "aluguel-comercial":
-        filtrados = filtrados.filter(
-          (a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
-        );
+        filtrados = filtrados.filter((a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel));
         break;
 
       case "comercial-venda":
@@ -225,7 +287,6 @@ export default function ImoveisPage() {
 
     if (filtrados.length === 0) return null;
 
-    // prioriza destaque dentro do grupo
     const emDestaque = filtrados.find((a) => a.destaque === true);
     return emDestaque || filtrados[0];
   }
@@ -247,35 +308,36 @@ export default function ImoveisPage() {
     router.push(`/busca?q=${encodeURIComponent(q)}&categoria=imoveis`);
   }
 
+  const heroSrc = heroImages[heroIndex];
+
   return (
     <main className="bg-white min-h-screen">
-      {/* BANNER FIXO NO TOPO */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Anuncie seu IMÓVEL totalmente GRÁTIS - Classilagos"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+      {/* ✅ BANNER TOPO (afiliado, clicável, rotativo) */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* HERO */}
+      {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={heroImages[currentHero]}
-            src={heroImages[currentHero]}
-            alt="Classilagos Imóveis"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
+          {/* fundo “nuvem” enquanto carrega */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
+
+          {/* imagem do hero em background, com fade */}
+          <div
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{
+              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
           />
+
+          {/* pré-carregamento silencioso */}
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
         <div className="absolute inset-0 bg-black/25" />
@@ -369,7 +431,6 @@ export default function ImoveisPage() {
                 href={hrefCategoria}
                 className="overflow-hidden rounded-2xl shadow border border-slate-200 bg-slate-100 block hover:-translate-y-1 hover:shadow-lg transition"
               >
-                {/* padroniza tamanho para nenhum card ficar “menor” */}
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
                     <img src={capa} alt={anuncio?.titulo || cat.nome} className="w-full h-full object-cover" />
@@ -380,7 +441,6 @@ export default function ImoveisPage() {
                   )}
                 </div>
 
-                {/* garante mesma altura do bloco de texto */}
                 <div className="bg-slate-900 text-white px-3 py-2 min-h-[64px]">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
                   {anuncio && (
@@ -473,3 +533,4 @@ export default function ImoveisPage() {
     </main>
   );
 }
+
