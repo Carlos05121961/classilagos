@@ -24,11 +24,11 @@ const bannersTopo = [
   {
     src: "/banners/topo/banner-topo-01.webp",
     href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
   },
   {
     src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/239x3yM",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
     alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
   },
   {
@@ -49,15 +49,16 @@ const bannersTopo = [
 ];
 
 
+
 const bannersRodape = [
   {
     src: "/banners/rodape/banner-rodape-01.webp",
     href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
   },
   {
     src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/239x3yM",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
     alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
   },
   {
@@ -76,6 +77,7 @@ const bannersRodape = [
     alt: "Celulares e Tablets (Mercado Livre)",
   },
 ];
+
 
   // ORDEM DOS ÍCONES
   const categorias = [
