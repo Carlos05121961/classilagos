@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
 const CIDADES = [
@@ -27,6 +26,34 @@ function formatDateBR(value) {
 
 function safeText(v) {
   return typeof v === "string" ? v : "";
+}
+
+/**
+ * ✅ Banner Premium (com fallback automático)
+ * Tenta: /banners/anuncio-01.webp -> /banners/anuncio-01.png -> /banners/noticias-default.webp
+ */
+function BannerInstitucional({ className = "" }) {
+  const [src, setSrc] = useState("/banners/anuncio-01.webp");
+
+  return (
+    <div
+      className={
+        "relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center " +
+        className
+      }
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt="Banners institucionais – Classilagos Notícias"
+        className="w-full h-full object-contain"
+        onError={() => {
+          if (src.endsWith(".webp")) setSrc("/banners/anuncio-01.png");
+          else if (src.endsWith(".png")) setSrc("/banners/noticias-default.webp");
+        }}
+      />
+    </div>
+  );
 }
 
 export default function NoticiasHomePage() {
@@ -76,18 +103,10 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER FIXO NO TOPO (PADRÃO PREMIUM) */}
+      {/* ✅ BANNER FIXO NO TOPO (Padrão Premium) */}
       <section className="w-full flex justify-center bg-slate-100 border-b py-3">
         <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Banners institucionais – Classilagos Notícias"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
+          <BannerInstitucional />
           <p className="mt-1 text-[10px] text-center text-slate-500">
             Espaço para banners institucionais e Prefeituras (em breve).
           </p>
@@ -145,7 +164,7 @@ export default function NoticiasHomePage() {
             </div>
           </div>
 
-          {/* Painel rápido (fica só aqui, premium) */}
+          {/* Painel rápido (premium) */}
           <div className="mt-4 lg:mt-0 lg:w-72">
             <div className="rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 p-[1px] shadow-md">
               <div className="rounded-3xl bg-white/95 p-4 space-y-3">
@@ -193,7 +212,7 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Barra de filtro por cidade (premium) */}
+          {/* Filtro por cidade */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">
@@ -417,9 +436,21 @@ export default function NoticiasHomePage() {
               Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
             </p>
           </section>
+
+          {/* ✅ BANNER FIXO NO RODAPÉ (Padrão Premium) */}
+          <section className="mt-8">
+            <div className="w-full flex justify-center bg-slate-100 border border-slate-200 rounded-3xl py-3">
+              <div className="w-full max-w-[1000px] px-4">
+                <BannerInstitucional />
+                <p className="mt-1 text-[10px] text-center text-slate-500">
+                  Área reservada para campanhas públicas, utilidade e comunicados oficiais.
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
 
-        {/* SIDEBAR premium (sem duplicar painel rápido) */}
+        {/* SIDEBAR */}
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
             <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
@@ -461,26 +492,6 @@ export default function NoticiasHomePage() {
           </div>
         </aside>
       </section>
-
-      {/* ✅ BANNER DO RODAPÉ (ANTES DO FOOTER GLOBAL) */}
-      <section className="mt-10 w-full flex justify-center bg-slate-100 border-t py-4">
-        <div className="w-full max-w-[1000px] px-4">
-          <div className="relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center">
-            <Image
-              src="/banners/anuncio-01.png"
-              alt="Banners institucionais – rodapé Notícias"
-              fill
-              sizes="900px"
-              className="object-contain"
-            />
-          </div>
-          <p className="mt-1 text-[10px] text-center text-slate-500">
-            Área reservada para campanhas públicas, utilidade e comunicados oficiais.
-          </p>
-        </div>
-      </section>
-
-      {/* Footer do peixinho vem do layout global */}
     </main>
   );
 }
