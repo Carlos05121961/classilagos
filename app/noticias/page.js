@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
 const CIDADES = [
@@ -16,7 +17,6 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-// ✅ BANNERS INSTITUCIONAIS (Prefeituras / campanhas / comunicados)
 const BANNERS_TOPO_NOTICIAS = [
   "/banners/topo/topo-noticias-01.webp",
   "/banners/topo/topo-noticias-02.webp",
@@ -45,76 +45,63 @@ function safeText(v) {
   return typeof v === "string" ? v : "";
 }
 
-/**
- * ✅ Banner Rotator Premium (usa <img> pra evitar dor de cabeça com next/image + sizes)
- * - Centralizado
- * - Fallback automático
- * - Rotação por intervalo
- */
-function BannerRotatorNoticias({
-  items = [],
-  heightClass = "h-[170px]",
-  intervalMs = 6500,
-  label = "Área reservada para banners institucionais e comunicados oficiais.",
+/** ✅ Banner rotator Premium (centralizado + padrão 720) */
+function BannerRotator({
+  images = [],
+  height = 170, // 170 topo | 120 rodapé
+  label = "",
 }) {
   const [idx, setIdx] = useState(0);
-  const [src, setSrc] = useState(items?.[0] || "");
-  const fallback = "/banners/noticias-default.webp";
 
   useEffect(() => {
-    if (!items || items.length === 0) return;
-    setIdx(0);
-    setSrc(items[0]);
-  }, [items]);
-
-  useEffect(() => {
-    if (!items || items.length <= 1) return;
+    if (!images || images.length <= 1) return;
     const t = setInterval(() => {
-      setIdx((prev) => {
-        const next = (prev + 1) % items.length;
-        setSrc(items[next]);
-        return next;
-      });
-    }, intervalMs);
+      setIdx((p) => (p + 1) % images.length);
+    }, 5000);
     return () => clearInterval(t);
-  }, [items, intervalMs]);
+  }, [images]);
+
+  const current = images?.[idx] || null;
 
   return (
-    <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-      <div className="w-full max-w-[1000px] px-4">
+    <section className="w-full bg-slate-100 border-b">
+      <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center">
         <div
-          className={`relative w-full ${heightClass} rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center`}
+          className="relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden"
+          style={{ height }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src || fallback}
-            alt="Banners institucionais – Classilagos Notícias"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              e.currentTarget.src = fallback;
-            }}
-          />
+          {current ? (
+            <Image
+              key={current}
+              src={current}
+              alt={label || "Banner"}
+              fill
+              sizes="(max-width: 768px) 100vw, 760px"
+              className="object-contain"
+              priority={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
+              (sem banner)
+            </div>
+          )}
         </div>
 
-        <p className="mt-1 text-[11px] text-center text-slate-500">
-          {label}
-        </p>
+        {label ? (
+          <p className="mt-2 text-[11px] text-slate-500 text-center">
+            {label}
+          </p>
+        ) : null}
 
-        {/* bolinhas */}
-        {items.length > 1 && (
-          <div className="mt-2 flex justify-center gap-2">
-            {items.map((_, i) => (
+        {images?.length > 1 && (
+          <div className="mt-2 flex gap-2">
+            {images.map((_, i) => (
               <button
                 key={i}
                 type="button"
-                onClick={() => {
-                  setIdx(i);
-                  setSrc(items[i]);
-                }}
-                className={`h-2.5 w-2.5 rounded-full border border-slate-400/40 ${
-                  idx === i
-                    ? "bg-slate-800"
-                    : "bg-slate-300 hover:bg-slate-400"
+                onClick={() => setIdx(i)}
+                className={`h-2.5 w-2.5 rounded-full border border-slate-300 ${
+                  idx === i ? "bg-slate-700" : "bg-white hover:bg-slate-200"
                 }`}
                 aria-label={`Banner ${i + 1}`}
               />
@@ -130,7 +117,6 @@ export default function NoticiasHomePage() {
   const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
   useEffect(() => {
@@ -175,10 +161,10 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER TOPO (rotativo) */}
-      <BannerRotatorNoticias
-        items={BANNERS_TOPO_NOTICIAS}
-        heightClass="h-[170px]"
+      {/* ✅ BANNER TOPO (720x170) */}
+      <BannerRotator
+        images={BANNERS_TOPO_NOTICIAS}
+        height={170}
         label="Espaço para banners institucionais e Prefeituras (em breve)."
       />
 
@@ -234,7 +220,7 @@ export default function NoticiasHomePage() {
             </div>
           </div>
 
-          {/* Painel rápido (premium) */}
+          {/* Painel rápido */}
           <div className="mt-4 lg:mt-0 lg:w-72">
             <div className="rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 p-[1px] shadow-md">
               <div className="rounded-3xl bg-white/95 p-4 space-y-3">
@@ -248,16 +234,12 @@ export default function NoticiasHomePage() {
                     <p>Céu parcialmente nublado</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-emerald-700">
-                      Tábua de marés
-                    </p>
+                    <p className="font-semibold text-emerald-700">Tábua de marés</p>
                     <p>Maré alta: 09h40</p>
                     <p>Maré baixa: 15h55</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-yellow-700">
-                      Ondas Saquarema
-                    </p>
+                    <p className="font-semibold text-yellow-700">Ondas Saquarema</p>
                     <p>Altura: 1,2 m</p>
                     <p>Boas condições</p>
                   </div>
@@ -268,8 +250,7 @@ export default function NoticiasHomePage() {
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-400">
-                  Em breve estes dados serão carregados automaticamente de fontes
-                  oficiais.
+                  Em breve estes dados serão carregados automaticamente de fontes oficiais.
                 </p>
               </div>
             </div>
@@ -287,7 +268,7 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Barra de filtro por cidade */}
+          {/* Filtro por cidade */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">
@@ -305,6 +286,7 @@ export default function NoticiasHomePage() {
                 >
                   Todas
                 </button>
+
                 {CIDADES.map((c) => (
                   <button
                     key={c}
@@ -323,7 +305,9 @@ export default function NoticiasHomePage() {
             </div>
             <p className="mt-2 text-[11px] text-slate-500">
               Exibindo:{" "}
-              <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
+              <span className="font-semibold text-slate-800">
+                {cidadeFiltro}
+              </span>
             </p>
           </div>
 
@@ -512,17 +496,9 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[10px] text-slate-400">
-              Em breve, esta seção poderá puxar automaticamente os últimos vídeos
-              do canal.
+              Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
             </p>
           </section>
-
-          {/* ✅ BANNER RODAPÉ DA PÁGINA (antes do footer global) */}
-          <BannerRotatorNoticias
-            items={BANNERS_RODAPE_NOTICIAS}
-            heightClass="h-[120px]"
-            label="Área reservada para campanhas públicas, utilidade e comunicados oficiais."
-          />
         </div>
 
         {/* SIDEBAR */}
@@ -534,10 +510,7 @@ export default function NoticiasHomePage() {
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
-              <li>
-                Sem política partidária (comunicados oficiais entram como
-                “serviço”).
-              </li>
+              <li>Sem política partidária (comunicados oficiais entram como “serviço”).</li>
               <li>Matérias com crédito e fonte quando forem de parceiros.</li>
             </ul>
           </div>
@@ -547,8 +520,8 @@ export default function NoticiasHomePage() {
               Fontes e parcerias
             </h2>
             <p className="text-[11px] text-slate-600">
-              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b>{" "}
-              e <b>link</b> para a fonte.
+              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e{" "}
+              <b>link</b> para a fonte.
             </p>
             <div className="flex flex-wrap gap-2">
               {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map(
@@ -580,6 +553,13 @@ export default function NoticiasHomePage() {
           </div>
         </aside>
       </section>
+
+      {/* ✅ BANNER RODAPÉ (720x120) */}
+      <BannerRotator
+        images={BANNERS_RODAPE_NOTICIAS}
+        height={120}
+        label="Área reservada para campanhas públicas, utilidade e comunicados oficiais."
+      />
     </main>
   );
 }
