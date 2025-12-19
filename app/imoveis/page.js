@@ -424,19 +424,13 @@ export default function ImoveisPage() {
 
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  value={buscaCidade}
-                  onChange={(e) => setBuscaCidade(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+               <SmartSelect
+  label="Cidade"
+  value={buscaCidade || "Todas"}
+  onChange={(v) => setBuscaCidade(v === "Todas" ? "" : v)}
+  options={["Todas", ...cidades]}
+/>
+
 
               <div className="flex justify-end">
                 <button
