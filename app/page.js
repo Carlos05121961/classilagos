@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
+import SmartSelect from "./components/SmartSelect";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "./supabaseClient";
