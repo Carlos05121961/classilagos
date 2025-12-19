@@ -31,6 +31,7 @@ export default function UserMenu() {
     };
   }, []);
 
+  // ✅ fecha ao clicar fora
   useEffect(() => {
     function onDocClick(e) {
       if (!menuRef.current) return;
@@ -38,6 +39,15 @@ export default function UserMenu() {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  // ✅ fecha com ESC
+  useEffect(() => {
+    function onEsc(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
   }, []);
 
   async function sair() {
@@ -51,13 +61,15 @@ export default function UserMenu() {
     (user?.email ? user.email.split("@")[0] : "Minha conta");
 
   return (
-    <div className="flex items-center gap-2" ref={menuRef}>
+    // ✅ IMPORTANTE: relative aqui evita “tarja preta”/overflow e posiciona o dropdown corretamente
+    <div className="relative flex items-center gap-2" ref={menuRef}>
       {/* CTA PULSANTE (premium e sutil) */}
       <Link
         href="/anunciar"
         className="relative inline-flex items-center justify-center rounded-full bg-sky-600 px-4 py-2 text-xs font-extrabold text-white shadow-sm hover:bg-sky-700 whitespace-nowrap
                    animate-[pulse_2.6s_ease-in-out_infinite]"
         title="Anuncie grátis no Classilagos"
+        onClick={() => setOpen(false)}
       >
         Anuncie grátis
       </Link>
@@ -68,8 +80,9 @@ export default function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"
         aria-label="Abrir menu do usuário"
+        aria-expanded={open ? "true" : "false"}
       >
-        <span className="hidden sm:inline">{nome}</span>
+        <span className="hidden sm:inline max-w-[140px] truncate">{nome}</span>
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-700 text-xs">
           👤
         </span>
@@ -77,7 +90,7 @@ export default function UserMenu() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-4 top-[62px] md:top-[64px] w-56 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-slate-100">
             <p className="text-xs font-bold text-slate-900 line-clamp-1">
               {user ? nome : "Visitante"}
@@ -97,6 +110,7 @@ export default function UserMenu() {
                 >
                   Meu painel
                 </Link>
+
                 <Link
                   href="/anunciar"
                   onClick={() => setOpen(false)}
@@ -104,6 +118,7 @@ export default function UserMenu() {
                 >
                   Anunciar grátis
                 </Link>
+
                 <button
                   type="button"
                   onClick={sair}
@@ -121,6 +136,7 @@ export default function UserMenu() {
                 >
                   Entrar
                 </Link>
+
                 <Link
                   href="/cadastro"
                   onClick={() => setOpen(false)}
@@ -136,4 +152,3 @@ export default function UserMenu() {
     </div>
   );
 }
-
