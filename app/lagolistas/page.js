@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 /* ✅ BANNERS AFILIADOS (TOPO) */
 const bannersTopo = [
@@ -250,9 +251,7 @@ export default function LagoListasPage() {
         {/* Conteúdo */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <p className="font-semibold text-[13px] text-slate-900 truncate">
-              {item.titulo}
-            </p>
+            <p className="font-semibold text-[13px] text-slate-900 truncate">{item.titulo}</p>
             {item.destaque && (
               <span className="inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
                 DESTAQUE
@@ -266,15 +265,11 @@ export default function LagoListasPage() {
           </p>
 
           {item.area_profissional && (
-            <p className="text-[11px] text-slate-800 mb-1 line-clamp-1">
-              {item.area_profissional}
-            </p>
+            <p className="text-[11px] text-slate-800 mb-1 line-clamp-1">{item.area_profissional}</p>
           )}
 
           {item.descricao && (
-            <p className="text-[11px] text-slate-700 line-clamp-2">
-              {item.descricao}
-            </p>
+            <p className="text-[11px] text-slate-700 line-clamp-2">{item.descricao}</p>
           )}
 
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
@@ -308,6 +303,10 @@ export default function LagoListasPage() {
     const base = Array.isArray(anuncios) ? anuncios : [];
     return base.slice(0, 60);
   }, [anuncios]);
+
+  // ✅ Labels bonitos pro SmartSelect
+  const categoriaLabel = filtroCategoria || "Todos";
+  const cidadeLabel = filtroCidade || "Toda a região";
 
   return (
     <main className="bg-white min-h-screen">
@@ -368,9 +367,7 @@ export default function LagoListasPage() {
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  O que você procura?
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">O que você procura?</label>
                 <input
                   type="text"
                   placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
@@ -386,41 +383,19 @@ export default function LagoListasPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Categoria
-                </label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  value={filtroCategoria}
-                  onChange={(e) => setFiltroCategoria(e.target.value)}
-                >
-                  <option value="Todos">Todos</option>
-                  {segmentosLagolistas.map((seg) => (
-                    <option key={seg} value={seg}>
-                      {seg}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Categoria"
+                value={categoriaLabel}
+                options={["Todos", ...segmentosLagolistas]}
+                onChange={(v) => setFiltroCategoria(v || "Todos")}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Cidade
-                </label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  value={filtroCidade}
-                  onChange={(e) => setFiltroCidade(e.target.value)}
-                >
-                  <option value="Toda a região">Toda a região</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Cidade"
+                value={cidadeLabel}
+                options={["Toda a região", ...cidades]}
+                onChange={(v) => setFiltroCidade(v || "Toda a região")}
+              />
 
               <div className="flex justify-end gap-2">
                 <button
@@ -450,9 +425,7 @@ export default function LagoListasPage() {
       {/* CHAMADA PARA ANUNCIAR */}
       <section className="max-w-6xl mx-auto px-4 pt-6 pb-4">
         <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
-          <p className="text-sm font-semibold text-slate-900 mb-1">
-            Quer colocar sua empresa no LagoListas?
-          </p>
+          <p className="text-sm font-semibold text-slate-900 mb-1">Quer colocar sua empresa no LagoListas?</p>
           <p className="text-xs text-slate-700 mb-4">
             Cadastre gratuitamente seu comércio, serviço ou profissão e seja encontrado por milhares de pessoas em toda a Região dos Lagos.
           </p>
@@ -469,33 +442,17 @@ export default function LagoListasPage() {
       {/* LISTÃO BASE */}
       <section className="max-w-5xl mx-auto px-4 pb-10">
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Cadastros do LagoListas
-          </h2>
-          {!loading && (
-            <p className="text-[11px] text-slate-500">
-              {anuncios.length} cadastro(s) no total
-            </p>
-          )}
+          <h2 className="text-sm font-semibold text-slate-900">Cadastros do LagoListas</h2>
+          {!loading && <p className="text-[11px] text-slate-500">{anuncios.length} cadastro(s) no total</p>}
         </div>
 
-        {loading && (
-          <p className="text-[11px] text-slate-500">
-            Carregando cadastros do LagoListas…
-          </p>
-        )}
+        {loading && <p className="text-[11px] text-slate-500">Carregando cadastros do LagoListas…</p>}
 
-        {!loading && anuncios.length === 0 && (
-          <p className="text-[11px] text-slate-500">
-            Ainda não há cadastros no LagoListas.
-          </p>
-        )}
+        {!loading && anuncios.length === 0 && <p className="text-[11px] text-slate-500">Ainda não há cadastros no LagoListas.</p>}
 
         {!loading && anuncios.length > 0 && (
           <>
-            <p className="text-[11px] text-slate-500 mb-3">
-              Mostrando {listaDaPagina.length} itens (página leve e rápida).
-            </p>
+            <p className="text-[11px] text-slate-500 mb-3">Mostrando {listaDaPagina.length} itens (página leve e rápida).</p>
 
             <div className="space-y-3">
               {listaDaPagina.map((item) => (
@@ -517,4 +474,3 @@ export default function LagoListasPage() {
     </main>
   );
 }
-
