@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 // ✅ heros novos (public/hero)
 const heroImages = ["/hero/nautica-01.webp", "/hero/nautica-02.webp", "/hero/nautica-03.webp"];
@@ -357,10 +358,8 @@ export default function NauticaPage() {
       {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          {/* fundo “nuvem” */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
 
-          {/* imagem em background com fade */}
           <div
             className="absolute inset-0 transition-opacity duration-700"
             style={{
@@ -371,14 +370,11 @@ export default function NauticaPage() {
             }}
           />
 
-          {/* pré-carregamento silencioso */}
           <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
-        {/* overlay premium em degradê */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
 
-        {/* textos mais altos + sombra premium */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
           <p className="text-xs sm:text-sm md:text-base font-medium mb-2 max-w-2xl [text-shadow:0_2px_8px_rgba(0,0,0,0.70)]">
             Encontre lanchas, veleiros, jetski, motores e serviços náuticos em toda a Região dos Lagos.
@@ -394,7 +390,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (✅ ligada) */}
+      {/* CAIXA DE BUSCA (✅ ligada + SmartSelect no mobile) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -416,37 +412,21 @@ export default function NauticaPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  value={tipoBusca}
-                  onChange={(e) => setTipoBusca(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {tiposEmbarcacao.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* ✅ SMARTSELECT (Tipo) */}
+              <SmartSelect
+                label="Tipo"
+                value={tipoBusca || "Todos"}
+                onChange={(v) => setTipoBusca(v === "Todos" ? "" : v)}
+                options={["Todos", ...tiposEmbarcacao]}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  value={cidadeBusca}
-                  onChange={(e) => setCidadeBusca(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* ✅ SMARTSELECT (Cidade) */}
+              <SmartSelect
+                label="Cidade"
+                value={cidadeBusca || "Todas"}
+                onChange={(v) => setCidadeBusca(v === "Todas" ? "" : v)}
+                options={["Todas", ...cidades]}
+              />
 
               <div className="flex justify-end">
                 <button
@@ -595,7 +575,11 @@ export default function NauticaPage() {
                     {img ? (
                       <div className="w-full h-28 md:h-32 overflow-hidden bg-slate-200">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition" />
+                        <img
+                          src={img}
+                          alt={item.titulo}
+                          className="w-full h-full object-cover group-hover:scale-105 transition"
+                        />
                       </div>
                     ) : (
                       <div className="w-full h-28 md:h-32 bg-gradient-to-br from-sky-900 to-slate-900 flex items-center justify-center text-[11px] text-sky-100">
@@ -611,7 +595,9 @@ export default function NauticaPage() {
                         {item.bairro ? ` • ${item.bairro}` : ""}
                       </p>
                       {item.preco && <p className="text-[11px] font-semibold text-emerald-700">{item.preco}</p>}
-                      {finalidadeLabel && <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>}
+                      {finalidadeLabel && (
+                        <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>
+                      )}
                     </div>
                   </Link>
                 );
@@ -673,4 +659,3 @@ export default function NauticaPage() {
     </main>
   );
 }
-
