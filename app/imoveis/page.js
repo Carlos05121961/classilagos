@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
+
 
 const heroImages = [
   "/hero/imoveis-01.webp",
@@ -412,19 +414,13 @@ export default function ImoveisPage() {
 
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  value={buscaTipo}
-                  onChange={(e) => setBuscaTipo(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todos</option>
-                  {tiposImovel.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <SmartSelect
+  label="Tipo"
+  value={buscaTipo || "Todos"}
+  onChange={(v) => setBuscaTipo(v === "Todos" ? "" : v)}
+  options={["Todos", ...tiposImovel]}
+/>
+
 
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
