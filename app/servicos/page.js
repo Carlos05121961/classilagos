@@ -9,7 +9,7 @@ import BannerRotator from "../components/BannerRotator";
 import SmartSelect from "../components/SmartSelect";
 
 // ✅ HERO (sem piscar) — imagens locais
-const heroImages = ["/hero/servicos-01.webp", "/hero/servicos-02.webp", "/hero/servicos-03.webp"];
+const heroImages = ["/hero/servicos-01.webp"];
 
 // ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
