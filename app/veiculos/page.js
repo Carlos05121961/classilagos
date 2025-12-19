@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 // ✅ HERO em WEBP (pasta /public/hero)
 const heroImages = ["/hero/veiculos-01.webp", "/hero/veiculos-02.webp", "/hero/veiculos-03.webp"];
@@ -88,9 +89,28 @@ function norm(s) {
   return (s || "").toString().trim().toLowerCase();
 }
 
+// tenta cobrir campos diferentes (pra não quebrar)
+function getTipoVeiculo(anuncio) {
+  return (
+    anuncio?.tipo_veiculo ||
+    anuncio?.tipo_imovel || // (alguns pilares reaproveitam campo)
+    anuncio?.tipo ||
+    anuncio?.subcategoria ||
+    ""
+  );
+}
+
+function getCondicaoVeiculo(anuncio) {
+  return anuncio?.condicao_veiculo || anuncio?.condicao || "";
+}
+
 function pegarCapaDoAnuncio(anuncio) {
   const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
-  return imgs.find((u) => typeof u === "string" && u.trim() !== "") || "/imoveis/sem-foto.jpg";
+  return (
+    imgs.find((u) => typeof u === "string" && u.trim() !== "") ||
+    "/veiculos/sem-foto.jpg" ||
+    "/imoveis/sem-foto.jpg"
+  );
 }
 
 // ✅ Cards na ordem final
@@ -102,7 +122,7 @@ const cards = [
   { nome: "Financiados", slug: "financiados", href: "/veiculos/lista?financiado=1" },
   { nome: "Consignados", slug: "consignados", href: "/veiculos/lista?consignado=1" },
   { nome: "Loja / Revenda", slug: "loja-revenda", href: "/veiculos/lista?loja=1" },
-  { nome: "Locação de carros", slug: "locadoras", href: "/veiculos/lista?loja=1" },
+  { nome: "Locação de carros", slug: "locadoras", href: "/veiculos/lista?locacao=1" },
 ];
 
 export default function VeiculosPage() {
@@ -121,8 +141,9 @@ export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState([]);
   const [loadingVeiculos, setLoadingVeiculos] = useState(true);
 
-  // Preload das imagens do hero (evita “piscar”)
+  // Preload do hero (evita “piscar”)
   useEffect(() => {
+    if (typeof window === "undefined") return;
     heroImages.forEach((src) => {
       const im = new window.Image();
       im.src = src;
@@ -145,7 +166,7 @@ export default function VeiculosPage() {
     return () => clearInterval(t);
   }, []);
 
-  // Ativa fade quando a imagem atual estiver carregada
+  // Ativa fade quando carregou
   useEffect(() => {
     const src = heroImages[heroIndex];
     if (loadedSet.has(src)) {
@@ -193,35 +214,37 @@ export default function VeiculosPage() {
 
     switch (slug) {
       case "carros-venda":
-        filtrados = filtrados.filter((a) => norm(a.tipo_imovel) === "carro");
+        filtrados = filtrados.filter((a) => norm(getTipoVeiculo(a)) === "carro");
         break;
 
       case "motos-venda":
-        filtrados = filtrados.filter((a) => norm(a.tipo_imovel) === "moto");
+        filtrados = filtrados.filter((a) => norm(getTipoVeiculo(a)) === "moto");
         break;
 
       case "seminovos":
-        filtrados = filtrados.filter((a) => norm(a.condicao_veiculo) === "seminovo");
+        filtrados = filtrados.filter((a) => norm(getCondicaoVeiculo(a)) === "seminovo");
         break;
 
       case "zero-km":
-        filtrados = filtrados.filter((a) => norm(a.condicao_veiculo) === "0km" || a.zero_km === true);
+        filtrados = filtrados.filter(
+          (a) => norm(getCondicaoVeiculo(a)) === "0km" || a?.zero_km === true
+        );
         break;
 
       case "financiados":
-        filtrados = filtrados.filter((a) => a.financiado === true);
+        filtrados = filtrados.filter((a) => a?.financiado === true);
         break;
 
       case "consignados":
-        filtrados = filtrados.filter((a) => a.consignado === true);
+        filtrados = filtrados.filter((a) => a?.consignado === true);
         break;
 
       case "loja-revenda":
-        filtrados = filtrados.filter((a) => a.loja_revenda === true);
+        filtrados = filtrados.filter((a) => a?.loja_revenda === true);
         break;
 
       case "locadoras":
-        filtrados = filtrados.filter((a) => a.loja_revenda === true);
+        filtrados = filtrados.filter((a) => a?.locacao === true || a?.locadora === true);
         break;
 
       default:
@@ -230,13 +253,13 @@ export default function VeiculosPage() {
 
     if (filtrados.length === 0) return null;
 
-    const emDestaque = filtrados.find((a) => a.destaque === true);
+    const emDestaque = filtrados.find((a) => a?.destaque === true);
     return emDestaque || filtrados[0];
   }
 
   const listaDestaques = useMemo(() => {
     if (!veiculos || veiculos.length === 0) return [];
-    const soDestaques = veiculos.filter((a) => a.destaque === true);
+    const soDestaques = veiculos.filter((a) => a?.destaque === true);
     if (soDestaques.length > 0) return soDestaques.slice(0, 8);
     return veiculos.slice(0, 8);
   }, [veiculos]);
@@ -265,10 +288,8 @@ export default function VeiculosPage() {
       {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          {/* fundo “nuvem” */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
 
-          {/* imagem em background com fade */}
           <div
             className="absolute inset-0 transition-opacity duration-700"
             style={{
@@ -279,14 +300,16 @@ export default function VeiculosPage() {
             }}
           />
 
-          {/* pré-carregamento silencioso */}
-          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
+          <Image
+            src={heroSrc}
+            alt="Pré-carregamento hero"
+            fill
+            className="opacity-0 pointer-events-none"
+          />
         </div>
 
-        {/* overlay premium em degradê */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
 
-        {/* textos mais altos + sombra premium */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
           <p className="text-sm md:text-base font-medium [text-shadow:0_2px_8px_rgba(0,0,0,0.65)]">
             Encontre carros, motos, caminhões e oportunidades em toda a Região dos Lagos.
@@ -313,41 +336,25 @@ export default function VeiculosPage() {
                   onKeyDown={(e) => e.key === "Enter" && executarBusca()}
                   type="text"
                   placeholder="Ex.: corolla 2014, jeep 4x4, moto 150"
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  value={buscaTipo}
-                  onChange={(e) => setBuscaTipo(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todos</option>
-                  {tiposVeiculo.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* ✅ Tipo (SmartSelect no mobile) */}
+              <SmartSelect
+                label="Tipo"
+                value={buscaTipo || "Todos"}
+                onChange={(val) => setBuscaTipo(val === "Todos" ? "" : val)}
+                options={["Todos", ...tiposVeiculo]}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  value={buscaCidade}
-                  onChange={(e) => setBuscaCidade(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* ✅ Cidade (SmartSelect no mobile) */}
+              <SmartSelect
+                label="Cidade"
+                value={buscaCidade || "Todas"}
+                onChange={(val) => setBuscaCidade(val === "Todas" ? "" : val)}
+                options={["Todas", ...cidades]}
+              />
 
               <div className="flex justify-end">
                 <button
@@ -361,7 +368,9 @@ export default function VeiculosPage() {
             </div>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Busca ligada ao motor do Classilagos.
+          </p>
         </div>
       </section>
 
@@ -415,7 +424,9 @@ export default function VeiculosPage() {
         {loadingVeiculos ? (
           <p className="text-xs text-slate-500">Carregando veículos...</p>
         ) : listaDestaques.length === 0 ? (
-          <p className="text-xs text-slate-500">Ainda não há veículos cadastrados. Seja o primeiro a anunciar!</p>
+          <p className="text-xs text-slate-500">
+            Ainda não há veículos cadastrados. Seja o primeiro a anunciar!
+          </p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {listaDestaques.map((carro) => {
@@ -440,7 +451,9 @@ export default function VeiculosPage() {
                       {carro.cidade}
                       {carro.bairro ? ` • ${carro.bairro}` : ""}
                     </p>
-                    {carro.preco && <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>}
+                    {carro.preco && (
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>
+                    )}
                   </div>
                 </Link>
               );
