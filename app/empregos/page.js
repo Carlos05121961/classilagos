@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 /* ✅ BANNERS AFILIADOS (TOPO) */
 const bannersTopo = [
@@ -237,7 +238,7 @@ export default function EmpregosPage() {
         </div>
       </section>
 
-      {/* ✅ CAIXA DE BUSCA PREMIUM */}
+      {/* ✅ CAIXA DE BUSCA PREMIUM (✅ SmartSelect no mobile) */}
       <section className="bg-[#F5FBFF]">
         <div className="max-w-5xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -259,33 +260,19 @@ export default function EmpregosPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Buscar em</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  value={modoBusca}
-                  onChange={(e) => setModoBusca(e.target.value)}
-                >
-                  <option value="emprego">Vagas</option>
-                  <option value="curriculo">Currículos</option>
-                </select>
-              </div>
+              <SmartSelect
+                label="Buscar em"
+                value={modoBusca === "curriculo" ? "Currículos" : "Vagas"}
+                onChange={(v) => setModoBusca(v === "Currículos" ? "curriculo" : "emprego")}
+                options={["Vagas", "Currículos"]}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  value={cidadeBusca}
-                  onChange={(e) => setCidadeBusca(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Cidade"
+                value={cidadeBusca || "Todas"}
+                onChange={(v) => setCidadeBusca(v === "Todas" ? "" : v)}
+                options={["Todas", ...cidades]}
+              />
 
               <div className="flex justify-end gap-2">
                 <button
@@ -515,3 +502,4 @@ export default function EmpregosPage() {
     </main>
   );
 }
+
