@@ -395,58 +395,75 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA */}
-      <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
-          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
-                <input
-                  value={buscaTexto}
-                  onChange={(e) => setBuscaTexto(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && executarBusca()}
-                  type="text"
-                  placeholder="Ex.: casa 2 quartos, frente para a lagoa"
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+{/* CAIXA DE BUSCA */}
+<section className="bg-white">
+  <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+    <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+      <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <SmartSelect
-  label="Tipo"
-  value={buscaTipo || "Todos"}
-  onChange={(v) => setBuscaTipo(v === "Todos" ? "" : v)}
-  options={["Todos", ...tiposImovel]}
-/>
-
-
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-               <SmartSelect
-  label="Cidade"
-  value={buscaCidade || "Todas"}
-  onChange={(v) => setBuscaCidade(v === "Todas" ? "" : v)}
-  options={["Todas", ...cidades]}
-/>
-
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
-                  onClick={executarBusca}
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
+        {/* TEXTO */}
+        <div className="flex flex-col">
+          <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
+          <input
+            value={buscaTexto}
+            onChange={(e) => setBuscaTexto(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && executarBusca()}
+            type="text"
+            placeholder="Ex.: casa 2 quartos, frente para a lagoa"
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-      </section>
+
+        {/* TIPO */}
+        <div className="flex flex-col">
+          <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
+          <select
+            value={buscaTipo}
+            onChange={(e) => setBuscaTipo(e.target.value)}
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800"
+          >
+            <option value="">Todos</option>
+            {tiposImovel.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* CIDADE */}
+        <div className="flex flex-col">
+          <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
+          <select
+            value={buscaCidade}
+            onChange={(e) => setBuscaCidade(e.target.value)}
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800"
+          >
+            <option value="">Todas</option>
+            {cidades.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* BOTÃO */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={executarBusca}
+            className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Buscar
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <p className="mt-1 text-[11px] text-center text-slate-500">
+      Busca ligada ao motor do Classilagos.
+    </p>
+  </div>
+</section>
+
 
       <div className="h-4 sm:h-6" />
 
