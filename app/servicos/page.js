@@ -6,10 +6,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
-import SmartSelect from "../components/SmartSelect";
 
-// ✅ HERO (sem piscar) — imagens locais
-const heroImages = ["/hero/servicos-01.webp", "/hero/servicos-02.webp", "/hero/servicos-03.webp"];
+// ✅ HERO FIXO (1 imagem só)
+const HERO_SRC = "/hero/servicos-01.webp";
 
 // ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
@@ -84,11 +83,6 @@ const cidades = [
 export default function ServicosPage() {
   const router = useRouter();
 
-  // ✅ HERO premium (sem piscar)
-  const [heroIndex, setHeroIndex] = useState(0);
-  const [loadedSet, setLoadedSet] = useState(() => new Set());
-  const [fadeIn, setFadeIn] = useState(false);
-
   const [classimed, setClassimed] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [profissionais, setProfissionais] = useState([]);
@@ -98,41 +92,6 @@ export default function ServicosPage() {
   const [textoBusca, setTextoBusca] = useState("");
   const [tipoServico, setTipoServico] = useState(""); // "", "classimed", "eventos", "profissionais"
   const [cidadeBusca, setCidadeBusca] = useState("");
-
-  // ✅ Preload das imagens do hero (evita “piscar”)
-  useEffect(() => {
-    heroImages.forEach((src) => {
-      const im = new window.Image();
-      im.src = src;
-      im.onload = () =>
-        setLoadedSet((prev) => {
-          const n = new Set(prev);
-          n.add(src);
-          return n;
-        });
-    });
-  }, []);
-
-  // ✅ Rotação do hero
-  useEffect(() => {
-    if (!heroImages.length) return;
-    const t = setInterval(() => {
-      setFadeIn(false);
-      setHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 6500);
-    return () => clearInterval(t);
-  }, []);
-
-  // ✅ Ativa fade quando a imagem atual estiver carregada
-  useEffect(() => {
-    const src = heroImages[heroIndex];
-    if (loadedSet.has(src)) {
-      const id = setTimeout(() => setFadeIn(true), 30);
-      return () => clearTimeout(id);
-    }
-  }, [heroIndex, loadedSet]);
-
-  const heroSrc = heroImages[heroIndex];
 
   // Buscar serviços no Supabase (vitrine da página)
   useEffect(() => {
@@ -179,11 +138,7 @@ export default function ServicosPage() {
         {thumb ? (
           <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={thumb}
-              alt={item.titulo}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
+            <img src={thumb} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
           </div>
         ) : (
           <div className="w-14 h-14 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] text-slate-400 flex-shrink-0">
@@ -231,7 +186,7 @@ export default function ServicosPage() {
     if (q) params.set("q", q);
 
     // ✅ categoria do motor (padrão do site)
-    params.set("categoria", "servicos");
+    params.set("categoria", "servico");
 
     router.push(`/busca?${params.toString()}`);
   }
@@ -251,23 +206,17 @@ export default function ServicosPage() {
         </div>
       </section>
 
-      {/* ✅ HERO PREMIUM (sem piscar) */}
+      {/* ✅ HERO FIXO (1 imagem) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
-
-          <div
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{
-              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
-              backgroundImage: `url(${heroSrc})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+          <Image
+            src={HERO_SRC}
+            alt="Classilagos – Serviços"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
           />
-
-          {/* pré-carregamento silencioso */}
-          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/45" />
@@ -310,33 +259,35 @@ export default function ServicosPage() {
                 />
               </div>
 
-              <SmartSelect
-                label="Tipo"
-                value={
-                  tipoServico === "classimed"
-                    ? "Saúde (Classimed)"
-                    : tipoServico === "eventos"
-                    ? "Festas & Eventos"
-                    : tipoServico === "profissionais"
-                    ? "Profissionais"
-                    : "Todos"
-                }
-                onChange={(v) => {
-                  if (v === "Todos") return setTipoServico("");
-                  if (v === "Saúde (Classimed)") return setTipoServico("classimed");
-                  if (v === "Festas & Eventos") return setTipoServico("eventos");
-                  if (v === "Profissionais") return setTipoServico("profissionais");
-                  setTipoServico("");
-                }}
-                options={["Todos", "Saúde (Classimed)", "Festas & Eventos", "Profissionais"]}
-              />
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  value={tipoServico}
+                  onChange={(e) => setTipoServico(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="classimed">Saúde (Classimed)</option>
+                  <option value="eventos">Festas &amp; Eventos</option>
+                  <option value="profissionais">Profissionais</option>
+                </select>
+              </div>
 
-              <SmartSelect
-                label="Cidade"
-                value={cidadeBusca ? cidadeBusca : "Toda a região"}
-                onChange={(v) => setCidadeBusca(v === "Toda a região" ? "" : v)}
-                options={["Toda a região", ...cidades]}
-              />
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
+                <select
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  value={cidadeBusca}
+                  onChange={(e) => setCidadeBusca(e.target.value)}
+                >
+                  <option value="">Toda a região</option>
+                  {cidades.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="flex justify-end">
                 <button
