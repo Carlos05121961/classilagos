@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
+import BannerRotator from "../components/BannerRotator";
 
 const CIDADES = [
   "Maricá",
@@ -17,20 +18,63 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-const BANNERS_TOPO_NOTICIAS = [
-  "/banners/topo/topo-noticias-01.webp",
-  "/banners/topo/topo-noticias-02.webp",
-  "/banners/topo/topo-noticias-03.webp",
-  "/banners/topo/topo-noticias-04.webp",
-  "/banners/topo/topo-noticias-05.webp",
+// ✅ BANNERS NOTÍCIAS (arquivos diferentes dos pilares) + LINKS AFILIADOS
+// 🔝 TOPO = 720x120
+const bannersTopoNoticias = [
+  {
+    src: "/banners/topo/topo-noticias-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/topo-noticias-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/topo-noticias-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/topo-noticias-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/topo-noticias-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
-const BANNERS_RODAPE_NOTICIAS = [
-  "/banners/rodape/rodape-noticias-01.webp",
-  "/banners/rodape/rodape-noticias-02.webp",
-  "/banners/rodape/rodape-noticias-03.webp",
-  "/banners/rodape/rodape-noticias-04.webp",
-  "/banners/rodape/rodape-noticias-05.webp",
+// 🔻 RODAPÉ = 720x170
+const bannersRodapeNoticias = [
+  {
+    src: "/banners/rodape/rodape-noticias-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/rodape-noticias-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/rodape-noticias-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/rodape-noticias-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/rodape-noticias-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
 function formatDateBR(value) {
@@ -43,74 +87,6 @@ function formatDateBR(value) {
 
 function safeText(v) {
   return typeof v === "string" ? v : "";
-}
-
-/** ✅ Banner rotator Premium (centralizado + padrão 720) */
-function BannerRotator({
-  images = [],
-  height = 170, // 170 topo | 120 rodapé
-  label = "",
-}) {
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    if (!images || images.length <= 1) return;
-    const t = setInterval(() => {
-      setIdx((p) => (p + 1) % images.length);
-    }, 5000);
-    return () => clearInterval(t);
-  }, [images]);
-
-  const current = images?.[idx] || null;
-
-  return (
-    <section className="w-full bg-slate-100 border-b">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center">
-        <div
-          className="relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden"
-          style={{ height }}
-        >
-          {current ? (
-            <Image
-              key={current}
-              src={current}
-              alt={label || "Banner"}
-              fill
-              sizes="(max-width: 768px) 100vw, 760px"
-              className="object-contain"
-              priority={false}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
-              (sem banner)
-            </div>
-          )}
-        </div>
-
-        {label ? (
-          <p className="mt-2 text-[11px] text-slate-500 text-center">
-            {label}
-          </p>
-        ) : null}
-
-        {images?.length > 1 && (
-          <div className="mt-2 flex gap-2">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIdx(i)}
-                className={`h-2.5 w-2.5 rounded-full border border-slate-300 ${
-                  idx === i ? "bg-slate-700" : "bg-white hover:bg-slate-200"
-                }`}
-                aria-label={`Banner ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
 }
 
 export default function NoticiasHomePage() {
@@ -126,9 +102,7 @@ export default function NoticiasHomePage() {
 
       const { data, error } = await supabase
         .from("noticias")
-        .select(
-          "id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status"
-        )
+        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status")
         .eq("status", "publicado")
         .order("created_at", { ascending: false })
         .limit(24);
@@ -149,9 +123,7 @@ export default function NoticiasHomePage() {
 
   const noticiasFiltradas = useMemo(() => {
     if (cidadeFiltro === "Todas") return noticias;
-    return noticias.filter(
-      (n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase()
-    );
+    return noticias.filter((n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase());
   }, [noticias, cidadeFiltro]);
 
   const destaques = noticiasFiltradas.slice(0, 3);
@@ -161,23 +133,19 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER TOPO (720x170) */}
-      <BannerRotator
-        images={BANNERS_TOPO_NOTICIAS}
-        height={170}
-        label="Espaço para banners institucionais e Prefeituras (em breve)."
-      />
+      {/* ✅ BANNER TOPO (720x120) — PADRÃO PREMIUM + LINKS AFILIADOS */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersTopoNoticias} interval={6000} height={120} maxWidth={720} />
+        </div>
+      </section>
 
       {/* TOPO MARCA + SLOGAN */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 pt-6 pb-4 space-y-1">
           <p className="text-[11px] text-slate-500">Classilagos • Notícias</p>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900">
-            Classilagos Notícias
-          </h1>
-          <p className="text-xs md:text-sm text-slate-600">
-            O portal oficial de informação da Região dos Lagos
-          </p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900">Classilagos Notícias</h1>
+          <p className="text-xs md:text-sm text-slate-600">O portal oficial de informação da Região dos Lagos</p>
         </div>
       </section>
 
@@ -186,22 +154,14 @@ export default function NoticiasHomePage() {
         <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="flex-1 space-y-3">
             <p className="text-sm md:text-base text-slate-600 max-w-2xl">
-              Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba
-              Grande, São Pedro da Aldeia, Arraial do Cabo, Cabo Frio, Búzios e
-              Rio das Ostras: cidade, turismo, cultura, trânsito, clima e muito
-              mais.
+              Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial do Cabo,
+              Cabo Frio, Búzios e Rio das Ostras: cidade, turismo, cultura, trânsito, clima e muito mais.
             </p>
 
             <div className="flex flex-wrap gap-2 mt-1">
-              <span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">
-                Turismo &amp; Cultura
-              </span>
-              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] text-emerald-700">
-                Cidade &amp; Serviços
-              </span>
-              <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-[11px] text-yellow-700">
-                Praia, Marés &amp; Trânsito
-              </span>
+              <span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">Turismo &amp; Cultura</span>
+              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] text-emerald-700">Cidade &amp; Serviços</span>
+              <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-[11px] text-yellow-700">Praia, Marés &amp; Trânsito</span>
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
@@ -224,9 +184,7 @@ export default function NoticiasHomePage() {
           <div className="mt-4 lg:mt-0 lg:w-72">
             <div className="rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 p-[1px] shadow-md">
               <div className="rounded-3xl bg-white/95 p-4 space-y-3">
-                <p className="text-xs font-semibold text-slate-800">
-                  Painel rápido da Região dos Lagos
-                </p>
+                <p className="text-xs font-semibold text-slate-800">Painel rápido da Região dos Lagos</p>
                 <div className="grid grid-cols-2 gap-3 text-[11px] text-slate-700">
                   <div>
                     <p className="font-semibold text-sky-700">Clima hoje</p>
@@ -249,9 +207,7 @@ export default function NoticiasHomePage() {
                     <p>Via Lagos: normal</p>
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-400">
-                  Em breve estes dados serão carregados automaticamente de fontes oficiais.
-                </p>
+                <p className="text-[10px] text-slate-400">Em breve estes dados serão carregados automaticamente de fontes oficiais.</p>
               </div>
             </div>
           </div>
@@ -263,17 +219,13 @@ export default function NoticiasHomePage() {
         {/* COLUNA ESQUERDA */}
         <div className="space-y-6">
           {erro && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
-              {erro}
-            </div>
+            <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">{erro}</div>
           )}
 
           {/* Filtro por cidade */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 className="text-sm font-semibold text-slate-900">
-                Notícias por cidade
-              </h2>
+              <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -304,25 +256,18 @@ export default function NoticiasHomePage() {
               </div>
             </div>
             <p className="mt-2 text-[11px] text-slate-500">
-              Exibindo:{" "}
-              <span className="font-semibold text-slate-800">
-                {cidadeFiltro}
-              </span>
+              Exibindo: <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
             </p>
           </div>
 
           {/* DESTAQUES */}
           <section>
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Destaques de hoje
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">Destaques de hoje</h2>
 
             {loading ? (
               <p className="text-xs text-slate-500">Carregando notícias…</p>
             ) : noticiasFiltradas.length === 0 ? (
-              <p className="text-xs text-slate-500">
-                Nenhuma notícia publicada para esse filtro. Tente outra cidade.
-              </p>
+              <p className="text-xs text-slate-500">Nenhuma notícia publicada para esse filtro. Tente outra cidade.</p>
             ) : (
               <div className="grid gap-4 md:grid-cols-3">
                 {destaques[0] && (
@@ -341,19 +286,12 @@ export default function NoticiasHomePage() {
                     <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
                       <div>
                         <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(destaques[0].cidade)} •{" "}
-                          {safeText(destaques[0].categoria)}
+                          {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
                         </p>
-                        <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
-                          {safeText(destaques[0].titulo)}
-                        </h3>
-                        <p className="mt-1 text-xs text-slate-600 line-clamp-3">
-                          {safeText(destaques[0].resumo)}
-                        </p>
+                        <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">{safeText(destaques[0].titulo)}</h3>
+                        <p className="mt-1 text-xs text-slate-600 line-clamp-3">{safeText(destaques[0].resumo)}</p>
                       </div>
-                      <p className="text-[11px] text-slate-400">
-                        {formatDateBR(destaques[0].created_at)}
-                      </p>
+                      <p className="text-[11px] text-slate-400">{formatDateBR(destaques[0].created_at)}</p>
                     </div>
                   </Link>
                 )}
@@ -377,13 +315,9 @@ export default function NoticiasHomePage() {
                         <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
                           {safeText(n.cidade)} • {safeText(n.categoria)}
                         </p>
-                        <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
-                          {safeText(n.titulo)}
-                        </h3>
+                        <h3 className="text-xs font-bold text-slate-900 line-clamp-2">{safeText(n.titulo)}</h3>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {formatDateBR(n.created_at)}
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-1">{formatDateBR(n.created_at)}</p>
                     </div>
                   </Link>
                 ))}
@@ -395,20 +329,12 @@ export default function NoticiasHomePage() {
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-900">
-                  Últimas notícias
-                </h2>
-                <span className="text-[11px] text-slate-500">
-                  Em breve: filtros por tema.
-                </span>
+                <h2 className="text-sm font-semibold text-slate-900">Últimas notícias</h2>
+                <span className="text-[11px] text-slate-500">Em breve: filtros por tema.</span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {recentes.length === 0 && (
-                  <p className="text-[11px] text-slate-500">
-                    Quando houver mais notícias, elas aparecerão aqui.
-                  </p>
-                )}
+                {recentes.length === 0 && <p className="text-[11px] text-slate-500">Quando houver mais notícias, elas aparecerão aqui.</p>}
 
                 {recentes.map((n) => (
                   <Link
@@ -429,16 +355,10 @@ export default function NoticiasHomePage() {
                         <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
                           {safeText(n.cidade)} • {safeText(n.categoria)}
                         </p>
-                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
-                          {safeText(n.titulo)}
-                        </h3>
-                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
-                          {safeText(n.resumo)}
-                        </p>
+                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">{safeText(n.titulo)}</h3>
+                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">{safeText(n.resumo)}</p>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {formatDateBR(n.created_at)}
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-1">{formatDateBR(n.created_at)}</p>
                     </div>
                   </Link>
                 ))}
@@ -449,12 +369,8 @@ export default function NoticiasHomePage() {
           {/* TV CLASSILAGOS */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                🎥 TV Classilagos
-              </h2>
-              <span className="text-[11px] text-slate-500">
-                Conteúdos em vídeo sobre a Região dos Lagos
-              </span>
+              <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
+              <span className="text-[11px] text-slate-500">Conteúdos em vídeo sobre a Região dos Lagos</span>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -470,17 +386,12 @@ export default function NoticiasHomePage() {
                   url: "https://www.youtube.com/@tvclassilagos6603",
                 },
               ].map((c) => (
-                <div
-                  key={c.url}
-                  className="rounded-3xl border border-slate-200 bg-white p-3 flex flex-col gap-2"
-                >
+                <div key={c.url} className="rounded-3xl border border-slate-200 bg-white p-3 flex flex-col gap-2">
                   <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video flex items-center justify-center text-white text-xs">
                     <span className="opacity-80">Player (em breve)</span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold text-slate-900">
-                      {c.title}
-                    </p>
+                    <p className="text-xs font-semibold text-slate-900">{c.title}</p>
                     <p className="text-[11px] text-slate-600">{c.desc}</p>
                     <Link
                       href={c.url}
@@ -495,18 +406,14 @@ export default function NoticiasHomePage() {
               ))}
             </div>
 
-            <p className="mt-2 text-[10px] text-slate-400">
-              Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
-            </p>
+            <p className="mt-2 text-[10px] text-slate-400">Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.</p>
           </section>
         </div>
 
         {/* SIDEBAR */}
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Diretriz editorial
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
@@ -516,50 +423,35 @@ export default function NoticiasHomePage() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Fontes e parcerias
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Fontes e parcerias</h2>
             <p className="text-[11px] text-slate-600">
-              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e{" "}
-              <b>link</b> para a fonte.
+              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e <b>link</b> para a fonte.
             </p>
             <div className="flex flex-wrap gap-2">
-              {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map(
-                (f) => (
-                  <span
-                    key={f}
-                    className="inline-flex rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] text-slate-700"
-                  >
-                    {f}
-                  </span>
-                )
-              )}
+              {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map((f) => (
+                <span key={f} className="inline-flex rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] text-slate-700">
+                  {f}
+                </span>
+              ))}
             </div>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-slate-900 mb-2">
-              Trânsito e câmeras ao vivo
-            </h2>
-            <Link
-              href="/noticias/cameras"
-              className="text-[11px] text-sky-700 underline"
-            >
+            <h2 className="text-sm font-semibold text-slate-900 mb-2">Trânsito e câmeras ao vivo</h2>
+            <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
-            <p className="mt-2 text-[10px] text-slate-400">
-              Em breve: integração com dados em tempo real.
-            </p>
+            <p className="mt-2 text-[10px] text-slate-400">Em breve: integração com dados em tempo real.</p>
           </div>
         </aside>
       </section>
 
-      {/* ✅ BANNER RODAPÉ (720x120) */}
-      <BannerRotator
-        images={BANNERS_RODAPE_NOTICIAS}
-        height={120}
-        label="Área reservada para campanhas públicas, utilidade e comunicados oficiais."
-      />
+      {/* ✅ BANNER RODAPÉ (720x170) — PADRÃO PREMIUM + LINKS AFILIADOS */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodapeNoticias} interval={6500} height={170} maxWidth={720} />
+        </div>
+      </section>
     </main>
   );
 }
