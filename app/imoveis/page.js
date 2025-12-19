@@ -8,7 +8,6 @@ import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
 import SmartSelect from "../components/SmartSelect";
 
-
 const heroImages = [
   "/hero/imoveis-01.webp",
   "/hero/imoveis-02.webp",
@@ -183,7 +182,9 @@ function montarUrlDaCategoria(slug) {
 
 function pegarCapaDoAnuncio(anuncio) {
   const imgs = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
-  const capa = imgs.find((u) => typeof u === "string" && u.trim() !== "") || "/imoveis/sem-foto.jpg";
+  const capa =
+    imgs.find((u) => typeof u === "string" && u.trim() !== "") ||
+    "/imoveis/sem-foto.jpg";
   return capa;
 }
 
@@ -196,8 +197,8 @@ export default function ImoveisPage() {
   const [fadeIn, setFadeIn] = useState(false);
 
   const [buscaTexto, setBuscaTexto] = useState("");
-  const [buscaTipo, setBuscaTipo] = useState("");
-  const [buscaCidade, setBuscaCidade] = useState("");
+  const [buscaTipo, setBuscaTipo] = useState(""); // valor real ("" = todos)
+  const [buscaCidade, setBuscaCidade] = useState(""); // valor real ("" = todas)
 
   const [imoveis, setImoveis] = useState([]);
   const [loadingImoveis, setLoadingImoveis] = useState(true);
@@ -274,24 +275,41 @@ export default function ImoveisPage() {
 
       case "aluguel-residencial":
         filtrados = filtrados.filter(
-          (a) => isFinalidadeAluguel(a.finalidade) && a.tipo_imovel && !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          (a) =>
+            isFinalidadeAluguel(a.finalidade) &&
+            a.tipo_imovel &&
+            !TIPOS_COMERCIAIS.includes(a.tipo_imovel)
         );
         break;
 
       case "casas-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa");
+        filtrados = filtrados.filter(
+          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "casa"
+        );
         break;
 
       case "apartamentos-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento");
+        filtrados = filtrados.filter(
+          (a) =>
+            norm(a.finalidade) === "venda" &&
+            norm(a.tipo_imovel) === "apartamento"
+        );
         break;
 
       case "aluguel-comercial":
-        filtrados = filtrados.filter((a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel));
+        filtrados = filtrados.filter(
+          (a) =>
+            isFinalidadeAluguel(a.finalidade) &&
+            TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+        );
         break;
 
       case "comercial-venda":
-        filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel));
+        filtrados = filtrados.filter(
+          (a) =>
+            norm(a.finalidade) === "venda" &&
+            TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+        );
         break;
 
       case "terrenos-lotes":
@@ -302,7 +320,12 @@ export default function ImoveisPage() {
         const comPalavra = filtrados.filter((a) => {
           const t = norm(a.titulo);
           const d = norm(a.descricao);
-          return t.includes("lançamento") || t.includes("lancamento") || d.includes("lançamento") || d.includes("lancamento");
+          return (
+            t.includes("lançamento") ||
+            t.includes("lancamento") ||
+            d.includes("lançamento") ||
+            d.includes("lancamento")
+          );
         });
 
         if (comPalavra.length > 0) filtrados = comPalavra;
@@ -363,7 +386,12 @@ export default function ImoveisPage() {
             }}
           />
 
-          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
+          <Image
+            src={heroSrc}
+            alt="Pré-carregamento hero"
+            fill
+            className="opacity-0 pointer-events-none"
+          />
         </div>
 
         {/* ✅ overlay premium em degradê */}
@@ -371,21 +399,11 @@ export default function ImoveisPage() {
 
         {/* ✅ textos mais altos + sombra premium */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-26px] sm:translate-y-[-34px]">
-          <p
-            className="
-              text-sm md:text-base font-medium
-              [text-shadow:0_2px_8px_rgba(0,0,0,0.65)]
-            "
-          >
+          <p className="text-sm md:text-base font-medium [text-shadow:0_2px_8px_rgba(0,0,0,0.65)]">
             Encontre casas, apartamentos, terrenos e oportunidades imobiliárias em toda a Região dos Lagos.
           </p>
 
-          <h1
-            className="
-              mt-3 text-3xl md:text-4xl font-extrabold
-              [text-shadow:0_6px_20px_rgba(0,0,0,0.75)]
-            "
-          >
+          <h1 className="mt-3 text-3xl md:text-4xl font-extrabold [text-shadow:0_6px_20px_rgba(0,0,0,0.75)]">
             Classilagos – Imóveis
           </h1>
 
@@ -395,75 +413,58 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-{/* CAIXA DE BUSCA */}
-<section className="bg-white">
-  <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
-    <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-      <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+      {/* CAIXA DE BUSCA */}
+      <section className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+          <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  Busca
+                </label>
+                <input
+                  value={buscaTexto}
+                  onChange={(e) => setBuscaTexto(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && executarBusca()}
+                  type="text"
+                  placeholder="Ex.: casa 2 quartos, frente para a lagoa"
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-        {/* TEXTO */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
-          <input
-            value={buscaTexto}
-            onChange={(e) => setBuscaTexto(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && executarBusca()}
-            type="text"
-            placeholder="Ex.: casa 2 quartos, frente para a lagoa"
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+              {/* ✅ SMARTSELECT (Tipo) */}
+              <SmartSelect
+                label="Tipo"
+                value={buscaTipo || "Todos"}
+                onChange={(v) => setBuscaTipo(v === "Todos" ? "" : v)}
+                options={["Todos", ...tiposImovel]}
+              />
+
+              {/* ✅ SMARTSELECT (Cidade) */}
+              <SmartSelect
+                label="Cidade"
+                value={buscaCidade || "Todas"}
+                onChange={(v) => setBuscaCidade(v === "Todas" ? "" : v)}
+                options={["Todas", ...cidades]}
+              />
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
+                  onClick={executarBusca}
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            Busca ligada ao motor do Classilagos.
+          </p>
         </div>
-
-        {/* TIPO */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-          <select
-            value={buscaTipo}
-            onChange={(e) => setBuscaTipo(e.target.value)}
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800"
-          >
-            <option value="">Todos</option>
-            {tiposImovel.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* CIDADE */}
-        <div className="flex flex-col">
-          <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-          <select
-            value={buscaCidade}
-            onChange={(e) => setBuscaCidade(e.target.value)}
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800"
-          >
-            <option value="">Todas</option>
-            {cidades.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* BOTÃO */}
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={executarBusca}
-            className="w-full md:w-auto rounded-full bg-blue-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Buscar
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <p className="mt-1 text-[11px] text-center text-slate-500">
-      Busca ligada ao motor do Classilagos.
-    </p>
-  </div>
-</section>
-
+      </section>
 
       <div className="h-4 sm:h-6" />
 
@@ -483,7 +484,11 @@ export default function ImoveisPage() {
               >
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
-                    <img src={capa} alt={anuncio?.titulo || cat.nome} className="w-full h-full object-cover" />
+                    <img
+                      src={capa}
+                      alt={anuncio?.titulo || cat.nome}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
                       Em breve, imóveis aqui
@@ -506,12 +511,16 @@ export default function ImoveisPage() {
 
         {/* IMÓVEIS EM DESTAQUE */}
         <div className="mt-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Imóveis em destaque</h2>
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">
+            Imóveis em destaque
+          </h2>
 
           {loadingImoveis ? (
             <p className="text-xs text-slate-500">Carregando imóveis em destaque...</p>
           ) : listaDestaques.length === 0 ? (
-            <p className="text-xs text-slate-500">Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!</p>
+            <p className="text-xs text-slate-500">
+              Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!
+            </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
               {listaDestaques.map((anuncio) => {
@@ -525,16 +534,24 @@ export default function ImoveisPage() {
                     className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
                   >
                     <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
-                      <img src={capa} alt={anuncio.titulo || "Imóvel"} className="w-full h-full object-cover" />
+                      <img
+                        src={capa}
+                        alt={anuncio.titulo || "Imóvel"}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">{anuncio.titulo}</p>
+                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">
+                        {anuncio.titulo}
+                      </p>
                       <p className="text-[11px] text-slate-300">
                         {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
                       </p>
                       {anuncio.preco && (
-                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">{anuncio.preco}</p>
+                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
+                          {anuncio.preco}
+                        </p>
                       )}
                     </div>
                   </Link>
@@ -555,7 +572,9 @@ export default function ImoveisPage() {
       {/* FAIXA SERVIÇOS */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para imóveis</h2>
+          <h2 className="text-sm font-semibold text-white mb-1">
+            Serviços e informações para imóveis
+          </h2>
           <p className="text-xs text-slate-300 mb-4 max-w-2xl">
             Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
           </p>
@@ -570,12 +589,16 @@ export default function ImoveisPage() {
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
-              <p className="text-[11px] text-slate-300">Dicas básicas sobre crédito, simulações e contato com bancos.</p>
+              <p className="text-[11px] text-slate-300">
+                Dicas básicas sobre crédito, simulações e contato com bancos.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
-              <p className="text-[11px] text-slate-300">Orientações sobre escritura, registro, habite-se e etc.</p>
+              <p className="text-[11px] text-slate-300">
+                Orientações sobre escritura, registro, habite-se e etc.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
@@ -590,4 +613,3 @@ export default function ImoveisPage() {
     </main>
   );
 }
-
