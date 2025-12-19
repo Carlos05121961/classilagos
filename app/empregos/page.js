@@ -79,7 +79,7 @@ const cidades = [
 ];
 
 /* ✅ HERO Premium (sem piscar) */
-const heroImages = ["/hero/empregos-01.webp", "/hero/empregos-02.webp", "/hero/empregos-03.webp"];
+const heroImages = ["/hero/empregos-01.webp", "/hero/empregos-02.webp"];
 
 export default function EmpregosPage() {
   const router = useRouter();
