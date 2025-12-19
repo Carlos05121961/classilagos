@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 const heroImages = ["/hero/pets-01.webp", "/hero/pets-02.webp", "/hero/pets-03.webp"];
 
@@ -306,10 +307,8 @@ export default function PetsPage() {
       {/* ✅ HERO PREMIUM (sem piscar) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          {/* fundo “nuvem” */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
 
-          {/* imagem em background com fade */}
           <div
             className="absolute inset-0 transition-opacity duration-700"
             style={{
@@ -320,14 +319,11 @@ export default function PetsPage() {
             }}
           />
 
-          {/* pré-carregamento silencioso */}
           <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
-        {/* overlay premium */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/45" />
 
-        {/* textos mais altos + sombra premium */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white translate-y-[-24px] sm:translate-y-[-32px]">
           <p className="text-xs sm:text-sm md:text-base font-medium max-w-2xl [text-shadow:0_2px_10px_rgba(0,0,0,0.70)]">
             Encontre animais, acessórios, serviços pet e muito mais na Região dos Lagos.
@@ -347,7 +343,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA */}
+      {/* CAIXA DE BUSCA (✅ SmartSelect no mobile) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -369,37 +365,19 @@ export default function PetsPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={tipoBusca}
-                  onChange={(e) => setTipoBusca(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {tiposPet.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Tipo"
+                value={tipoBusca || "Todos"}
+                onChange={(v) => setTipoBusca(v === "Todos" ? "" : v)}
+                options={["Todos", ...tiposPet]}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={cidadeBusca}
-                  onChange={(e) => setCidadeBusca(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Cidade"
+                value={cidadeBusca || "Todas"}
+                onChange={(v) => setCidadeBusca(v === "Todas" ? "" : v)}
+                options={["Todas", ...cidades]}
+              />
 
               <div className="flex justify-end gap-2">
                 <button
