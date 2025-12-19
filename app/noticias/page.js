@@ -16,6 +16,7 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
+// ✅ BANNERS INSTITUCIONAIS (Prefeituras / campanhas / comunicados)
 const BANNERS_TOPO_NOTICIAS = [
   "/banners/topo/topo-noticias-01.webp",
   "/banners/topo/topo-noticias-02.webp",
@@ -32,7 +33,6 @@ const BANNERS_RODAPE_NOTICIAS = [
   "/banners/rodape/rodape-noticias-05.webp",
 ];
 
-
 function formatDateBR(value) {
   try {
     return new Date(value).toLocaleDateString("pt-BR");
@@ -46,30 +46,83 @@ function safeText(v) {
 }
 
 /**
- * ✅ Banner Premium (com fallback automático)
- * Tenta: /banners/anuncio-01.webp -> /banners/anuncio-01.png -> /banners/noticias-default.webp
+ * ✅ Banner Rotator Premium (usa <img> pra evitar dor de cabeça com next/image + sizes)
+ * - Centralizado
+ * - Fallback automático
+ * - Rotação por intervalo
  */
-function BannerInstitucional({ className = "" }) {
-  const [src, setSrc] = useState("/banners/anuncio-01.webp");
+function BannerRotatorNoticias({
+  items = [],
+  heightClass = "h-[170px]",
+  intervalMs = 6500,
+  label = "Área reservada para banners institucionais e comunicados oficiais.",
+}) {
+  const [idx, setIdx] = useState(0);
+  const [src, setSrc] = useState(items?.[0] || "");
+  const fallback = "/banners/noticias-default.webp";
+
+  useEffect(() => {
+    if (!items || items.length === 0) return;
+    setIdx(0);
+    setSrc(items[0]);
+  }, [items]);
+
+  useEffect(() => {
+    if (!items || items.length <= 1) return;
+    const t = setInterval(() => {
+      setIdx((prev) => {
+        const next = (prev + 1) % items.length;
+        setSrc(items[next]);
+        return next;
+      });
+    }, intervalMs);
+    return () => clearInterval(t);
+  }, [items, intervalMs]);
 
   return (
-    <div
-      className={
-        "relative w-full h-[130px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center " +
-        className
-      }
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt="Banners institucionais – Classilagos Notícias"
-        className="w-full h-full object-contain"
-        onError={() => {
-          if (src.endsWith(".webp")) setSrc("/banners/anuncio-01.png");
-          else if (src.endsWith(".png")) setSrc("/banners/noticias-default.webp");
-        }}
-      />
-    </div>
+    <section className="w-full flex justify-center bg-slate-100 border-b py-3">
+      <div className="w-full max-w-[1000px] px-4">
+        <div
+          className={`relative w-full ${heightClass} rounded-3xl bg-white border border-slate-200 shadow overflow-hidden flex items-center justify-center`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src || fallback}
+            alt="Banners institucionais – Classilagos Notícias"
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              e.currentTarget.src = fallback;
+            }}
+          />
+        </div>
+
+        <p className="mt-1 text-[11px] text-center text-slate-500">
+          {label}
+        </p>
+
+        {/* bolinhas */}
+        {items.length > 1 && (
+          <div className="mt-2 flex justify-center gap-2">
+            {items.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  setIdx(i);
+                  setSrc(items[i]);
+                }}
+                className={`h-2.5 w-2.5 rounded-full border border-slate-400/40 ${
+                  idx === i
+                    ? "bg-slate-800"
+                    : "bg-slate-300 hover:bg-slate-400"
+                }`}
+                aria-label={`Banner ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -87,7 +140,9 @@ export default function NoticiasHomePage() {
 
       const { data, error } = await supabase
         .from("noticias")
-        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status")
+        .select(
+          "id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status"
+        )
         .eq("status", "publicado")
         .order("created_at", { ascending: false })
         .limit(24);
@@ -120,15 +175,12 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER FIXO NO TOPO (Padrão Premium) */}
-      <section className="w-full flex justify-center bg-slate-100 border-b py-3">
-        <div className="w-full max-w-[1000px] px-4">
-          <BannerInstitucional />
-          <p className="mt-1 text-[10px] text-center text-slate-500">
-            Espaço para banners institucionais e Prefeituras (em breve).
-          </p>
-        </div>
-      </section>
+      {/* ✅ BANNER TOPO (rotativo) */}
+      <BannerRotatorNoticias
+        items={BANNERS_TOPO_NOTICIAS}
+        heightClass="h-[170px]"
+        label="Espaço para banners institucionais e Prefeituras (em breve)."
+      />
 
       {/* TOPO MARCA + SLOGAN */}
       <section className="bg-white border-b border-slate-200">
@@ -148,9 +200,10 @@ export default function NoticiasHomePage() {
         <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="flex-1 space-y-3">
             <p className="text-sm md:text-base text-slate-600 max-w-2xl">
-              Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba Grande,
-              São Pedro da Aldeia, Arraial do Cabo, Cabo Frio, Búzios e Rio das Ostras:
-              cidade, turismo, cultura, trânsito, clima e muito mais.
+              Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba
+              Grande, São Pedro da Aldeia, Arraial do Cabo, Cabo Frio, Búzios e
+              Rio das Ostras: cidade, turismo, cultura, trânsito, clima e muito
+              mais.
             </p>
 
             <div className="flex flex-wrap gap-2 mt-1">
@@ -195,12 +248,16 @@ export default function NoticiasHomePage() {
                     <p>Céu parcialmente nublado</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-emerald-700">Tábua de marés</p>
+                    <p className="font-semibold text-emerald-700">
+                      Tábua de marés
+                    </p>
                     <p>Maré alta: 09h40</p>
                     <p>Maré baixa: 15h55</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-yellow-700">Ondas Saquarema</p>
+                    <p className="font-semibold text-yellow-700">
+                      Ondas Saquarema
+                    </p>
                     <p>Altura: 1,2 m</p>
                     <p>Boas condições</p>
                   </div>
@@ -211,7 +268,8 @@ export default function NoticiasHomePage() {
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-400">
-                  Em breve estes dados serão carregados automaticamente de fontes oficiais.
+                  Em breve estes dados serão carregados automaticamente de fontes
+                  oficiais.
                 </p>
               </div>
             </div>
@@ -229,7 +287,7 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Filtro por cidade */}
+          {/* Barra de filtro por cidade */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">
@@ -407,7 +465,9 @@ export default function NoticiasHomePage() {
           {/* TV CLASSILAGOS */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
+              <h2 className="text-sm font-semibold text-slate-900">
+                🎥 TV Classilagos
+              </h2>
               <span className="text-[11px] text-slate-500">
                 Conteúdos em vídeo sobre a Região dos Lagos
               </span>
@@ -434,7 +494,9 @@ export default function NoticiasHomePage() {
                     <span className="opacity-80">Player (em breve)</span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold text-slate-900">{c.title}</p>
+                    <p className="text-xs font-semibold text-slate-900">
+                      {c.title}
+                    </p>
                     <p className="text-[11px] text-slate-600">{c.desc}</p>
                     <Link
                       href={c.url}
@@ -450,49 +512,55 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[10px] text-slate-400">
-              Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
+              Em breve, esta seção poderá puxar automaticamente os últimos vídeos
+              do canal.
             </p>
           </section>
 
-          {/* ✅ BANNER FIXO NO RODAPÉ (Padrão Premium) */}
-          <section className="mt-8">
-            <div className="w-full flex justify-center bg-slate-100 border border-slate-200 rounded-3xl py-3">
-              <div className="w-full max-w-[1000px] px-4">
-                <BannerInstitucional />
-                <p className="mt-1 text-[10px] text-center text-slate-500">
-                  Área reservada para campanhas públicas, utilidade e comunicados oficiais.
-                </p>
-              </div>
-            </div>
-          </section>
+          {/* ✅ BANNER RODAPÉ DA PÁGINA (antes do footer global) */}
+          <BannerRotatorNoticias
+            items={BANNERS_RODAPE_NOTICIAS}
+            heightClass="h-[120px]"
+            label="Área reservada para campanhas públicas, utilidade e comunicados oficiais."
+          />
         </div>
 
         {/* SIDEBAR */}
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Diretriz editorial
+            </h2>
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
-              <li>Sem política partidária (comunicados oficiais entram como “serviço”).</li>
+              <li>
+                Sem política partidária (comunicados oficiais entram como
+                “serviço”).
+              </li>
               <li>Matérias com crédito e fonte quando forem de parceiros.</li>
             </ul>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">Fontes e parcerias</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Fontes e parcerias
+            </h2>
             <p className="text-[11px] text-slate-600">
-              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e <b>link</b> para a fonte.
+              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b>{" "}
+              e <b>link</b> para a fonte.
             </p>
             <div className="flex flex-wrap gap-2">
-              {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map((f) => (
-                <span
-                  key={f}
-                  className="inline-flex rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] text-slate-700"
-                >
-                  {f}
-                </span>
-              ))}
+              {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map(
+                (f) => (
+                  <span
+                    key={f}
+                    className="inline-flex rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] text-slate-700"
+                  >
+                    {f}
+                  </span>
+                )
+              )}
             </div>
           </div>
 
@@ -500,7 +568,10 @@ export default function NoticiasHomePage() {
             <h2 className="text-sm font-semibold text-slate-900 mb-2">
               Trânsito e câmeras ao vivo
             </h2>
-            <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
+            <Link
+              href="/noticias/cameras"
+              className="text-[11px] text-sky-700 underline"
+            >
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
             <p className="mt-2 text-[10px] text-slate-400">
