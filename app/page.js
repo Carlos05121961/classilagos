@@ -320,26 +320,13 @@ const bannersRodape = [
   options={["Todas", ...categorias.map((c) => c.label)]}
 />
 
-
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-white/90 mb-1">
-                  Cidade
-                </label>
-              <SmartSelect
+<SmartSelect
   label="Cidade"
   value={cidade || "Toda a região"}
   onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
   options={["Toda a região", ...cidades]}
 />
- 
-                  className="w-full rounded-full border border-white/15 px-3 py-2 bg-white/5 text-white"
-                >
-                  <option value="" className="text-slate-900">Toda a região</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c} className="text-slate-900">{c}</option>
-                  ))}
-                </select>
-              </div>
+
 
               <button
                 type="button"
