@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
 
 // ✅ HERO (sem piscar) — imagens locais
 const heroImages = ["/hero/servicos-01.webp", "/hero/servicos-02.webp", "/hero/servicos-03.webp"];
@@ -230,7 +231,7 @@ export default function ServicosPage() {
     if (q) params.set("q", q);
 
     // ✅ categoria do motor (padrão do site)
-    params.set("categoria", "servico");
+    params.set("categoria", "servicos");
 
     router.push(`/busca?${params.toString()}`);
   }
@@ -309,35 +310,33 @@ export default function ServicosPage() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Tipo</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  value={tipoServico}
-                  onChange={(e) => setTipoServico(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  <option value="classimed">Saúde (Classimed)</option>
-                  <option value="eventos">Festas &amp; Eventos</option>
-                  <option value="profissionais">Profissionais</option>
-                </select>
-              </div>
+              <SmartSelect
+                label="Tipo"
+                value={
+                  tipoServico === "classimed"
+                    ? "Saúde (Classimed)"
+                    : tipoServico === "eventos"
+                    ? "Festas & Eventos"
+                    : tipoServico === "profissionais"
+                    ? "Profissionais"
+                    : "Todos"
+                }
+                onChange={(v) => {
+                  if (v === "Todos") return setTipoServico("");
+                  if (v === "Saúde (Classimed)") return setTipoServico("classimed");
+                  if (v === "Festas & Eventos") return setTipoServico("eventos");
+                  if (v === "Profissionais") return setTipoServico("profissionais");
+                  setTipoServico("");
+                }}
+                options={["Todos", "Saúde (Classimed)", "Festas & Eventos", "Profissionais"]}
+              />
 
-              <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">Cidade</label>
-                <select
-                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  value={cidadeBusca}
-                  onChange={(e) => setCidadeBusca(e.target.value)}
-                >
-                  <option value="">Toda a região</option>
-                  {cidades.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SmartSelect
+                label="Cidade"
+                value={cidadeBusca ? cidadeBusca : "Toda a região"}
+                onChange={(v) => setCidadeBusca(v === "Toda a região" ? "" : v)}
+                options={["Toda a região", ...cidades]}
+              />
 
               <div className="flex justify-end">
                 <button
