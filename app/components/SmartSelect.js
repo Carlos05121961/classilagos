@@ -2,71 +2,146 @@
 
 import { useState } from "react";
 
-export default function SmartSelect({
-  label,
-  options = [],
-  value,
-  onChange,
-}) {
+/* ÍCONES PADRÃO */
+const ICONS = {
+  // categorias
+  "Imóveis": "🏠",
+  "Veículos": "🚗",
+  "Náutica": "⛵",
+  "Pets": "🐾",
+  "Empregos": "💼",
+  "Serviços": "🛠️",
+  "Turismo": "🌴",
+  "LagoListas": "📍",
+  "Todas": "📋",
+
+  // cidades
+  "Toda a região": "🗺️",
+  "Maricá": "🌊",
+  "Saquarema": "🏄",
+  "Araruama": "🏖️",
+  "Iguaba Grande": "🌅",
+  "São Pedro da Aldeia": "⚓",
+  "Arraial do Cabo": "🐠",
+  "Cabo Frio": "🏝️",
+  "Búzios": "🐚",
+  "Rio das Ostras": "🐬",
+};
+
+export default function SmartSelect({ label, value, onChange, options }) {
   const [open, setOpen] = useState(false);
 
-  const current =
-    options.find((o) => o.value === value)?.label || value || "Selecionar";
+  const handleSelect = (opt) => {
+    onChange(opt);
+    setOpen(false);
+  };
 
   return (
     <>
-      {/* BOTÃO */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="w-full rounded-xl bg-slate-800 text-white px-4 py-3 text-left text-sm flex justify-between items-center"
-      >
-        <span className="opacity-90">{current}</span>
-        <span className="text-lg">▾</span>
-      </button>
+      {/* DESKTOP */}
+      <div className="hidden md:flex flex-col">
+        <label className="text-[11px] font-semibold text-slate-200 mb-1">
+          {label}
+        </label>
+        <select
+          className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 text-xs md:text-sm"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* MODAL */}
+      {/* MOBILE */}
+      <div className="md:hidden flex flex-col">
+        <label className="text-[11px] font-semibold text-slate-200 mb-1">
+          {label}
+        </label>
+
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="w-full rounded-full border border-slate-600/80 px-3 py-2 bg-slate-900/80 text-slate-50 text-left text-xs flex items-center justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-lg">{ICONS[value] || "•"}</span>
+            <span>{value}</span>
+          </span>
+          <span className="text-[10px] text-slate-300">▼</span>
+        </button>
+      </div>
+
+      {/* SHEET MOBILE */}
       {open && (
-        <>
-          {/* overlay */}
-          <div
-            className="fixed inset-0 z-40 bg-black/50"
-            onClick={() => setOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-sm md:hidden">
+          <div className="bg-slate-900 rounded-t-3xl pt-3 pb-4 px-4 max-h-[75vh] shadow-2xl">
+            {/* puxador */}
+            <div className="flex justify-center mb-3">
+              <div className="h-1.5 w-12 rounded-full bg-slate-600" />
+            </div>
 
-          {/* painel */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl p-4 max-h-[70vh] overflow-y-auto">
+            {/* título */}
             <div className="flex items-center justify-between mb-3">
-              <strong className="text-slate-900">{label}</strong>
+              <div>
+                <h2 className="text-sm font-semibold text-white">
+                  Escolher {label.toLowerCase()}
+                </h2>
+                <span className="text-[11px] text-slate-400">
+                  Toque para selecionar
+                </span>
+              </div>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
-                className="text-sm text-slate-500"
+                className="text-[11px] text-slate-200 px-3 py-1 rounded-full border border-slate-600 hover:bg-slate-800"
               >
-                Fechar ✕
+                Fechar
               </button>
             </div>
 
-            <div className="space-y-2">
-              {options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => {
-                    onChange(opt.value);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-xl border
-                    ${
-                      value === opt.value
-                        ? "bg-sky-600 text-white border-sky-600"
-                        : "bg-white text-slate-800 border-slate-200"
-                    }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            {/* opções */}
+            <div className="space-y-1 max-h-[55vh] overflow-y-auto pr-1">
+              {options.map((opt) => {
+                const isSelected = opt === value;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    className={`w-full text-left px-4 py-3 rounded-2xl flex items-center justify-between transition
+                      ${
+                        isSelected
+                          ? "bg-slate-800 text-cyan-300 border border-cyan-500/60 shadow-md"
+                          : "bg-slate-850/40 text-slate-100 border border-slate-700 hover:bg-slate-800/70"
+                      }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-xl">
+                        {ICONS[opt] || "•"}
+                      </span>
+                      <span className="text-sm">{opt}</span>
+                    </span>
+
+                    <span
+                      className={`flex items-center justify-center h-5 w-5 rounded-full border text-[11px]
+                        ${
+                          isSelected
+                            ? "border-cyan-400 bg-cyan-400/30 text-cyan-100"
+                            : "border-slate-500 text-transparent"
+                        }`}
+                    >
+                      ✓
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );
