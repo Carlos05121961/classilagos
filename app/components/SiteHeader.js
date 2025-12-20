@@ -92,7 +92,8 @@ export default function SiteHeader() {
         </Link>
 
         {/* MENU DESKTOP (1 linha, sem quebrar) */}
-       <nav className="hidden md:flex items-center justify-start gap-3 text-[12px] font-semibold min-w-0 overflow-hidden pl-4">
+       <nav className="hidden md:flex items-center justify-center gap-4 text-[12.5px] font-semibold min-w-0 overflow-hidden px-6">
+
 
           {categorias.map((c) => (
             <Link
