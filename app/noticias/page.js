@@ -293,6 +293,8 @@ function AgendaPremium() {
           >
             Ver agenda completa
           </Link>
+
+          {/* Público OK (não é admin), mas se você quiser, depois também pode ir pro admin */}
           <Link
             href="/noticias/agenda/enviar"
             className="inline-flex items-center rounded-full border border-rose-200 bg-white px-4 py-2 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
@@ -309,11 +311,184 @@ function AgendaPremium() {
   );
 }
 
+/** ✅ HERO MAPA PREMIUM (1920x800) + Pins clicáveis */
+function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
+  const pins = [
+    { cidade: "Maricá", left: "10%", top: "78%" },
+    { cidade: "Saquarema", left: "34%", top: "77%" },
+    { cidade: "Araruama", left: "49%", top: "73%" },
+    { cidade: "Iguaba Grande", left: "57%", top: "66%" },
+    { cidade: "São Pedro da Aldeia", left: "67%", top: "69%" },
+    { cidade: "Cabo Frio", left: "76%", top: "75%" },
+    { cidade: "Arraial do Cabo", left: "80%", top: "86%" },
+    { cidade: "Búzios", left: "86%", top: "64%" },
+    { cidade: "Rio das Ostras", left: "86%", top: "20%" },
+  ];
+
+  const handlePick = (cidade) => {
+    if (typeof onSelectCidade === "function") onSelectCidade(cidade);
+  };
+
+  return (
+    <section className="bg-white border-b border-slate-200">
+      <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
+        <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
+          <div className="relative w-full h-[420px] md:h-[520px] lg:h-[800px]">
+            {/* ✅ imagem do mapa + tratamento premium por código */}
+            <Image
+              src="/hero/noticias-mapa.webp"
+              alt="Mapa – Região dos Lagos"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 1200px"
+              className="object-cover scale-[1.03] brightness-[0.85] contrast-[1.08] saturate-[0.95]"
+            />
+
+            {/* overlays premium */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-slate-950/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ boxShadow: "inset 0 0 140px rgba(0,0,0,0.45)" }}
+            />
+
+            {/* Conteúdo por cima do mapa */}
+            <div className="absolute inset-0">
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
+                {/* esquerda: institucional */}
+                <div className="max-w-xl">
+                  <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
+                    REGIÃO DOS LAGOS
+                  </div>
+
+                  <h1 className="mt-3 text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Classilagos Notícias
+                  </h1>
+
+                  <p className="mt-2 text-sm md:text-base text-white/85">
+                    O portal oficial de informação da Região dos Lagos
+                  </p>
+
+                  <p className="mt-3 text-xs md:text-sm text-white/70">
+                    Clique em uma cidade no mapa para ver as notícias locais.
+                  </p>
+
+                  {/* mobile: seletor de cidade */}
+                  <div className="mt-4 md:hidden">
+                    <label className="block text-[10px] font-semibold text-white/75 mb-1">
+                      Filtrar por cidade
+                    </label>
+                    <select
+                      className="w-full rounded-full border border-white/15 bg-white/10 text-white px-3 py-2 text-[12px] backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/25"
+                      value={cidadeAtiva || "Todas"}
+                      onChange={(e) => handlePick(e.target.value)}
+                    >
+                      <option value="Todas">Todas</option>
+                      {CIDADES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* CTAs públicos (sem admin) */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href="/noticias/cameras"
+                      className="inline-flex items-center rounded-full bg-white/12 px-4 py-2 text-[11px] md:text-sm font-semibold text-white border border-white/15 hover:bg-white/20 backdrop-blur"
+                    >
+                      Ver câmeras ao vivo
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => handlePick("Todas")}
+                      className="inline-flex items-center rounded-full bg-white/12 px-4 py-2 text-[11px] md:text-sm font-semibold text-white border border-white/15 hover:bg-white/20 backdrop-blur"
+                    >
+                      Ver todas as notícias
+                    </button>
+                  </div>
+
+                  {/* indicador */}
+                  <div className="mt-3">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
+                      <span className="h-2 w-2 rounded-full bg-white/80" />
+                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
+                    </span>
+                  </div>
+                </div>
+
+                {/* direita: agenda premium */}
+                <div className="lg:pt-1">
+                  <AgendaPremium />
+                </div>
+              </div>
+
+              {/* PINS */}
+              <div className="absolute inset-0 pointer-events-none">
+                {pins.map((p) => (
+                  <button
+                    key={p.cidade}
+                    type="button"
+                    onClick={() => handlePick(p.cidade)}
+                    className="pointer-events-auto group absolute"
+                    style={{ left: p.left, top: p.top }}
+                    aria-label={`Ver notícias de ${p.cidade}`}
+                    title={p.cidade}
+                  >
+                    <span className="relative flex items-center gap-2">
+                      {/* ponto */}
+                      <span className="relative h-3 w-3 rounded-full bg-white shadow">
+                        <span className="absolute inset-0 rounded-full bg-white/70 blur-[6px] opacity-0 group-hover:opacity-100 transition" />
+                      </span>
+
+                      {/* label desktop */}
+                      <span className="hidden md:inline-flex rounded-full bg-slate-950/55 text-white text-[11px] font-semibold px-3 py-1 border border-white/15 backdrop-blur group-hover:bg-slate-950/70 transition">
+                        {p.cidade}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] text-slate-500">
+          Dica: clique em uma cidade do mapa para filtrar as notícias locais.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function NoticiasHomePage() {
   const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
+
+  // ✅ lê ?cidade=... na URL (sem useSearchParams, sem suspense, sem travar)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const cidade = params.get("cidade");
+    if (cidade) setCidadeFiltro(cidade);
+  }, []);
+
+  // ✅ aplica filtro e atualiza URL
+  const aplicarCidade = (cidade) => {
+    const val = cidade || "Todas";
+    setCidadeFiltro(val);
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (!val || val === "Todas") url.searchParams.delete("cidade");
+      else url.searchParams.set("cidade", val);
+      window.history.pushState({}, "", url.toString());
+    }
+  };
 
   useEffect(() => {
     const fetchNoticias = async () => {
@@ -362,70 +537,8 @@ export default function NoticiasHomePage() {
         label="Espaço para banners institucionais e Prefeituras (em breve)."
       />
 
-      {/* TOPO MARCA + SLOGAN */}
-      <section className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 pt-6 pb-4 space-y-1">
-          <p className="text-[11px] text-slate-500">Classilagos • Notícias</p>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900">
-            Classilagos Notícias
-          </h1>
-          <p className="text-xs md:text-sm text-slate-600">
-            O portal oficial de informação da Região dos Lagos
-          </p>
-        </div>
-      </section>
-
-      {/* HERO PRINCIPAL (Premium) */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
-          {/* COLUNA ESQUERDA */}
-          <div className="space-y-3">
-            <p className="text-sm md:text-base text-slate-600 max-w-2xl">
-              Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial do Cabo,
-              Cabo Frio, Búzios e Rio das Ostras: cidade, turismo, cultura, trânsito, clima e muito mais.
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-1">
-              <span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">
-                Turismo &amp; Cultura
-              </span>
-              <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] text-emerald-700">
-                Cidade &amp; Serviços
-              </span>
-              <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-[11px] text-yellow-700">
-                Praia, Marés &amp; Trânsito
-              </span>
-            </div>
-
-            {/* BOTÕES (Correspondentes AGORA AQUI) */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                href="/noticias/publicar"
-                className="inline-flex items-center rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
-              >
-                Publicar uma notícia
-              </Link>
-
-              <Link
-                href="/noticias/cameras"
-                className="inline-flex items-center rounded-full border border-sky-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-sky-700 hover:bg-sky-50"
-              >
-                Ver câmeras ao vivo
-              </Link>
-
-              <Link
-                href="/noticias/correspondentes"
-                className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-5 py-2 text-xs md:text-sm font-extrabold text-amber-800 hover:bg-amber-100"
-              >
-                🔥 Correspondentes
-              </Link>
-            </div>
-          </div>
-
-          {/* ✅ AGENDA PREMIUM */}
-          <AgendaPremium />
-        </div>
-      </section>
+      {/* ✅ HERO MAPA PREMIUM */}
+      <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
@@ -445,7 +558,7 @@ export default function NoticiasHomePage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setCidadeFiltro("Todas")}
+                  onClick={() => aplicarCidade("Todas")}
                   className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
                     cidadeFiltro === "Todas"
                       ? "border-sky-300 bg-sky-50 text-sky-700"
@@ -459,7 +572,7 @@ export default function NoticiasHomePage() {
                   <button
                     key={c}
                     type="button"
-                    onClick={() => setCidadeFiltro(c)}
+                    onClick={() => aplicarCidade(c)}
                     className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
                       cidadeFiltro === c
                         ? "border-sky-300 bg-sky-50 text-sky-700"
@@ -508,8 +621,7 @@ export default function NoticiasHomePage() {
                     <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
                       <div>
                         <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(destaques[0].cidade)} •{" "}
-                          {safeText(destaques[0].categoria)}
+                          {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
                         </p>
                         <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
                           {safeText(destaques[0].titulo)}
@@ -732,4 +844,3 @@ export default function NoticiasHomePage() {
     </main>
   );
 }
-
