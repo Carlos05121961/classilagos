@@ -3,12 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import UserMenu from "./UserMenu";
 import { supabase } from "../supabaseClient";
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     async function carregarPerfil() {
@@ -38,6 +40,11 @@ export default function SiteHeader() {
     carregarPerfil();
   }, []);
 
+  // ✅ fecha o menu mobile ao trocar de página (evita overlay preso)
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   // trava scroll quando menu aberto
   useEffect(() => {
     if (!open) return;
@@ -62,7 +69,7 @@ export default function SiteHeader() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white text-slate-900 border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-[60] bg-white text-slate-900 border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
         {/* LOGO */}
         <Link
@@ -148,16 +155,16 @@ export default function SiteHeader() {
       {/* DRAWER MOBILE PREMIUM */}
       {open && (
         <>
-          {/* overlay */}
+          {/* overlay (só no mobile) */}
           <button
             type="button"
             aria-label="Fechar menu"
-            className="fixed inset-0 z-50 bg-black/30"
+            className="fixed inset-0 z-40 bg-black/30 md:hidden"
             onClick={close}
           />
 
-          {/* painel */}
-          <div className="fixed top-0 right-0 z-50 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l border-slate-200 flex flex-col">
+          {/* painel (só no mobile) */}
+          <div className="fixed top-0 right-0 z-50 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l border-slate-200 flex flex-col md:hidden">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <p className="text-sm font-extrabold text-slate-900">Menu</p>
               <button
@@ -235,4 +242,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-
