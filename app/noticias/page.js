@@ -200,7 +200,7 @@ function PainelRapidoRegiao() {
   );
 }
 
-/** ✅ Agenda Premium (no Hero) */
+/** ✅ Agenda Premium (vai para a SIDEBAR) */
 function AgendaPremium() {
   const [cidadeAgenda, setCidadeAgenda] = useState("Toda a região");
 
@@ -312,7 +312,6 @@ function AgendaPremium() {
 
 /** ✅ HERO MAPA PREMIUM + Pins clicáveis */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  // posições iniciais (ajustamos fino depois com print)
   const pins = [
     { cidade: "Maricá", left: "16%", top: "78%" },
     { cidade: "Saquarema", left: "41%", top: "78%" },
@@ -334,28 +333,28 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
           <div className="relative w-full h-[420px] md:h-[520px] lg:h-[800px]">
-            {/* ✅ mapa base + “limpeza visual” por código */}
+            {/* ✅ mapa base (mais claro, padrão Classilagos) */}
             <Image
               src="/hero/noticias-mapa-regiao.webp"
               alt="Mapa – Região dos Lagos"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover scale-[1.03] brightness-[0.80] contrast-[1.12] saturate-[0.92]"
+              className="object-cover scale-[1.03] brightness-[0.95] contrast-[1.06] saturate-[1.02]"
             />
 
-            {/* overlays premium (mata a leitura dos textos do mapa) */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-slate-950/15" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-slate-950/10" />
+            {/* ✅ overlays leves (continua “limpando” textos, sem escurecer tudo) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-slate-950/0" />
             <div
               className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: "inset 0 0 180px rgba(0,0,0,0.55)" }}
+              style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.35)" }}
             />
 
-            {/* conteúdo */}
+            {/* conteúdo (SEM agenda dentro do hero) */}
             <div className="absolute inset-0">
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 gap-6 lg:items-start">
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -416,10 +415,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                       <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
                   </div>
-                </div>
-
-                <div className="lg:pt-1">
-                  <AgendaPremium />
                 </div>
               </div>
 
@@ -784,6 +779,9 @@ export default function NoticiasHomePage() {
 
         {/* SIDEBAR */}
         <aside className="space-y-4">
+          {/* ✅ AGENDA PREMIUM AGORA AQUI (FORA DO HERO) */}
+          <AgendaPremium />
+
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
             <h2 className="text-sm font-semibold text-slate-900">
               Diretriz editorial
