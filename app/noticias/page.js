@@ -340,7 +340,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               alt="Mapa – Região dos Lagos"
               fill
               priority
-              sizes="(max-width: 768px) 100vw, 1200px"
+             sizes="100vw"
               className="object-cover scale-[1.03] brightness-[0.95] contrast-[1.06] saturate-[1.02]"
             />
 
