@@ -55,6 +55,11 @@ const pathname = usePathname();
     return () => document.removeEventListener("keydown", onEsc);
   }, []);
 
+ // ✅ fecha o menu ao trocar de página
+useEffect(() => {
+  setOpen(false);
+}, [pathname]);
+
   async function sair() {
     await supabase.auth.signOut();
     setOpen(false);
