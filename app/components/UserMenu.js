@@ -7,9 +7,12 @@ import { usePathname } from "next/navigation";
 
 
 export default function UserMenu() {
-  const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef(null);
+ const [user, setUser] = useState(null);
+const [open, setOpen] = useState(false);
+const menuRef = useRef(null);
+
+const pathname = usePathname();
+
 
   useEffect(() => {
     let ignore = false;
