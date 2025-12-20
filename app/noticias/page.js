@@ -89,7 +89,9 @@ function formatAgendaDate(iso) {
   try {
     const d = new Date(`${iso}T12:00:00`);
     const dia = d.toLocaleDateString("pt-BR", { day: "2-digit" });
-    const mes = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    const mes = d
+      .toLocaleDateString("pt-BR", { month: "short" })
+      .replace(".", "");
     return { dia, mes: mes.toUpperCase() };
   } catch {
     return { dia: "--", mes: "---" };
@@ -272,9 +274,7 @@ function AgendaPremium() {
                         {ev.local ? ` • ${ev.local}` : ""}
                       </p>
                     </div>
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {ev.titulo}
-                    </p>
+                    <p className="text-xs font-bold text-slate-900 truncate">{ev.titulo}</p>
                   </div>
 
                   <span className="text-[11px] font-semibold text-slate-500 group-hover:text-rose-700">
@@ -343,7 +343,9 @@ export default function NoticiasHomePage() {
 
   const noticiasFiltradas = useMemo(() => {
     if (cidadeFiltro === "Todas") return noticias;
-    return noticias.filter((n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase());
+    return noticias.filter(
+      (n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase()
+    );
   }, [noticias, cidadeFiltro]);
 
   const destaques = noticiasFiltradas.slice(0, 3);
@@ -373,7 +375,7 @@ export default function NoticiasHomePage() {
         </div>
       </section>
 
-      {/* HERO PRINCIPAL (Painel saiu daqui -> entrou Agenda Premium) */}
+      {/* HERO PRINCIPAL (Premium) */}
       <section className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
           {/* COLUNA ESQUERDA */}
@@ -395,7 +397,7 @@ export default function NoticiasHomePage() {
               </span>
             </div>
 
-            {/* BOTÕES */}
+            {/* BOTÕES (Correspondentes AGORA AQUI) */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href="/noticias/publicar"
@@ -420,14 +422,7 @@ export default function NoticiasHomePage() {
             </div>
           </div>
 
-          {/* ✅ AGENDA PREMIUM (novo) */}
-          <AgendaPremium />
-        </div>
-      </section>
-
-
-
-          {/* ✅ AGENDA PREMIUM (novo) */}
+          {/* ✅ AGENDA PREMIUM */}
           <AgendaPremium />
         </div>
       </section>
@@ -478,13 +473,16 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[11px] text-slate-500">
-              Exibindo: <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
+              Exibindo:{" "}
+              <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
             </p>
           </div>
 
           {/* DESTAQUES */}
           <section>
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">Destaques de hoje</h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">
+              Destaques de hoje
+            </h2>
 
             {loading ? (
               <p className="text-xs text-slate-500">Carregando notícias…</p>
@@ -510,7 +508,8 @@ export default function NoticiasHomePage() {
                     <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
                       <div>
                         <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
+                          {safeText(destaques[0].cidade)} •{" "}
+                          {safeText(destaques[0].categoria)}
                         </p>
                         <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
                           {safeText(destaques[0].titulo)}
@@ -519,7 +518,9 @@ export default function NoticiasHomePage() {
                           {safeText(destaques[0].resumo)}
                         </p>
                       </div>
-                      <p className="text-[11px] text-slate-400">{formatDateBR(destaques[0].created_at)}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {formatDateBR(destaques[0].created_at)}
+                      </p>
                     </div>
                   </Link>
                 )}
@@ -547,7 +548,9 @@ export default function NoticiasHomePage() {
                           {safeText(n.titulo)}
                         </h3>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">{formatDateBR(n.created_at)}</p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {formatDateBR(n.created_at)}
+                      </p>
                     </div>
                   </Link>
                 ))}
@@ -559,13 +562,19 @@ export default function NoticiasHomePage() {
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-900">Últimas notícias</h2>
-                <span className="text-[11px] text-slate-500">Em breve: filtros por tema.</span>
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Últimas notícias
+                </h2>
+                <span className="text-[11px] text-slate-500">
+                  Em breve: filtros por tema.
+                </span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 {recentes.length === 0 && (
-                  <p className="text-[11px] text-slate-500">Quando houver mais notícias, elas aparecerão aqui.</p>
+                  <p className="text-[11px] text-slate-500">
+                    Quando houver mais notícias, elas aparecerão aqui.
+                  </p>
                 )}
 
                 {recentes.map((n) => (
@@ -587,10 +596,16 @@ export default function NoticiasHomePage() {
                         <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
                           {safeText(n.cidade)} • {safeText(n.categoria)}
                         </p>
-                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">{safeText(n.titulo)}</h3>
-                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">{safeText(n.resumo)}</p>
+                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
+                          {safeText(n.titulo)}
+                        </h3>
+                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
+                          {safeText(n.resumo)}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">{formatDateBR(n.created_at)}</p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {formatDateBR(n.created_at)}
+                      </p>
                     </div>
                   </Link>
                 ))}
@@ -598,11 +613,15 @@ export default function NoticiasHomePage() {
             </section>
           )}
 
-          {/* ✅ TV CLASSILAGOS + (Painel rápido agora aqui do lado direito) */}
+          {/* ✅ TV CLASSILAGOS + Painel rápido */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
-              <span className="text-[11px] text-slate-500">Conteúdos em vídeo sobre a Região dos Lagos</span>
+              <h2 className="text-sm font-semibold text-slate-900">
+                🎥 TV Classilagos
+              </h2>
+              <span className="text-[11px] text-slate-500">
+                Conteúdos em vídeo sobre a Região dos Lagos
+              </span>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
@@ -628,7 +647,9 @@ export default function NoticiasHomePage() {
                       <span className="opacity-80">Player (em breve)</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-900">{c.title}</p>
+                      <p className="text-xs font-semibold text-slate-900">
+                        {c.title}
+                      </p>
                       <p className="text-[11px] text-slate-600">{c.desc}</p>
                       <Link
                         href={c.url}
@@ -658,7 +679,9 @@ export default function NoticiasHomePage() {
         {/* SIDEBAR */}
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Diretriz editorial
+            </h2>
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
@@ -668,7 +691,9 @@ export default function NoticiasHomePage() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">Fontes e parcerias</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Fontes e parcerias
+            </h2>
             <p className="text-[11px] text-slate-600">
               O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e <b>link</b> para a fonte.
             </p>
@@ -685,11 +710,15 @@ export default function NoticiasHomePage() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-slate-900 mb-2">Trânsito e câmeras ao vivo</h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-2">
+              Trânsito e câmeras ao vivo
+            </h2>
             <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
-            <p className="mt-2 text-[10px] text-slate-400">Em breve: integração com dados em tempo real.</p>
+            <p className="mt-2 text-[10px] text-slate-400">
+              Em breve: integração com dados em tempo real.
+            </p>
           </div>
         </aside>
       </section>
@@ -703,3 +732,4 @@ export default function NoticiasHomePage() {
     </main>
   );
 }
+
