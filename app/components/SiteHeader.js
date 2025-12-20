@@ -110,12 +110,6 @@ export default function SiteHeader() {
             Notícias
           </Link>
 
-          <Link
-            href="/noticias/correspondentes"
-            className="hidden lg:inline-flex hover:text-slate-600 transition whitespace-nowrap rounded-lg px-1.5 py-1 hover:bg-slate-100/70"
-          >
-            Correspondentes
-          </Link>
 
           {isAdmin && (
             <Link
