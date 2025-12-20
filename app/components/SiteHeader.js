@@ -69,7 +69,7 @@ export default function SiteHeader() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-[60] bg-white text-slate-900 border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-[60] bg-white/90 backdrop-blur text-slate-900 border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
         {/* LOGO */}
         <Link
@@ -91,7 +91,7 @@ export default function SiteHeader() {
         </Link>
 
         {/* DESKTOP */}
-        <nav className="hidden md:flex items-center gap-4 lg:gap-5 text-[12.5px] font-semibold">
+        <nav className="hidden md:flex items-center gap-3 lg:gap-4 text-[12.5px] font-semibold flex-wrap justify-end">
           {categorias.map((c) => (
             <Link
               key={c.href}
@@ -125,10 +125,12 @@ export default function SiteHeader() {
             </Link>
           )}
 
-          {/* CTA Premium */}
+          {/* CTA Premium (Pulsante) */}
           <Link
             href="/anunciar"
-            className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-white text-xs md:text-sm font-semibold hover:bg-sky-700"
+            className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-white text-xs md:text-sm font-semibold hover:bg-sky-700 whitespace-nowrap
+                       animate-[pulse_2.6s_ease-in-out_infinite]"
+            title="Anuncie grátis no Classilagos"
           >
             Anuncie grátis
           </Link>
@@ -180,7 +182,8 @@ export default function SiteHeader() {
               <Link
                 href="/anunciar"
                 onClick={close}
-                className="w-full inline-flex items-center justify-center rounded-2xl bg-sky-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-sky-700"
+                className="w-full inline-flex items-center justify-center rounded-2xl bg-sky-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-sky-700
+                           animate-[pulse_2.6s_ease-in-out_infinite]"
               >
                 Anuncie grátis
               </Link>
@@ -242,3 +245,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+
