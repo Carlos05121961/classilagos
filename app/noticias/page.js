@@ -332,7 +332,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
-          <div className="relative w-full h-[420px] md:h-[520px] lg:h-[800px]">
+        <div className="relative w-full aspect-[12/5] max-h-[360px] md:max-h-[460px] lg:max-h-[520px]">
+
             {/* ✅ mapa base (mais claro, padrão Classilagos) */}
             <Image
               src="/hero/noticias-mapa-regiao.webp"
