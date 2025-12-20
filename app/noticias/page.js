@@ -376,6 +376,7 @@ export default function NoticiasHomePage() {
       {/* HERO PRINCIPAL (Painel saiu daqui -> entrou Agenda Premium) */}
       <section className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
+          {/* COLUNA ESQUERDA */}
           <div className="space-y-3">
             <p className="text-sm md:text-base text-slate-600 max-w-2xl">
               Acompanhe o que acontece em Maricá, Saquarema, Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial do Cabo,
@@ -394,31 +395,36 @@ export default function NoticiasHomePage() {
               </span>
             </div>
 
-           <div className="flex flex-wrap items-center gap-3 pt-2">
-  {/* Publicar */}
-  <Link
-    href="/noticias/publicar"
-    className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700 transition"
-  >
-    📰 Publicar notícia
-  </Link>
+            {/* BOTÕES */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link
+                href="/noticias/publicar"
+                className="inline-flex items-center rounded-full bg-sky-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-sky-700"
+              >
+                Publicar uma notícia
+              </Link>
 
-  {/* Câmeras */}
-  <Link
-    href="/noticias/cameras"
-    className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-sky-700 hover:bg-sky-50 transition"
-  >
-    📹 Câmeras ao vivo
-  </Link>
+              <Link
+                href="/noticias/cameras"
+                className="inline-flex items-center rounded-full border border-sky-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-sky-700 hover:bg-sky-50"
+              >
+                Ver câmeras ao vivo
+              </Link>
 
-  {/* Correspondentes (agora só aqui, Premium) */}
-  <Link
-    href="/noticias/correspondentes"
-    className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-5 py-2 text-xs md:text-sm font-extrabold text-amber-800 hover:bg-amber-100 transition"
-  >
-    ✍️ Correspondentes
-  </Link>
-</div>
+              <Link
+                href="/noticias/correspondentes"
+                className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-5 py-2 text-xs md:text-sm font-extrabold text-amber-800 hover:bg-amber-100"
+              >
+                🔥 Correspondentes
+              </Link>
+            </div>
+          </div>
+
+          {/* ✅ AGENDA PREMIUM (novo) */}
+          <AgendaPremium />
+        </div>
+      </section>
+
 
 
           {/* ✅ AGENDA PREMIUM (novo) */}
