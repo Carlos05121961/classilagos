@@ -40,12 +40,12 @@ export default function SiteHeader() {
     carregarPerfil();
   }, []);
 
-  // ✅ fecha o menu mobile ao trocar de página (evita overlay preso)
+  // fecha o menu mobile ao trocar de página
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // trava scroll quando menu aberto
+  // trava scroll quando drawer mobile aberto
   useEffect(() => {
     if (!open) return;
     const original = document.body.style.overflow;
@@ -70,9 +70,8 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-[60] bg-white text-slate-900 border-b border-slate-200 shadow-sm">
-
-     <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-between gap-3">
-
+      {/* GRID DESKTOP: logo | menu | ações (1 linha garantida) */}
+      <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-[auto,1fr,auto] items-center gap-4">
         {/* LOGO */}
         <Link
           href="/"
@@ -86,14 +85,14 @@ export default function SiteHeader() {
               width={220}
               height={70}
               priority
-              className="h-auto w-[165px] sm:w-[185px] md:w-[210px] transition group-hover:brightness-[1.05] group-hover:contrast-[1.05]"
+              className="h-auto w-[150px] sm:w-[170px] md:w-[190px] transition group-hover:brightness-[1.05] group-hover:contrast-[1.05]"
             />
             <span className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 group-hover:opacity-100 transition blur-[10px] bg-gradient-to-r from-cyan-300/20 via-amber-200/20 to-cyan-300/20" />
           </div>
         </Link>
 
-        {/* DESKTOP */}
-        <nav className="hidden md:flex items-center gap-3 lg:gap-4 text-[12.5px] font-semibold flex-wrap justify-end">
+        {/* MENU DESKTOP (1 linha, sem quebrar) */}
+        <nav className="hidden md:flex items-center justify-center gap-3 text-[12px] font-semibold min-w-0 overflow-hidden">
           {categorias.map((c) => (
             <Link
               key={c.href}
@@ -126,8 +125,10 @@ export default function SiteHeader() {
               Administração
             </Link>
           )}
+        </nav>
 
-          {/* CTA Premium (Pulsante) */}
+        {/* AÇÕES DESKTOP (CTA + UserMenu na MESMA LINHA) */}
+        <div className="hidden md:flex items-center gap-2 shrink-0">
           <Link
             href="/anunciar"
             className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-white text-xs md:text-sm font-semibold hover:bg-sky-700 whitespace-nowrap
@@ -137,13 +138,11 @@ export default function SiteHeader() {
             Anuncie grátis
           </Link>
 
-          <div className="shrink-0">
-            <UserMenu />
-          </div>
-        </nav>
+          <UserMenu />
+        </div>
 
         {/* MOBILE */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 md:hidden col-span-2 justify-end">
           <UserMenu />
 
           <button
@@ -159,7 +158,6 @@ export default function SiteHeader() {
       {/* DRAWER MOBILE PREMIUM */}
       {open && (
         <>
-          {/* overlay (só no mobile) */}
           <button
             type="button"
             aria-label="Fechar menu"
@@ -167,7 +165,6 @@ export default function SiteHeader() {
             onClick={close}
           />
 
-          {/* painel (só no mobile) */}
           <div className="fixed top-0 right-0 z-50 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l border-slate-200 flex flex-col md:hidden">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <p className="text-sm font-extrabold text-slate-900">Menu</p>
@@ -247,4 +244,5 @@ export default function SiteHeader() {
     </header>
   );
 }
+
 
