@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { usePathname } from "next/navigation";
+
 
 export default function UserMenu() {
   const [user, setUser] = useState(null);
