@@ -212,23 +212,26 @@ export default function AgendaNoticiasPage() {
 
         {loading && <p className="text-xs text-slate-500">Carregando agenda…</p>}
 
-        {!loading && filtrados.length === 0 && (
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center">
-            <p className="text-sm font-semibold text-slate-900">Nenhum evento encontrado.</p>
-            <p className="mt-1 text-[11px] text-slate-600">
-              Tente outra cidade/categoria ou envie um evento para aparecer aqui.
-            </p>
-            <div className="mt-4">
-              <Link
-                href="/noticias/agenda/enviar"
-                className="inline-flex items-center rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold text-white hover:bg-rose-700"
-              >
-                Enviar evento
-              </Link>
-            </div>
-          </div>
-        )}
+       {!loading && filtrados.length === 0 && (
+  <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center">
+    <p className="text-sm font-semibold text-slate-900">
+      Nenhum evento encontrado.
+    </p>
 
+    <p className="mt-1 text-[11px] text-slate-600">
+      Tente outra cidade/categoria ou fale com um correspondente para divulgar seu evento.
+    </p>
+
+    <div className="mt-4">
+      <Link
+        href="/noticias/correspondentes"
+        className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-5 py-2 text-xs font-extrabold text-amber-800 hover:bg-amber-100"
+      >
+        🔥 Divulgar evento (com correspondente)
+      </Link>
+    </div>
+  </div>
+)}
         {/* destaques */}
         {!loading && destaques.length > 0 && (
           <section>
