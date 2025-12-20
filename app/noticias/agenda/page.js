@@ -132,12 +132,13 @@ export default function AgendaNoticiasPage() {
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/noticias/agenda/enviar"
-              className="inline-flex items-center rounded-full bg-rose-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-rose-700"
-            >
-              Enviar evento
-            </Link>
+          <Link
+  href="/noticias/correspondentes"
+  className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-5 py-2 text-xs md:text-sm font-extrabold text-amber-800 hover:bg-amber-100"
+>
+  🔥 Divulgar evento (com correspondente)
+</Link>
+
             <Link
               href="/noticias"
               className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
