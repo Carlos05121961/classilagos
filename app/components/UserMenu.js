@@ -73,16 +73,6 @@ useEffect(() => {
   return (
     // ✅ IMPORTANTE: relative aqui evita “tarja preta”/overflow e posiciona o dropdown corretamente
     <div className="relative flex items-center gap-2" ref={menuRef}>
-      {/* CTA PULSANTE (premium e sutil) */}
-      <Link
-        href="/anunciar"
-        className="relative inline-flex items-center justify-center rounded-full bg-sky-600 px-4 py-2 text-xs font-extrabold text-white shadow-sm hover:bg-sky-700 whitespace-nowrap
-                   animate-[pulse_2.6s_ease-in-out_infinite]"
-        title="Anuncie grátis no Classilagos"
-        onClick={() => setOpen(false)}
-      >
-        Anuncie grátis
-      </Link>
 
       {/* Usuário */}
       <button
