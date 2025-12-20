@@ -160,7 +160,7 @@ function BannerRotator({ images = [], height = 170, label = "" }) {
   );
 }
 
-/** ✅ Painel rápido (virou componente pra mover de lugar) */
+/** ✅ Painel rápido (direita) */
 function PainelRapidoRegiao() {
   return (
     <div className="rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 p-[1px] shadow-md">
@@ -200,7 +200,7 @@ function PainelRapidoRegiao() {
   );
 }
 
-/** ✅ Agenda Premium (topo) */
+/** ✅ Agenda Premium (no Hero) */
 function AgendaPremium() {
   const [cidadeAgenda, setCidadeAgenda] = useState("Toda a região");
 
@@ -294,7 +294,6 @@ function AgendaPremium() {
             Ver agenda completa
           </Link>
 
-          {/* Público OK (não é admin), mas se você quiser, depois também pode ir pro admin */}
           <Link
             href="/noticias/agenda/enviar"
             className="inline-flex items-center rounded-full border border-rose-200 bg-white px-4 py-2 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
@@ -311,18 +310,19 @@ function AgendaPremium() {
   );
 }
 
-/** ✅ HERO MAPA PREMIUM (1920x800) + Pins clicáveis */
+/** ✅ HERO MAPA PREMIUM + Pins clicáveis */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
+  // posições iniciais (ajustamos fino depois com print)
   const pins = [
-    { cidade: "Maricá", left: "10%", top: "78%" },
-    { cidade: "Saquarema", left: "34%", top: "77%" },
-    { cidade: "Araruama", left: "49%", top: "73%" },
-    { cidade: "Iguaba Grande", left: "57%", top: "66%" },
-    { cidade: "São Pedro da Aldeia", left: "67%", top: "69%" },
-    { cidade: "Cabo Frio", left: "76%", top: "75%" },
-    { cidade: "Arraial do Cabo", left: "80%", top: "86%" },
-    { cidade: "Búzios", left: "86%", top: "64%" },
-    { cidade: "Rio das Ostras", left: "86%", top: "20%" },
+    { cidade: "Maricá", left: "16%", top: "78%" },
+    { cidade: "Saquarema", left: "41%", top: "78%" },
+    { cidade: "Araruama", left: "56%", top: "74%" },
+    { cidade: "Iguaba Grande", left: "66%", top: "67%" },
+    { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
+    { cidade: "Cabo Frio", left: "80%", top: "75%" },
+    { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
+    { cidade: "Búzios", left: "90%", top: "66%" },
+    { cidade: "Rio das Ostras", left: "90%", top: "18%" },
   ];
 
   const handlePick = (cidade) => {
@@ -334,28 +334,28 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
           <div className="relative w-full h-[420px] md:h-[520px] lg:h-[800px]">
-            {/* ✅ imagem do mapa + tratamento premium por código */}
+            {/* ✅ mapa base + “limpeza visual” por código */}
             <Image
-              src="/hero/noticias-mapa.webp"
+              src="/hero/noticias-mapa-regiao.webp"
               alt="Mapa – Região dos Lagos"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover scale-[1.03] brightness-[0.85] contrast-[1.08] saturate-[0.95]"
+              className="object-cover scale-[1.03] brightness-[0.80] contrast-[1.12] saturate-[0.92]"
             />
 
-            {/* overlays premium */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-slate-950/10" />
+            {/* overlays premium (mata a leitura dos textos do mapa) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-slate-950/15" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-slate-950/10" />
             <div
               className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: "inset 0 0 140px rgba(0,0,0,0.45)" }}
+              style={{ boxShadow: "inset 0 0 180px rgba(0,0,0,0.55)" }}
             />
 
-            {/* Conteúdo por cima do mapa */}
+            {/* conteúdo */}
             <div className="absolute inset-0">
               <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6 lg:items-start">
-                {/* esquerda: institucional */}
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -373,7 +373,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     Clique em uma cidade no mapa para ver as notícias locais.
                   </p>
 
-                  {/* mobile: seletor de cidade */}
+                  {/* Mobile: seletor */}
                   <div className="mt-4 md:hidden">
                     <label className="block text-[10px] font-semibold text-white/75 mb-1">
                       Filtrar por cidade
@@ -392,7 +392,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     </select>
                   </div>
 
-                  {/* CTAs públicos (sem admin) */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href="/noticias/cameras"
@@ -410,23 +409,22 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     </button>
                   </div>
 
-                  {/* indicador */}
                   <div className="mt-3">
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
                       <span className="h-2 w-2 rounded-full bg-white/80" />
-                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
+                      Exibindo:{" "}
+                      <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
                   </div>
                 </div>
 
-                {/* direita: agenda premium */}
                 <div className="lg:pt-1">
                   <AgendaPremium />
                 </div>
               </div>
 
-              {/* PINS */}
-              <div className="absolute inset-0 pointer-events-none">
+              {/* pins (desktop) */}
+              <div className="absolute inset-0 pointer-events-none hidden md:block">
                 {pins.map((p) => (
                   <button
                     key={p.cidade}
@@ -438,13 +436,11 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     title={p.cidade}
                   >
                     <span className="relative flex items-center gap-2">
-                      {/* ponto */}
-                      <span className="relative h-3 w-3 rounded-full bg-white shadow">
-                        <span className="absolute inset-0 rounded-full bg-white/70 blur-[6px] opacity-0 group-hover:opacity-100 transition" />
+                      <span className="relative h-3.5 w-3.5 rounded-full bg-white shadow">
+                        <span className="absolute inset-0 rounded-full bg-white/70 blur-[7px] opacity-0 group-hover:opacity-100 transition" />
                       </span>
 
-                      {/* label desktop */}
-                      <span className="hidden md:inline-flex rounded-full bg-slate-950/55 text-white text-[11px] font-semibold px-3 py-1 border border-white/15 backdrop-blur group-hover:bg-slate-950/70 transition">
+                      <span className="inline-flex rounded-full bg-slate-950/55 text-white text-[11px] font-semibold px-3 py-1 border border-white/15 backdrop-blur group-hover:bg-slate-950/70 transition">
                         {p.cidade}
                       </span>
                     </span>
@@ -469,7 +465,7 @@ export default function NoticiasHomePage() {
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
-  // ✅ lê ?cidade=... na URL (sem useSearchParams, sem suspense, sem travar)
+  // ✅ lê ?cidade=... na URL (sem useSearchParams)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -530,7 +526,7 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER TOPO (720x120) */}
+      {/* ✅ BANNER TOPO */}
       <BannerRotator
         images={BANNERS_TOPO_NOTICIAS}
         height={120}
@@ -542,7 +538,7 @@ export default function NoticiasHomePage() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
-        {/* COLUNA ESQUERDA */}
+        {/* ESQUERDA */}
         <div className="space-y-6">
           {erro && (
             <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
@@ -670,7 +666,7 @@ export default function NoticiasHomePage() {
             )}
           </section>
 
-          {/* RECENTES */}
+          {/* ÚLTIMAS */}
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
@@ -725,7 +721,7 @@ export default function NoticiasHomePage() {
             </section>
           )}
 
-          {/* ✅ TV CLASSILAGOS + Painel rápido */}
+          {/* TV + Painel */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-slate-900">
@@ -737,7 +733,6 @@ export default function NoticiasHomePage() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-              {/* TV (esquerda) */}
               <div className="grid gap-4 md:grid-cols-2">
                 {[
                   {
@@ -776,7 +771,6 @@ export default function NoticiasHomePage() {
                 ))}
               </div>
 
-              {/* Painel rápido (direita) */}
               <div className="lg:pl-1">
                 <PainelRapidoRegiao />
               </div>
@@ -835,7 +829,7 @@ export default function NoticiasHomePage() {
         </aside>
       </section>
 
-      {/* ✅ BANNER RODAPÉ (720x170) */}
+      {/* ✅ BANNER RODAPÉ */}
       <BannerRotator
         images={BANNERS_RODAPE_NOTICIAS}
         height={170}
