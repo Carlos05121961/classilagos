@@ -82,14 +82,14 @@ const bannersRodape = [
 
   // ORDEM DOS ÍCONES
   const categorias = [
-    { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.png" },
-    { label: "Imóveis", value: "imoveis", href: "/imoveis", icon: "/icons/imoveis.png" },
-    { label: "Serviços", value: "servico", href: "/servicos", icon: "/icons/servicos.png" },
-    { label: "LagoListas", value: "lagolistas", href: "/lagolistas", icon: "/icons/lagolistas.png" },
-    { label: "Empregos", value: "emprego", href: "/empregos", icon: "/icons/empregos.png" },
-    { label: "Veículos", value: "veiculos", href: "/veiculos", icon: "/icons/veiculos.png" },
-    { label: "Náutica", value: "nautica", href: "/nautica", icon: "/icons/nautica.png" },
-    { label: "Pets", value: "pets", href: "/pets", icon: "/icons/pets.png" },
+    { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.webp" },
+    { label: "Imóveis", value: "imoveis", href: "/imoveis", icon: "/icons/imoveis.webp" },
+    { label: "Serviços", value: "servico", href: "/servicos", icon: "/icons/servicos.webp" },
+    { label: "LagoListas", value: "lagolistas", href: "/lagolistas", icon: "/icons/lagolistas.webp" },
+    { label: "Empregos", value: "emprego", href: "/empregos", icon: "/icons/empregos.webp" },
+    { label: "Veículos", value: "veiculos", href: "/veiculos", icon: "/icons/veiculos.webp" },
+    { label: "Náutica", value: "nautica", href: "/nautica", icon: "/icons/nautica.webp" },
+    { label: "Pets", value: "pets", href: "/pets", icon: "/icons/pets.webp" },
   ];
 
   const cidades = [
