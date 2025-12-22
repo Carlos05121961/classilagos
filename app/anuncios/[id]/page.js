@@ -391,7 +391,7 @@ export default function AnuncioDetalhePage() {
       {/* BANNER TOPO */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
-          <BannerRotator />
+          <BannerRotator images={BANNERS_TOPO} height={120} maxWidth={900} interval={5000} />
         </div>
       </section>
 
