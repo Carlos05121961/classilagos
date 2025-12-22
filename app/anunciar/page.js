@@ -5,33 +5,33 @@ import Link from "next/link";
 import Image from "next/image";
 
 /* =========================
-   BANNERS (ROTATIVO) — IGUAL HOME
+   BANNERS (ROTATIVO) — USA OS ARQUIVOS QUE EXISTEM
 ========================= */
 const BANNERS_TOPO = [
   {
-    src: "/banners/topo/anunciar-01.webp",
+    src: "/banners/topo/banner-topo-01.webp",
     href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão (ML)",
+    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
   },
   {
-    src: "/banners/topo/anunciar-02.webp",
+    src: "/banners/topo/banner-topo-02.webp",
     href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 (ML)",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
   },
   {
-    src: "/banners/topo/anunciar-03.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Caixas de Som (ML)",
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
   },
   {
-    src: "/banners/topo/anunciar-04.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "TVs Smart (ML)",
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
   },
   {
-    src: "/banners/topo/anunciar-05.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Celulares e Tablets (ML)",
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
   },
 ];
 
@@ -206,7 +206,7 @@ export default function AnunciarPage() {
   }
 
   useEffect(() => {
-    if (!BANNERS_TOPO?.length) return;
+    if (!BANNERS_TOPO.length) return;
     const id = setInterval(() => {
       setBannerIndex((i) => (i + 1) % BANNERS_TOPO.length);
     }, 5000);
@@ -216,7 +216,6 @@ export default function AnunciarPage() {
   const t = TEXT[lang];
 
   const bannerAtual = useMemo(() => {
-    if (!BANNERS_TOPO?.length) return null;
     return BANNERS_TOPO[bannerIndex];
   }, [bannerIndex]);
 
@@ -230,6 +229,7 @@ export default function AnunciarPage() {
           fill
           priority
           className="object-cover opacity-35"
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/55 to-slate-50/85" />
       </div>
@@ -238,34 +238,23 @@ export default function AnunciarPage() {
         {/* BANNER TOPO ROTATIVO */}
         <section className="w-full flex justify-center border-b border-white/30 bg-white/55 backdrop-blur-sm py-4">
           <div className="w-full max-w-[980px] px-4">
-            <div className="relative h-[120px] md:h-[130px] rounded-3xl bg-white/80 border border-white/40 shadow-sm overflow-hidden">
-              {bannerAtual?.href ? (
-                <a
-                  href={bannerAtual.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute inset-0"
-                  aria-label={bannerAtual.alt}
-                >
-                  <Image
-                    src={bannerAtual.src}
-                    alt={bannerAtual.alt}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 980px"
-                    priority
-                  />
-                </a>
-              ) : (
+            <div className="relative h-[110px] sm:h-[120px] md:h-[130px] rounded-3xl bg-white/80 border border-white/40 shadow-sm overflow-hidden">
+              <Link
+                href={bannerAtual.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0"
+                aria-label={bannerAtual.alt}
+              >
                 <Image
-                  src={bannerAtual?.src || "/banners/topo/anunciar-01.webp"}
-                  alt={bannerAtual?.alt || "Banner"}
+                  src={bannerAtual.src}
+                  alt={bannerAtual.alt}
                   fill
                   className="object-contain"
                   sizes="(max-width: 768px) 100vw, 980px"
                   priority
                 />
-              )}
+              </Link>
             </div>
 
             <p className="mt-1 text-center text-[10px] text-slate-600">
