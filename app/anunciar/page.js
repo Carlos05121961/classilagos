@@ -41,14 +41,14 @@ const BANNERS_TOPO = [
    (por enquanto .png; depois você troca pra .webp)
 ========================= */
 const ICONS = {
-  imoveis: "/icons/imoveis.png",
-  veiculos: "/icons/veiculos.png",
-  nautica: "/icons/nautica.png",
-  pets: "/icons/pets.png",
-  empregos: "/icons/empregos.png",
-  servicos: "/icons/servicos.png",
-  turismo: "/icons/turismo.png",
-  lagolistas: "/icons/lagolistas.png",
+  imoveis: "/icons/imoveis.webp",
+  veiculos: "/icons/veiculos.webp",
+  nautica: "/icons/nautica.webp",
+  pets: "/icons/pets.webp",
+  empregos: "/icons/empregos.webp",
+  servicos: "/icons/servicos.webp",
+  turismo: "/icons/turismo.webp",
+  lagolistas: "/icons/lagolistas.webp",
 };
 
 /* =========================
