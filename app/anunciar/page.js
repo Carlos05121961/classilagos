@@ -6,7 +6,6 @@ import Image from "next/image";
 
 /* =========================
    BANNERS (ROTATIVO) — IGUAL HOME
-   (troque href/src se quiser)
 ========================= */
 const BANNERS_TOPO = [
   {
@@ -37,8 +36,7 @@ const BANNERS_TOPO = [
 ];
 
 /* =========================
-   ÍCONES (SEM QUEBRAR)
-   (por enquanto .png; depois você troca pra .webp)
+   ÍCONES
 ========================= */
 const ICONS = {
   imoveis: "/icons/imoveis.webp",
@@ -207,7 +205,6 @@ export default function AnunciarPage() {
     localStorage.setItem("classilagos_lang", next);
   }
 
-  // rotaciona banner (a cada 5s)
   useEffect(() => {
     if (!BANNERS_TOPO?.length) return;
     const id = setInterval(() => {
@@ -234,22 +231,21 @@ export default function AnunciarPage() {
           priority
           className="object-cover opacity-35"
         />
-        {/* overlay para leitura (suave, elegante) */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/55 to-slate-50/85" />
       </div>
 
-      {/* CONTEÚDO */}
       <div className="relative">
         {/* BANNER TOPO ROTATIVO */}
         <section className="w-full flex justify-center border-b border-white/30 bg-white/55 backdrop-blur-sm py-4">
           <div className="w-full max-w-[980px] px-4">
             <div className="relative h-[120px] md:h-[130px] rounded-3xl bg-white/80 border border-white/40 shadow-sm overflow-hidden">
               {bannerAtual?.href ? (
-                <Link
+                <a
                   href={bannerAtual.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="absolute inset-0"
+                  aria-label={bannerAtual.alt}
                 >
                   <Image
                     src={bannerAtual.src}
@@ -259,7 +255,7 @@ export default function AnunciarPage() {
                     sizes="(max-width: 768px) 100vw, 980px"
                     priority
                   />
-                </Link>
+                </a>
               ) : (
                 <Image
                   src={bannerAtual?.src || "/banners/topo/anunciar-01.webp"}
@@ -317,7 +313,7 @@ export default function AnunciarPage() {
                 <div className="flex items-start gap-3">
                   <div className="relative h-12 w-12 shrink-0">
                     <Image
-                      src={ICONS[s.key] || "/icons/guia-onde-b.png"}
+                      src={ICONS[s.key] || "/icons/guia-onde-b.webp"}
                       alt={`Ícone ${s.title}`}
                       fill
                       className="object-contain"
