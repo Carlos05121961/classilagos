@@ -323,21 +323,19 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM + ÍCONES clicáveis (sem texto no mapa) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   // ✅ pins calculados pelo mapa novo que você enviou
-  const pins = [
-    { cidade: "Rio das Ostras", left: "74.1%", top: "8.2%",  icon: "/icons/cidades/rio-das-ostras.webp" },
-    { cidade: "Búzios",        left: "75.6%", top: "49.4%", icon: "/icons/cidades/buzios.webp" },
-    { cidade: "Cabo Frio",     left: "71.4%", top: "68.9%", icon: "/icons/cidades/cabo-frio.webp" },
-    { cidade: "Arraial do Cabo", left: "67.2%", top: "78.0%", icon: "/icons/cidades/arraial.webp" },
+const pins = [
+  { cidade: "Maricá", left: "16%", top: "78%" },
+  { cidade: "Saquarema", left: "41%", top: "78%" },
+  { cidade: "Araruama", left: "56%", top: "74%" },
+  { cidade: "Iguaba Grande", left: "66%", top: "67%" },
+  { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
+  { cidade: "Cabo Frio", left: "80%", top: "75%" },
+  { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
 
-    { cidade: "São Pedro da Aldeia", left: "63.6%", top: "60.0%", icon: "/icons/cidades/sao-pedro.webp" },
-    { cidade: "Iguaba Grande",       left: "53.9%", top: "62.4%", icon: "/icons/cidades/iguaba.webp" },
-    { cidade: "Araruama",            left: "47.5%", top: "66.1%", icon: "/icons/cidades/araruama.webp" },
-
-    // ✅ Saquarema = Surf
-    { cidade: "Saquarema", left: "35.1%", top: "74.9%", icon: "/icons/cidades/surf-saquarema.webp" },
-
-    { cidade: "Maricá", left: "15.2%", top: "77.5%", icon: "/icons/cidades/marica.webp" },
-  ];
+  // ✅ AJUSTADOS
+  { cidade: "Búzios", left: "92%", top: "62%" },
+  { cidade: "Rio das Ostras", left: "88%", top: "22%" },
+];
 
   const handlePick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
