@@ -1,6 +1,5 @@
+import { NextResponse } from "next/server";
 import { supabaseServer as supabase } from "../../../supabaseServerClient";
-+ import { supabaseAdmin as supabase } from "../../../supabaseAdminClient";
-
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +28,10 @@ export async function DELETE(request) {
       );
     }
 
-    return NextResponse.json({ message: "Notícia excluída com sucesso." });
+    return NextResponse.json(
+      { message: "Notícia excluída com sucesso." },
+      { status: 200 }
+    );
   } catch (e) {
     console.error("Erro inesperado ao excluir notícia:", e);
     return NextResponse.json(
