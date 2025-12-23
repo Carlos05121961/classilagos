@@ -431,45 +431,31 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
 
-              {/* ✅ ÍCONES no mapa (desktop) - sem texto */}
-              <div className="absolute inset-0 pointer-events-none hidden md:block">
-                {pins.map((p) => {
-                  const ativo = cidadeAtiva === p.cidade;
+            {/* PINS – bolinhas vermelhas simples */}
+<div className="absolute inset-0 hidden md:block">
+  {pins.map((p) => (
+    <button
+      key={p.cidade}
+      type="button"
+      onClick={() => handlePick(p.cidade)}
+      style={{ left: p.left, top: p.top }}
+      className="
+        absolute
+        h-3.5 w-3.5
+        rounded-full
+        bg-red-600
+        border border-white
+        shadow
+        transition-transform
+        duration-200
+        hover:scale-150
+      "
+      title={p.cidade}
+      aria-label={p.cidade}
+    />
+  ))}
+</div>
 
-                  return (
-                    <button
-                      key={p.cidade}
-                      type="button"
-                      onClick={() => handlePick(p.cidade)}
-                      className="absolute z-20 pointer-events-auto group"
-                      style={{ left: p.left, top: p.top }}
-                      aria-label={`Filtrar por ${p.cidade}`}
-                      title={p.cidade}
-                    >
-                      <span className="relative block">
-                        <Image
-                          src={p.icon}
-                          alt={p.cidade}
-                          width={28}
-                          height={28}
-                          className={[
-                            "h-7 w-7 lg:h-8 lg:w-8",
-                            "drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)]",
-                            "transition-transform duration-150",
-                            ativo ? "scale-110" : "group-hover:scale-110",
-                          ].join(" ")}
-                        />
-                        {ativo && (
-                          <span className="absolute inset-0 -z-10 rounded-full bg-white/20 blur-md" />
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
           Dica: clique em uma cidade do mapa para filtrar as notícias locais.
