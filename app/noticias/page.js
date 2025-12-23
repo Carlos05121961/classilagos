@@ -320,18 +320,23 @@ function AgendaPremium() {
   );
 }
 
-/** HERO premium — sem poluição */
+/** ✅ HERO MAPA PREMIUM + ÍCONES clicáveis (sem texto no mapa) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
+  // ✅ pins calculados pelo mapa novo que você enviou
   const pins = [
-    { cidade: "Maricá", left: "16%", top: "78%" },
-    { cidade: "Saquarema", left: "41%", top: "78%" },
-    { cidade: "Araruama", left: "56%", top: "74%" },
-    { cidade: "Iguaba Grande", left: "66%", top: "67%" },
-    { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
-    { cidade: "Cabo Frio", left: "80%", top: "75%" },
-    { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
-    { cidade: "Búzios", left: "90%", top: "66%" },
-    { cidade: "Rio das Ostras", left: "90%", top: "18%" },
+    { cidade: "Rio das Ostras", left: "74.1%", top: "8.2%",  icon: "/icons/cidades/rio-das-ostras.webp" },
+    { cidade: "Búzios",        left: "75.6%", top: "49.4%", icon: "/icons/cidades/buzios.webp" },
+    { cidade: "Cabo Frio",     left: "71.4%", top: "68.9%", icon: "/icons/cidades/cabo-frio.webp" },
+    { cidade: "Arraial do Cabo", left: "67.2%", top: "78.0%", icon: "/icons/cidades/arraial.webp" },
+
+    { cidade: "São Pedro da Aldeia", left: "63.6%", top: "60.0%", icon: "/icons/cidades/sao-pedro.webp" },
+    { cidade: "Iguaba Grande",       left: "53.9%", top: "62.4%", icon: "/icons/cidades/iguaba.webp" },
+    { cidade: "Araruama",            left: "47.5%", top: "66.1%", icon: "/icons/cidades/araruama.webp" },
+
+    // ✅ Saquarema = Surf
+    { cidade: "Saquarema", left: "35.1%", top: "74.9%", icon: "/icons/cidades/surf-saquarema.webp" },
+
+    { cidade: "Maricá", left: "15.2%", top: "77.5%", icon: "/icons/cidades/marica.webp" },
   ];
 
   const handlePick = (cidade) => {
@@ -343,26 +348,27 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
           <div className="relative w-full aspect-[12/5] max-h-[260px] md:max-h-[340px] lg:max-h-[400px]">
-            {/* MAPA */}
+            {/* ✅ mapa base */}
             <Image
-              src="/hero/noticias-regiao.webp"
+              src="/hero/noticias-mapa.webp"
               alt="Mapa – Região dos Lagos"
               fill
               priority
               sizes="100vw"
-              className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.05] saturate-[1.02]"
+              className="object-cover scale-[1.03] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
             />
 
-            {/* overlays leves */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-slate-950/15 to-transparent" />
+            {/* overlays leves (limpo, sem escurecer demais) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             <div
               className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.35)" }}
+              style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.30)" }}
             />
 
-            {/* conteúdo */}
+            {/* conteúdo (texto do Hero) */}
             <div className="absolute inset-0">
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10">
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 gap-6 lg:items-start">
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -373,10 +379,14 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                   </h1>
 
                   <p className="mt-2 text-sm md:text-base text-white/85">
-                    Informação, turismo, serviços e utilidade pública.
+                    O portal oficial de informação da Região dos Lagos
                   </p>
 
-                  {/* Mobile: seletor */}
+                  <p className="mt-3 text-xs md:text-sm text-white/70">
+                    Clique em uma cidade no mapa para ver as notícias locais.
+                  </p>
+
+                  {/* Mobile: seletor (limpo) */}
                   <div className="mt-4 md:hidden">
                     <label className="block text-[10px] font-semibold text-white/75 mb-1">
                       Filtrar por cidade
@@ -410,8 +420,10 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     >
                       Ver todas as notícias
                     </button>
+                  </div>
 
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-[11px] text-white/85 border border-white/15 backdrop-blur">
+                  <div className="mt-3">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
                       <span className="h-2 w-2 rounded-full bg-white/80" />
                       Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
@@ -419,11 +431,10 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
 
-              {/* pins desktop — só ícone, sem texto */}
+              {/* ✅ ÍCONES no mapa (desktop) - sem texto */}
               <div className="absolute inset-0 pointer-events-none hidden md:block">
                 {pins.map((p) => {
                   const ativo = cidadeAtiva === p.cidade;
-                  const slug = CITY_SLUG[p.cidade] || "";
 
                   return (
                     <button
@@ -435,22 +446,22 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                       aria-label={`Filtrar por ${p.cidade}`}
                       title={p.cidade}
                     >
-                      <span
-                        className={[
-                          "grid place-items-center",
-                          "h-10 w-10 rounded-full border border-white/65",
-                          "bg-white/95 shadow",
-                          "transition-transform duration-150",
-                          ativo ? "scale-110 ring-4 ring-white/25" : "group-hover:scale-110",
-                        ].join(" ")}
-                      >
+                      <span className="relative block">
                         <Image
-                          src={`/icons/mapa/${slug}.webp`}
-                          alt=""
-                          width={22}
-                          height={22}
-                          className="opacity-95"
+                          src={p.icon}
+                          alt={p.cidade}
+                          width={28}
+                          height={28}
+                          className={[
+                            "h-7 w-7 lg:h-8 lg:w-8",
+                            "drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)]",
+                            "transition-transform duration-150",
+                            ativo ? "scale-110" : "group-hover:scale-110",
+                          ].join(" ")}
                         />
+                        {ativo && (
+                          <span className="absolute inset-0 -z-10 rounded-full bg-white/20 blur-md" />
+                        )}
                       </span>
                     </button>
                   );
@@ -461,12 +472,13 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
         </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
-          Dica: clique nos ícones do mapa para filtrar notícias por cidade.
+          Dica: clique em uma cidade do mapa para filtrar as notícias locais.
         </p>
       </div>
     </section>
   );
 }
+
 
 export default function NoticiasHomePage() {
   const [noticias, setNoticias] = useState([]);
