@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { supabaseServer as supabase } from "../../../supabaseServerClient";
+import { supabaseAdmin } from "../../../supabaseAdminClient";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("noticias")
       .select(
         `
@@ -19,7 +19,7 @@ export async function GET() {
         status,
         tipo,
         created_at
-      `
+        `
       )
       .eq("tipo", "importada")
       .order("created_at", { ascending: false })
@@ -37,7 +37,7 @@ export async function GET() {
   } catch (e) {
     console.error("Erro inesperado em listar-importadas:", e);
     return NextResponse.json(
-      { error: "Erro inesperado ao listar notícias importadas." },
+      { error: e?.message || "Erro inesperado ao listar notícias importadas." },
       { status: 500 }
     );
   }
