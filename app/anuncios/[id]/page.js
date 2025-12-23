@@ -1349,6 +1349,19 @@ export default function AnuncioDetalhePage() {
             Voltar
           </Link>
         </div>
+
+              {/* BANNER RODAPÉ */}
+<section className="mt-8">
+  <div className="max-w-5xl mx-auto px-4">
+    <BannerRotator
+      images={BANNERS_RODAPE}
+      height={120}
+      maxWidth={900}
+      interval={6000}
+    />
+  </div>
+</section>
+
       </section>
     </main>
   );
