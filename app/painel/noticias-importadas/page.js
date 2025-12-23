@@ -10,21 +10,44 @@ export default function NoticiasImportadasPage() {
   const [mensagem, setMensagem] = useState("");
 
   // Buscar notícias importadas
-  async function carregar() {
-    setLoading(true);
-    setMensagem("");
+async function carregar() {
+  setLoading(true);
+  setMensagem("");
 
+  try {
+    const res = await fetch("/api/noticias/listar-importadas", {
+      cache: "no-store",
+    });
+
+    // tenta ler como texto primeiro (evita crash quando volta HTML)
+    const text = await res.text();
+
+    let json;
     try {
-      const res = await fetch("/api/noticias/listar-importadas");
-      const json = await res.json();
-      setLista(json || []);
-    } catch (e) {
-      console.error(e);
-      setMensagem("Erro ao carregar notícias importadas.");
+      json = JSON.parse(text);
+    } catch {
+      json = null;
     }
 
-    setLoading(false);
+    if (!res.ok) {
+      const msg = json?.message || `Erro ao carregar (HTTP ${res.status}).`;
+      setLista([]); // GARANTE array
+      setMensagem(msg);
+      setLoading(false);
+      return;
+    }
+
+    // GARANTE array sempre
+    const arr = Array.isArray(json) ? json : (Array.isArray(json?.data) ? json.data : []);
+    setLista(arr);
+  } catch (e) {
+    console.error(e);
+    setLista([]); // GARANTE array
+    setMensagem("Erro ao carregar notícias importadas.");
   }
+
+  setLoading(false);
+}
 
   useEffect(() => {
     carregar();
