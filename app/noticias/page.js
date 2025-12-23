@@ -460,7 +460,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
         <p className="mt-3 text-[11px] text-slate-500">
           Dica: clique em uma cidade do mapa para filtrar as notícias locais.
         </p>
-      </div>
     </section>
   );
 }
