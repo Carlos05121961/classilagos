@@ -1,4 +1,4 @@
-- import { supabaseServer as supabase } from "../../../supabaseServerClient";
+import { supabaseServer as supabase } from "../../../supabaseServerClient";
 + import { supabaseAdmin as supabase } from "../../../supabaseAdminClient";
 
 
