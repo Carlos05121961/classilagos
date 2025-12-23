@@ -422,27 +422,48 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
 
               {/* pins (desktop) */}
               <div className="absolute inset-0 pointer-events-none hidden md:block">
-                {pins.map((p) => (
-                  <button
-                    key={p.cidade}
-                    type="button"
-                    onClick={() => handlePick(p.cidade)}
-                    className="pointer-events-auto group absolute"
-                    style={{ left: p.left, top: p.top }}
-                    aria-label={`Ver notícias de ${p.cidade}`}
-                    title={p.cidade}
-                  >
-                    <span className="relative flex items-center gap-2">
-                      <span className="relative h-3.5 w-3.5 rounded-full bg-white shadow">
-                        <span className="absolute inset-0 rounded-full bg-white/70 blur-[7px] opacity-0 group-hover:opacity-100 transition" />
-                      </span>
+               {pins.map((p) => {
+  const ativo = cidadeAtiva === p.cidade;
 
-                      <span className="inline-flex rounded-full bg-slate-950/55 text-white text-[11px] font-semibold px-3 py-1 border border-white/15 backdrop-blur group-hover:bg-slate-950/70 transition">
-                        {p.cidade}
-                      </span>
-                    </span>
-                  </button>
-                ))}
+  return (
+    <button
+      key={p.cidade}
+      type="button"
+      onClick={() => handlePick(p.cidade)}
+      className="absolute z-20 pointer-events-auto group"
+      style={{ left: p.left, top: p.top }}
+      aria-label={`Filtrar por ${p.cidade}`}
+      title={p.cidade}
+    >
+      {/* bolinha */}
+      <span
+        className={[
+          "block h-3.5 w-3.5 rounded-full border",
+          "bg-white border-white/80 shadow",
+          "transition-transform duration-150",
+          ativo
+            ? "scale-110 ring-4 ring-white/30"
+            : "group-hover:scale-110",
+        ].join(" ")}
+      />
+
+      {/* nome só no hover ou ativo */}
+      <span
+        className={[
+          "pointer-events-none absolute left-1/2 -translate-x-1/2 mt-2",
+          "whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold",
+          "bg-slate-900/80 text-white shadow-sm",
+          "opacity-0 translate-y-1 transition",
+          "group-hover:opacity-100 group-hover:translate-y-0",
+          ativo ? "opacity-100 translate-y-0" : "",
+        ].join(" ")}
+      >
+        {p.cidade}
+      </span>
+    </button>
+  );
+})}
+
               </div>
             </div>
           </div>
