@@ -311,20 +311,29 @@ function AgendaPremium() {
 
 /** ✅ HERO MAPA PREMIUM + bolinhas vermelhas (desktop) / select (mobile) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  // Ajuste fino (Búzios e Rio das Ostras corrigidos)
+  
+// ✅ PINS CORRIGIDOS (baseado na imagem do mapa 1925x802)
 const pins = [
-  { cidade: "Maricá", left: "14%", top: "79%" },
-  { cidade: "Saquarema", left: "36%", top: "80%" },
-  { cidade: "Araruama", left: "51%", top: "76%" },
-  { cidade: "Iguaba Grande", left: "61%", top: "71%" },
-  { cidade: "São Pedro da Aldeia", left: "68%", top: "73%" },
-  { cidade: "Cabo Frio", left: "76%", top: "78%" },
-  { cidade: "Arraial do Cabo", left: "79%", top: "87%" },
+  { cidade: "Maricá", left: "15.1%", top: "77.7%" },
+  { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
+  { cidade: "Araruama", left: "47.5%", top: "66.2%" },
 
-  // 🔧 AJUSTE FINO – AGORA EM TERRA
-  { cidade: "Búzios", left: "84%", top: "66%" },
-  { cidade: "Rio das Ostras", left: "82%", top: "24%" },
+  // Região da Lagoa / entorno
+  { cidade: "Iguaba Grande", left: "63.7%", top: "60.1%" },
+
+  // ✅ Este ponto NÃO existe como bolinha na imagem, então eu posicionei “no lugar certo”
+  // (entre Iguaba e Cabo Frio, em terra, alinhado com a geografia real)
+  { cidade: "São Pedro da Aldeia", left: "67.8%", top: "64.8%" },
+
+  // Litoral leste
+  { cidade: "Cabo Frio", left: "71.4%", top: "69.1%" },
+  { cidade: "Arraial do Cabo", left: "67.3%", top: "78.2%" },
+
+  // Península / norte-leste
+  { cidade: "Búzios", left: "75.6%", top: "49.4%" },
+  { cidade: "Rio das Ostras", left: "74.2%", top: "7.9%" },
 ];
+
 
 
   const pick = (cidade) => {
