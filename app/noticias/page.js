@@ -21,18 +21,6 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-const CITY_SLUG = {
-  "Maricá": "marica",
-  "Saquarema": "saquarema",
-  "Araruama": "araruama",
-  "Iguaba Grande": "iguaba",
-  "São Pedro da Aldeia": "sao-pedro",
-  "Arraial do Cabo": "arraial",
-  "Cabo Frio": "cabo-frio",
-  "Búzios": "buzios",
-  "Rio das Ostras": "rio-das-ostras",
-};
-
 const BANNERS_TOPO_NOTICIAS = [
   "/banners/topo/topo-noticias-01.webp",
   "/banners/topo/topo-noticias-02.webp",
@@ -56,6 +44,7 @@ function formatDateBR(value) {
     return "";
   }
 }
+
 function safeText(v) {
   return typeof v === "string" ? v : "";
 }
@@ -129,7 +118,7 @@ function BannerRotator({ images = [], height = 170, label = "" }) {
   const current = images?.[idx] || null;
 
   return (
-    <section className="w-full bg-slate-100 border-b">
+    <section className="w-full bg-slate-100 border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center">
         <div
           className="relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden"
@@ -320,24 +309,22 @@ function AgendaPremium() {
   );
 }
 
-/** ✅ HERO MAPA PREMIUM + ÍCONES clicáveis (sem texto no mapa) */
+/** ✅ HERO MAPA PREMIUM + bolinhas vermelhas (desktop) / select (mobile) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  // ✅ pins calculados pelo mapa novo que você enviou
-const pins = [
-  { cidade: "Maricá", left: "16%", top: "78%" },
-  { cidade: "Saquarema", left: "41%", top: "78%" },
-  { cidade: "Araruama", left: "56%", top: "74%" },
-  { cidade: "Iguaba Grande", left: "66%", top: "67%" },
-  { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
-  { cidade: "Cabo Frio", left: "80%", top: "75%" },
-  { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
+  // Ajuste fino (Búzios e Rio das Ostras corrigidos)
+  const pins = [
+    { cidade: "Maricá", left: "16%", top: "78%" },
+    { cidade: "Saquarema", left: "41%", top: "78%" },
+    { cidade: "Araruama", left: "56%", top: "74%" },
+    { cidade: "Iguaba Grande", left: "66%", top: "67%" },
+    { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
+    { cidade: "Cabo Frio", left: "80%", top: "75%" },
+    { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
+    { cidade: "Búzios", left: "92%", top: "62%" },
+    { cidade: "Rio das Ostras", left: "88%", top: "22%" },
+  ];
 
-  // ✅ AJUSTADOS
-  { cidade: "Búzios", left: "92%", top: "62%" },
-  { cidade: "Rio das Ostras", left: "88%", top: "22%" },
-];
-
-  const handlePick = (cidade) => {
+  const pick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
   };
 
@@ -346,17 +333,16 @@ const pins = [
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
           <div className="relative w-full aspect-[12/5] max-h-[260px] md:max-h-[340px] lg:max-h-[400px]">
-            {/* ✅ mapa base */}
             <Image
               src="/hero/noticias-mapa.webp"
               alt="Mapa – Região dos Lagos"
               fill
               priority
               sizes="100vw"
-              className="object-cover scale-[1.03] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
+              className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
             />
 
-            {/* overlays leves (limpo, sem escurecer demais) */}
+            {/* overlays leves (sem poluir) */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             <div
@@ -364,9 +350,9 @@ const pins = [
               style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.30)" }}
             />
 
-            {/* conteúdo (texto do Hero) */}
+            {/* texto do hero */}
             <div className="absolute inset-0">
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 gap-6 lg:items-start">
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10">
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -384,7 +370,7 @@ const pins = [
                     Clique em uma cidade no mapa para ver as notícias locais.
                   </p>
 
-                  {/* Mobile: seletor (limpo) */}
+                  {/* Mobile: seletor */}
                   <div className="mt-4 md:hidden">
                     <label className="block text-[10px] font-semibold text-white/75 mb-1">
                       Filtrar por cidade
@@ -392,7 +378,7 @@ const pins = [
                     <select
                       className="w-full rounded-full border border-white/15 bg-white/10 text-white px-3 py-2 text-[12px] backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/25"
                       value={cidadeAtiva || "Todas"}
-                      onChange={(e) => handlePick(e.target.value)}
+                      onChange={(e) => pick(e.target.value)}
                     >
                       <option value="Todas">Todas</option>
                       {CIDADES.map((c) => (
@@ -413,7 +399,7 @@ const pins = [
 
                     <button
                       type="button"
-                      onClick={() => handlePick("Todas")}
+                      onClick={() => pick("Todas")}
                       className="inline-flex items-center rounded-full bg-white/12 px-4 py-2 text-[11px] md:text-sm font-semibold text-white border border-white/15 hover:bg-white/20 backdrop-blur"
                     >
                       Ver todas as notícias
@@ -423,45 +409,52 @@ const pins = [
                   <div className="mt-3">
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
                       <span className="h-2 w-2 rounded-full bg-white/80" />
-                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
+                      Exibindo:{" "}
+                      <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
                   </div>
                 </div>
               </div>
 
-            {/* PINS – bolinhas vermelhas simples */}
-<div className="absolute inset-0 hidden md:block">
-  {pins.map((p) => (
-    <button
-      key={p.cidade}
-      type="button"
-      onClick={() => handlePick(p.cidade)}
-      style={{ left: p.left, top: p.top }}
-      className="
-        absolute
-        h-3.5 w-3.5
-        rounded-full
-        bg-red-600
-        border border-white
-        shadow
-        transition-transform
-        duration-200
-        hover:scale-150
-      "
-      title={p.cidade}
-      aria-label={p.cidade}
-    />
-  ))}
-</div>
-
+              {/* DESKTOP: bolinhas vermelhas */}
+              <div className="absolute inset-0 hidden md:block">
+                {pins.map((p) => {
+                  const ativo = cidadeAtiva === p.cidade;
+                  return (
+                    <button
+                      key={p.cidade}
+                      type="button"
+                      onClick={() => pick(p.cidade)}
+                      style={{ left: p.left, top: p.top }}
+                      className={[
+                        "absolute -translate-x-1/2 -translate-y-1/2",
+                        "h-3.5 w-3.5 rounded-full",
+                        "bg-red-600 border border-white shadow",
+                        "transition-transform duration-200",
+                        "hover:scale-150",
+                        ativo ? "ring-4 ring-white/30 scale-110" : "",
+                      ].join(" ")}
+                      title={p.cidade}
+                      aria-label={`Filtrar por ${p.cidade}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
           Dica: clique em uma cidade do mapa para filtrar as notícias locais.
         </p>
+      </div>
     </section>
   );
 }
 
+/** =========================
+ *  PAGE
+ *  ========================= */
 
 export default function NoticiasHomePage() {
   const [noticias, setNoticias] = useState([]);
@@ -469,7 +462,7 @@ export default function NoticiasHomePage() {
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
-  // lê ?cidade=... na URL
+  // lê ?cidade=... na URL (sem useSearchParams)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -549,7 +542,7 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Filtro por cidade (chips no mobile com scroll) */}
+          {/* Filtro por cidade (chips com scroll no mobile) */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
@@ -801,7 +794,9 @@ export default function NoticiasHomePage() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-slate-900 mb-2">Trânsito e câmeras ao vivo</h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-2">
+              Trânsito e câmeras ao vivo
+            </h2>
             <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
@@ -821,3 +816,4 @@ export default function NoticiasHomePage() {
     </main>
   );
 }
+
