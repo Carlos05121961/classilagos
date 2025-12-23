@@ -1,15 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// NÃO estoura erro no build — só cria quando tem as vars
 export function getSupabaseServer() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    // Não derruba o build; a rota devolve erro 500 com mensagem clara.
-    return null;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas.");
   }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
