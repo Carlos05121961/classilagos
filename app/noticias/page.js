@@ -312,17 +312,20 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM + bolinhas vermelhas (desktop) / select (mobile) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   // Ajuste fino (Búzios e Rio das Ostras corrigidos)
-  const pins = [
-    { cidade: "Maricá", left: "16%", top: "78%" },
-    { cidade: "Saquarema", left: "41%", top: "78%" },
-    { cidade: "Araruama", left: "56%", top: "74%" },
-    { cidade: "Iguaba Grande", left: "66%", top: "67%" },
-    { cidade: "São Pedro da Aldeia", left: "72%", top: "70%" },
-    { cidade: "Cabo Frio", left: "80%", top: "75%" },
-    { cidade: "Arraial do Cabo", left: "83%", top: "86%" },
-    { cidade: "Búzios", left: "92%", top: "62%" },
-    { cidade: "Rio das Ostras", left: "88%", top: "22%" },
-  ];
+const pins = [
+  { cidade: "Maricá", left: "14%", top: "79%" },
+  { cidade: "Saquarema", left: "36%", top: "80%" },
+  { cidade: "Araruama", left: "51%", top: "76%" },
+  { cidade: "Iguaba Grande", left: "61%", top: "71%" },
+  { cidade: "São Pedro da Aldeia", left: "68%", top: "73%" },
+  { cidade: "Cabo Frio", left: "76%", top: "78%" },
+  { cidade: "Arraial do Cabo", left: "79%", top: "87%" },
+
+  // 🔧 AJUSTE FINO – AGORA EM TERRA
+  { cidade: "Búzios", left: "84%", top: "66%" },
+  { cidade: "Rio das Ostras", left: "82%", top: "24%" },
+];
+
 
   const pick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
