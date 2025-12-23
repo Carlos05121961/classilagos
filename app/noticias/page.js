@@ -5,6 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
 
+/** =========================
+ *  CONFIG
+ *  ========================= */
+
 const CIDADES = [
   "Maricá",
   "Saquarema",
@@ -16,6 +20,18 @@ const CIDADES = [
   "Búzios",
   "Rio das Ostras",
 ];
+
+const CITY_SLUG = {
+  "Maricá": "marica",
+  "Saquarema": "saquarema",
+  "Araruama": "araruama",
+  "Iguaba Grande": "iguaba",
+  "São Pedro da Aldeia": "sao-pedro",
+  "Arraial do Cabo": "arraial",
+  "Cabo Frio": "cabo-frio",
+  "Búzios": "buzios",
+  "Rio das Ostras": "rio-das-ostras",
+};
 
 const BANNERS_TOPO_NOTICIAS = [
   "/banners/topo/topo-noticias-01.webp",
@@ -40,12 +56,11 @@ function formatDateBR(value) {
     return "";
   }
 }
-
 function safeText(v) {
   return typeof v === "string" ? v : "";
 }
 
-// ✅ Agenda (MVP) — depois podemos puxar do Supabase
+/** ✅ Agenda (MVP) — depois podemos puxar do Supabase */
 const AGENDA_EVENTOS_MVP = [
   {
     id: "ev1",
@@ -98,15 +113,16 @@ function formatAgendaDate(iso) {
   }
 }
 
-/** ✅ Banner rotator Premium (centralizado + padrão 720) */
+/** =========================
+ *  COMPONENTS
+ *  ========================= */
+
 function BannerRotator({ images = [], height = 170, label = "" }) {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
     if (!images || images.length <= 1) return;
-    const t = setInterval(() => {
-      setIdx((p) => (p + 1) % images.length);
-    }, 5000);
+    const t = setInterval(() => setIdx((p) => (p + 1) % images.length), 5000);
     return () => clearInterval(t);
   }, [images]);
 
@@ -127,7 +143,6 @@ function BannerRotator({ images = [], height = 170, label = "" }) {
               fill
               sizes="(max-width: 768px) 100vw, 760px"
               className="object-contain"
-              priority={false}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
@@ -160,7 +175,6 @@ function BannerRotator({ images = [], height = 170, label = "" }) {
   );
 }
 
-/** ✅ Painel rápido (direita) */
 function PainelRapidoRegiao() {
   return (
     <div className="rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 p-[1px] shadow-md">
@@ -200,7 +214,6 @@ function PainelRapidoRegiao() {
   );
 }
 
-/** ✅ Agenda Premium (vai para a SIDEBAR) */
 function AgendaPremium() {
   const [cidadeAgenda, setCidadeAgenda] = useState("Toda a região");
 
@@ -264,17 +277,14 @@ function AgendaPremium() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[11px] font-semibold text-rose-700">
-                        {ev.cidade} • {ev.tag}
-                      </p>
-                      <span className="h-1 w-1 rounded-full bg-slate-300" />
-                      <p className="text-[11px] text-slate-600">
-                        {ev.hora ? `${ev.hora}` : ""}
-                        {ev.local ? ` • ${ev.local}` : ""}
-                      </p>
-                    </div>
+                    <p className="text-[11px] font-semibold text-rose-700">
+                      {ev.cidade} • {ev.tag}
+                    </p>
                     <p className="text-xs font-bold text-slate-900 truncate">{ev.titulo}</p>
+                    <p className="text-[11px] text-slate-600">
+                      {ev.hora ? `${ev.hora}` : ""}
+                      {ev.local ? ` • ${ev.local}` : ""}
+                    </p>
                   </div>
 
                   <span className="text-[11px] font-semibold text-slate-500 group-hover:text-rose-700">
@@ -303,14 +313,14 @@ function AgendaPremium() {
         </div>
 
         <p className="mt-2 text-[10px] text-slate-400">
-          (MVP) Em seguida, vamos ligar isso no banco e deixar os eventos aparecerem automaticamente.
+          (MVP) Depois ligamos isso ao banco para eventos entrarem automaticamente.
         </p>
       </div>
     </div>
   );
 }
 
-/** ✅ HERO MAPA PREMIUM + Pins clicáveis */
+/** HERO premium — sem poluição */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   const pins = [
     { cidade: "Maricá", left: "16%", top: "78%" },
@@ -332,31 +342,27 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
-       <div className="relative w-full aspect-[12/5] max-h-[260px] md:max-h-[340px] lg:max-h-[400px]">
-
-
-            {/* ✅ mapa base (mais claro, padrão Classilagos) */}
+          <div className="relative w-full aspect-[12/5] max-h-[260px] md:max-h-[340px] lg:max-h-[400px]">
+            {/* MAPA */}
             <Image
-              src="/hero/noticias-mapa-regiao.webp"
+              src="/hero/noticias-regiao.webp"
               alt="Mapa – Região dos Lagos"
               fill
               priority
-             sizes="100vw"
-              className="object-cover scale-[1.03] brightness-[0.95] contrast-[1.06] saturate-[1.02]"
+              sizes="100vw"
+              className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.05] saturate-[1.02]"
             />
 
-            {/* ✅ overlays leves (continua “limpando” textos, sem escurecer tudo) */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-slate-950/20 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-slate-950/0" />
+            {/* overlays leves */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-slate-950/15 to-transparent" />
             <div
               className="absolute inset-0 pointer-events-none"
               style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.35)" }}
             />
 
-            {/* conteúdo (SEM agenda dentro do hero) */}
+            {/* conteúdo */}
             <div className="absolute inset-0">
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 grid grid-cols-1 gap-6 lg:items-start">
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10">
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -367,11 +373,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                   </h1>
 
                   <p className="mt-2 text-sm md:text-base text-white/85">
-                    O portal oficial de informação da Região dos Lagos
-                  </p>
-
-                  <p className="mt-3 text-xs md:text-sm text-white/70">
-                    Clique em uma cidade no mapa para ver as notícias locais.
+                    Informação, turismo, serviços e utilidade pública.
                   </p>
 
                   {/* Mobile: seletor */}
@@ -408,69 +410,58 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     >
                       Ver todas as notícias
                     </button>
-                  </div>
 
-                  <div className="mt-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-[11px] text-white/85 border border-white/15 backdrop-blur">
                       <span className="h-2 w-2 rounded-full bg-white/80" />
-                      Exibindo:{" "}
-                      <b className="text-white">{cidadeAtiva || "Todas"}</b>
+                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* pins (desktop) */}
+              {/* pins desktop — só ícone, sem texto */}
               <div className="absolute inset-0 pointer-events-none hidden md:block">
-               {pins.map((p) => {
-  const ativo = cidadeAtiva === p.cidade;
+                {pins.map((p) => {
+                  const ativo = cidadeAtiva === p.cidade;
+                  const slug = CITY_SLUG[p.cidade] || "";
 
-  return (
-    <button
-      key={p.cidade}
-      type="button"
-      onClick={() => handlePick(p.cidade)}
-      className="absolute z-20 pointer-events-auto group"
-      style={{ left: p.left, top: p.top }}
-      aria-label={`Filtrar por ${p.cidade}`}
-      title={p.cidade}
-    >
-      {/* bolinha */}
-      <span
-        className={[
-          "block h-3.5 w-3.5 rounded-full border",
-          "bg-white border-white/80 shadow",
-          "transition-transform duration-150",
-          ativo
-            ? "scale-110 ring-4 ring-white/30"
-            : "group-hover:scale-110",
-        ].join(" ")}
-      />
-
-      {/* nome só no hover ou ativo */}
-      <span
-        className={[
-          "pointer-events-none absolute left-1/2 -translate-x-1/2 mt-2",
-          "whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold",
-          "bg-slate-900/80 text-white shadow-sm",
-          "opacity-0 translate-y-1 transition",
-          "group-hover:opacity-100 group-hover:translate-y-0",
-          ativo ? "opacity-100 translate-y-0" : "",
-        ].join(" ")}
-      >
-        {p.cidade}
-      </span>
-    </button>
-  );
-})}
-
+                  return (
+                    <button
+                      key={p.cidade}
+                      type="button"
+                      onClick={() => handlePick(p.cidade)}
+                      className="absolute z-20 pointer-events-auto group"
+                      style={{ left: p.left, top: p.top }}
+                      aria-label={`Filtrar por ${p.cidade}`}
+                      title={p.cidade}
+                    >
+                      <span
+                        className={[
+                          "grid place-items-center",
+                          "h-10 w-10 rounded-full border border-white/65",
+                          "bg-white/95 shadow",
+                          "transition-transform duration-150",
+                          ativo ? "scale-110 ring-4 ring-white/25" : "group-hover:scale-110",
+                        ].join(" ")}
+                      >
+                        <Image
+                          src={`/icons/mapa/${slug}.webp`}
+                          alt=""
+                          width={22}
+                          height={22}
+                          className="opacity-95"
+                        />
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
-          Dica: clique em uma cidade do mapa para filtrar as notícias locais.
+          Dica: clique nos ícones do mapa para filtrar notícias por cidade.
         </p>
       </div>
     </section>
@@ -483,7 +474,7 @@ export default function NoticiasHomePage() {
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
-  // ✅ lê ?cidade=... na URL (sem useSearchParams)
+  // lê ?cidade=... na URL
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -491,7 +482,7 @@ export default function NoticiasHomePage() {
     if (cidade) setCidadeFiltro(cidade);
   }, []);
 
-  // ✅ aplica filtro e atualiza URL
+  // aplica filtro e atualiza URL
   const aplicarCidade = (cidade) => {
     const val = cidade || "Todas";
     setCidadeFiltro(val);
@@ -539,19 +530,18 @@ export default function NoticiasHomePage() {
 
   const destaques = noticiasFiltradas.slice(0, 3);
   const recentes = noticiasFiltradas.slice(3, 15);
-
   const imagemFallback = "/banners/noticias-default.webp";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* ✅ BANNER TOPO */}
+      {/* BANNER TOPO */}
       <BannerRotator
         images={BANNERS_TOPO_NOTICIAS}
         height={120}
         label="Espaço para banners institucionais e Prefeituras (em breve)."
       />
 
-      {/* ✅ HERO MAPA PREMIUM */}
+      {/* HERO MAPA */}
       <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
 
       {/* CONTEÚDO PRINCIPAL */}
@@ -564,39 +554,39 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Filtro por cidade */}
+          {/* Filtro por cidade (chips no mobile com scroll) */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
+            </div>
 
-              <div className="flex flex-wrap gap-2">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              <button
+                type="button"
+                onClick={() => aplicarCidade("Todas")}
+                className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold ${
+                  cidadeFiltro === "Todas"
+                    ? "border-sky-300 bg-sky-50 text-sky-700"
+                    : "border-slate-200 text-slate-700 hover:border-sky-300 hover:text-sky-700"
+                }`}
+              >
+                Todas
+              </button>
+
+              {CIDADES.map((c) => (
                 <button
+                  key={c}
                   type="button"
-                  onClick={() => aplicarCidade("Todas")}
-                  className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                    cidadeFiltro === "Todas"
+                  onClick={() => aplicarCidade(c)}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold ${
+                    cidadeFiltro === c
                       ? "border-sky-300 bg-sky-50 text-sky-700"
                       : "border-slate-200 text-slate-700 hover:border-sky-300 hover:text-sky-700"
                   }`}
                 >
-                  Todas
+                  {c}
                 </button>
-
-                {CIDADES.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => aplicarCidade(c)}
-                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                      cidadeFiltro === c
-                        ? "border-sky-300 bg-sky-50 text-sky-700"
-                        : "border-slate-200 text-slate-700 hover:border-sky-300 hover:text-sky-700"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
 
             <p className="mt-2 text-[11px] text-slate-500">
@@ -607,9 +597,7 @@ export default function NoticiasHomePage() {
 
           {/* DESTAQUES */}
           <section>
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Destaques de hoje
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">Destaques</h2>
 
             {loading ? (
               <p className="text-xs text-slate-500">Carregando notícias…</p>
@@ -688,21 +676,11 @@ export default function NoticiasHomePage() {
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-900">
-                  Últimas notícias
-                </h2>
-                <span className="text-[11px] text-slate-500">
-                  Em breve: filtros por tema.
-                </span>
+                <h2 className="text-sm font-semibold text-slate-900">Últimas notícias</h2>
+                <span className="text-[11px] text-slate-500">Em breve: filtros por tema.</span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {recentes.length === 0 && (
-                  <p className="text-[11px] text-slate-500">
-                    Quando houver mais notícias, elas aparecerão aqui.
-                  </p>
-                )}
-
                 {recentes.map((n) => (
                   <Link
                     key={n.id}
@@ -742,9 +720,7 @@ export default function NoticiasHomePage() {
           {/* TV + Painel */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                🎥 TV Classilagos
-              </h2>
+              <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
               <span className="text-[11px] text-slate-500">
                 Conteúdos em vídeo sobre a Região dos Lagos
               </span>
@@ -755,12 +731,12 @@ export default function NoticiasHomePage() {
                 {[
                   {
                     title: "TV Classilagos – Canal 1",
-                    desc: "Reportagens, bastidores, músicas, eventos e especiais da Região dos Lagos.",
+                    desc: "Reportagens, bastidores, músicas, eventos e especiais.",
                     url: "https://www.youtube.com/@tvclassilagos2214",
                   },
                   {
                     title: "TV Classilagos – Canal 2",
-                    desc: "Conteúdos complementares, arquivos históricos e projetos especiais Classilagos.",
+                    desc: "Conteúdos complementares e projetos especiais.",
                     url: "https://www.youtube.com/@tvclassilagos6603",
                   },
                 ].map((c) => (
@@ -772,9 +748,7 @@ export default function NoticiasHomePage() {
                       <span className="opacity-80">Player (em breve)</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-900">
-                        {c.title}
-                      </p>
+                      <p className="text-xs font-semibold text-slate-900">{c.title}</p>
                       <p className="text-[11px] text-slate-600">{c.desc}</p>
                       <Link
                         href={c.url}
@@ -802,27 +776,22 @@ export default function NoticiasHomePage() {
 
         {/* SIDEBAR */}
         <aside className="space-y-4">
-          {/* ✅ AGENDA PREMIUM AGORA AQUI (FORA DO HERO) */}
           <AgendaPremium />
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Diretriz editorial
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
               <li>Sem política partidária (comunicados oficiais entram como “serviço”).</li>
-              <li>Matérias com crédito e fonte quando forem de parceiros.</li>
+              <li>Crédito e fonte quando forem de parceiros.</li>
             </ul>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Fontes e parcerias
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Fontes e parcerias</h2>
             <p className="text-[11px] text-slate-600">
-              O Classilagos pode republicar manchetes e chamadas com <b>crédito</b> e <b>link</b> para a fonte.
+              O Classilagos pode republicar chamadas com <b>crédito</b> e <b>link</b> para a fonte.
             </p>
             <div className="flex flex-wrap gap-2">
               {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map((f) => (
@@ -837,9 +806,7 @@ export default function NoticiasHomePage() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-slate-900 mb-2">
-              Trânsito e câmeras ao vivo
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-2">Trânsito e câmeras ao vivo</h2>
             <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
@@ -850,7 +817,7 @@ export default function NoticiasHomePage() {
         </aside>
       </section>
 
-      {/* ✅ BANNER RODAPÉ */}
+      {/* BANNER RODAPÉ */}
       <BannerRotator
         images={BANNERS_RODAPE_NOTICIAS}
         height={170}
