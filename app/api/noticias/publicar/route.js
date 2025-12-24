@@ -17,7 +17,7 @@ export async function POST(request) {
   try {
     const { error } = await supabase
       .from("noticias")
-      .update({ status: "publicado" })
+      .update({ status: "publicado", published_at: new Date().toISOString() })
       .eq("id", id);
 
     if (error) {
