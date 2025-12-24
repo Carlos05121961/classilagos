@@ -1,37 +1,48 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin as supabase } from "../../../supabaseAdminClient";
+import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function DELETE(request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  const idNum = Number(id);
-  if (!id || Number.isNaN(idNum)) {
-    return NextResponse.json(
-      { message: "ID da notícia inválido." },
-      { status: 400 }
-    );
-  }
-
   try {
-    // Deleta e devolve o que deletou (pra confirmar)
-    const { data, error } = await supabase
-      .from("noticias")
-      .delete()
-      .eq("id", idNum)
-      .select("id");
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
 
-    if (error) {
-      console.error("Erro ao excluir notícia:", error);
+    if (!id) {
       return NextResponse.json(
-        { message: error.message || "Erro ao excluir notícia." },
+        { message: "ID não informado." },
+        { status: 400 }
+      );
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { message: "ENV faltando: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY" },
         { status: 500 }
       );
     }
 
-    if (!data || data.length === 0) {
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { error, count } = await supabaseAdmin
+      .from("noticias")
+      .delete({ count: "exact" })
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json(
+        { message: error.message || "Erro ao excluir." },
+        { status: 500 }
+      );
+    }
+
+    if (!count) {
       return NextResponse.json(
         { message: "Nada foi excluído (ID não encontrado)." },
         { status: 404 }
@@ -40,10 +51,10 @@ export async function DELETE(request) {
 
     return NextResponse.json({ message: "Notícia excluída com sucesso." });
   } catch (e) {
-    console.error("Erro inesperado ao excluir notícia:", e);
     return NextResponse.json(
-      { message: "Erro inesperado ao excluir notícia." },
+      { message: "Erro inesperado ao excluir." },
       { status: 500 }
     );
   }
 }
+
