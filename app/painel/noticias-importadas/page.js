@@ -15,9 +15,10 @@ async function carregar() {
   setMensagem("");
 
   try {
-    const res = await fetch("/api/noticias/listar-importadas", {
-      cache: "no-store",
-    });
+const res = await fetch(`/api/noticias/listar-importadas?t=${Date.now()}`, {
+  cache: "no-store",
+});
+
 
     // tenta ler como texto primeiro (evita crash quando volta HTML)
     const text = await res.text();
