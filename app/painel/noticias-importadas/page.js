@@ -54,6 +54,23 @@ const res = await fetch(`/api/noticias/listar-importadas?t=${Date.now()}`, {
     carregar();
   }, []);
 
+    // Atualizar lista (importa RSS e depois recarrega)
+  async function atualizarLista() {
+    setMensagem("Importando do G1 e RC24h...");
+
+    try {
+      await fetch(`/api/rss/g1`, { method: "POST" });
+      await fetch(`/api/rss/rc24h`, { method: "POST" });
+
+      setMensagem("Importação concluída. Atualizando lista...");
+      await carregar();
+    } catch (e) {
+      console.error(e);
+      setMensagem("Erro ao importar notícias.");
+    }
+  }
+
+
   // Refinar com IA
   async function refinar(id) {
     setProcessando(id);
