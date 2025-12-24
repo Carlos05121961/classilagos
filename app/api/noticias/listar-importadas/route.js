@@ -1,40 +1,42 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../supabaseAdminClient";
+import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = getSupabaseAdmin();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 
-    // Começa simples (pra não quebrar por nome de coluna)
-    const { data, error } = await supabase
-      .from("noticias")
-      .select("id,titulo,cidade,categoria,fonte,status,tipo,created_at")
-      .eq("tipo", "importada")
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-    if (error) {
-      console.error("listar-importadas ERROR:", error);
+    if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        {
-          error: error.message,
-          details: error.details || null,
-          hint: error.hint || null,
-          code: error.code || null,
-        },
+        { error: "ENV faltando: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(data || []);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    // Ajuste aqui o status das "importadas" conforme o seu padrão
+    const { data, error } = await supabaseAdmin
+      .from("noticias")
+      .select("*")
+      .eq("status", "importada")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data }, { status: 200 });
   } catch (e) {
-    console.error("listar-importadas EXCEPTION:", e);
     return NextResponse.json(
       { error: e?.message || "Erro inesperado" },
       { status: 500 }
     );
   }
 }
-
