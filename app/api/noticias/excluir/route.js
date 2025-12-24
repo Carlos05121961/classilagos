@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../supabaseAdminClient";
+import { supabaseAdmin as supabase } from "../../../supabaseAdminClient";
 
 export const dynamic = "force-dynamic";
 
@@ -7,17 +7,21 @@ export async function DELETE(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
-  if (!id) {
+  const idNum = Number(id);
+  if (!id || Number.isNaN(idNum)) {
     return NextResponse.json(
-      { message: "ID da notícia não informado." },
+      { message: "ID da notícia inválido." },
       { status: 400 }
     );
   }
 
   try {
-    const supabase = getSupabaseAdmin();
-
-    const { error } = await supabase.from("noticias").delete().eq("id", id);
+    // Deleta e devolve o que deletou (pra confirmar)
+    const { data, error } = await supabase
+      .from("noticias")
+      .delete()
+      .eq("id", idNum)
+      .select("id");
 
     if (error) {
       console.error("Erro ao excluir notícia:", error);
@@ -27,11 +31,18 @@ export async function DELETE(request) {
       );
     }
 
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { message: "Nada foi excluído (ID não encontrado)." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ message: "Notícia excluída com sucesso." });
   } catch (e) {
     console.error("Erro inesperado ao excluir notícia:", e);
     return NextResponse.json(
-      { message: e?.message || "Erro inesperado ao excluir notícia." },
+      { message: "Erro inesperado ao excluir notícia." },
       { status: 500 }
     );
   }
