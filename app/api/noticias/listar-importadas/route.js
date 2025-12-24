@@ -21,12 +21,14 @@ export async function GET() {
     });
 
     // Ajuste aqui o status das "importadas" conforme o seu padrão
-    const { data, error } = await supabaseAdmin
-      .from("noticias")
-      .select("*")
-      .eq("status", "ativo")
-      .order("created_at", { ascending: false })
-      .limit(200);
+   const { data, error } = await supabaseAdmin
+  .from("noticias")
+  .select("*")
+  .eq("tipo", "importada")
+  .eq("status", "rascunho")
+  .order("created_at", { ascending: false })
+  .limit(200);
+
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
