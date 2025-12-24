@@ -97,27 +97,39 @@ const res = await fetch(`/api/noticias/listar-importadas?t=${Date.now()}`, {
   }
 
   // Excluir notícia
-  async function excluir(id) {
-    if (!confirm("Tem certeza que deseja excluir esta notícia?")) return;
+async function excluir(id) {
+  if (!confirm("Tem certeza que deseja excluir esta notícia?")) return;
 
-    setProcessando(id);
-    setMensagem("Excluindo notícia...");
+  setProcessando(id);
+  setMensagem("Excluindo notícia...");
 
-    try {
-      const res = await fetch(`/api/noticias/excluir?id=${id}`, {
-        method: "DELETE",
-      });
-      const json = await res.json();
+  try {
+    const res = await fetch(`/api/noticias/excluir?id=${id}`, {
+      method: "DELETE",
+    });
 
-      setMensagem(json.message || "Notícia excluída com sucesso.");
-      carregar();
-    } catch (e) {
-      console.error(e);
-      setMensagem("Erro ao excluir notícia.");
+    const json = await res.json();
+
+    if (!res.ok) {
+      setMensagem(json.message || "Erro ao excluir notícia.");
+      return;
     }
 
-    setProcessando(null);
+    // 👉 AQUI É O PULO DO GATO
+    // Remove a notícia da tela imediatamente
+    setLista((listaAtual) =>
+      listaAtual.filter((noticia) => noticia.id !== id)
+    );
+
+    setMensagem("Notícia excluída com sucesso.");
+  } catch (e) {
+    console.error(e);
+    setMensagem("Erro ao excluir notícia.");
   }
+
+  setProcessando(null);
+}
+
 
   return (
     <main className="min-h-screen bg-white px-6 py-8 max-w-5xl mx-auto">
