@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabaseServer as supabase } from "../../../supabaseServerClient";
+import { createClient } from "@supabase/supabase-js";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const FEED_URL =
@@ -18,22 +19,33 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-// Remove CDATA, HTML e algumas entidades básicas
+function getAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!supabaseUrl || !serviceRoleKey) return null;
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+}
+
 function limparTexto(str = "") {
-  return str
+  return (str || "")
     .replace(/<!\[CDATA\[|\]\]>/g, "")
-    .replace(/<\/?[^>]+(>|$)/g, "") // remove tags HTML
-    .replace(/&#8230;/g, "...") // reticências
-    .replace(/&#8220;|&#8221;/g, '"') // aspas duplas
-    .replace(/&#8216;|&#8217;/g, "'") // aspas simples
-    .replace(/&#8211;/g, "-") // travessão/traço
+    .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/&#8230;/g, "...")
+    .replace(/&#8220;|&#8221;/g, '"')
+    .replace(/&#8216;|&#8217;/g, "'")
+    .replace(/&#8211;/g, "-")
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function extrairTag(bloco, tag) {
-  const regex = new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i");
+  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
   const match = bloco.match(regex);
   return match ? limparTexto(match[1]) : null;
 }
@@ -41,78 +53,94 @@ function extrairTag(bloco, tag) {
 function detectarCidade(texto) {
   const lower = (texto || "").toLowerCase();
   for (const cidade of CIDADES) {
-    if (lower.includes(cidade.toLowerCase())) {
-      return cidade;
-    }
+    if (lower.includes(cidade.toLowerCase())) return cidade;
   }
   return "Região dos Lagos";
 }
 
 function parseRss(xml) {
-  const partes = xml.split("<item>").slice(1); // ignora cabeçalho
-  const itens = partes.map((parte) => {
-    const bloco = parte.split("</item>")[0];
+  const partes = xml.split("<item>").slice(1);
+  const itens = partes
+    .map((parte) => {
+      const bloco = parte.split("</item>")[0];
+      const titulo = extrairTag(bloco, "title");
+      const link = extrairTag(bloco, "link");
+      const descricao =
+        extrairTag(bloco, "description") ||
+        extrairTag(bloco, "content:encoded") ||
+        "";
 
-    const titulo = extrairTag(bloco, "title");
-    const link = extrairTag(bloco, "link");
-    const descricao = extrairTag(bloco, "description");
-    const pubDate = extrairTag(bloco, "pubDate");
+      if (!titulo || !link) return null;
 
-    if (!titulo || !link) return null;
+      const cidade = detectarCidade(`${titulo} ${descricao || ""}`);
 
-    const cidade = detectarCidade(`${titulo} ${descricao || ""}`);
+      return {
+        titulo,
+        link_original: link,
+        resumo: descricao || "",
+        texto: descricao || "",
+        cidade,
+        categoria: "Geral",
+      };
+    })
+    .filter(Boolean);
 
-    return {
-      titulo,
-      link_original: link,
-      resumo: descricao || "",
-      texto: descricao || "",
-      cidade,
-      categoria: "Geral",
-      pubDate,
-    };
-  });
-
-  return itens.filter(Boolean);
+  return itens;
 }
 
-// AGORA A ROTA É POST (igual RC24h)
 export async function POST() {
   try {
-    const res = await fetch(FEED_URL, { cache: "no-store" });
-
-    if (!res.ok) {
+    const supabase = getAdmin();
+    if (!supabase) {
       return NextResponse.json(
-        { ok: false, error: "Falha ao buscar RSS do G1." },
+        { ok: false, error: "ENV faltando: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY" },
         { status: 500 }
       );
     }
 
-    const xml = await res.text();
-    const itens = parseRss(xml).slice(0, 15); // limita para não exagerar
+    const res = await fetch(FEED_URL, {
+      cache: "no-store",
+      redirect: "follow",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (compatible; ClassilagosBot/1.0; +https://classilagos.shop)",
+        accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8,*/*;q=0.1",
+      },
+    });
 
-    const inseridos = [];
-    const pulados = [];
+    const text = await res.text();
+
+    // Se não for XML de verdade, devolve um erro “explicativo”
+    if (!res.ok || !text.includes("<rss") && !text.includes("<feed")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "O G1 não retornou RSS/XML válido.",
+          http_status: res.status,
+          preview: text.slice(0, 200),
+        },
+        { status: 500 }
+      );
+    }
+
+    const itens = parseRss(text).slice(0, 20);
+
+    let inseridas = 0;
+    let puladas = 0;
 
     for (const item of itens) {
-      // verifica se já existe notícia com esse link_original
-      const { data: existente, error: erroBusca } = await supabase
+      const { data: existente } = await supabase
         .from("noticias")
         .select("id")
         .eq("link_original", item.link_original)
         .maybeSingle();
 
-      if (erroBusca) {
-        console.error("Erro ao verificar notícia existente:", erroBusca);
-        continue;
-      }
-
       if (existente) {
-        pulados.push(item.titulo);
+        puladas++;
         continue;
       }
 
-      const { error: insertError } = await supabase.from("noticias").insert({
+      const { error } = await supabase.from("noticias").insert({
         titulo: item.titulo,
         cidade: item.cidade,
         categoria: item.categoria,
@@ -125,27 +153,19 @@ export async function POST() {
         status: "rascunho",
       });
 
-      if (insertError) {
-        console.error("Erro ao inserir notícia importada (G1):", insertError);
-        continue;
-      }
-
-      inseridos.push(item.titulo);
+      if (!error) inseridas++;
     }
 
     return NextResponse.json({
       ok: true,
-      mensagem: "Importação do G1 concluída.",
-      total_encontrados: itens.length,
-      inseridos: inseridos.length,
-      pulados: pulados.length,
-      titulos_inseridos: inseridos,
-      titulos_pulados: pulados,
+      source: "g1",
+      found: itens.length,
+      inserted: inseridas,
+      skipped: puladas,
     });
-  } catch (err) {
-    console.error("Erro geral na importação do G1:", err);
+  } catch (e) {
     return NextResponse.json(
-      { ok: false, error: "Erro interno ao importar RSS do G1." },
+      { ok: false, source: "g1", error: e?.message || "Erro inesperado no G1." },
       { status: 500 }
     );
   }
