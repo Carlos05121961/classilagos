@@ -190,9 +190,9 @@ const bannersRodape = [
 
       // Direita: Notícias (cards)
       const { data: cards, error: errCards } = await supabase
-        .from("anuncios")
-        .select("id, created_at, titulo, descricao, cidade, imagens, categoria")
-        .eq("categoria", "noticias")
+     .from("noticias")
+.select("id, created_at, titulo, resumo")
+.eq("status", "publicado")
         .order("created_at", { ascending: false })
         .limit(3);
 
