@@ -24,7 +24,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from("noticias")
       .select("*")
-      .eq("status", "importada")
+      .eq("status", "ativo")
       .order("created_at", { ascending: false })
       .limit(200);
 
