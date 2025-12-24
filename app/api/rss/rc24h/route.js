@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { supabaseServer as supabase } from "../../../supabaseServerClient";
+import { createClient } from "@supabase/supabase-js";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// URL principal do feed do RC24h (WordPress)
 const FEED_URL = "https://rc24h.com.br/feed/";
 
-// cidades da Região dos Lagos pra tentar identificar no título/descrição
 const CIDADES = [
   "Maricá",
   "Saquarema",
@@ -20,19 +19,17 @@ const CIDADES = [
   "Macaé",
 ];
 
-// função simples pra limpar CDATA e HTML básico
 function limparTexto(str = "") {
   if (!str) return "";
   return str
     .replace(/<!\[CDATA\[/g, "")
     .replace(/\]\]>/g, "")
-    .replace(/<\/?[^>]+(>|$)/g, "") // remove tags HTML
+    .replace(/<\/?[^>]+(>|$)/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-// parser simples de RSS só usando split/regex (sem libs extras)
-function parseRssItems(xml, maxItens = 30) {
+function parseRssItems(xml, maxItens = 40) {
   const itens = [];
   const blocos = xml.split("<item>").slice(1);
 
@@ -53,98 +50,82 @@ function parseRssItems(xml, maxItens = 30) {
     if (!title || !link) continue;
 
     itens.push({ title, link, description, pubDate });
-
     if (itens.length >= maxItens) break;
   }
 
   return itens;
 }
 
-// tenta descobrir a cidade pelo texto
 function detectarCidade(texto = "") {
   const t = texto.toLowerCase();
   for (const cidade of CIDADES) {
-    if (t.includes(cidade.toLowerCase())) {
-      return cidade;
-    }
+    if (t.includes(cidade.toLowerCase())) return cidade;
   }
   return "Região dos Lagos";
 }
 
-// POST /api/rss/rc24h
+function getAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!supabaseUrl || !serviceRoleKey) return null;
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+}
+
 export async function POST() {
   try {
-    // 1) Buscar o RSS do RC24h
-    const resp = await fetch(FEED_URL, { cache: "no-store" });
+    const supabase = getAdmin();
+    if (!supabase) {
+      return NextResponse.json(
+        { ok: false, error: "ENV faltando: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY" },
+        { status: 500 }
+      );
+    }
 
+    const resp = await fetch(FEED_URL, { cache: "no-store" });
     if (!resp.ok) {
       return NextResponse.json(
-        {
-          ok: false,
-          source: "rc24h",
-          error: `Falha ao buscar RSS do RC24h: ${resp.status}`,
-        },
+        { ok: false, source: "rc24h", error: `Falha ao buscar RSS do RC24h: ${resp.status}` },
         { status: 500 }
       );
     }
 
     const xml = await resp.text();
-
-    // 2) Parse simples do XML
-    const itens = parseRssItems(xml, 40); // pega até 40 notícias recentes
+    const itens = parseRssItems(xml, 40);
 
     if (!itens.length) {
-      return NextResponse.json({
-        ok: true,
-        source: "rc24h",
-        found: 0,
-        inserted: 0,
-        skipped: 0,
-        message: "Nenhum item encontrado no feed do RC24h.",
-      });
+      return NextResponse.json({ ok: true, source: "rc24h", found: 0, inserted: 0, skipped: 0 });
     }
 
     const urls = itens.map((i) => i.link);
 
-    // 3) Buscar no Supabase quais URLs já existem pra não duplicar
-    const { data: existentes, error: erroExistentes } = await supabase
+    const { data: existentes } = await supabase
       .from("noticias")
-      .select("id, link_original")
+      .select("link_original")
       .in("link_original", urls);
 
-    if (erroExistentes) {
-      console.error("Erro ao buscar notícias existentes (RC24h):", erroExistentes);
-    }
+    const urlsExistentes = new Set((existentes || []).map((n) => n.link_original));
 
-    const urlsExistentes = new Set(
-      (existentes || []).map((n) => n.link_original)
-    );
-
-    let inseridas = 0;
-    let puladas = 0;
     const registrosParaInserir = [];
 
-    // 4) Montar os registros novos (schema SIMPLES)
     for (const item of itens) {
-      if (urlsExistentes.has(item.link)) {
-        puladas++;
-        continue;
-      }
+      if (urlsExistentes.has(item.link)) continue;
 
       const textoCompleto = item.description || item.title;
-      const textoCurto = (textoCompleto || "").slice(0, 220);
-
-      const cidadeDetectada = detectarCidade(
-        `${item.title} ${item.description}`
-      );
+      const resumo = (textoCompleto || "").slice(0, 220);
+      const cidade = detectarCidade(`${item.title} ${item.description}`);
 
       registrosParaInserir.push({
         titulo: item.title,
-        resumo: textoCurto,
+        resumo,
         texto: textoCompleto,
         fonte: "RC24h",
         link_original: item.link,
-        cidade: cidadeDetectada,
+        cidade,
         categoria: "Geral",
         imagem_capa: null,
         tipo: "importada",
@@ -152,45 +133,27 @@ export async function POST() {
       });
     }
 
-    // 5) Inserir no Supabase
-    if (registrosParaInserir.length > 0) {
-      const { error: insertError } = await supabase
-        .from("noticias")
-        .insert(registrosParaInserir);
-
+    if (registrosParaInserir.length) {
+      const { error: insertError } = await supabase.from("noticias").insert(registrosParaInserir);
       if (insertError) {
-        console.error("Erro ao inserir notícias do RC24h:", insertError);
         return NextResponse.json(
-          {
-            ok: false,
-            source: "rc24h",
-            error:
-              insertError.message || "Erro ao inserir notícias do RC24h.",
-          },
+          { ok: false, source: "rc24h", error: insertError.message || "Erro ao inserir notícias." },
           { status: 500 }
         );
       }
-
-      inseridas = registrosParaInserir.length;
     }
 
     return NextResponse.json({
       ok: true,
       source: "rc24h",
       found: itens.length,
-      inserted: inseridas,
-      skipped: puladas,
+      inserted: registrosParaInserir.length,
+      skipped: itens.length - registrosParaInserir.length,
     });
   } catch (e) {
-    console.error("Erro geral ao importar RC24h:", e);
     return NextResponse.json(
-      {
-        ok: false,
-        source: "rc24h",
-        error: e.message || "Erro inesperado ao importar RC24h.",
-      },
+      { ok: false, source: "rc24h", error: e?.message || "Erro inesperado ao importar RC24h." },
       { status: 500 }
     );
   }
 }
-
