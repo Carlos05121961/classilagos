@@ -177,34 +177,35 @@ const bannersRodape = [
   useEffect(() => {
     let ativo = true;
 
-    async function carregarNoticias() {
-      setLoadingNoticias(true);
+  async function carregarNoticias() {
+  setLoadingNoticias(true);
 
-      // Esquerda: Últimas notícias (lista)
-      const { data: lista, error: errLista } = await supabase
-        .from("anuncios")
-        .select("id, created_at, titulo, cidade, categoria")
-        .eq("categoria", "noticias")
-        .order("created_at", { ascending: false })
-        .limit(6);
+  // Esquerda: Últimas notícias (lista)
+  const { data: lista, error: errLista } = await supabase
+    .from("noticias")
+    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+    .eq("status", "publicado")
+    .order("created_at", { ascending: false })
+    .limit(6);
 
-      // Direita: Notícias (cards)
-      const { data: cards, error: errCards } = await supabase
-     .from("noticias")
-.select("id, created_at, titulo, resumo")
-.eq("status", "publicado")
-        .order("created_at", { ascending: false })
-        .limit(3);
+  // Direita: Cards (3 notícias)
+  const { data: cards, error: errCards } = await supabase
+    .from("noticias")
+    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+    .eq("status", "publicado")
+    .order("created_at", { ascending: false })
+    .limit(3);
 
-      if (!ativo) return;
+  if (!ativo) return;
 
-      if (errLista) console.error("Erro últimas notícias:", errLista);
-      if (errCards) console.error("Erro cards notícias:", errCards);
+  if (errLista) console.error("Erro últimas notícias:", errLista);
+  if (errCards) console.error("Erro cards notícias:", errCards);
 
-      setUltimasNoticias(lista || []);
-      setNoticiasCards(cards || []);
-      setLoadingNoticias(false);
-    }
+  setUltimasNoticias(lista || []);
+  setNoticiasCards(cards || []);
+  setLoadingNoticias(false);
+}
+
 
     carregarNoticias();
     return () => { ativo = false; };
