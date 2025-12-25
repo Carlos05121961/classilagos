@@ -608,19 +608,16 @@ const bannersRodape = [
                       href={`/anuncios/${item.id}`}
                       className="group block rounded-2xl bg-white border border-slate-200 overflow-hidden hover:bg-slate-50 transition"
                     >
-                      <div className="relative w-full h-24 bg-slate-200">
-                        {thumb ? (
-                          <img
-                            src={thumb}
-                            alt={item.titulo}
-                            className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
-                            Sem imagem
-                          </div>
-                        )}
-                      </div>
+                     <div className="relative w-full h-24 bg-slate-200">
+  {thumb ? (
+    <img
+      src={thumb}
+      alt={item.titulo}
+      className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+    />
+  ) : null}
+</div>
+
 
                       <div className="p-3">
                         <p className="text-[10px] text-slate-500">
