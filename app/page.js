@@ -21,64 +21,62 @@ export default function Home() {
   ];
 
   // BANNERS (padrão fixo: você só troca as imagens no GitHub e pronto)
-const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
+  const bannersTopo = [
+    {
+      src: "/banners/topo/banner-topo-01.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-02.webp",
+      href: "https://mercadolivre.com/sec/2nVCHmw",
+      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-03.webp",
+      href: "https://mercadolivre.com/sec/17Q8mju",
+      alt: "Caixas de Som (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-04.webp",
+      href: "https://mercadolivre.com/sec/2BbG4vr",
+      alt: "TVs Smart (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-05.webp",
+      href: "https://mercadolivre.com/sec/32bqvEJ",
+      alt: "Celulares e Tablets (Mercado Livre)",
+    },
+  ];
 
-
-
-const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
-
+  const bannersRodape = [
+    {
+      src: "/banners/rodape/banner-rodape-01.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-02.webp",
+      href: "https://mercadolivre.com/sec/2nVCHmw",
+      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-03.webp",
+      href: "https://mercadolivre.com/sec/17Q8
+mju",
+      alt: "Caixas de Som (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-04.webp",
+      href: "https://mercadolivre.com/sec/2BbG4vr",
+      alt: "TVs Smart (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-05.webp",
+      href: "https://mercadolivre.com/sec/32bqvEJ",
+      alt: "Celulares e Tablets (Mercado Livre)",
+    },
+  ];
 
   // ORDEM DOS ÍCONES
   const categorias = [
@@ -177,35 +175,34 @@ const bannersRodape = [
   useEffect(() => {
     let ativo = true;
 
-  async function carregarNoticias() {
-  setLoadingNoticias(true);
+    async function carregarNoticias() {
+      setLoadingNoticias(true);
 
-  // Esquerda: Últimas notícias (lista)
-  const { data: lista, error: errLista } = await supabase
-    .from("noticias")
-    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-    .eq("status", "publicado")
-    .order("created_at", { ascending: false })
-    .limit(6);
+      // Esquerda: Últimas notícias (lista)
+      const { data: lista, error: errLista } = await supabase
+        .from("noticias")
+        .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+        .eq("status", "publicado")
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-  // Direita: Cards (3 notícias)
-  const { data: cards, error: errCards } = await supabase
-    .from("noticias")
-    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-    .eq("status", "publicado")
-    .order("created_at", { ascending: false })
-    .limit(3);
+      // Direita: Cards (3 notícias)
+      const { data: cards, error: errCards } = await supabase
+        .from("noticias")
+        .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+        .eq("status", "publicado")
+        .order("created_at", { ascending: false })
+        .limit(3);
 
-  if (!ativo) return;
+      if (!ativo) return;
 
-  if (errLista) console.error("Erro últimas notícias:", errLista);
-  if (errCards) console.error("Erro cards notícias:", errCards);
+      if (errLista) console.error("Erro últimas notícias:", errLista);
+      if (errCards) console.error("Erro cards notícias:", errCards);
 
-  setUltimasNoticias(lista || []);
-  setNoticiasCards(cards || []);
-  setLoadingNoticias(false);
-}
-
+      setUltimasNoticias(lista || []);
+      setNoticiasCards(cards || []);
+      setLoadingNoticias(false);
+    }
 
     carregarNoticias();
     return () => { ativo = false; };
@@ -249,14 +246,10 @@ const bannersRodape = [
 
   return (
     <main className="bg-white">
-     {/* BANNER TOPO (rotator) */}
-<div className="py-4">
- <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720}
-
-  />
-</div>
-  
-
+      {/* BANNER TOPO (rotator) */}
+      <div className="py-4">
+        <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
+      </div>
 
       {/* HERO */}
       <section className="relative w-full">
@@ -314,20 +307,19 @@ const bannersRodape = [
                 />
               </div>
 
-            <SmartSelect
-  label="Categoria"
-  value={categoria || "Todas"}
-  onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
-  options={["Todas", ...categorias.map((c) => c.label)]}
-/>
+              <SmartSelect
+                label="Categoria"
+                value={categoria || "Todas"}
+                onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
+                options={["Todas", ...categorias.map((c) => c.label)]}
+              />
 
-<SmartSelect
-  label="Cidade"
-  value={cidade || "Toda a região"}
-  onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
-  options={["Toda a região", ...cidades]}
-/>
-
+              <SmartSelect
+                label="Cidade"
+                value={cidade || "Toda a região"}
+                onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
+                options={["Toda a região", ...cidades]}
+              />
 
               <button
                 type="button"
@@ -487,7 +479,7 @@ const bannersRodape = [
         </div>
       </section>
 
-      {/* ✅ BLOCO PREMIUM 3 COLUNAS (CORRIGIDO: esquerda últimas notícias / direita notícias) */}
+      {/* ✅ BLOCO PREMIUM 3 COLUNAS (altura limitada + scroll interno + links corretos) */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
           {/* ESQUERDA — ÚLTIMAS NOTÍCIAS */}
@@ -503,7 +495,8 @@ const bannersRodape = [
               O que saiu agora na Região dos Lagos (últimas publicações).
             </p>
 
-            <div className="space-y-3">
+            {/* altura controlada */}
+            <div className="space-y-3 max-h-[300px] overflow-auto pr-1">
               {loadingNoticias ? (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
@@ -516,11 +509,12 @@ const bannersRodape = [
                 ultimasNoticias.map((n) => (
                   <Link
                     key={n.id}
-                    href={`/anuncios/${n.id}`}
+                    href={`/noticias/${n.id}`}
                     className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
                   >
                     <p className="text-[10px] text-slate-500">
-                      {formatarDataBR(n.created_at)} • <span className="font-semibold text-slate-700">{n.cidade}</span>
+                      {formatarDataBR(n.created_at)} •{" "}
+                      <span className="font-semibold text-slate-700">{n.cidade}</span>
                     </p>
                     <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
                       {n.titulo}
@@ -537,7 +531,7 @@ const bannersRodape = [
             </div>
           </div>
 
-          {/* MEIO — TV (IGUAL, NÃO MEXI) */}
+          {/* MEIO — TV */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
@@ -586,10 +580,11 @@ const bannersRodape = [
             </div>
 
             <p className="text-[11px] text-slate-600 mb-4">
-              Destaques recentes com imagem (layout leve, sem estourar altura).
+              Destaques recentes (imagem opcional, visual limpo).
             </p>
 
-            <div className="space-y-3">
+            {/* altura controlada */}
+            <div className="space-y-3 max-h-[300px] overflow-auto pr-1">
               {loadingNoticias ? (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
@@ -600,37 +595,32 @@ const bannersRodape = [
                 </div>
               ) : (
                 noticiasCards.map((item) => {
-                  const imgs = Array.isArray(item.imagens) ? item.imagens : [];
-                  const thumb = imgs?.[0] || "";
+                  const thumb = item.imagem_capa || "";
+
                   return (
                     <Link
                       key={item.id}
-                      href={`/anuncios/${item.id}`}
+                      href={`/noticias/${item.id}`}
                       className="group block rounded-2xl bg-white border border-slate-200 overflow-hidden hover:bg-slate-50 transition"
                     >
-                     <div className="relative w-full h-24 bg-slate-200">
-  {thumb ? (
-    <img
-      src={thumb}
-      alt={item.titulo}
-      className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-    />
-  ) : null}
-</div>
-
+                      <div className="relative w-full h-24 bg-slate-200">
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={item.titulo}
+                            className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+                          />
+                        ) : null}
+                      </div>
 
                       <div className="p-3">
                         <p className="text-[10px] text-slate-500">
-                          {formatarDataBR(item.created_at)} • <span className="font-semibold text-slate-700">{item.cidade}</span>
+                          {formatarDataBR(item.created_at)} •{" "}
+                          <span className="font-semibold text-slate-700">{item.cidade}</span>
                         </p>
                         <p className="mt-1 text-[12px] font-extrabold text-slate-900 line-clamp-2">
                           {item.titulo}
                         </p>
-                        {item.descricao && (
-                          <p className="mt-1 text-[11px] text-slate-600 line-clamp-2">
-                            {item.descricao}
-                          </p>
-                        )}
                       </div>
                     </Link>
                   );
@@ -647,20 +637,17 @@ const bannersRodape = [
         </div>
       </section>
 
-   {/* BANNER RODAPÉ (rotativo) — com respiro */}
-<section className="bg-white py-8">
-  <div className="max-w-7xl mx-auto px-4">
-    <BannerRotator
-      images={bannersRodape}
-      interval={6500}
-      height={170}
-      maxWidth={720}
-    />
-  </div>
-</section>
-
-
-
+      {/* BANNER RODAPÉ (rotativo) — com respiro */}
+      <section className="bg-white py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator
+            images={bannersRodape}
+            interval={6500}
+            height={170}
+            maxWidth={720}
+          />
+        </div>
+      </section>
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
