@@ -75,6 +75,8 @@ export default function AnuncioDetalhePage() {
   const [shareUrl, setShareUrl] = useState("");
   const [similares, setSimilares] = useState([]);
 
+  const linksCidade = LINKS_OFICIAIS[anuncio?.cidade || ""];
+
   // URL atual (para compartilhar)
   useEffect(() => {
     if (typeof window !== "undefined") {
