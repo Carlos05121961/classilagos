@@ -13,60 +13,20 @@ const heroImages = ["/hero/veiculos-01.webp", "/hero/veiculos-02.webp", "/hero/v
 
 // ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/topo/banner-topo-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 // ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
 const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/rodape/banner-rodape-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 // Cidades padrão
@@ -102,6 +62,29 @@ function getTipoVeiculo(anuncio) {
 
 function getCondicaoVeiculo(anuncio) {
   return anuncio?.condicao_veiculo || anuncio?.condicao || "";
+}
+
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = norm(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
+// ✅ ORDEM PREMIUM (local) — destaque desc → prioridade desc → created_at desc
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = isDestaqueTruthy(a?.destaque) ? 1 : 0;
+    const db = isDestaqueTruthy(b?.destaque) ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
 }
 
 function pegarCapaDoAnuncio(anuncio) {
@@ -175,7 +158,7 @@ export default function VeiculosPage() {
     }
   }, [heroIndex, loadedSet]);
 
-  // Buscar anúncios de veículos no Supabase
+  // Buscar anúncios de veículos no Supabase (✅ ORDEM PREMIUM)
   useEffect(() => {
     const fetchVeiculos = async () => {
       try {
@@ -186,6 +169,7 @@ export default function VeiculosPage() {
           .select("*")
           .eq("categoria", "veiculos")
           .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(80);
 
@@ -193,7 +177,8 @@ export default function VeiculosPage() {
           console.error("Erro ao buscar veículos:", error);
           setVeiculos([]);
         } else {
-          setVeiculos(data || []);
+          // ✅ reforço local (garante consistência visual)
+          setVeiculos(sortPremiumLocal(data || []));
         }
       } catch (e) {
         console.error("Erro inesperado ao buscar veículos:", e);
@@ -206,7 +191,7 @@ export default function VeiculosPage() {
     fetchVeiculos();
   }, []);
 
-  // Escolhe 1 anúncio para representar cada card
+  // Escolhe 1 anúncio para representar cada card (✅ “melhor” pelo Premium)
   function escolherAnuncioParaCard(slug) {
     if (!veiculos || veiculos.length === 0) return null;
 
@@ -253,15 +238,14 @@ export default function VeiculosPage() {
 
     if (filtrados.length === 0) return null;
 
-    const emDestaque = filtrados.find((a) => a?.destaque === true);
-    return emDestaque || filtrados[0];
+    const ordenados = sortPremiumLocal(filtrados);
+    return ordenados[0] || null;
   }
 
+  // ✅ Top 8 “premium” (destaque/prioridade/data)
   const listaDestaques = useMemo(() => {
     if (!veiculos || veiculos.length === 0) return [];
-    const soDestaques = veiculos.filter((a) => a?.destaque === true);
-    if (soDestaques.length > 0) return soDestaques.slice(0, 8);
-    return veiculos.slice(0, 8);
+    return sortPremiumLocal(veiculos).slice(0, 8);
   }, [veiculos]);
 
   function executarBusca() {
@@ -300,12 +284,7 @@ export default function VeiculosPage() {
             }}
           />
 
-          <Image
-            src={heroSrc}
-            alt="Pré-carregamento hero"
-            fill
-            className="opacity-0 pointer-events-none"
-          />
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35" />
@@ -340,7 +319,6 @@ export default function VeiculosPage() {
                 />
               </div>
 
-              {/* ✅ Tipo (SmartSelect no mobile) */}
               <SmartSelect
                 label="Tipo"
                 value={buscaTipo || "Todos"}
@@ -348,7 +326,6 @@ export default function VeiculosPage() {
                 options={["Todos", ...tiposVeiculo]}
               />
 
-              {/* ✅ Cidade (SmartSelect no mobile) */}
               <SmartSelect
                 label="Cidade"
                 value={buscaCidade || "Todas"}
@@ -424,9 +401,7 @@ export default function VeiculosPage() {
         {loadingVeiculos ? (
           <p className="text-xs text-slate-500">Carregando veículos...</p>
         ) : listaDestaques.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            Ainda não há veículos cadastrados. Seja o primeiro a anunciar!
-          </p>
+          <p className="text-xs text-slate-500">Ainda não há veículos cadastrados. Seja o primeiro a anunciar!</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {listaDestaques.map((carro) => {
@@ -451,9 +426,7 @@ export default function VeiculosPage() {
                       {carro.cidade}
                       {carro.bairro ? ` • ${carro.bairro}` : ""}
                     </p>
-                    {carro.preco && (
-                      <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>
-                    )}
+                    {carro.preco && <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>}
                   </div>
                 </Link>
               );
@@ -512,4 +485,3 @@ export default function VeiculosPage() {
     </main>
   );
 }
-
