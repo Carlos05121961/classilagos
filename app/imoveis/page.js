@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import BannerRotator from "../components/BannerRotator";
 import SmartSelect from "../components/SmartSelect";
+import { LINKS_OFICIAIS } from "../../lib/linksOficiais";
 
 const heroImages = [
   "/hero/imoveis-01.webp",
