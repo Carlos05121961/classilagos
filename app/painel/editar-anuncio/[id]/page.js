@@ -363,6 +363,7 @@ export default function EditarAnuncioPage() {
       payload.nome_negocio = emptyToNull(form.nome_negocio);
       payload.faixa_preco = emptyToNull(form.faixa_preco);
       payload.horario_atendimento = emptyToNull(form.horario_atendimento);
+      payload.horarioFuncionamento = emptyToNull(form.horario_atendimento);
       payload.atende_domicilio = !!form.atende_domicilio;
       payload.site_url = emptyToNull(form.site_url);
       payload.instagram = emptyToNull(form.instagram);
