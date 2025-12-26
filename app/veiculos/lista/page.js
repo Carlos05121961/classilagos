@@ -6,6 +6,33 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
+function norm(s) {
+  return (s || "").toString().trim().toLowerCase();
+}
+
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = norm(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
+// ✅ ORDEM PREMIUM (local) — destaque desc → prioridade desc → created_at desc
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = isDestaqueTruthy(a?.destaque) ? 1 : 0;
+    const db = isDestaqueTruthy(b?.destaque) ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
+}
+
 function ListaVeiculosContent() {
   const searchParams = useSearchParams();
 
@@ -18,7 +45,7 @@ function ListaVeiculosContent() {
     financiado: false,
     consignado: false,
     loja: false,
-    locadora: false, // ✅ novo
+    locadora: false,
   });
 
   // ✅ lê os parâmetros SEM travar (toda vez que a URL mudar)
@@ -28,12 +55,15 @@ function ListaVeiculosContent() {
     const financiado = searchParams.get("financiado") === "1";
     const consignado = searchParams.get("consignado") === "1";
     const loja = searchParams.get("loja") === "1";
-    const locadora = searchParams.get("locadora") === "1"; // ✅ novo
+
+    // ✅ aceita locadora=1 (antigo) e locacao=1 (novo, do seu Veiculos/page)
+    const locadora =
+      searchParams.get("locadora") === "1" || searchParams.get("locacao") === "1";
 
     setFiltros({ tipo, condicao, financiado, consignado, loja, locadora });
   }, [searchParams]);
 
-  // ✅ buscar anúncios conforme filtros
+  // ✅ buscar anúncios conforme filtros (✅ ORDEM PREMIUM)
   useEffect(() => {
     let cancelado = false;
 
@@ -44,10 +74,11 @@ function ListaVeiculosContent() {
         let query = supabase
           .from("anuncios")
           .select(
-            "id, titulo, descricao, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade, destaque, created_at"
+            "id, titulo, descricao, cidade, bairro, preco, imagens, tipo_imovel, condicao_veiculo, zero_km, financiado, consignado, loja_revenda, finalidade, destaque, prioridade, created_at"
           )
           .eq("categoria", "veiculos")
           .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
           .order("created_at", { ascending: false });
 
         if (filtros.tipo) query = query.eq("tipo_imovel", filtros.tipo);
@@ -80,7 +111,8 @@ function ListaVeiculosContent() {
           console.error("Erro ao carregar veículos:", error);
           setAnuncios([]);
         } else {
-          setAnuncios(data || []);
+          // ✅ reforço local (garante consistência mesmo se DB tiver nulos)
+          setAnuncios(sortPremiumLocal(data || []));
         }
       } catch (e) {
         console.error("Erro inesperado ao carregar veículos:", e);
@@ -121,8 +153,12 @@ function ListaVeiculosContent() {
       <section className="border-b bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] text-slate-500 mb-1">Classilagos &gt; Veículos</p>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-900">{tituloPagina}</h1>
+            <p className="text-[11px] text-slate-500 mb-1">
+              Classilagos &gt; Veículos
+            </p>
+            <h1 className="text-lg md:text-2xl font-bold text-slate-900">
+              {tituloPagina}
+            </h1>
             <p className="text-xs md:text-sm text-slate-600 mt-1">
               Anúncios publicados pelos usuários em toda a Região dos Lagos.
             </p>
@@ -149,9 +185,14 @@ function ListaVeiculosContent() {
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-2xl shadow border border-slate-200">
+              <div
+                key={i}
+                className="overflow-hidden rounded-2xl shadow border border-slate-200"
+              >
                 <div className="h-28 md:h-32 w-full bg-slate-200 animate-pulse" />
-                <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">Carregando...</div>
+                <div className="bg-slate-900 text-white text-xs md:text-sm font-semibold px-3 py-2">
+                  Carregando...
+                </div>
               </div>
             ))}
           </div>
@@ -171,7 +212,10 @@ function ListaVeiculosContent() {
         {!loading && anuncios.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {anuncios.map((carro) => {
-              const img = Array.isArray(carro.imagens) && carro.imagens.length > 0 ? carro.imagens[0] : null;
+              const img =
+                Array.isArray(carro.imagens) && carro.imagens.length > 0
+                  ? carro.imagens[0]
+                  : null;
 
               return (
                 <Link
@@ -196,13 +240,17 @@ function ListaVeiculosContent() {
                   </div>
 
                   <div className="bg-slate-900 text-white px-3 py-2">
-                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">{carro.titulo}</p>
+                    <p className="text-[11px] font-semibold line-clamp-2 uppercase">
+                      {carro.titulo}
+                    </p>
                     <p className="mt-1 text-[10px] text-slate-200">
                       {carro.cidade}
                       {carro.bairro ? ` • ${carro.bairro}` : ""}
                     </p>
                     {carro.preco && (
-                      <p className="mt-1 text-[11px] font-bold text-emerald-300">R$ {carro.preco}</p>
+                      <p className="mt-1 text-[11px] font-bold text-emerald-300">
+                        R$ {carro.preco}
+                      </p>
                     )}
                   </div>
                 </Link>
@@ -217,7 +265,9 @@ function ListaVeiculosContent() {
 
 export default function ListaVeiculosPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-slate-600">Carregando...</div>}>
+    <Suspense
+      fallback={<div className="p-6 text-sm text-slate-600">Carregando...</div>}
+    >
       <ListaVeiculosContent />
     </Suspense>
   );
