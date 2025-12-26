@@ -12,7 +12,6 @@ export default function MeusAnunciosPage() {
   const [erro, setErro] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
-  // Carrega usuário + anúncios do usuário
   useEffect(() => {
     async function carregar() {
       setLoading(true);
@@ -128,7 +127,10 @@ export default function MeusAnunciosPage() {
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-6 text-sm text-slate-600">
               Você ainda não publicou nenhum anúncio.
               <br />
-              <Link href="/anunciar" className="text-[#21D4FD] font-semibold hover:underline">
+              <Link
+                href="/anunciar"
+                className="text-[#21D4FD] font-semibold hover:underline"
+              >
                 Clique aqui para criar o primeiro anúncio.
               </Link>
             </div>
@@ -147,7 +149,6 @@ export default function MeusAnunciosPage() {
                     key={anuncio.id}
                     className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm"
                   >
-                    {/* Imagem */}
                     {img ? (
                       <div className="w-full h-48 sm:h-52 overflow-hidden bg-slate-100">
                         <img
@@ -162,7 +163,6 @@ export default function MeusAnunciosPage() {
                       </div>
                     )}
 
-                    {/* Conteúdo */}
                     <div className="flex-1 px-4 py-3 space-y-1 text-sm text-slate-700">
                       <div className="flex items-center justify-between gap-2">
                         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 border border-slate-200">
@@ -194,19 +194,20 @@ export default function MeusAnunciosPage() {
                       )}
                     </div>
 
-                    {/* Ações */}
                     <div className="px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
                       <div className="flex flex-wrap gap-2">
+                        {/* ✅ Ajuste 1: rota do anúncio (singular) */}
                         <Link
-                          href={`/anuncios/${anuncio.id}`}
-                          className="rounded-full border border-slate-300 px-3 py-2 hover:bg-slate-100"
+                          href={`/anuncio/${anuncio.id}`}
+                          className="rounded-full border border-slate-300 px-3 py-2 text-slate-700 font-semibold hover:bg-slate-100 hover:text-slate-900"
                         >
                           Ver anúncio
                         </Link>
 
+                        {/* ✅ Ajuste 2: texto do link (para não “sumir”) */}
                         <Link
                           href={`/painel/editar-anuncio/${anuncio.id}`}
-                          className="rounded-full border border-slate-300 px-3 py-2 hover:bg-slate-100"
+                          className="rounded-full border border-slate-300 px-3 py-2 text-slate-700 font-semibold hover:bg-slate-100 hover:text-slate-900"
                         >
                           Editar
                         </Link>
@@ -222,7 +223,6 @@ export default function MeusAnunciosPage() {
                       </button>
                     </div>
 
-                    {/* Dica */}
                     <p className="px-4 pb-4 text-[10px] text-slate-400">
                       Dica: o botão "Editar" abre a página de edição do anúncio.
                     </p>
@@ -236,4 +236,3 @@ export default function MeusAnunciosPage() {
     </AuthGuard>
   );
 }
-
