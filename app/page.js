@@ -390,51 +390,47 @@ useEffect(() => {
         </div>
       </section>
 
-{/* VITRINE PREMIUM — dinâmica (lançamento) */}
+{/* VITRINE PREMIUM — LANÇAMENTO (puxa do banco) */}
 <section className="bg-white -mt-2 pb-8">
   <div className="max-w-7xl mx-auto px-4">
     <div className="flex items-end justify-between gap-4 mb-3">
       <div>
         <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
         <p className="text-[11px] text-slate-500">
-          Lançamento: vamos mostrar anúncios recentes aqui (de qualquer categoria).
+          Apareça aqui na vitrine do Classilagos (lançamento).
         </p>
       </div>
 
-      <Link
-        href="/anunciar"
-        className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700"
-      >
+      <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
         Quero aparecer aqui →
       </Link>
     </div>
 
-    {/* GRID */}
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {loadingDestaques ? (
-        <div className="col-span-full text-center text-slate-500 text-sm">
-          Carregando vitrine...
-        </div>
-      ) : destaques.length === 0 ? (
-        <div className="col-span-full text-center text-slate-500 text-sm">
-          Ainda não há anúncios para mostrar na vitrine.
-        </div>
-      ) : (
-        destaques.map((item) => {
-          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
-          const thumb = imagensValidas?.[0] || "";
+    {loadingVitrine ? (
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
+        Carregando vitrine...
+      </div>
+    ) : vitrineAnuncios.length === 0 ? (
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
+        Ainda não há anúncios suficientes para a vitrine.
+      </div>
+    ) : (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {vitrineAnuncios.map((c) => {
+          const imgs = Array.isArray(c.imagens) ? c.imagens : [];
+          const thumb = imgs?.[0] || "";
 
           return (
             <Link
-              key={item.id}
-              href={`/anuncios/${item.id}`}
+              key={c.id}
+              href={`/anuncios/${c.id}`}
               className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
             >
               <div className="relative h-28 bg-slate-100 overflow-hidden">
                 {thumb ? (
                   <img
                     src={thumb}
-                    alt={item.titulo}
+                    alt={c.titulo}
                     className="w-full h-full object-cover group-hover:scale-[1.03] transition"
                   />
                 ) : (
@@ -447,17 +443,15 @@ useEffect(() => {
 
                 <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
                   <span>⭐</span>
-                  <span>{formatCategoria(item.categoria)}</span>
+                  <span>{formatCategoria(c.categoria)}</span>
                 </div>
               </div>
 
               <div className="p-4">
-                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-                  {item.titulo}
-                </p>
+                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">{c.titulo}</p>
 
-                <p className="mt-1 text-[12px] text-slate-600">
-                  {item.cidade}
+                <p className="mt-1 text-[12px] text-slate-600 line-clamp-2">
+                  {c.descricao || ""}
                 </p>
 
                 <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
@@ -466,9 +460,9 @@ useEffect(() => {
               </div>
             </Link>
           );
-        })
-      )}
-    </div>
+        })}
+      </div>
+    )}
 
     <div className="mt-3 text-center sm:hidden">
       <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
@@ -477,6 +471,7 @@ useEffect(() => {
     </div>
   </div>
 </section>
+
 
 
       {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
