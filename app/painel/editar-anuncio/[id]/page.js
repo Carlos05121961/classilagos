@@ -22,10 +22,9 @@ const CIDADES = [
 const FINALIDADES_IMOVEIS = [
   { value: "venda", label: "Venda" },
   { value: "aluguel", label: "Aluguel" },
-  { value: "aluguel_fixo", label: "Aluguel fixo" },
-  { value: "temporada", label: "Aluguel por temporada" },
   { value: "aluguel_temporada", label: "Aluguel por temporada" },
 ];
+
 
 const SUBCATEGORIAS_SERVICO = [
   { value: "profissionais", label: "Profissionais & Serviços" },
