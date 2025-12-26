@@ -382,78 +382,94 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
         </div>
       </section>
 
-      {/* VITRINE PREMIUM — 1 TEXTO SÓ, DISCRETO */}
-      <section className="bg-white -mt-2 pb-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-end justify-between gap-4 mb-3">
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
-              <p className="text-[11px] text-slate-500">
-                Turismo • Temporada • Hospedagem • Mobilidade
-              </p>
-            </div>
+{/* VITRINE PREMIUM — dinâmica (lançamento) */}
+<section className="bg-white -mt-2 pb-8">
+  <div className="max-w-7xl mx-auto px-4">
+    <div className="flex items-end justify-between gap-4 mb-3">
+      <div>
+        <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
+        <p className="text-[11px] text-slate-500">
+          Lançamento: vamos mostrar anúncios recentes aqui (de qualquer categoria).
+        </p>
+      </div>
 
-            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
-              Quero aparecer aqui →
-            </Link>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-         {loadingVitrine ? (
-  <p className="text-sm text-slate-500">Carregando vitrine...</p>
-) : vitrineAnuncios.length === 0 ? (
-  <p className="text-sm text-slate-500">Ainda não há anúncios na vitrine.</p>
-) : (
-  vitrineAnuncios.map((c) => {
-    const imagensValidas = Array.isArray(c.imagens) ? c.imagens : [];
-    const thumb = imagensValidas[0] || "";
-
-    return (
       <Link
-        key={c.id}
-        href={`/anuncios/${c.id}`}
-        className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+        href="/anunciar"
+        className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700"
       >
-        <div className="relative h-28 bg-gradient-to-b from-slate-100 to-slate-200 overflow-hidden">
-          {thumb ? (
-            <img
-              src={thumb}
-              alt={c.titulo}
-              className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-            />
-          ) : null}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
-
-          <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-            <span>{(c.categoria || "Classificados").toUpperCase()}</span>
-          </div>
-        </div>
-
-        <div className="p-4">
-          <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-            {c.titulo}
-          </p>
-
-          <p className="mt-1 text-[12px] text-slate-600 line-clamp-2">
-            {c.descricao || ""}
-          </p>
-
-          <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-            Ver anúncio →
-          </span>
-        </div>
+        Quero aparecer aqui →
       </Link>
-    );
-  })
-)}
+    </div>
 
+    {/* GRID */}
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {loadingDestaques ? (
+        <div className="col-span-full text-center text-slate-500 text-sm">
+          Carregando vitrine...
+        </div>
+      ) : destaques.length === 0 ? (
+        <div className="col-span-full text-center text-slate-500 text-sm">
+          Ainda não há anúncios para mostrar na vitrine.
+        </div>
+      ) : (
+        destaques.map((item) => {
+          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+          const thumb = imagensValidas?.[0] || "";
 
-       <div className="mt-3 text-center sm:hidden">
-  <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-    Quero aparecer aqui →
-  </Link>
-</div>
+          return (
+            <Link
+              key={item.id}
+              href={`/anuncios/${item.id}`}
+              className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+            >
+              <div className="relative h-28 bg-slate-100 overflow-hidden">
+                {thumb ? (
+                  <img
+                    src={thumb}
+                    alt={item.titulo}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                    Sem imagem
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
+
+                <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                  <span>⭐</span>
+                  <span>{formatCategoria(item.categoria)}</span>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                  {item.titulo}
+                </p>
+
+                <p className="mt-1 text-[12px] text-slate-600">
+                  {item.cidade}
+                </p>
+
+                <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                  Ver anúncio →
+                </span>
+              </div>
+            </Link>
+          );
+        })
+      )}
+    </div>
+
+    <div className="mt-3 text-center sm:hidden">
+      <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+        Quero aparecer aqui →
+      </Link>
+    </div>
+  </div>
+</section>
+
 
 </div> {/* ✅ fecha o container max-w-7xl mx-auto px-4 (VITRINE) */}
 
