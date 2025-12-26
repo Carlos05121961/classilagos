@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 import BannerRotator from "../../components/BannerRotator";
+import { LINKS_OFICIAIS } from "@/lib/linksOficiais";
+
 
 // BANNERS (padrão HOME)
 const BANNERS_TOPO = [
