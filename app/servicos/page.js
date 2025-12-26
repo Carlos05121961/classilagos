@@ -95,35 +95,51 @@ export default function ServicosPage() {
 
   // Buscar serviços no Supabase (vitrine da página)
   useEffect(() => {
+    let cancelado = false;
+
     const fetchServicos = async () => {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens, created_at")
-        .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
-        .eq("status", "ativo")
-        .order("created_at", { ascending: false });
+        const { data, error } = await supabase
+          .from("anuncios")
+          .select("id, titulo, cidade, bairro, faixa_preco, atende_domicilio, subcategoria_servico, imagens, created_at, status, destaque, prioridade")
+          .or("categoria.eq.servicos,categoria.eq.servico,categoria.eq.serviços")
+          .or("status.is.null,status.eq.ativo")
+          .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Erro ao carregar serviços:", error);
+        if (cancelado) return;
+
+        if (error) {
+          console.error("Erro ao carregar serviços:", error);
+          setClassimed([]);
+          setEventos([]);
+          setProfissionais([]);
+          setLoading(false);
+          return;
+        }
+
+        const lista = data || [];
+
+        setClassimed(lista.filter((s) => s.subcategoria_servico === "classimed").slice(0, 5));
+        setEventos(lista.filter((s) => s.subcategoria_servico === "eventos").slice(0, 5));
+        setProfissionais(lista.filter((s) => s.subcategoria_servico === "profissionais").slice(0, 5));
+      } catch (e) {
+        console.error("Erro inesperado ao carregar serviços:", e);
         setClassimed([]);
         setEventos([]);
         setProfissionais([]);
-        setLoading(false);
-        return;
+      } finally {
+        if (!cancelado) setLoading(false);
       }
-
-      const lista = data || [];
-
-      setClassimed(lista.filter((s) => s.subcategoria_servico === "classimed").slice(0, 5));
-      setEventos(lista.filter((s) => s.subcategoria_servico === "eventos").slice(0, 5));
-      setProfissionais(lista.filter((s) => s.subcategoria_servico === "profissionais").slice(0, 5));
-
-      setLoading(false);
     };
 
     fetchServicos();
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
   // Card reutilizável com miniatura opcional
@@ -185,8 +201,8 @@ export default function ServicosPage() {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
 
-    // ✅ categoria do motor (padrão do site)
-    params.set("categoria", "servico");
+    // ✅ categoria do motor (padrão Premium)
+    params.set("categoria", "servicos");
 
     router.push(`/busca?${params.toString()}`);
   }
@@ -209,14 +225,7 @@ export default function ServicosPage() {
       {/* ✅ HERO FIXO (1 imagem) */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            src={HERO_SRC}
-            alt="Classilagos – Serviços"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+          <Image src={HERO_SRC} alt="Classilagos – Serviços" fill priority sizes="100vw" className="object-cover" />
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/45" />
@@ -312,6 +321,37 @@ export default function ServicosPage() {
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos (padrão Premium).</p>
+
+          {/* ✅ ACESSO RÁPIDO (VISÍVEL) */}
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Link
+              href="/servicos/lista"
+              className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              Ver todos os serviços →
+            </Link>
+
+            <Link
+              href="/servicos/lista?tipo=classimed"
+              className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100"
+            >
+              Saúde (Classimed)
+            </Link>
+
+            <Link
+              href="/servicos/lista?tipo=eventos"
+              className="inline-flex rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-[11px] font-semibold text-pink-700 hover:bg-pink-100"
+            >
+              Festas &amp; Eventos
+            </Link>
+
+            <Link
+              href="/servicos/lista?tipo=profissionais"
+              className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-[11px] font-semibold text-blue-700 hover:bg-blue-100"
+            >
+              Profissionais
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -338,6 +378,11 @@ export default function ServicosPage() {
               </div>
               <p className="text-xs text-slate-700">Clínicas, terapeutas, cuidadores, psicólogos, nutricionistas e muito mais.</p>
             </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-emerald-700 group-hover:underline">Anunciar →</span>
+              <span className="text-[11px] font-semibold text-slate-600 group-hover:underline">Ver lista →</span>
+            </div>
           </Link>
 
           <Link
@@ -353,6 +398,11 @@ export default function ServicosPage() {
                 </div>
               </div>
               <p className="text-xs text-slate-700">Buffet, doces e salgados, fotografia, DJ, decoração, espaços para festas e muito mais.</p>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-pink-700 group-hover:underline">Anunciar →</span>
+              <span className="text-[11px] font-semibold text-slate-600 group-hover:underline">Ver lista →</span>
             </div>
           </Link>
 
@@ -370,6 +420,11 @@ export default function ServicosPage() {
               </div>
               <p className="text-xs text-slate-700">Eletricistas, diaristas, manutenção, reboque, arquitetos, engenheiros, piscineiros e muito mais.</p>
             </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-blue-700 group-hover:underline">Anunciar →</span>
+              <span className="text-[11px] font-semibold text-slate-600 group-hover:underline">Ver lista →</span>
+            </div>
           </Link>
         </div>
       </section>
@@ -381,10 +436,17 @@ export default function ServicosPage() {
         </h2>
 
         <div className="grid gap-5 md:grid-cols-3">
+          {/* CLASSIMED */}
           <div className="space-y-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="text-sm font-semibold text-slate-900">Saúde (Classimed)</h3>
-              {!loading && <p className="text-[11px] text-slate-500">{classimed.length} anúncio(s)</p>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-slate-900">Saúde (Classimed)</h3>
+                {!loading && <p className="text-[11px] text-slate-500">{classimed.length} anúncio(s)</p>}
+              </div>
+
+              <Link href="/servicos/lista?tipo=classimed" className="text-[11px] font-semibold text-emerald-700 hover:underline">
+                Ver todos →
+              </Link>
             </div>
 
             {loading && classimed.length === 0 && <p className="text-[11px] text-slate-500">Carregando serviços de saúde…</p>}
@@ -393,10 +455,17 @@ export default function ServicosPage() {
             <div className="space-y-3">{classimed.map((item) => <CardServico key={item.id} item={item} />)}</div>
           </div>
 
+          {/* EVENTOS */}
           <div className="space-y-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="text-sm font-semibold text-slate-900">Festas &amp; eventos</h3>
-              {!loading && <p className="text-[11px] text-slate-500">{eventos.length} anúncio(s)</p>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-slate-900">Festas &amp; eventos</h3>
+                {!loading && <p className="text-[11px] text-slate-500">{eventos.length} anúncio(s)</p>}
+              </div>
+
+              <Link href="/servicos/lista?tipo=eventos" className="text-[11px] font-semibold text-pink-700 hover:underline">
+                Ver todos →
+              </Link>
             </div>
 
             {loading && eventos.length === 0 && <p className="text-[11px] text-slate-500">Carregando serviços de eventos…</p>}
@@ -405,10 +474,17 @@ export default function ServicosPage() {
             <div className="space-y-3">{eventos.map((item) => <CardServico key={item.id} item={item} />)}</div>
           </div>
 
+          {/* PROFISSIONAIS */}
           <div className="space-y-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="text-sm font-semibold text-slate-900">Profissionais &amp; serviços</h3>
-              {!loading && <p className="text-[11px] text-slate-500">{profissionais.length} anúncio(s)</p>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-sm font-semibold text-slate-900">Profissionais &amp; serviços</h3>
+                {!loading && <p className="text-[11px] text-slate-500">{profissionais.length} anúncio(s)</p>}
+              </div>
+
+              <Link href="/servicos/lista?tipo=profissionais" className="text-[11px] font-semibold text-blue-700 hover:underline">
+                Ver todos →
+              </Link>
             </div>
 
             {loading && profissionais.length === 0 && <p className="text-[11px] text-slate-500">Carregando profissionais…</p>}
@@ -440,7 +516,7 @@ export default function ServicosPage() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">Classimed – Saúde &amp; bem-estar</h3>
               <p className="text-[11px] text-slate-300 mb-3">Profissionais de saúde, terapias, clínicas e bem-estar perto de você.</p>
-              <Link href="/servicos/classimed" className="inline-flex items-center text-[11px] font-semibold text-emerald-300 hover:text-emerald-200">
+              <Link href="/servicos/lista?tipo=classimed" className="inline-flex items-center text-[11px] font-semibold text-emerald-300 hover:text-emerald-200">
                 Ver serviços de saúde →
               </Link>
             </div>
@@ -448,7 +524,7 @@ export default function ServicosPage() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">Festas &amp; Eventos</h3>
               <p className="text-[11px] text-slate-300 mb-3">Buffet, decoração, fotografia, som, iluminação e espaços para todos os tipos de eventos.</p>
-              <Link href="/servicos/eventos" className="inline-flex items-center text-[11px] font-semibold text-pink-300 hover:text-pink-200">
+              <Link href="/servicos/lista?tipo=eventos" className="inline-flex items-center text-[11px] font-semibold text-pink-300 hover:text-pink-200">
                 Ver serviços para festas →
               </Link>
             </div>
@@ -456,7 +532,7 @@ export default function ServicosPage() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
               <h3 className="text-xs font-semibold mb-1">Profissionais &amp; serviços</h3>
               <p className="text-[11px] text-slate-300 mb-3">Manutenção, reformas, serviços técnicos e especializados para casa, empresa ou condomínio.</p>
-              <Link href="/servicos/profissionais" className="inline-flex items-center text-[11px] font-semibold text-blue-300 hover:text-blue-200">
+              <Link href="/servicos/lista?tipo=profissionais" className="inline-flex items-center text-[11px] font-semibold text-blue-300 hover:text-blue-200">
                 Ver profissionais disponíveis →
               </Link>
             </div>
