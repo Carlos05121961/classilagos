@@ -5,14 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { usePathname } from "next/navigation";
 
-
 export default function UserMenu() {
- const [user, setUser] = useState(null);
-const [open, setOpen] = useState(false);
-const menuRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
 
-const pathname = usePathname();
-
+  const pathname = usePathname();
 
   useEffect(() => {
     let ignore = false;
@@ -36,7 +34,7 @@ const pathname = usePathname();
     };
   }, []);
 
-  // ✅ fecha ao clicar fora
+  // fecha ao clicar fora
   useEffect(() => {
     function onDocClick(e) {
       if (!menuRef.current) return;
@@ -46,7 +44,7 @@ const pathname = usePathname();
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // ✅ fecha com ESC
+  // fecha com ESC
   useEffect(() => {
     function onEsc(e) {
       if (e.key === "Escape") setOpen(false);
@@ -55,10 +53,10 @@ const pathname = usePathname();
     return () => document.removeEventListener("keydown", onEsc);
   }, []);
 
- // ✅ fecha o menu ao trocar de página
-useEffect(() => {
-  setOpen(false);
-}, [pathname]);
+  // fecha ao trocar de página
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   async function sair() {
     await supabase.auth.signOut();
@@ -70,10 +68,12 @@ useEffect(() => {
     user?.user_metadata?.full_name ||
     (user?.email ? user.email.split("@")[0] : "Minha conta");
 
-  return (
-    // ✅ IMPORTANTE: relative aqui evita “tarja preta”/overflow e posiciona o dropdown corretamente
-    <div className="relative flex items-center gap-2" ref={menuRef}>
+  // item padrão (evita “texto invisível” e mantém consistência)
+  const itemClass =
+    "block rounded-xl px-3 py-2 text-[13px] font-semibold text-slate-800 hover:bg-slate-50";
 
+  return (
+    <div className="relative flex items-center gap-2" ref={menuRef}>
       {/* Usuário */}
       <button
         type="button"
@@ -90,7 +90,7 @@ useEffect(() => {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-slate-100">
             <p className="text-xs font-bold text-slate-900 line-clamp-1">
               {user ? nome : "Visitante"}
@@ -103,45 +103,40 @@ useEffect(() => {
           <div className="p-2 text-sm">
             {user ? (
               <>
-                <Link
-                  href="/painel"
-                  onClick={() => setOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50"
-                >
+                <Link href="/painel" onClick={() => setOpen(false)} className={itemClass}>
                   Meu painel
                 </Link>
 
+                {/* ✅ AQUI: Meus anúncios (visível e padrão) */}
                 <Link
-                  href="/anunciar"
+                  href="/painel/meus-anuncios"
                   onClick={() => setOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50"
+                  className={itemClass}
                 >
+                  Meus anúncios
+                </Link>
+
+                <div className="my-1 h-px bg-slate-100" />
+
+                <Link href="/anunciar" onClick={() => setOpen(false)} className={itemClass}>
                   Anunciar grátis
                 </Link>
 
                 <button
                   type="button"
                   onClick={sair}
-                  className="w-full text-left rounded-xl px-3 py-2 text-[13px] text-red-600 hover:bg-red-50"
+                  className="w-full text-left rounded-xl px-3 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50"
                 >
                   Sair
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50"
-                >
+                <Link href="/login" onClick={() => setOpen(false)} className={itemClass}>
                   Entrar
                 </Link>
 
-                <Link
-                  href="/cadastro"
-                  onClick={() => setOpen(false)}
-                  className="block rounded-xl px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50"
-                >
+                <Link href="/cadastro" onClick={() => setOpen(false)} className={itemClass}>
                   Criar conta
                 </Link>
               </>
