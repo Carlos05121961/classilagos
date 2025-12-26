@@ -73,9 +73,25 @@ function finalidadeEhAluguel(v) {
 
 const TIPOS_COMERCIAIS = ["Comercial", "Loja / Sala", "Galpão"];
 
+// ✅ ORDEM PREMIUM (local) — destaque desc → prioridade desc → created_at desc
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = isDestaqueTruthy(a?.destaque) ? 1 : 0;
+    const db = isDestaqueTruthy(b?.destaque) ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
+}
+
 // ====== INTERPRETADOR (Opção B embutida aqui) ======
 const FINALIDADE_RULES = [
-  // prioridade: temporada > aluguel > venda
   { value: "temporada", words: ["temporada", "diaria", "diarias", "airbnb", "verao", "fim de semana", "feriado"] },
   { value: "aluguel", words: ["aluguel", "alugar", "locacao", "locar", "alugo"] },
   { value: "venda", words: ["venda", "vendo", "comprar", "compra", "a venda", "à venda", "vende se", "vende-se"] },
@@ -148,8 +164,8 @@ function interpretarBuscaImoveis(input = "") {
   const quartos = extractNumber(textNorm, [/(\d+)\s*(quarto|quartos|qt|qts)\b/i]);
   const vagas = extractNumber(textNorm, [/(\d+)\s*(vaga|vagas)\b/i]);
 
-  const finalidade = findFirstByRules(textNorm, FINALIDADE_RULES);     // venda|aluguel|temporada
-  const tipo_imovel = findFirstByRules(textNorm, TIPO_IMOVEL_RULES);   // valores do DB
+  const finalidade = findFirstByRules(textNorm, FINALIDADE_RULES);
+  const tipo_imovel = findFirstByRules(textNorm, TIPO_IMOVEL_RULES);
   const cidade = findFirstByRules(textNorm, CIDADE_RULES);
 
   const phrasesToRemove = ["quarto","quartos","qt","qts","vaga","vagas"];
@@ -181,7 +197,6 @@ function ListaImoveisContent() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
-  // ===== lê sempre da URL (sempre que mudar) =====
   const filtrosUrl = useMemo(() => {
     const finalidade = searchParams.get("finalidade") || "";
     const tipoImovel = searchParams.get("tipo_imovel") || searchParams.get("tipo") || "";
@@ -189,19 +204,16 @@ function ListaImoveisContent() {
     const destaque = searchParams.get("destaque") || "";
     const lancamento = searchParams.get("lancamento") || "";
 
-    const aluguelTipo = searchParams.get("aluguel_tipo") || ""; // residencial | comercial
-    const comercialVenda = searchParams.get("comercial_venda") || ""; // 1 | true | sim
+    const aluguelTipo = searchParams.get("aluguel_tipo") || "";
+    const comercialVenda = searchParams.get("comercial_venda") || "";
 
-    // NOVO: busca livre
     const busca = searchParams.get("busca") || "";
 
     return { finalidade, tipoImovel, cidade, destaque, lancamento, aluguelTipo, comercialVenda, busca };
   }, [searchParams]);
 
-  // interpreta a busca da URL
   const parsedBusca = useMemo(() => interpretarBuscaImoveis(filtrosUrl.busca), [filtrosUrl.busca]);
 
-  // ===== estado editável dos selects =====
   const [filtros, setFiltros] = useState({
     finalidade: "",
     tipoImovel: "",
@@ -213,9 +225,7 @@ function ListaImoveisContent() {
     busca: "",
   });
 
-  // sincroniza estado quando URL muda
   useEffect(() => {
-    // auto-preenchimento só se o usuário não fixou manualmente via querystring
     const finalidadeAuto = filtrosUrl.finalidade || parsedBusca.finalidade || "";
     const tipoAuto = filtrosUrl.tipoImovel || parsedBusca.tipo_imovel || "";
     const cidadeAuto = filtrosUrl.cidade || parsedBusca.cidade || "";
@@ -229,156 +239,142 @@ function ListaImoveisContent() {
     });
   }, [filtrosUrl, parsedBusca.finalidade, parsedBusca.tipo_imovel, parsedBusca.cidade]);
 
- // Busca imóveis sempre que filtros mudarem
-useEffect(() => {
-  async function carregarImoveis() {
-    try {
-      setCarregando(true);
-      setErro("");
+  useEffect(() => {
+    async function carregarImoveis() {
+      try {
+        setCarregando(true);
+        setErro("");
 
-      const parsedStateBusca = interpretarBuscaImoveis(filtros.busca);
-      const buscaNorm = normalizarSemAcento(filtros.busca);
-      const temLoja = /\bloja\b/.test(` ${buscaNorm} `);
+        const parsedStateBusca = interpretarBuscaImoveis(filtros.busca);
+        const buscaNorm = normalizarSemAcento(filtros.busca);
+        const temLoja = /\bloja\b/.test(` ${buscaNorm} `);
 
-      // ===== regra: Lançamentos =====
-      const lancamentoAtivo =
-        filtros.lancamento === "1" ||
-        filtros.lancamento === "true" ||
-        filtros.lancamento === "sim";
+        const lancamentoAtivo =
+          filtros.lancamento === "1" ||
+          filtros.lancamento === "true" ||
+          filtros.lancamento === "sim";
 
-      let query = supabase
-        .from("anuncios")
-        .select("*")
-        .eq("categoria", "imoveis")
-        .or("status.is.null,status.eq.ativo");
-
-      if (lancamentoAtivo) {
-        query = query
-          .or(
-            "titulo.ilike.%lanç%,titulo.ilike.%lancamento%,descricao.ilike.%lanç%,descricao.ilike.%lancamento%"
-          )
-          .order("created_at", { ascending: false });
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        setImoveis(data || []);
-        return;
-      }
-
-      // padrão: destaque primeiro
-      query = query
-        .order("destaque", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      // ===== regra: Comercial Venda (grupo) =====
-      const comercialVendaAtivo =
-        filtros.comercialVenda === "1" ||
-        filtros.comercialVenda === "true" ||
-        filtros.comercialVenda === "sim";
-
-      if (comercialVendaAtivo) {
-        query = query.eq("finalidade", "venda").in("tipo_imovel", TIPOS_COMERCIAIS);
-      } else {
-        // ===== regra: aluguel_tipo =====
-        const aluguelTipo = normalizar(filtros.aluguelTipo);
-
-        if (aluguelTipo === "residencial") {
-          query = query.eq("finalidade", "aluguel");
-          const tiposComerciaisIn = `(${TIPOS_COMERCIAIS.map((t) => `"${t}"`).join(",")})`;
-          query = query.not("tipo_imovel", "in", tiposComerciaisIn);
-        }
-
-        if (aluguelTipo === "comercial") {
-          query = query.eq("finalidade", "aluguel").in("tipo_imovel", TIPOS_COMERCIAIS);
-        }
-
-        // ===== filtros normais (com ajuste para "loja") =====
-        if (filtros.finalidade) {
-          query = query.eq("finalidade", filtros.finalidade);
-        }
-
-        if (filtros.tipoImovel) {
-          query = query.eq("tipo_imovel", filtros.tipoImovel);
-        } else if (temLoja) {
-          // 🔥 Se digitou "loja" e não escolheu tipo no seletor
-          query = query.in("tipo_imovel", ["Comercial", "Loja / Sala"]);
-        }
-
-        if (filtros.cidade) {
-          query = query.eq("cidade", filtros.cidade);
-        }
-      }
-
-      // Destaque (quando pedirem explicitamente)
-      const destaqueAtivo =
-        filtros.destaque === "1" ||
-        filtros.destaque === "true" ||
-        filtros.destaque === "sim";
-
-      if (destaqueAtivo) {
-        query = query.eq("destaque", true);
-      }
-
-      // ===== busca textual (FTS) =====
-      const websearch = termosParaWebsearch(parsedStateBusca.termosLivres);
-      if (websearch) {
-        query = query.textSearch("search_tsv", websearch, {
-          type: "websearch",
-          config: "portuguese",
-        });
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      let lista = data || [];
-
-      // reforço JS (pra consistência)
-      if (destaqueAtivo) lista = lista.filter((a) => isDestaqueTruthy(a.destaque));
-
-      // ===== fallback =====
-      if (lista.length === 0 && normalizar(filtros.busca)) {
-        const parsedFallback = interpretarBuscaImoveis(filtros.busca);
-
-        const websearch2 = termosParaWebsearch([
-          ...(parsedFallback.termosLivres || []),
-          ...(parsedFallback.tipo_imovel ? [parsedFallback.tipo_imovel] : []),
-          ...(parsedFallback.finalidade ? [parsedFallback.finalidade] : []),
-          ...(parsedFallback.cidade ? [parsedFallback.cidade] : []),
-        ]);
-
-        let fb = supabase
+        let query = supabase
           .from("anuncios")
           .select("*")
           .eq("categoria", "imoveis")
-          .or("status.is.null,status.eq.ativo")
+          .or("status.is.null,status.eq.ativo");
+
+        // ✅ ORDEM PREMIUM SEMPRE (inclusive lançamentos)
+        query = query
           .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
           .order("created_at", { ascending: false });
 
-        if (websearch2.trim()) {
-          fb = fb.textSearch("search_tsv", websearch2, {
+        if (lancamentoAtivo) {
+          query = query.or(
+            "titulo.ilike.%lanç%,titulo.ilike.%lancamento%,descricao.ilike.%lanç%,descricao.ilike.%lancamento%"
+          );
+
+          const { data, error } = await query;
+          if (error) throw error;
+
+          setImoveis(sortPremiumLocal(data || []));
+          return;
+        }
+
+        const comercialVendaAtivo =
+          filtros.comercialVenda === "1" ||
+          filtros.comercialVenda === "true" ||
+          filtros.comercialVenda === "sim";
+
+        if (comercialVendaAtivo) {
+          query = query.eq("finalidade", "venda").in("tipo_imovel", TIPOS_COMERCIAIS);
+        } else {
+          const aluguelTipo = normalizar(filtros.aluguelTipo);
+
+          if (aluguelTipo === "residencial") {
+            query = query.eq("finalidade", "aluguel");
+            const tiposComerciaisIn = `(${TIPOS_COMERCIAIS.map((t) => `"${t}"`).join(",")})`;
+            query = query.not("tipo_imovel", "in", tiposComerciaisIn);
+          }
+
+          if (aluguelTipo === "comercial") {
+            query = query.eq("finalidade", "aluguel").in("tipo_imovel", TIPOS_COMERCIAIS);
+          }
+
+          if (filtros.finalidade) query = query.eq("finalidade", filtros.finalidade);
+
+          if (filtros.tipoImovel) {
+            query = query.eq("tipo_imovel", filtros.tipoImovel);
+          } else if (temLoja) {
+            query = query.in("tipo_imovel", ["Comercial", "Loja / Sala"]);
+          }
+
+          if (filtros.cidade) query = query.eq("cidade", filtros.cidade);
+        }
+
+        const destaqueAtivo =
+          filtros.destaque === "1" ||
+          filtros.destaque === "true" ||
+          filtros.destaque === "sim";
+
+        if (destaqueAtivo) query = query.eq("destaque", true);
+
+        const websearch = termosParaWebsearch(parsedStateBusca.termosLivres);
+        if (websearch) {
+          query = query.textSearch("search_tsv", websearch, {
             type: "websearch",
             config: "portuguese",
           });
         }
 
-        const { data: data2 } = await fb;
-        lista = data2 || [];
+        const { data, error } = await query;
+        if (error) throw error;
+
+        let lista = data || [];
+
+        if (destaqueAtivo) lista = lista.filter((a) => isDestaqueTruthy(a.destaque));
+
+        // ✅ garante consistência visual sempre
+        lista = sortPremiumLocal(lista);
+
+        if (lista.length === 0 && normalizar(filtros.busca)) {
+          const parsedFallback = interpretarBuscaImoveis(filtros.busca);
+
+          const websearch2 = termosParaWebsearch([
+            ...(parsedFallback.termosLivres || []),
+            ...(parsedFallback.tipo_imovel ? [parsedFallback.tipo_imovel] : []),
+            ...(parsedFallback.finalidade ? [parsedFallback.finalidade] : []),
+            ...(parsedFallback.cidade ? [parsedFallback.cidade] : []),
+          ]);
+
+          let fb = supabase
+            .from("anuncios")
+            .select("*")
+            .eq("categoria", "imoveis")
+            .or("status.is.null,status.eq.ativo")
+            .order("destaque", { ascending: false })
+            .order("prioridade", { ascending: false })
+            .order("created_at", { ascending: false });
+
+          if (websearch2.trim()) {
+            fb = fb.textSearch("search_tsv", websearch2, {
+              type: "websearch",
+              config: "portuguese",
+            });
+          }
+
+          const { data: data2 } = await fb;
+          lista = sortPremiumLocal(data2 || []);
+        }
+
+        setImoveis(lista);
+      } catch (e) {
+        console.error("Erro ao carregar imóveis:", e);
+        setErro("Não foi possível carregar os imóveis agora.");
+      } finally {
+        setCarregando(false);
       }
-
-      setImoveis(lista);
-    } catch (e) {
-      console.error("Erro ao carregar imóveis:", e);
-      setErro("Não foi possível carregar os imóveis agora.");
-    } finally {
-      setCarregando(false);
     }
-  }
 
-  carregarImoveis();
-}, [filtros]);
-
+    carregarImoveis();
+  }, [filtros]);
 
   const descricaoFiltro = useMemo(() => {
     const partes = [];
@@ -423,11 +419,12 @@ useEffect(() => {
         <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">Imóveis – Lista</h1>
         <p className="text-xs md:text-sm text-slate-600 mb-4">{descricaoFiltro}</p>
 
-        {/* FILTROS RÁPIDOS */}
         <div className="mb-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-3 md:p-4">
           <div className="grid gap-3 md:grid-cols-4 items-end">
             <div className="md:col-span-4">
-              <label className="block text-[11px] font-semibold text-slate-700">Buscar (ex: "casa aluguel maricá", "apartamento temporada saquarema")</label>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Buscar (ex: "casa aluguel maricá", "apartamento temporada saquarema")
+              </label>
               <input
                 value={filtros.busca}
                 onChange={(e) => atualizarFiltro("busca", e.target.value)}
@@ -506,7 +503,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* LISTA */}
         {erro && (
           <p className="text-xs text-red-600 mb-3 border border-red-100 rounded-md px-3 py-2 bg-red-50">{erro}</p>
         )}
@@ -579,4 +575,3 @@ export default function ListaImoveisPage() {
     </Suspense>
   );
 }
-
