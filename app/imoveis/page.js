@@ -188,6 +188,23 @@ function pegarCapaDoAnuncio(anuncio) {
   return capa;
 }
 
+// ✅ ORDEM PREMIUM (local) — garante padrão mesmo depois de filtros
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = a?.destaque === true ? 1 : 0;
+    const db = b?.destaque === true ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
+}
+
 export default function ImoveisPage() {
   const router = useRouter();
 
@@ -238,11 +255,13 @@ export default function ImoveisPage() {
       try {
         setLoadingImoveis(true);
 
+        // ✅ PADRÃO PREMIUM: destaque desc → prioridade desc → created_at desc
         const { data, error } = await supabase
           .from("anuncios")
           .select("*")
           .eq("categoria", "imoveis")
           .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(80);
 
@@ -290,25 +309,19 @@ export default function ImoveisPage() {
 
       case "apartamentos-venda":
         filtrados = filtrados.filter(
-          (a) =>
-            norm(a.finalidade) === "venda" &&
-            norm(a.tipo_imovel) === "apartamento"
+          (a) => norm(a.finalidade) === "venda" && norm(a.tipo_imovel) === "apartamento"
         );
         break;
 
       case "aluguel-comercial":
         filtrados = filtrados.filter(
-          (a) =>
-            isFinalidadeAluguel(a.finalidade) &&
-            TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          (a) => isFinalidadeAluguel(a.finalidade) && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
         );
         break;
 
       case "comercial-venda":
         filtrados = filtrados.filter(
-          (a) =>
-            norm(a.finalidade) === "venda" &&
-            TIPOS_COMERCIAIS.includes(a.tipo_imovel)
+          (a) => norm(a.finalidade) === "venda" && TIPOS_COMERCIAIS.includes(a.tipo_imovel)
         );
         break;
 
@@ -339,15 +352,19 @@ export default function ImoveisPage() {
 
     if (filtrados.length === 0) return null;
 
-    const emDestaque = filtrados.find((a) => a.destaque === true);
-    return emDestaque || filtrados[0];
+    // ✅ garante que o "primeiro" aqui respeita o premium
+    const ordenados = sortPremiumLocal(filtrados);
+    return ordenados[0] || null;
   }
 
   const listaDestaques = useMemo(() => {
     if (!imoveis || imoveis.length === 0) return [];
-    const soDestaques = imoveis.filter((a) => a.destaque === true);
+    const ordenados = sortPremiumLocal(imoveis);
+
+    const soDestaques = ordenados.filter((a) => a.destaque === true);
     if (soDestaques.length > 0) return soDestaques.slice(0, 8);
-    return imoveis.slice(0, 8);
+
+    return ordenados.slice(0, 8);
   }, [imoveis]);
 
   function executarBusca() {
@@ -386,12 +403,7 @@ export default function ImoveisPage() {
             }}
           />
 
-          <Image
-            src={heroSrc}
-            alt="Pré-carregamento hero"
-            fill
-            className="opacity-0 pointer-events-none"
-          />
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
         </div>
 
         {/* ✅ overlay premium em degradê */}
@@ -419,9 +431,7 @@ export default function ImoveisPage() {
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  Busca
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
                 <input
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
@@ -432,7 +442,6 @@ export default function ImoveisPage() {
                 />
               </div>
 
-              {/* ✅ SMARTSELECT (Tipo) */}
               <SmartSelect
                 label="Tipo"
                 value={buscaTipo || "Todos"}
@@ -440,7 +449,6 @@ export default function ImoveisPage() {
                 options={["Todos", ...tiposImovel]}
               />
 
-              {/* ✅ SMARTSELECT (Cidade) */}
               <SmartSelect
                 label="Cidade"
                 value={buscaCidade || "Todas"}
@@ -460,9 +468,7 @@ export default function ImoveisPage() {
             </div>
           </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">
-            Busca ligada ao motor do Classilagos.
-          </p>
+          <p className="mt-1 text-[11px] text-center text-slate-500">Busca ligada ao motor do Classilagos.</p>
         </div>
       </section>
 
@@ -484,11 +490,7 @@ export default function ImoveisPage() {
               >
                 <div className="relative h-32 md:h-36 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
-                    <img
-                      src={capa}
-                      alt={anuncio?.titulo || cat.nome}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={capa} alt={anuncio?.titulo || cat.nome} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
                       Em breve, imóveis aqui
@@ -511,16 +513,12 @@ export default function ImoveisPage() {
 
         {/* IMÓVEIS EM DESTAQUE */}
         <div className="mt-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">
-            Imóveis em destaque
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">Imóveis em destaque</h2>
 
           {loadingImoveis ? (
             <p className="text-xs text-slate-500">Carregando imóveis em destaque...</p>
           ) : listaDestaques.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!
-            </p>
+            <p className="text-xs text-slate-500">Ainda não há imóveis cadastrados. Seja o primeiro a anunciar!</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
               {listaDestaques.map((anuncio) => {
@@ -534,24 +532,16 @@ export default function ImoveisPage() {
                     className="group block overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-lg transition"
                   >
                     <div className="relative h-24 md:h-28 w-full bg-slate-100 overflow-hidden">
-                      <img
-                        src={capa}
-                        alt={anuncio.titulo || "Imóvel"}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={capa} alt={anuncio.titulo || "Imóvel"} className="w-full h-full object-cover" />
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
-                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">
-                        {anuncio.titulo}
-                      </p>
+                      <p className="text-[11px] md:text-xs font-semibold line-clamp-2">{anuncio.titulo}</p>
                       <p className="text-[11px] text-slate-300">
                         {anuncio.cidade} {anuncio.bairro ? `• ${anuncio.bairro}` : ""}
                       </p>
                       {anuncio.preco && (
-                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">
-                          {anuncio.preco}
-                        </p>
+                        <p className="mt-1 text-[11px] text-emerald-200 font-semibold">{anuncio.preco}</p>
                       )}
                     </div>
                   </Link>
@@ -572,9 +562,7 @@ export default function ImoveisPage() {
       {/* FAIXA SERVIÇOS */}
       <section className="bg-slate-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">
-            Serviços e informações para imóveis
-          </h2>
+          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para imóveis</h2>
           <p className="text-xs text-slate-300 mb-4 max-w-2xl">
             Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
           </p>
@@ -589,16 +577,12 @@ export default function ImoveisPage() {
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
-              <p className="text-[11px] text-slate-300">
-                Dicas básicas sobre crédito, simulações e contato com bancos.
-              </p>
+              <p className="text-[11px] text-slate-300">Dicas básicas sobre crédito, simulações e contato com bancos.</p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
-              <p className="text-[11px] text-slate-300">
-                Orientações sobre escritura, registro, habite-se e etc.
-              </p>
+              <p className="text-[11px] text-slate-300">Orientações sobre escritura, registro, habite-se e etc.</p>
             </div>
 
             <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
