@@ -6,8 +6,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../../supabaseClient";
 
+/** normaliza string: minúsculo + sem acento + trim */
+function nstr(v) {
+  return (v || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function normalizarFiltro(valor) {
-  const v = (valor || "").toLowerCase().trim();
+  const v = nstr(valor);
   if (!v) return "";
   if (v.startsWith("animais")) return "animais";
   if (v.includes("ado")) return "adocao";
@@ -31,6 +41,60 @@ function tituloPorFiltro(filtro) {
   }
 }
 
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = nstr(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
+/** classifica em um dos 4 grupos (igual Pets/page.js) */
+function classificarGrupo(anuncio) {
+  const sub = nstr(anuncio?.subcategoria_pet || anuncio?.tipo_imovel || "");
+  const titulo = nstr(anuncio?.titulo || "");
+  const desc = nstr(anuncio?.descricao || "");
+
+  // Achados e perdidos
+  if (
+    sub.includes("achado") ||
+    sub.includes("perdido") ||
+    titulo.includes("achado") ||
+    titulo.includes("perdido")
+  ) {
+    return "achados";
+  }
+
+  // Adoção / doação
+  if (
+    sub.includes("adocao") ||
+    sub.includes("doacao") ||
+    titulo.includes("adocao") ||
+    desc.includes("adocao")
+  ) {
+    return "adocao";
+  }
+
+  // Serviços pet & acessórios
+  if (
+    sub.includes("serv") ||
+    sub.includes("acess") ||
+    sub.includes("banho") ||
+    sub.includes("tosa") ||
+    sub.includes("hotel") ||
+    sub.includes("hosped") ||
+    sub.includes("clinica") ||
+    sub.includes("veterin") ||
+    titulo.includes("veterin") ||
+    desc.includes("veterin") ||
+    desc.includes("banho") ||
+    desc.includes("tosa") ||
+    desc.includes("clinica")
+  ) {
+    return "servicos";
+  }
+
+  return "animais";
+}
+
 function ListaPetsContent() {
   const searchParams = useSearchParams();
 
@@ -39,8 +103,10 @@ function ListaPetsContent() {
   const filtroSlug = normalizarFiltro(rawSub || rawCat);
 
   // ✅ motor novo
-  const q = (searchParams.get("q") || "").trim();
-  const tipo = (searchParams.get("tipo") || "").trim();
+  const qRaw = (searchParams.get("q") || "").trim();
+  const q = nstr(qRaw);
+  const tipoRaw = (searchParams.get("tipo") || "").trim();
+  const tipo = nstr(tipoRaw);
   const cidade = (searchParams.get("cidade") || "").trim();
 
   const [anuncios, setAnuncios] = useState([]);
@@ -48,23 +114,27 @@ function ListaPetsContent() {
 
   const tituloPagina = useMemo(() => {
     // se vier busca, prioriza um título mais “motor”
-    if (q || tipo || cidade) {
+    if (qRaw || tipoRaw || cidade) {
       let t = "Pets – Resultados";
-      if (tipo) t = `Pets – ${tipo}`;
+      if (tipoRaw) t = `Pets – ${tipoRaw}`;
       if (cidade) t += ` em ${cidade}`;
       return t;
     }
     return tituloPorFiltro(filtroSlug);
-  }, [q, tipo, cidade, filtroSlug]);
+  }, [qRaw, tipoRaw, cidade, filtroSlug]);
 
   useEffect(() => {
-    const carregar = async () => {
-      setLoading(true);
+    let cancelado = false;
 
-      let query = supabase
-        .from("anuncios")
-        .select(
-          `
+    async function carregar() {
+      try {
+        setLoading(true);
+
+        // ✅ padrão premium (igual Imóveis): ativo OU null + ordem premium
+        let query = supabase
+          .from("anuncios")
+          .select(
+            `
             id,
             titulo,
             descricao,
@@ -76,78 +146,71 @@ function ListaPetsContent() {
             status,
             tipo_imovel,
             subcategoria_pet,
+            destaque,
+            prioridade,
             created_at
           `
-        )
-        .eq("categoria", "pets")
-        .eq("status", "ativo")
-        .order("created_at", { ascending: false });
+          )
+          .eq("categoria", "pets")
+          .or("status.is.null,status.eq.ativo")
+          .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(250);
 
-      // filtros de motor (Supabase)
-      if (cidade) query = query.eq("cidade", cidade);
+        // filtro por cidade pode ir no DB (é exato)
+        if (cidade) query = query.eq("cidade", cidade);
 
-      // Busca (título/descrição) — faz no Supabase com OR (ilike)
-      if (q) {
-        const safe = q.replace(/,/g, " "); // evita quebrar string do OR
-        query = query.or(`titulo.ilike.%${safe}%,descricao.ilike.%${safe}%`);
-      }
+        const { data, error } = await query;
 
-      const { data, error } = await query;
+        if (cancelado) return;
 
-      if (error) {
-        console.error("Erro ao carregar anúncios de pets:", error);
-        setAnuncios([]);
-        setLoading(false);
-        return;
-      }
+        if (error) {
+          console.error("Erro ao carregar anúncios de pets:", error);
+          setAnuncios([]);
+          return;
+        }
 
-      let lista = data || [];
-      const norm = (s) => (s || "").toLowerCase().trim();
+        let lista = data || [];
 
-      // filtro por "tipo" (dropdown do motor) - usamos lógica local pra não depender de coluna extra
-      if (tipo) {
-        const t = norm(tipo);
+        // ✅ Busca sem acento (resolve clinica/clinica)
+        if (q) {
+          const termos = q.split(/\s+/).filter(Boolean);
+          lista = lista.filter((a) => {
+            const blob = `${nstr(a.titulo)} ${nstr(a.descricao)} ${nstr(
+              a.subcategoria_pet || a.tipo_imovel
+            )} ${nstr(a.cidade)} ${nstr(a.bairro)}`;
+            return termos.every((t) => blob.includes(t));
+          });
+        }
 
-        lista = lista.filter((a) => {
-          const sub = norm(a.subcategoria_pet || a.tipo_imovel || "");
-          const titulo = norm(a.titulo || "");
-
-          // mapeia os 4 tipos
-          if (t.includes("animais")) return sub.startsWith("animais");
-          if (t.includes("ado")) return sub.includes("adocao") || sub.includes("adoção") || sub.includes("doacao") || sub.includes("doação") || titulo.includes("ado");
-          if (t.includes("achado") || t.includes("perdido")) return sub.includes("achado") || sub.includes("perdido");
-          if (t.includes("serv")) return sub.includes("servico") || sub.includes("serviços") || sub.includes("acess") || sub.includes("banho") || sub.includes("tosa") || sub.includes("veterin");
-
-          return true;
-        });
-      }
-
-      // filtro antigo por grupo (cards)
-      if (filtroSlug) {
-        lista = lista.filter((a) => {
-          const sub = norm(a.subcategoria_pet || a.tipo_imovel || "");
-
-          switch (filtroSlug) {
-            case "animais":
-              return sub.startsWith("animais");
-            case "adocao":
-              return sub.includes("adocao") || sub.includes("adoção") || sub.includes("doacao") || sub.includes("doação");
-            case "achados":
-              return sub.includes("achado") || sub.includes("perdido");
-            case "servicos":
-              return sub.includes("servico") || sub.includes("serviços") || sub.includes("acess");
-            default:
-              return true;
+        // ✅ filtro por "tipo" do motor (4 grupos)
+        if (tipo) {
+          const tipoSlug = normalizarFiltro(tipo);
+          if (tipoSlug) {
+            lista = lista.filter((a) => classificarGrupo(a) === tipoSlug);
           }
-        });
-      }
+        }
 
-      setAnuncios(lista);
-      setLoading(false);
-    };
+        // ✅ filtro antigo por cards (subcategoria/categoria)
+        if (filtroSlug) {
+          lista = lista.filter((a) => classificarGrupo(a) === filtroSlug);
+        }
+
+        setAnuncios(lista);
+      } catch (e) {
+        console.error("Erro inesperado ao carregar anúncios de pets:", e);
+        if (!cancelado) setAnuncios([]);
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    }
 
     carregar();
-  }, [filtroSlug, q, tipo, cidade]);
+    return () => {
+      cancelado = true;
+    };
+  }, [filtroSlug, q, tipo, cidade, qRaw, tipoRaw]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -210,15 +273,27 @@ function ListaPetsContent() {
                 <Link
                   key={item.id}
                   href={`/anuncios/${item.id}`}
-                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 transition"
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
                 >
                   <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
                     {img ? (
-                      <Image src={img} alt={item.titulo} fill sizes="300px" className="object-cover group-hover:scale-105 transition" />
+                      <Image
+                        src={img}
+                        alt={item.titulo}
+                        fill
+                        sizes="300px"
+                        className="object-cover group-hover:scale-105 transition"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[11px] text-white bg-blue-800">
                         Sem foto
                       </div>
+                    )}
+
+                    {isDestaqueTruthy(item.destaque) && (
+                      <span className="absolute top-2 left-2 rounded-full bg-amber-500 text-[10px] font-semibold text-white px-2 py-1 shadow">
+                        Destaque
+                      </span>
                     )}
                   </div>
 
