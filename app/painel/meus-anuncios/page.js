@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 import AuthGuard from "../../components/AuthGuard";
@@ -39,9 +39,7 @@ export default function MeusAnunciosPage() {
 
       const { data, error: anunciosError } = await supabase
         .from("anuncios")
-        .select(
-          "id, titulo, cidade, bairro, preco, categoria, tipo_imovel, created_at, imagens"
-        )
+        .select("id, titulo, cidade, bairro, preco, categoria, tipo_imovel, created_at, imagens")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -64,7 +62,6 @@ export default function MeusAnunciosPage() {
     const confirmar = window.confirm(
       "Tem certeza que deseja excluir este anúncio? Essa ação não pode ser desfeita."
     );
-
     if (!confirmar) return;
 
     setDeletingId(id);
@@ -73,7 +70,7 @@ export default function MeusAnunciosPage() {
       .from("anuncios")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id); // segurança: só apaga se for do usuário
+      .eq("user_id", user.id);
 
     if (error) {
       console.error(error);
@@ -85,45 +82,49 @@ export default function MeusAnunciosPage() {
     setDeletingId(null);
   }
 
+  const labelCategoria = (c) => {
+    const v = (c || "").toString().toLowerCase();
+    if (v === "imoveis") return "Imóveis";
+    if (v === "veiculos") return "Veículos";
+    if (v === "nautica") return "Náutica";
+    if (v === "pets") return "Pets";
+    if (v === "emprego") return "Empregos";
+    if (v === "curriculo") return "Currículos";
+    if (v === "servico") return "Serviços";
+    if (v === "turismo") return "Turismo";
+    if (v === "lagolistas") return "LagoListas";
+    return "Anúncio";
+  };
+
   return (
     <AuthGuard>
       <main className="min-h-screen bg-[#F5FBFF] px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          <header className="flex items-center justify-between gap-3">
+          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
-                Meus anúncios
-              </h1>
+              <h1 className="text-2xl font-bold text-slate-900">Meus anúncios</h1>
               <p className="text-sm text-slate-600">
-                Veja, edite ou exclua os anúncios que você publicou no
-                Classilagos.
+                Veja, edite ou exclua os anúncios que você publicou no Classilagos.
               </p>
             </div>
 
             <Link
               href="/anunciar"
-              className="rounded-full bg-[#21D4FD] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
+              className="inline-flex justify-center rounded-full bg-[#21D4FD] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
             >
               + Criar novo anúncio
             </Link>
           </header>
 
-          {loading && (
-            <p className="text-sm text-slate-600">Carregando seus anúncios…</p>
-          )}
+          {loading && <p className="text-sm text-slate-600">Carregando seus anúncios…</p>}
 
-          {erro && !loading && (
-            <p className="text-sm text-red-600">{erro}</p>
-          )}
+          {erro && !loading && <p className="text-sm text-red-600">{erro}</p>}
 
           {!loading && !erro && anuncios.length === 0 && (
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-6 text-sm text-slate-600">
               Você ainda não publicou nenhum anúncio.
               <br />
-              <Link
-                href="/anunciar"
-                className="text-[#21D4FD] font-semibold hover:underline"
-              >
+              <Link href="/anunciar" className="text-[#21D4FD] font-semibold hover:underline">
                 Clique aqui para criar o primeiro anúncio.
               </Link>
             </div>
@@ -133,32 +134,37 @@ export default function MeusAnunciosPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {anuncios.map((anuncio) => {
                 const img =
-                  Array.isArray(anuncio.imagens) &&
-                  anuncio.imagens.length > 0
-                    ? anuncio.imagens[0]
-                    : null;
+                  Array.isArray(anuncio.imagens) && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
 
                 return (
-                  <div
+                  <article
                     key={anuncio.id}
                     className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm"
                   >
                     {/* Imagem */}
-                    {img && (
-                      <div className="w-full h-40 overflow-hidden bg-slate-100">
-                        <img
-                          src={img}
-                          alt={anuncio.titulo}
-                          className="w-full h-full object-cover"
-                        />
+                    {img ? (
+                      <div className="w-full h-44 overflow-hidden bg-slate-100">
+                        <img src={img} alt={anuncio.titulo} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-44 bg-gradient-to-b from-slate-100 to-slate-50 flex items-center justify-center">
+                        <span className="text-xs text-slate-400">Sem foto</span>
                       </div>
                     )}
 
                     {/* Conteúdo */}
                     <div className="flex-1 px-4 py-3 space-y-1 text-sm text-slate-700">
-                      <h2 className="font-semibold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h2>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 border border-slate-200">
+                          {labelCategoria(anuncio.categoria)}
+                        </span>
+
+                        <span className="text-[11px] text-slate-400">
+                          {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+
+                      <h2 className="font-semibold text-slate-900 line-clamp-2">{anuncio.titulo}</h2>
 
                       <p className="text-[12px] text-slate-500">
                         {anuncio.cidade}
@@ -166,31 +172,20 @@ export default function MeusAnunciosPage() {
                       </p>
 
                       {anuncio.preco && (
-                        <p className="text-[13px] font-semibold text-emerald-700">
-                          R$ {anuncio.preco}
-                        </p>
+                        <p className="text-[13px] font-semibold text-emerald-700">R$ {anuncio.preco}</p>
                       )}
 
                       {anuncio.tipo_imovel && (
-                        <p className="text-[12px] text-slate-500">
-                          {anuncio.tipo_imovel}
-                        </p>
+                        <p className="text-[12px] text-slate-500">{anuncio.tipo_imovel}</p>
                       )}
-
-                      <p className="text-[11px] text-slate-400">
-                        Publicado em{" "}
-                        {new Date(
-                          anuncio.created_at
-                        ).toLocaleDateString("pt-BR")}
-                      </p>
                     </div>
 
-                    {/* Ações */}
-                    <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between gap-2 text-xs">
-                      <div className="flex flex-wrap gap-2">
+                    {/* Ações (Premium: sempre visível no mobile) */}
+                    <div className="px-4 py-3 border-t border-slate-200 bg-white">
+                      <div className="grid grid-cols-2 gap-2">
                         <Link
                           href={`/anuncios/${anuncio.id}`}
-                          className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
+                          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-100"
                         >
                           Ver anúncio
                         </Link>
@@ -199,23 +194,27 @@ export default function MeusAnunciosPage() {
                         <button
                           type="button"
                           disabled
-                          className="rounded-full border border-slate-300 px-3 py-1 text-slate-400 cursor-not-allowed"
+                          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-2 text-[12px] font-semibold text-slate-400 cursor-not-allowed bg-slate-50"
                           title="Em breve: edição do anúncio pelo formulário"
                         >
-                          Editar (em breve)
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(anuncio.id)}
+                          disabled={deletingId === anuncio.id}
+                          className="col-span-2 inline-flex items-center justify-center rounded-full bg-red-500/90 px-3 py-2 text-[12px] font-semibold text-white hover:bg-red-600 disabled:opacity-60"
+                        >
+                          {deletingId === anuncio.id ? "Excluindo…" : "Excluir anúncio"}
                         </button>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(anuncio.id)}
-                        disabled={deletingId === anuncio.id}
-                        className="rounded-full bg-red-500/90 px-3 py-1 text-white hover:bg-red-600 text-[11px] disabled:opacity-60"
-                      >
-                        {deletingId === anuncio.id ? "Excluindo…" : "Excluir"}
-                      </button>
+                      <p className="mt-2 text-[10px] text-slate-400">
+                        Dica: “Editar” será liberado quando a gente conectar ao formulário de edição.
+                      </p>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
