@@ -512,186 +512,174 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ✅ BLOCO PREMIUM 3 COLUNAS — mesma altura da TV */}
-      <section className="bg-white pb-10 -mt-4">
-        <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
-          {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto, scroll interno) */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col min-h-[420px]">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
-              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
-                Ver tudo →
-              </Link>
-            </div>
-
-            <p className="text-[11px] text-slate-600 mb-3">
-              O que saiu agora na Região dos Lagos (últimas publicações).
-            </p>
-
-            <div className="flex-1 overflow-y-auto pr-1 space-y-3">
-              {loadingNoticias ? (
-                <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                  <p className="text-[12px] text-slate-600">Carregando...</p>
-                </div>
-              ) : ultimasNoticias.length === 0 ? (
-                <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                  <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
-                </div>
-              ) : (
-                ultimasNoticias.map((n) => (
-                  <Link
-                    key={n.id}
-                    href={`/noticias/${n.id}`}
-                    className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
-                  >
-                    <p className="text-[10px] text-slate-500">
-                      {formatarDataBR(n.created_at)} •{" "}
-                      <span className="font-semibold text-slate-700">{n.cidade}</span>
-                    </p>
-                    <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
-                      {n.titulo}
-                    </p>
-                  </Link>
-                ))
-              )}
-            </div>
-
-            <div className="mt-3">
-              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
-                Abrir portal de notícias →
-              </Link>
-            </div>
+{/* ✅ HOME – BLOCO 3 COLUNAS (ALTURA CONTROLADA / PROFISSIONAL) */}
+<section className="bg-white pb-10 -mt-4">
+  <div className="max-w-7xl mx-auto px-4">
+    <div className="grid gap-4 md:grid-cols-3 items-stretch">
+      {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto / rolagem interna) */}
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
+        <div className="p-5 pb-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
+            <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
+              Ver tudo →
+            </Link>
           </div>
+          <p className="mt-1 text-[11px] text-slate-600">
+            O que saiu agora na Região dos Lagos (últimas publicações).
+          </p>
+        </div>
 
-          {/* MEIO — TV */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col min-h-[420px]">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
-              <a
-                href={tvChannelUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[11px] font-semibold text-red-600 hover:text-red-700"
-              >
-                YouTube →
-              </a>
-            </div>
+        {/* área rolável */}
+        <div className="px-5 pb-5 flex-1 overflow-auto">
+          <div className="space-y-3">
+            {loadingNoticias ? (
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <p className="text-[12px] text-slate-600">Carregando...</p>
+              </div>
+            ) : ultimasNoticias.length === 0 ? (
+              <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
+              </div>
+            ) : (
+              ultimasNoticias.map((n) => (
+                <Link
+                  key={n.id}
+                  href={`/noticias/${n.id}`}
+                  className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+                >
+                  <p className="text-[10px] text-slate-500">
+                    {formatarDataBR(n.created_at)} •{" "}
+                    <span className="font-semibold text-slate-700">{n.cidade}</span>
+                  </p>
+                  <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
+                    {n.titulo}
+                  </p>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
 
-            <p className="text-[11px] text-slate-600 mb-3">
-              Reportagens, cultura, turismo e acontecimentos da Região.
-            </p>
-
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-900/80">
-              <iframe
-                src={tvEmbedUrl}
-                title="Classilagos TV"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full border-0"
-              />
-            </div>
-
+      {/* MEIO — TV (altura controlada, vídeo centralizado) */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-[430px] flex flex-col">
+        <div className="p-5 pb-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
             <a
               href={tvChannelUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex items-center text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
+              className="text-[11px] font-semibold text-red-600 hover:text-red-700"
             >
-              Ver mais vídeos →
+              YouTube →
             </a>
           </div>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Reportagens, cultura, turismo e acontecimentos da Região.
+          </p>
+        </div>
 
-          {/* DIREITA — SERVIÇOS (rotativo) */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col min-h-[420px]">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-extrabold text-slate-900">Serviços</h3>
-              <Link href="/servicos" className="text-[11px] font-semibold text-cyan-700">
-                Ver tudo →
-              </Link>
-            </div>
-
-            <p className="text-[11px] text-slate-600 mb-3">
-              Encontre aqui os melhores profissionais na sua cidade.
-            </p>
-
-            <div className="flex-1 flex items-center">
-              {loadingServicos ? (
-                <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
-                  <p className="text-[12px] text-slate-600">Carregando...</p>
-                </div>
-              ) : !servicoAtual ? (
-                <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
-                  <p className="text-[12px] text-slate-600">
-                    Ainda não há anúncios de serviços. Seja o primeiro!
-                  </p>
-                  <Link href="/anunciar" className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
-                    Anunciar serviço →
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  href={`/anuncios/${servicoAtual.id}`}
-                  className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-                >
-                  <div className="relative h-32 bg-slate-100 overflow-hidden">
-                    {Array.isArray(servicoAtual.imagens) && servicoAtual.imagens[0] ? (
-                      <img
-                        src={servicoAtual.imagens[0]}
-                        alt={servicoAtual.titulo}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
-                        Sem imagem
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-                    <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                      <span>🛠️</span>
-                      <span>Serviços</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-                      {servicoAtual.titulo}
-                    </p>
-                    <p className="mt-1 text-[12px] text-slate-600">
-                      {servicoAtual.cidade}
-                    </p>
-
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-cyan-700">
-                        Ver detalhes →
-                      </span>
-
-                      {servicos.length > 1 ? (
-                        <span className="text-[10px] text-slate-500">
-                          {servicoIndex + 1}/{servicos.length}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </Link>
-              )}
-            </div>
-
-            <div className="mt-3">
-              <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-                Quero anunciar meu serviço →
-              </Link>
-            </div>
+        <div className="px-5 pb-5 flex-1 flex flex-col">
+          <div className="relative w-full rounded-2xl overflow-hidden bg-slate-900/80 flex-1">
+            <iframe
+              src={tvEmbedUrl}
+              title="Classilagos TV"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full border-0"
+            />
           </div>
-        </div>
-      </section>
 
-      {/* BANNER RODAPÉ (rotativo) */}
-      <section className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+          <a
+            href={tvChannelUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
+          >
+            Ver mais vídeos →
+          </a>
         </div>
-      </section>
+      </div>
+
+      {/* DIREITA — SERVIÇOS (card rotativo ou fixo, sem estourar altura) */}
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
+        <div className="p-5 pb-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-900">Serviços</h3>
+            <Link href="/servicos" className="text-[11px] font-semibold text-cyan-700">
+              Ver tudo →
+            </Link>
+          </div>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Encontre aqui os melhores profissionais na sua cidade.
+          </p>
+        </div>
+
+        <div className="px-5 pb-5 flex-1 flex items-center">
+          {loadingServicos ? (
+            <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
+              <p className="text-[12px] text-slate-600">Carregando...</p>
+            </div>
+          ) : !servicoAtual ? (
+            <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
+              <p className="text-[12px] text-slate-600">
+                Ainda não há anúncios de serviços. Seja o primeiro!
+              </p>
+              <Link href="/anunciar" className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
+                Anunciar serviço →
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/anuncios/${servicoAtual.id}`}
+              className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+            >
+              <div className="relative h-36 bg-slate-100 overflow-hidden">
+                {Array.isArray(servicoAtual.imagens) && servicoAtual.imagens[0] ? (
+                  <img
+                    src={servicoAtual.imagens[0]}
+                    alt={servicoAtual.titulo}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                    Sem imagem
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
+                <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                  <span>🛠️</span>
+                  <span>Serviços</span>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                  {servicoAtual.titulo}
+                </p>
+                <p className="mt-1 text-[12px] text-slate-600">{servicoAtual.cidade}</p>
+
+                <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                  Ver detalhes →
+                </span>
+              </div>
+            </Link>
+          )}
+        </div>
+
+        <div className="px-5 pb-5">
+          <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+            Quero anunciar meu serviço →
+          </Link>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
