@@ -474,67 +474,77 @@ useEffect(() => {
 
 
 
-      {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
-      <section className="bg-white pb-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
-              <p className="text-[11px] text-slate-500">
-                Lançamento: por um período, todos aparecem aqui e vão renovando automaticamente.
-              </p>
-            </div>
+     {/* ÚLTIMOS ANÚNCIOS — LANÇAMENTO */}
+<section className="bg-white pb-10">
+  <div className="max-w-7xl mx-auto px-4">
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <h2 className="text-lg font-bold text-slate-900">Últimos anúncios</h2>
+        <p className="text-[11px] text-slate-500">
+          Atualizando automaticamente com os anúncios mais recentes do Classilagos.
+        </p>
+      </div>
 
-            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
-              Anunciar →
+      <Link
+        href="/anunciar"
+        className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700"
+      >
+        Anunciar →
+      </Link>
+    </div>
+
+    {loadingUltimos ? (
+      <p className="text-center text-slate-500">Carregando...</p>
+    ) : ultimosAnuncios.length === 0 ? (
+      <p className="text-center text-slate-500">
+        Ainda não há anúncios. Seja o primeiro a anunciar!
+      </p>
+    ) : (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {ultimosAnuncios.map((item) => {
+          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+          const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
+
+          return (
+            <Link
+              key={item.id}
+              href={`/anuncios/${item.id}`}
+              className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
+            >
+              <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
+                {thumb ? (
+                  <img
+                    src={thumb}
+                    alt={item.titulo}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[11px] text-slate-200">Sem imagem</span>
+                )}
+              </div>
+
+              <div className="p-3 space-y-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
+                  • Novo
+                </span>
+                <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
+                <p className="text-[11px] text-slate-600">
+                  {formatCategoria(item.categoria)} • {item.cidade}
+                </p>
+                {item.preco && (
+                  <p className="text-[11px] font-semibold text-slate-900">
+                    R$ {item.preco}
+                  </p>
+                )}
+              </div>
             </Link>
-          </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</section>
 
-          {loadingDestaques ? (
-            <p className="text-center text-slate-500">Carregando...</p>
-          ) : destaques.length === 0 ? (
-            <p className="text-center text-slate-500">
-              Ainda não há anúncios. Seja o primeiro a anunciar!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {destaques.map((item) => {
-                const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
-                const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
-
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/anuncios/${item.id}`}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
-                  >
-                    <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
-                      {thumb ? (
-                        <img src={thumb} alt={item.titulo} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
-                      )}
-                    </div>
-
-                    <div className="p-3 space-y-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
-                        • Destaque
-                      </span>
-                      <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
-                      <p className="text-[11px] text-slate-600">
-                        {formatCategoria(item.categoria)} • {item.cidade}
-                      </p>
-                      {item.preco && (
-                        <p className="text-[11px] font-semibold text-slate-900">R$ {item.preco}</p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* ✅ BLOCO PREMIUM 3 COLUNAS (altura limitada + scroll interno + links corretos) */}
       <section className="bg-white pb-10 -mt-4">
