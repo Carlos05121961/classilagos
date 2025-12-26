@@ -153,6 +153,10 @@ export default function Home() {
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
+  // VITRINE (lançamento) — 4 anúncios mais recentes
+const [vitrineAnuncios, setVitrineAnuncios] = useState([]);
+const [loadingVitrine, setLoadingVitrine] = useState(true);
+
   useEffect(() => {
     async function carregarDestaquesLancamento() {
       const { data, error } = await supabase
