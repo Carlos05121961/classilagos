@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
 import AuthGuard from "../../components/AuthGuard";
@@ -39,7 +39,9 @@ export default function MeusAnunciosPage() {
 
       const { data, error: anunciosError } = await supabase
         .from("anuncios")
-        .select("id, titulo, cidade, bairro, preco, categoria, tipo_imovel, created_at, imagens")
+        .select(
+          "id, titulo, cidade, bairro, preco, categoria, tipo_imovel, created_at, imagens"
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -116,7 +118,9 @@ export default function MeusAnunciosPage() {
             </Link>
           </header>
 
-          {loading && <p className="text-sm text-slate-600">Carregando seus anúncios…</p>}
+          {loading && (
+            <p className="text-sm text-slate-600">Carregando seus anúncios…</p>
+          )}
 
           {erro && !loading && <p className="text-sm text-red-600">{erro}</p>}
 
@@ -134,7 +138,9 @@ export default function MeusAnunciosPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {anuncios.map((anuncio) => {
                 const img =
-                  Array.isArray(anuncio.imagens) && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
+                  Array.isArray(anuncio.imagens) && anuncio.imagens.length > 0
+                    ? anuncio.imagens[0]
+                    : null;
 
                 return (
                   <article
@@ -144,7 +150,11 @@ export default function MeusAnunciosPage() {
                     {/* Imagem */}
                     {img ? (
                       <div className="w-full h-48 sm:h-52 overflow-hidden bg-slate-100">
-                        <img src={img} alt={anuncio.titulo} className="w-full h-full object-cover" />
+                        <img
+                          src={img}
+                          alt={anuncio.titulo}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ) : (
                       <div className="w-full h-44 bg-gradient-to-b from-slate-100 to-slate-50 flex items-center justify-center">
@@ -164,7 +174,9 @@ export default function MeusAnunciosPage() {
                         </span>
                       </div>
 
-                      <h2 className="font-semibold text-slate-900 line-clamp-2">{anuncio.titulo}</h2>
+                      <h2 className="font-semibold text-slate-900 line-clamp-2">
+                        {anuncio.titulo}
+                      </h2>
 
                       <p className="text-[12px] text-slate-500">
                         {anuncio.cidade}
@@ -172,7 +184,9 @@ export default function MeusAnunciosPage() {
                       </p>
 
                       {anuncio.preco && (
-                        <p className="text-[13px] font-semibold text-emerald-700">R$ {anuncio.preco}</p>
+                        <p className="text-[13px] font-semibold text-emerald-700">
+                          R$ {anuncio.preco}
+                        </p>
                       )}
 
                       {anuncio.tipo_imovel && (
@@ -180,39 +194,38 @@ export default function MeusAnunciosPage() {
                       )}
                     </div>
 
-                  {/* Ações */}
-<div className="px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-  <div className="flex flex-wrap gap-2">
-    <Link
-      href={`/anuncios/${anuncio.id}`}
-      className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
-    >
-      Ver anúncio
-    </Link>
+                    {/* Ações */}
+                    <div className="px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`/anuncios/${anuncio.id}`}
+                          className="rounded-full border border-slate-300 px-3 py-2 hover:bg-slate-100"
+                        >
+                          Ver anúncio
+                        </Link>
 
-    <Link
-      href={`/painel/editar-anuncio/${anuncio.id}`}
-      className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
-    >
-      Editar
-    </Link>
-  </div>
+                        <Link
+                          href={`/painel/editar-anuncio/${anuncio.id}`}
+                          className="rounded-full border border-slate-300 px-3 py-2 hover:bg-slate-100"
+                        >
+                          Editar
+                        </Link>
+                      </div>
 
-  <button
-    type="button"
-    onClick={() => handleDelete(anuncio.id)}
-    disabled={deletingId === anuncio.id}
-    className="rounded-full bg-red-500/90 px-3 py-2 text-white hover:bg-red-600 text-[11px] disabled:opacity-60 w-full sm:w-auto"
-  >
-    {deletingId === anuncio.id ? "Excluindo…" : "Excluir"}
-  </button>
-</div>
-
-
-                      <p className="mt-2 text-[10px] text-slate-400">
-                        Dica: “Editar” será liberado quando a gente conectar ao formulário de edição.
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(anuncio.id)}
+                        disabled={deletingId === anuncio.id}
+                        className="rounded-full bg-red-500/90 px-3 py-2 text-white hover:bg-red-600 text-[11px] disabled:opacity-60 w-full sm:w-auto"
+                      >
+                        {deletingId === anuncio.id ? "Excluindo…" : "Excluir"}
+                      </button>
                     </div>
+
+                    {/* Dica */}
+                    <p className="px-4 pb-4 text-[10px] text-slate-400">
+                      Dica: o botão "Editar" abre a página de edição do anúncio.
+                    </p>
                   </article>
                 );
               })}
