@@ -295,18 +295,20 @@ export default function AnuncioDetalhePage() {
   const isVeiculos = anuncio.categoria === "veiculos";
   const isTurismo = anuncio.categoria === "turismo";
 
-  // Imagens
-  const imagens = useMemo(
-    () => (Array.isArray(anuncio.imagens) ? anuncio.imagens.filter(Boolean) : []),
-    [anuncio.imagens]
-  );
+ // Imagens (SAFE)
+const imagens = useMemo(() => {
+  const arr = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
+  return arr
+    .filter((u) => typeof u === "string" && u.trim() !== "");
+}, [anuncio?.imagens]);
 
-  const temImagens = imagens.length > 0;
-  const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
+const temImagens = imagens.length > 0;
+const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
 
-  const fotoAtual = temImagens
-    ? imagens[Math.min(fotoIndex, imagens.length - 1)]
-    : null;
+const fotoAtual = temImagens
+  ? imagens[Math.min(fotoIndex, imagens.length - 1)]
+  : null;
+
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
