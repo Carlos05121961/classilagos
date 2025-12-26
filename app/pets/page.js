@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,60 +12,20 @@ const heroImages = ["/hero/pets-01.webp", "/hero/pets-02.webp", "/hero/pets-03.w
 
 // ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/topo/banner-topo-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 // ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
 const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/rodape/banner-rodape-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 // CIDADES DA REGIÃO
@@ -86,31 +46,21 @@ const tiposPet = ["Animais", "Adoção / Doação", "Achados e perdidos", "Servi
 
 // CARDS – 4 GRUPOS
 const cardsPets = [
-  {
-    slug: "animais",
-    titulo: "Animais à venda",
-    subtitulo: "Filhotes e adultos para compra",
-    href: "/pets/lista?subcategoria=Animais",
-  },
-  {
-    slug: "adocao",
-    titulo: "Adoção / Doação",
-    subtitulo: "Ajude a encontrar um novo lar",
-    href: "/pets/lista?subcategoria=Adoção / Doação",
-  },
-  {
-    slug: "achados",
-    titulo: "Achados e perdidos",
-    subtitulo: "Divulgue animais desaparecidos ou encontrados",
-    href: "/pets/lista?subcategoria=Achados e perdidos",
-  },
-  {
-    slug: "servicos",
-    titulo: "Serviços pet & acessórios",
-    subtitulo: "Banho, tosa, clínicas, hotel, acessórios...",
-    href: "/pets/lista?subcategoria=Serviços pet & acessórios",
-  },
+  { slug: "animais", titulo: "Animais à venda", subtitulo: "Filhotes e adultos para compra", href: "/pets/lista?subcategoria=Animais" },
+  { slug: "adocao", titulo: "Adoção / Doação", subtitulo: "Ajude a encontrar um novo lar", href: "/pets/lista?subcategoria=Adoção / Doação" },
+  { slug: "achados", titulo: "Achados e perdidos", subtitulo: "Divulgue animais desaparecidos ou encontrados", href: "/pets/lista?subcategoria=Achados e perdidos" },
+  { slug: "servicos", titulo: "Serviços pet & acessórios", subtitulo: "Banho, tosa, clínicas, hotel, acessórios...", href: "/pets/lista?subcategoria=Serviços pet & acessórios" },
 ];
+
+function norm(s) {
+  return (s || "").toString().toLowerCase().trim();
+}
+
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = norm(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
 
 export default function PetsPage() {
   const router = useRouter();
@@ -128,8 +78,9 @@ export default function PetsPage() {
   const [tipoBusca, setTipoBusca] = useState("");
   const [cidadeBusca, setCidadeBusca] = useState("");
 
-  // Preload das imagens do hero (evita “piscar”)
+  // ✅ Preload das imagens do hero (evita “piscar”) — seguro no SSR
   useEffect(() => {
+    if (typeof window === "undefined") return;
     heroImages.forEach((src) => {
       const im = new window.Image();
       im.src = src;
@@ -161,8 +112,10 @@ export default function PetsPage() {
     }
   }, [heroIndex, loadedSet]);
 
-  // Buscar anúncios de pets no Supabase (para vitrine e recentes)
+  // ✅ Buscar anúncios de pets no Supabase (padrão premium)
   useEffect(() => {
+    let cancelado = false;
+
     const fetchAnuncios = async () => {
       try {
         setLoadingAnuncios(true);
@@ -170,26 +123,18 @@ export default function PetsPage() {
         const { data, error } = await supabase
           .from("anuncios")
           .select(
-            `
-            id,
-            titulo,
-            descricao,
-            cidade,
-            bairro,
-            preco,
-            imagens,
-            categoria,
-            subcategoria_pet,
-            tipo_imovel,
-            status,
-            created_at,
-            destaque
-          `
+            "id, titulo, descricao, cidade, bairro, preco, imagens, categoria, subcategoria_pet, tipo_imovel, status, created_at, destaque, prioridade"
           )
           .eq("categoria", "pets")
-          .eq("status", "ativo")
+          // ✅ igual Imóveis: ativo OU null (não “some” anúncio)
+          .or("status.is.null,status.eq.ativo")
+          // ✅ ordem premium
           .order("destaque", { ascending: false })
-          .order("created_at", { ascending: false });
+          .order("prioridade", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(120);
+
+        if (cancelado) return;
 
         if (error) {
           console.error("Erro ao carregar anúncios de pets:", error);
@@ -199,16 +144,17 @@ export default function PetsPage() {
         }
       } catch (e) {
         console.error("Erro inesperado ao carregar anúncios de pets:", e);
-        setAnuncios([]);
+        if (!cancelado) setAnuncios([]);
       } finally {
-        setLoadingAnuncios(false);
+        if (!cancelado) setLoadingAnuncios(false);
       }
     };
 
     fetchAnuncios();
+    return () => {
+      cancelado = true;
+    };
   }, []);
-
-  const norm = (s) => (s || "").toLowerCase();
 
   // CLASSIFICA UM ANÚNCIO EM UM DOS 4 GRUPOS (para escolher capa dos cards)
   function classificarAnuncio(item) {
@@ -264,18 +210,22 @@ export default function PetsPage() {
     return "animais";
   }
 
-  // Escolhe um anúncio para ilustrar cada card (usa base total)
+  // Escolhe um anúncio para ilustrar cada card (destaque primeiro)
   function escolherParaCard(slugGrupo) {
     if (!anuncios || anuncios.length === 0) return null;
     const filtrados = anuncios.filter((a) => classificarAnuncio(a) === slugGrupo);
     if (filtrados.length === 0) return null;
 
-    const emDestaque = filtrados.find((a) => a.destaque === true);
+    const emDestaque = filtrados.find((a) => isDestaqueTruthy(a.destaque));
     return emDestaque || filtrados[0];
   }
 
   // Anúncios recentes
-  const destaques = anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
+  const destaques = useMemo(() => {
+    if (!anuncios || anuncios.length === 0) return [];
+    // já vem ordenado do DB (destaque/prioridade/created_at)
+    return anuncios.slice(0, 12);
+  }, [anuncios]);
 
   // ✅ Busca PREMIUM: manda para /busca
   function handleBuscar() {
@@ -297,7 +247,7 @@ export default function PetsPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      {/* ✅ BANNER TOPO (afiliado, rotativo, clicável) */}
+      {/* ✅ BANNER TOPO */}
       <section className="bg-white py-6">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
@@ -343,7 +293,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (✅ SmartSelect no mobile) */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -352,7 +302,7 @@ export default function PetsPage() {
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">Busca</label>
                 <input
                   type="text"
-                  placeholder="Ex.: clinica veterinaria, filhotes, banho e tosa"
+                  placeholder='Ex.: "clinica veterinaria", "filhotes", "banho e tosa"'
                   className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={textoBusca}
                   onChange={(e) => setTextoBusca(e.target.value)}
@@ -461,11 +411,7 @@ export default function PetsPage() {
             <h2 className="text-base md:text-lg font-semibold text-slate-900">Anúncios recentes de pets</h2>
 
             <span className="text-[11px] text-slate-500">
-              {loadingAnuncios
-                ? "Carregando anúncios..."
-                : destaques.length === 0
-                ? "Nenhum anúncio cadastrado ainda."
-                : `${destaques.length} anúncio(s)`}
+              {loadingAnuncios ? "Carregando anúncios..." : destaques.length === 0 ? "Nenhum anúncio cadastrado ainda." : `${destaques.length} anúncio(s)`}
             </span>
           </div>
 
@@ -505,6 +451,12 @@ export default function PetsPage() {
                           Sem foto
                         </div>
                       )}
+
+                      {isDestaqueTruthy(a.destaque) && (
+                        <span className="absolute top-2 left-2 rounded-full bg-amber-500 text-[10px] font-semibold text-white px-2 py-1 shadow">
+                          Destaque
+                        </span>
+                      )}
                     </div>
 
                     <div className="bg-slate-900 text-white px-3 py-2">
@@ -528,7 +480,7 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* ✅ BANNER RODAPÉ (PRINCIPAL) — com respiro */}
+      {/* ✅ BANNER RODAPÉ */}
       <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
