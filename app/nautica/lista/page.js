@@ -84,26 +84,35 @@ function ListaNauticaContent() {
     return titulo;
   }, [grupo, finalidade, tipo, subcategoria]);
 
-  useEffect(() => {
-    let cancelado = false;
+// Buscar anúncios de náutica no Supabase (PADRÃO PREMIUM)
+useEffect(() => {
+  const fetchAnuncios = async () => {
+    setLoadingAnuncios(true);
 
-    const carregar = async () => {
-      try {
-        setLoading(true);
-        setErro("");
+    const { data, error } = await supabase
+      .from("anuncios")
+      .select(
+        "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, prioridade, status, categoria, created_at"
+      )
+      .eq("categoria", "nautica")
+      .or("status.is.null,status.eq.ativo")
+      .order("destaque", { ascending: false })
+      .order("prioridade", { ascending: false })
+      .order("created_at", { ascending: false });
 
-        let query = supabase
-          .from("anuncios")
-          .select(
-            "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, categoria, destaque, prioridade, status, created_at"
-          )
-          .eq("categoria", "nautica")
-          // ✅ igual Imóveis: ativo OU null (não “some” anúncio)
-          .or("status.is.null,status.eq.ativo")
-          // ✅ ordem premium (DB)
-          .order("destaque", { ascending: false })
-          .order("prioridade", { ascending: false })
-          .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Erro ao carregar anúncios de náutica:", error);
+      setAnuncios([]);
+    } else {
+      setAnuncios(data || []);
+    }
+
+    setLoadingAnuncios(false);
+  };
+
+  fetchAnuncios();
+}, []);
+
 
         // Filtro direto por finalidade (ex.: aluguel / venda)
         if (finalidade) {
