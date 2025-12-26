@@ -471,11 +471,6 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
 </section>
 
 
-</div> {/* ✅ fecha o container max-w-7xl mx-auto px-4 (VITRINE) */}
-
-</section>
-
-
       {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
