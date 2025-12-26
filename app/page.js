@@ -399,35 +399,55 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {vitrine.map((c) => (
-              <Link
-                key={c.titulo}
-                href={c.href}
-                className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-              >
-                <div className="relative h-28 bg-slate-100 overflow-hidden">
-                  <img
-                    src={c.img}
-                    alt={c.titulo}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
-                  <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                    <span>{c.emoji}</span>
-                    <span>{c.tag}</span>
-                  </div>
-                </div>
+         {loadingVitrine ? (
+  <p className="text-sm text-slate-500">Carregando vitrine...</p>
+) : vitrineAnuncios.length === 0 ? (
+  <p className="text-sm text-slate-500">Ainda não há anúncios na vitrine.</p>
+) : (
+  vitrineAnuncios.map((c) => {
+    const imagensValidas = Array.isArray(c.imagens) ? c.imagens : [];
+    const thumb = imagensValidas[0] || "";
 
-                <div className="p-4">
-                  <p className="text-sm font-extrabold text-slate-900">{c.titulo}</p>
-                  <p className="mt-1 text-[12px] text-slate-600">{c.subtitulo}</p>
-                  <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-                    Abrir agora →
-                  </span>
-                </div>
-              </Link>
-            ))}
+    return (
+      <Link
+        key={c.id}
+        href={`/anuncios/${c.id}`}
+        className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+      >
+        <div className="relative h-28 bg-gradient-to-b from-slate-100 to-slate-200 overflow-hidden">
+          {thumb ? (
+            <img
+              src={thumb}
+              alt={c.titulo}
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+            />
+          ) : null}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
+
+          <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+            <span>{(c.categoria || "Classificados").toUpperCase()}</span>
           </div>
+        </div>
+
+        <div className="p-4">
+          <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+            {c.titulo}
+          </p>
+
+          <p className="mt-1 text-[12px] text-slate-600 line-clamp-2">
+            {c.descricao || ""}
+          </p>
+
+          <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+            Ver anúncio →
+          </span>
+        </div>
+      </Link>
+    );
+  })
+)}
+
 
           <div className="mt-3 text-center sm:hidden">
             <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
