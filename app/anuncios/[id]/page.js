@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../supabaseClient";
@@ -63,21 +63,20 @@ const BANNERS_RODAPE = [
   },
 ];
 
-
 export default function AnuncioDetalhePage() {
   const { id } = useParams();
+
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+
   const [fotoIndex, setFotoIndex] = useState(0);
   const [shareUrl, setShareUrl] = useState("");
   const [similares, setSimilares] = useState([]);
 
   // URL atual (para compartilhar)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setShareUrl(window.location.href);
-    }
+    if (typeof window !== "undefined") setShareUrl(window.location.href);
   }, []);
 
   // Buscar anúncio + similares
@@ -85,6 +84,9 @@ export default function AnuncioDetalhePage() {
     if (!id) return;
 
     const fetchAnuncio = async () => {
+      setLoading(true);
+      setErro(null);
+
       const { data, error } = await supabase
         .from("anuncios")
         .select("*")
@@ -102,83 +104,113 @@ export default function AnuncioDetalhePage() {
       setFotoIndex(0);
 
       const campos =
-        "id, titulo, cidade, bairro, preco, tipo_imovel, finalidade, imagens, categoria, subcategoria_servico, created_at, destaque";
+        "id, titulo, cidade, bairro, preco, faixa_preco, tipo_imovel, finalidade, imagens, categoria, pilar_turismo, subcategoria_turismo, area_profissional, subcategoria_servico, created_at, destaque";
 
-      // helpers (só para esta função)
+      // helpers
       const norm = (v) =>
         (v || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
       const isTemporada = (v) => {
         const f = norm(v);
-        return f === "temporada" || f === "aluguel temporada" || f === "aluguel_temporada";
+        return (
+          f === "temporada" ||
+          f === "aluguel temporada" ||
+          f === "aluguel_temporada"
+        );
       };
       const isAluguel = (v) => {
         const f = norm(v);
         return f === "aluguel" || f === "aluguel fixo" || f === "aluguel_fixo";
       };
 
-      // normaliza a finalidade do anúncio atual para montar o filtro certo
+      const categoriaAtual = data.categoria || "";
+      const cidadeAtual = data.cidade || "";
+      const bairroAtual = data.bairro || "";
+      const tipoImovelAtual = data.tipo_imovel || "";
+      const pilarTurismoAtual = data.pilar_turismo || "";
+      const subcatTurismoAtual = data.subcategoria_turismo || "";
+      const areaProfAtual = data.area_profissional || "";
+      const subcatServicoAtual = data.subcategoria_servico || "";
       const fAtual = norm(data.finalidade);
 
-      // monta um "filtro SQL" de finalidade robusto
+      // filtro de finalidade (só para imoveis, onde isso existe)
       const aplicarFiltroFinalidade = (q) => {
+        if (categoriaAtual !== "imoveis") return q;
+
         if (isTemporada(fAtual)) {
           return q.or(
             "finalidade.eq.temporada,finalidade.eq.aluguel temporada,finalidade.eq.aluguel_temporada"
           );
         }
         if (isAluguel(fAtual)) {
-          return q.or("finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo");
+          return q.or(
+            "finalidade.eq.aluguel,finalidade.eq.aluguel fixo,finalidade.eq.aluguel_fixo"
+          );
         }
-        if (fAtual) {
-          return q.eq("finalidade", data.finalidade);
-        }
+        if (fAtual) return q.eq("finalidade", data.finalidade);
         return q;
       };
 
       let lista = [];
 
-      // 1) MESMA CATEGORIA + MESMA FINALIDADE + MESMA CIDADE + MESMO TIPO (quando existir)
+      // Estratégia Premium (sem complicar):
+      // 1) mesma categoria + mesma cidade + (refino por campo quando existir)
+      // 2) mesma categoria + mesma cidade
+      // 3) mesma categoria (geral)
       try {
         let q1 = supabase
           .from("anuncios")
           .select(campos)
-          .eq("categoria", "imoveis")
+          .eq("categoria", categoriaAtual)
+          .eq("status", "ativo")
           .neq("id", data.id)
           .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
-          .limit(12);
+          .limit(16);
 
         q1 = aplicarFiltroFinalidade(q1);
 
-        if (data.cidade) q1 = q1.eq("cidade", data.cidade);
-        if (data.tipo_imovel) q1 = q1.eq("tipo_imovel", data.tipo_imovel);
+        if (cidadeAtual) q1 = q1.eq("cidade", cidadeAtual);
+
+        // refinamentos por categoria
+        if (categoriaAtual === "imoveis" && tipoImovelAtual) {
+          q1 = q1.eq("tipo_imovel", tipoImovelAtual);
+        }
+        if (categoriaAtual === "turismo" && pilarTurismoAtual) {
+          q1 = q1.eq("pilar_turismo", pilarTurismoAtual);
+          if (subcatTurismoAtual) q1 = q1.eq("subcategoria_turismo", subcatTurismoAtual);
+        }
+        if (categoriaAtual === "emprego" && areaProfAtual) {
+          q1 = q1.eq("area_profissional", areaProfAtual);
+        }
+        if (categoriaAtual === "servico" && subcatServicoAtual) {
+          q1 = q1.eq("subcategoria_servico", subcatServicoAtual);
+        }
+        if (bairroAtual && (categoriaAtual === "lagolistas" || categoriaAtual === "servico")) {
+          q1 = q1.eq("bairro", bairroAtual);
+        }
 
         const r1 = await q1;
-
-        if (!r1.error && Array.isArray(r1.data)) {
-          lista = r1.data;
-        }
+        if (!r1.error && Array.isArray(r1.data)) lista = r1.data;
       } catch (e) {
         console.warn("Falha ao buscar similares (r1):", e);
       }
 
-      // 2) Se ainda não tem suficientes: MESMA FINALIDADE + MESMA CIDADE (sem tipo)
       if (lista.length < 4) {
         try {
           let q2 = supabase
             .from("anuncios")
             .select(campos)
-            .eq("categoria", "imoveis")
+            .eq("categoria", categoriaAtual)
+            .eq("status", "ativo")
             .neq("id", data.id)
             .order("destaque", { ascending: false })
             .order("created_at", { ascending: false })
-            .limit(12);
+            .limit(16);
 
           q2 = aplicarFiltroFinalidade(q2);
-          if (data.cidade) q2 = q2.eq("cidade", data.cidade);
+          if (cidadeAtual) q2 = q2.eq("cidade", cidadeAtual);
 
           const r2 = await q2;
-
           if (!r2.error && Array.isArray(r2.data)) {
             const ids = new Set(lista.map((x) => x.id));
             r2.data.forEach((x) => {
@@ -193,22 +225,21 @@ export default function AnuncioDetalhePage() {
         }
       }
 
-      // 3) Se ainda não tem suficientes: MESMA FINALIDADE (sem cidade/tipo)
       if (lista.length < 4) {
         try {
           let q3 = supabase
             .from("anuncios")
             .select(campos)
-            .eq("categoria", "imoveis")
+            .eq("categoria", categoriaAtual)
+            .eq("status", "ativo")
             .neq("id", data.id)
             .order("destaque", { ascending: false })
             .order("created_at", { ascending: false })
-            .limit(12);
+            .limit(16);
 
           q3 = aplicarFiltroFinalidade(q3);
 
           const r3 = await q3;
-
           if (!r3.error && Array.isArray(r3.data)) {
             const ids = new Set(lista.map((x) => x.id));
             r3.data.forEach((x) => {
@@ -223,9 +254,7 @@ export default function AnuncioDetalhePage() {
         }
       }
 
-      // pega só 4 para a UI
       setSimilares(lista.slice(0, 4));
-
       setLoading(false);
     };
 
@@ -234,7 +263,7 @@ export default function AnuncioDetalhePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center">
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
         <p className="text-sm text-slate-600">Carregando anúncio…</p>
       </main>
     );
@@ -242,13 +271,13 @@ export default function AnuncioDetalhePage() {
 
   if (erro || !anuncio) {
     return (
-      <main className="min-h-screen bg-[#F5FBFF] flex flex-col items-center justify-center px-4">
+      <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
         <p className="text-sm text-slate-700 mb-4">
           {erro || "Anúncio não encontrado."}
         </p>
         <Link
           href="/"
-          className="rounded-full bg-[#21D4FD] px-5 py-2 text-sm text-white font-semibold hover:bg-[#3EC9C3]"
+          className="rounded-full bg-blue-600 px-5 py-2 text-sm text-white font-semibold hover:bg-blue-700"
         >
           Voltar para a página inicial
         </Link>
@@ -263,12 +292,21 @@ export default function AnuncioDetalhePage() {
   const isLagolistas = anuncio.categoria === "lagolistas";
   const isPets = anuncio.categoria === "pets";
   const isImoveis = anuncio.categoria === "imoveis";
+  const isVeiculos = anuncio.categoria === "veiculos";
+  const isTurismo = anuncio.categoria === "turismo";
 
   // Imagens
-  const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
+  const imagens = useMemo(
+    () => (Array.isArray(anuncio.imagens) ? anuncio.imagens.filter(Boolean) : []),
+    [anuncio.imagens]
+  );
+
   const temImagens = imagens.length > 0;
-  // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
   const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
+
+  const fotoAtual = temImagens
+    ? imagens[Math.min(fotoIndex, imagens.length - 1)]
+    : null;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
@@ -278,18 +316,15 @@ export default function AnuncioDetalhePage() {
   const corretor = anuncio.corretor || "";
   const creci = anuncio.creci || "";
 
-  const whatsappDigits = whatsappRaw.replace(/\D/g, "");
+  const whatsappDigits = (whatsappRaw || "").replace(/\D/g, "");
 
-  const whatsappLink =
-    whatsappDigits && shareUrl
-      ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
-          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos e gostaria de mais informações.`
-        )}`
-      : null;
+  const whatsappLink = whatsappDigits
+    ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
+        `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos e gostaria de mais informações.`
+      )}`
+    : null;
 
-  // ✅ WhatsApp do PARCEIRO (financiamento/seguro)
-  // Se você quiser, depois a gente troca para um número fixo do parceiro.
-  // Por enquanto, se não tiver número do parceiro, usamos o WhatsApp do anunciante (sem quebrar nada).
+  // WhatsApp do PARCEIRO (por enquanto: anunciante)
   const parceiroDigits = whatsappDigits;
 
   // Compartilhamento
@@ -326,6 +361,8 @@ export default function AnuncioDetalhePage() {
       ? "Comércios similares na Região dos Lagos"
       : anuncio.categoria === "pets"
       ? "Anúncios de pets similares na Região dos Lagos"
+      : anuncio.categoria === "turismo"
+      ? "Turismo: opções parecidas na Região dos Lagos"
       : "Anúncios similares na Região dos Lagos";
 
   // Texto dinâmico quando não houver similares
@@ -344,6 +381,8 @@ export default function AnuncioDetalhePage() {
       ? "Em breve mais comércios desta região aparecerão aqui."
       : anuncio.categoria === "pets"
       ? "Em breve mais anúncios de pets nesta região aparecerão aqui."
+      : anuncio.categoria === "turismo"
+      ? "Em breve mais opções de turismo aparecerão aqui."
       : "Em breve mais anúncios nesta região aparecerão aqui.";
 
   // Rota para o "voltar"
@@ -360,9 +399,10 @@ export default function AnuncioDetalhePage() {
       ? "/lagolistas"
       : anuncio.categoria === "pets"
       ? "/pets"
+      : anuncio.categoria === "turismo"
+      ? "/turismo"
       : "/";
 
-  // Texto "Voltar para ..."
   const textoVoltar =
     anuncio.categoria === "veiculos"
       ? "Veículos"
@@ -376,9 +416,11 @@ export default function AnuncioDetalhePage() {
       ? "LagoListas"
       : anuncio.categoria === "pets"
       ? "Pets"
+      : anuncio.categoria === "turismo"
+      ? "Turismo"
       : "a lista";
 
-  // ✅ helper: preço numérico para simulação (robusto)
+  // helper: preço numérico para simulação (robusto)
   const precoNumero = (() => {
     const raw = (anuncio?.preco ?? "").toString();
     const digits = raw.replace(/[^\d]/g, "");
@@ -387,7 +429,7 @@ export default function AnuncioDetalhePage() {
   })();
 
   return (
-    <main className="min-h-screen bg-[#F5FBFF] pb-12">
+    <main className="min-h-screen bg-slate-50 pb-12">
       {/* BANNER TOPO */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 pt-4 pb-3">
@@ -399,17 +441,16 @@ export default function AnuncioDetalhePage() {
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
           {isLagolistas ? (
-            // CABEÇALHO ESPECIAL LAGOLISTAS – TARJA AMARELO MOSTARDA
-            <div className="rounded-3xl bg-[#F2B705] px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3">
+            <div className="rounded-3xl bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-100 border border-amber-200 px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[11px] font-semibold text-black/80">
+                  <p className="text-[11px] font-semibold text-slate-900/80">
                     Classilagos – LagoListas
                   </p>
-                  <h1 className="text-2xl md:text-3xl font-black text-black leading-snug">
+                  <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-snug">
                     {anuncio.titulo}
                   </h1>
-                  <p className="text-xs md:text-sm text-black/80">
+                  <p className="text-xs md:text-sm text-slate-800/80">
                     {anuncio.cidade}
                     {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                   </p>
@@ -417,15 +458,14 @@ export default function AnuncioDetalhePage() {
 
                 <Link
                   href={rotaVoltar}
-                  className="hidden sm:inline-flex rounded-full border border-black/30 bg-white/80 px-4 py-1.5 text-xs font-semibold text-black hover:bg:white"
+                  className="hidden sm:inline-flex rounded-full border border-slate-900/20 bg-white/80 px-4 py-1.5 text-xs font-semibold text-slate-900 hover:bg-white"
                 >
                   Voltar para {textoVoltar}
                 </Link>
               </div>
 
-              {/* COMPARTILHAR */}
-              <div className="flex items-center gap-2 text-[11px] mt-1">
-                <span className="text-black/80">Compartilhar:</span>
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="text-slate-800/80">Compartilhar:</span>
                 <a
                   href={whatsappShareUrl}
                   target="_blank"
@@ -445,26 +485,27 @@ export default function AnuncioDetalhePage() {
               </div>
             </div>
           ) : (
-            // CABEÇALHO PADRÃO OUTRAS CATEGORIAS
             <>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] text-slate-500">
                     Classilagos –{" "}
-                    {anuncio.categoria === "veiculos"
+                    {isVeiculos
                       ? "Veículos"
-                      : anuncio.categoria === "imoveis"
+                      : isImoveis
                       ? "Imóveis"
-                      : anuncio.categoria === "emprego"
+                      : isEmprego
                       ? "Empregos"
-                      : anuncio.categoria === "curriculo"
+                      : isCurriculo
                       ? "Currículos"
-                      : anuncio.categoria === "servico"
+                      : isServico
                       ? "Serviços"
-                      : anuncio.categoria === "lagolistas"
+                      : isLagolistas
                       ? "LagoListas"
-                      : anuncio.categoria === "pets"
+                      : isPets
                       ? "Pets"
+                      : isTurismo
+                      ? "Turismo"
                       : "Anúncios"}
                   </p>
                   <h1 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -484,8 +525,7 @@ export default function AnuncioDetalhePage() {
                 </Link>
               </div>
 
-              {/* COMPARTILHAR */}
-              <div className="flex items-center gap-2 text-[11px]">
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="text-slate-500">Compartilhar:</span>
                 <a
                   href={whatsappShareUrl}
@@ -516,11 +556,17 @@ export default function AnuncioDetalhePage() {
           <section className="w-full flex flex-col gap-3" id="fachada">
             <div className="w-full flex justify-center">
               <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
-                <img
-                  src={imagens[fotoIndex]}
-                  alt={anuncio.titulo}
-                  className="w-full h-full object-cover object-center"
-                />
+                {fotoAtual ? (
+                  <img
+                    src={fotoAtual}
+                    alt={anuncio.titulo}
+                    className="w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
+                    Sem fotos para exibir
+                  </div>
+                )}
               </div>
             </div>
 
@@ -532,7 +578,7 @@ export default function AnuncioDetalhePage() {
                     type="button"
                     onClick={() => setFotoIndex(index)}
                     className={`rounded-xl overflow-hidden border bg-white transition ${
-                      fotoIndex === index
+                      Math.min(fotoIndex, imagens.length - 1) === index
                         ? "border-cyan-500 ring-2 ring-cyan-400/40"
                         : "border-slate-300 hover:border-cyan-400"
                     }`}
@@ -553,7 +599,7 @@ export default function AnuncioDetalhePage() {
         <div className="grid grid-cols-1 md:grid-cols-[3fr,2fr] gap-6">
           {/* COLUNA ESQUERDA */}
           <div className="space-y-4">
-            {/* ===================== CURRÍCULO ===================== */}
+            {/* CURRÍCULO */}
             {isCurriculo ? (
               <>
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
@@ -598,7 +644,8 @@ export default function AnuncioDetalhePage() {
                     Resumo profissional
                   </h3>
                   <p className="text-xs text-slate-700 whitespace-pre-line">
-                    {anuncio.descricao || "O candidato ainda não preencheu o resumo profissional."}
+                    {anuncio.descricao ||
+                      "O candidato ainda não preencheu o resumo profissional."}
                   </p>
                 </section>
 
@@ -667,18 +714,14 @@ export default function AnuncioDetalhePage() {
                       href={anuncio.curriculo_pdf_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
+                      className="inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
                     >
                       Baixar currículo em PDF
                     </a>
                   </section>
                 )}
               </>
-            ) : (
-              <>
-                {/* Outros tipos seguem o conteúdo padrão */}
-              </>
-            )}
+            ) : null}
 
             {/* Resumo do anúncio */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
@@ -687,18 +730,21 @@ export default function AnuncioDetalhePage() {
               </h2>
 
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
-                {anuncio.preco && (
+                {/* preço (somente onde faz sentido) */}
+                {(isImoveis || isVeiculos || isPets) && anuncio.preco && (
                   <div>
                     <span className="font-semibold text-slate-900">Valor: </span>
                     R$ {anuncio.preco}
                   </div>
                 )}
+
                 {isEmprego && anuncio.faixa_salarial && (
                   <div>
                     <span className="font-semibold text-slate-900">Faixa salarial: </span>
                     {anuncio.faixa_salarial}
                   </div>
                 )}
+
                 {isServico && anuncio.faixa_preco && (
                   <div>
                     <span className="font-semibold text-slate-900">Faixa de preço: </span>
@@ -712,6 +758,7 @@ export default function AnuncioDetalhePage() {
                     {anuncio.tipo_imovel}
                   </div>
                 )}
+
                 {anuncio.finalidade && (
                   <div>
                     <span className="font-semibold text-slate-900">Finalidade: </span>
@@ -719,8 +766,11 @@ export default function AnuncioDetalhePage() {
                     {anuncio.finalidade === "aluguel_fixo" && "Aluguel fixo"}
                     {anuncio.finalidade === "aluguel" && "Aluguel"}
                     {anuncio.finalidade === "temporada" && "Aluguel por temporada"}
+                    {["aluguel temporada", "aluguel_temporada"].includes(anuncio.finalidade) &&
+                      "Aluguel por temporada"}
                   </div>
                 )}
+
                 {anuncio.area && (
                   <div>
                     <span className="font-semibold text-slate-900">Área: </span>
@@ -776,29 +826,27 @@ export default function AnuncioDetalhePage() {
                     <span className="font-semibold text-slate-900">Tipo de serviço: </span>
                     {anuncio.subcategoria_servico === "classimed" && "Saúde (Classimed)"}
                     {anuncio.subcategoria_servico === "eventos" && "Festas & Eventos"}
-                    {anuncio.subcategoria_servico === "profissionais" &&
-                      "Profissionais & Serviços"}
+                    {anuncio.subcategoria_servico === "profissionais" && "Profissionais & Serviços"}
                   </div>
                 )}
+
                 {isServico && anuncio.nome_negocio && (
                   <div>
                     <span className="font-semibold text-slate-900">Nome do negócio: </span>
                     {anuncio.nome_negocio}
                   </div>
                 )}
+
                 {isServico && anuncio.horario_atendimento && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Horário de atendimento:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Horário de atendimento: </span>
                     {anuncio.horario_atendimento}
                   </div>
                 )}
+
                 {isServico && typeof anuncio.atende_domicilio === "boolean" && (
                   <div>
-                    <span className="font-semibold text-slate-900">
-                      Atende em domicílio:{" "}
-                    </span>
+                    <span className="font-semibold text-slate-900">Atende em domicílio: </span>
                     {anuncio.atende_domicilio ? "Sim" : "Não"}
                   </div>
                 )}
@@ -1038,7 +1086,7 @@ export default function AnuncioDetalhePage() {
                   href={anuncio.video_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
+                  className="inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
                 >
                   Ver vídeo no YouTube
                 </a>
@@ -1046,7 +1094,7 @@ export default function AnuncioDetalhePage() {
             )}
           </div>
 
-          {/* COLUNA DIREITA: CONTATO + (NOVOS) FINANCIAMENTO + SEGURO + MERCADO LIVRE */}
+          {/* COLUNA DIREITA */}
           <div className="space-y-4">
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-3">
@@ -1117,7 +1165,7 @@ export default function AnuncioDetalhePage() {
               </p>
             </div>
 
-            {/* ✅ NOVO BLOCO PREMIUM: SIMULADOR (SÓ IMÓVEIS) */}
+            {/* SIMULADOR (SÓ IMÓVEIS) */}
             {isImoveis && precoNumero > 0 && (
               <div className="bg-white rounded-3xl border border-emerald-200 px-5 py-4 shadow-sm">
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -1132,7 +1180,7 @@ export default function AnuncioDetalhePage() {
                   const entrada = Math.round(valor * 0.2);
                   const financiamento = Math.max(0, valor - entrada);
                   const meses = 360;
-                  const juros = 0.009; // 0,9% a.m. (estimado)
+                  const juros = 0.009;
                   const parcela =
                     financiamento > 0
                       ? Math.round(financiamento * (juros / (1 - Math.pow(1 + juros, -meses))))
@@ -1181,7 +1229,7 @@ export default function AnuncioDetalhePage() {
               </div>
             )}
 
-            {/* ✅ NOVO BLOCO PREMIUM: SEGURO (SÓ IMÓVEIS) */}
+            {/* SEGURO (SÓ IMÓVEIS) */}
             {isImoveis && (
               <div className="bg-white rounded-3xl border border-blue-200 px-5 py-4 shadow-sm">
                 <h2 className="text-sm font-semibold text-slate-900 mb-2">
@@ -1214,14 +1262,13 @@ export default function AnuncioDetalhePage() {
               </div>
             )}
 
-            {/* Bloco Mercado Livre continua igual para todos os tipos */}
+            {/* Mercado Livre */}
             <div className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
                 Ofertas que combinam com este anúncio (Mercado Livre)
               </h2>
               <p className="text-[11px] text-slate-600 mb-3">
-                Itens para equipar ou cuidar melhor deste imóvel, veículo ou
-                ambiente de trabalho.
+                Itens para equipar ou cuidar melhor deste imóvel, veículo ou ambiente.
               </p>
               <ul className="space-y-2 text-xs text-slate-700">
                 <li>
@@ -1305,6 +1352,10 @@ export default function AnuncioDetalhePage() {
                     ? item.imagens.find((u) => typeof u === "string" && u.trim() !== "")
                     : null;
 
+                  const precoOuFaixa =
+                    item.faixa_preco ||
+                    (item.preco ? `R$ ${item.preco}` : "");
+
                   return (
                     <Link
                       key={item.id}
@@ -1326,9 +1377,9 @@ export default function AnuncioDetalhePage() {
                           {item.cidade}
                           {item.bairro ? ` • ${item.bairro}` : ""}
                         </p>
-                        {item.preco && (
+                        {!!precoOuFaixa && (
                           <p className="text-[11px] font-semibold text-slate-900">
-                            R$ {item.preco}
+                            {precoOuFaixa}
                           </p>
                         )}
                       </div>
@@ -1344,26 +1395,24 @@ export default function AnuncioDetalhePage() {
         <div className="mt-4 flex justify-center sm:hidden">
           <Link
             href={rotaVoltar}
-            className="rounded-full bg-[#21D4FD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#3EC9C3]"
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
             Voltar
           </Link>
         </div>
 
-              {/* BANNER RODAPÉ */}
-<section className="mt-8">
-  <div className="max-w-5xl mx-auto px-4">
-    <BannerRotator
-      images={BANNERS_RODAPE}
-      height={120}
-      maxWidth={900}
-      interval={6000}
-    />
-  </div>
-</section>
-
+        {/* BANNER RODAPÉ */}
+        <section className="mt-8">
+          <div className="max-w-5xl mx-auto px-0">
+            <BannerRotator
+              images={BANNERS_RODAPE}
+              height={120}
+              maxWidth={900}
+              interval={6000}
+            />
+          </div>
+        </section>
       </section>
     </main>
   );
 }
-
