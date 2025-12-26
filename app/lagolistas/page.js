@@ -77,7 +77,7 @@ export default function LagoListasPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
 
-  // HERO – 3 imagens em slide
+  // HERO – 3 imagens em slide (Premium sem piscar)
   const heroImages = useMemo(
     () => [
       "/lagolistas/hero-lagolistas-01.webp",
@@ -86,15 +86,42 @@ export default function LagoListasPage() {
     ],
     []
   );
+
   const [currentHero, setCurrentHero] = useState(0);
+  const [loadedSet, setLoadedSet] = useState(() => new Set());
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    heroImages.forEach((src) => {
+      const im = new window.Image();
+      im.src = src;
+      im.onload = () =>
+        setLoadedSet((prev) => {
+          const n = new Set(prev);
+          n.add(src);
+          return n;
+        });
+    });
+  }, [heroImages]);
 
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
+      setFadeIn(false);
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 5500);
     return () => clearInterval(interval);
   }, [heroImages.length]);
+
+  useEffect(() => {
+    const src = heroImages[currentHero];
+    if (loadedSet.has(src)) {
+      const id = setTimeout(() => setFadeIn(true), 30);
+      return () => clearTimeout(id);
+    }
+  }, [currentHero, loadedSet, heroImages]);
+
+  const heroSrc = heroImages[currentHero];
 
   // cidades no padrão do formulário
   const cidades = [
@@ -234,7 +261,6 @@ export default function LagoListasPage() {
         href={`/anuncios/${item.id}`}
         className="group flex gap-3 rounded-2xl border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition shadow-sm hover:shadow-md px-4 py-3"
       >
-        {/* Logo / foto */}
         <div className="w-14 h-14 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-yellow-200 flex items-center justify-center text-xs font-semibold text-yellow-700">
           {thumb ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -248,7 +274,6 @@ export default function LagoListasPage() {
           )}
         </div>
 
-        {/* Conteúdo */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <p className="font-semibold text-[13px] text-slate-900 truncate">{item.titulo}</p>
@@ -268,9 +293,7 @@ export default function LagoListasPage() {
             <p className="text-[11px] text-slate-800 mb-1 line-clamp-1">{item.area_profissional}</p>
           )}
 
-          {item.descricao && (
-            <p className="text-[11px] text-slate-700 line-clamp-2">{item.descricao}</p>
-          )}
+          {item.descricao && <p className="text-[11px] text-slate-700 line-clamp-2">{item.descricao}</p>}
 
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
             {item.whatsapp && (
@@ -284,27 +307,22 @@ export default function LagoListasPage() {
               </span>
             )}
             {item.site_url && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5">
-                Site
-              </span>
+              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5">Site</span>
             )}
           </div>
 
-          <span className="mt-1 inline-block text-[11px] text-blue-700 group-hover:underline">
-            Ver detalhes →
-          </span>
+          <span className="mt-1 inline-block text-[11px] text-blue-700 group-hover:underline">Ver detalhes →</span>
         </div>
       </Link>
     );
   };
 
-  // ✅ Lista da página (não fica “presa” por busca)
+  // ✅ Lista da página (leve e rápida)
   const listaDaPagina = useMemo(() => {
     const base = Array.isArray(anuncios) ? anuncios : [];
     return base.slice(0, 60);
   }, [anuncios]);
 
-  // ✅ Labels bonitos pro SmartSelect
   const categoriaLabel = filtroCategoria || "Todos";
   const cidadeLabel = filtroCidade || "Toda a região";
 
@@ -317,20 +335,25 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* HERO LAGOLISTAS – SLIDER */}
+      {/* ✅ HERO LAGOLISTAS – SLIDER Premium sem piscar */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <Image
-            key={currentHero}
-            src={heroImages[currentHero]}
-            alt="Classilagos LagoListas"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-700"
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
+
+          <div
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{
+              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
           />
 
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/25 to-black/45" />
+          {/* preload invisível */}
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
+
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/25 to-black/50" />
 
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
             <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.85)]">
@@ -350,7 +373,10 @@ export default function LagoListasPage() {
               <button
                 key={index}
                 type="button"
-                onClick={() => setCurrentHero(index)}
+                onClick={() => {
+                  setFadeIn(false);
+                  setCurrentHero(index);
+                }}
                 className={`h-2.5 w-2.5 rounded-full border border-white/70 ${
                   currentHero === index ? "bg-white" : "bg-white/30 hover:bg-white/60"
                 }`}
@@ -361,9 +387,9 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA LAGOLISTAS (✅ PREMIUM -> /busca) */}
+      {/* ✅ CAIXA DE BUSCA (Premium -> /busca) + atalhos visíveis */}
       <section className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
@@ -414,15 +440,33 @@ export default function LagoListasPage() {
                 </button>
               </div>
             </div>
-          </div>
 
-          <p className="mt-1 text-[11px] text-center text-slate-500">
-            ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
-          </p>
+            {/* ✅ Atalhos VISÍVEIS (nada escondido) */}
+            <div className="mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <div className="text-[11px] text-slate-500 text-center sm:text-left">
+                ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
+              </div>
+
+              <div className="flex gap-2">
+                <a
+                  href="#cadastros"
+                  className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
+                >
+                  Ver cadastros ↓
+                </a>
+                <Link
+                  href="/anunciar/lagolistas"
+                  className="inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-[11px] font-semibold text-white hover:bg-blue-700"
+                >
+                  Anunciar no LagoListas
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CHAMADA PARA ANUNCIAR */}
+      {/* CHAMADA PARA ANUNCIAR (Premium) */}
       <section className="max-w-6xl mx-auto px-4 pt-6 pb-4">
         <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
           <p className="text-sm font-semibold text-slate-900 mb-1">Quer colocar sua empresa no LagoListas?</p>
@@ -439,8 +483,8 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* LISTÃO BASE */}
-      <section className="max-w-5xl mx-auto px-4 pb-10">
+      {/* LISTÃO BASE (com âncora) */}
+      <section id="cadastros" className="max-w-5xl mx-auto px-4 pb-10 scroll-mt-24">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-900">Cadastros do LagoListas</h2>
           {!loading && <p className="text-[11px] text-slate-500">{anuncios.length} cadastro(s) no total</p>}
@@ -470,7 +514,7 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* Footer global do peixinho vem do layout */}
+      {/* Footer global vem do layout */}
     </main>
   );
 }
