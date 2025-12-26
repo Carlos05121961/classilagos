@@ -143,7 +143,7 @@ export default function MeusAnunciosPage() {
                   >
                     {/* Imagem */}
                     {img ? (
-                      <div className="w-full h-44 overflow-hidden bg-slate-100">
+                      <div className="w-full h-48 sm:h-52 overflow-hidden bg-slate-100">
                         <img src={img} alt={anuncio.titulo} className="w-full h-full object-cover" />
                       </div>
                     ) : (
