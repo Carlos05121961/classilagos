@@ -21,62 +21,64 @@ export default function Home() {
   ];
 
   // BANNERS (padrão fixo: você só troca as imagens no GitHub e pronto)
-  const bannersTopo = [
-    {
-      src: "/banners/topo/banner-topo-01.webp",
-      href: "https://mercadolivre.com/sec/2KgtVeb",
-      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-    },
-    {
-      src: "/banners/topo/banner-topo-02.webp",
-      href: "https://mercadolivre.com/sec/2nVCHmw",
-      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-    },
-    {
-      src: "/banners/topo/banner-topo-03.webp",
-      href: "https://mercadolivre.com/sec/17Q8mju",
-      alt: "Caixas de Som (Mercado Livre)",
-    },
-    {
-      src: "/banners/topo/banner-topo-04.webp",
-      href: "https://mercadolivre.com/sec/2BbG4vr",
-      alt: "TVs Smart (Mercado Livre)",
-    },
-    {
-      src: "/banners/topo/banner-topo-05.webp",
-      href: "https://mercadolivre.com/sec/32bqvEJ",
-      alt: "Celulares e Tablets (Mercado Livre)",
-    },
-  ];
+const bannersTopo = [
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
 
-  const bannersRodape = [
-    {
-      src: "/banners/rodape/banner-rodape-01.webp",
-      href: "https://mercadolivre.com/sec/2KgtVeb",
-      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-    },
-    {
-      src: "/banners/rodape/banner-rodape-02.webp",
-      href: "https://mercadolivre.com/sec/2nVCHmw",
-      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-    },
- {
-  src: "/banners/rodape/banner-rodape-03.webp",
-  href: "https://mercadolivre.com/sec/17Q8mju",
-  alt: "Caixas de Som (Mercado Livre)",
-},
 
-    {
-      src: "/banners/rodape/banner-rodape-04.webp",
-      href: "https://mercadolivre.com/sec/2BbG4vr",
-      alt: "TVs Smart (Mercado Livre)",
-    },
-    {
-      src: "/banners/rodape/banner-rodape-05.webp",
-      href: "https://mercadolivre.com/sec/32bqvEJ",
-      alt: "Celulares e Tablets (Mercado Livre)",
-    },
-  ];
+
+const bannersRodape = [
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
+];
+
 
   // ORDEM DOS ÍCONES
   const categorias = [
@@ -153,47 +155,19 @@ export default function Home() {
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
-  // VITRINE (lançamento) — 4 anúncios mais recentes
-const [vitrineAnuncios, setVitrineAnuncios] = useState([]);
-const [loadingVitrine, setLoadingVitrine] = useState(true);
+  useEffect(() => {
+    async function carregarDestaquesLancamento() {
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(4);
 
-// VITRINE — pega os próximos 4 para não repetir os “últimos”
-useEffect(() => {
-  async function carregarVitrineLancamento() {
-    setLoadingVitrine(true);
-
-    const { data, error } = await supabase
-      .from("anuncios")
-      .select("id, titulo, descricao, categoria, cidade, imagens, created_at, preco")
-      .order("created_at", { ascending: false })
-      .range(4, 7); // <- pega do 5º ao 8º
-
-    if (!error) setVitrineAnuncios(data || []);
-    setLoadingVitrine(false);
-  }
-
-  carregarVitrineLancamento();
-}, []);
-
-// ÚLTIMOS ANÚNCIOS — os 4 mais recentes
-useEffect(() => {
-  async function carregarUltimosAnuncios() {
-    setLoadingUltimos(true);
-
-    const { data, error } = await supabase
-      .from("anuncios")
-      .select("id, titulo, descricao, categoria, cidade, imagens, created_at, preco")
-      .order("created_at", { ascending: false })
-      .limit(4);
-
-    if (!error) setUltimosAnuncios(data || []);
-    setLoadingUltimos(false);
-  }
-
-  carregarUltimosAnuncios();
-}, []);
-
-
+      if (!error) setDestaques(data || []);
+      setLoadingDestaques(false);
+    }
+    carregarDestaquesLancamento();
+  }, []);
 
   // ✅ NOTÍCIAS (para os blocos ao lado da TV)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
@@ -203,34 +177,35 @@ useEffect(() => {
   useEffect(() => {
     let ativo = true;
 
-    async function carregarNoticias() {
-      setLoadingNoticias(true);
+  async function carregarNoticias() {
+  setLoadingNoticias(true);
 
-      // Esquerda: Últimas notícias (lista)
-      const { data: lista, error: errLista } = await supabase
-        .from("noticias")
-        .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-        .eq("status", "publicado")
-        .order("created_at", { ascending: false })
-        .limit(6);
+  // Esquerda: Últimas notícias (lista)
+  const { data: lista, error: errLista } = await supabase
+    .from("noticias")
+    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+    .eq("status", "publicado")
+    .order("created_at", { ascending: false })
+    .limit(6);
 
-      // Direita: Cards (3 notícias)
-      const { data: cards, error: errCards } = await supabase
-        .from("noticias")
-        .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-        .eq("status", "publicado")
-        .order("created_at", { ascending: false })
-        .limit(3);
+  // Direita: Cards (3 notícias)
+  const { data: cards, error: errCards } = await supabase
+    .from("noticias")
+    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
+    .eq("status", "publicado")
+    .order("created_at", { ascending: false })
+    .limit(3);
 
-      if (!ativo) return;
+  if (!ativo) return;
 
-      if (errLista) console.error("Erro últimas notícias:", errLista);
-      if (errCards) console.error("Erro cards notícias:", errCards);
+  if (errLista) console.error("Erro últimas notícias:", errLista);
+  if (errCards) console.error("Erro cards notícias:", errCards);
 
-      setUltimasNoticias(lista || []);
-      setNoticiasCards(cards || []);
-      setLoadingNoticias(false);
-    }
+  setUltimasNoticias(lista || []);
+  setNoticiasCards(cards || []);
+  setLoadingNoticias(false);
+}
+
 
     carregarNoticias();
     return () => { ativo = false; };
@@ -274,10 +249,14 @@ useEffect(() => {
 
   return (
     <main className="bg-white">
-      {/* BANNER TOPO (rotator) */}
-      <div className="py-4">
-        <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
-      </div>
+     {/* BANNER TOPO (rotator) */}
+<div className="py-4">
+ <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720}
+
+  />
+</div>
+  
+
 
       {/* HERO */}
       <section className="relative w-full">
@@ -335,19 +314,20 @@ useEffect(() => {
                 />
               </div>
 
-              <SmartSelect
-                label="Categoria"
-                value={categoria || "Todas"}
-                onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
-                options={["Todas", ...categorias.map((c) => c.label)]}
-              />
+            <SmartSelect
+  label="Categoria"
+  value={categoria || "Todas"}
+  onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
+  options={["Todas", ...categorias.map((c) => c.label)]}
+/>
 
-              <SmartSelect
-                label="Cidade"
-                value={cidade || "Toda a região"}
-                onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
-                options={["Toda a região", ...cidades]}
-              />
+<SmartSelect
+  label="Cidade"
+  value={cidade || "Toda a região"}
+  onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
+  options={["Toda a região", ...cidades]}
+/>
+
 
               <button
                 type="button"
@@ -390,163 +370,124 @@ useEffect(() => {
         </div>
       </section>
 
-{/* VITRINE PREMIUM — LANÇAMENTO (puxa do banco) */}
-<section className="bg-white -mt-2 pb-8">
-  <div className="max-w-7xl mx-auto px-4">
-    <div className="flex items-end justify-between gap-4 mb-3">
-      <div>
-        <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
-        <p className="text-[11px] text-slate-500">
-          Apareça aqui na vitrine do Classilagos (lançamento).
-        </p>
-      </div>
+      {/* VITRINE PREMIUM — 1 TEXTO SÓ, DISCRETO */}
+      <section className="bg-white -mt-2 pb-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
+              <p className="text-[11px] text-slate-500">
+                Turismo • Temporada • Hospedagem • Mobilidade
+              </p>
+            </div>
 
-      <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
-        Quero aparecer aqui →
-      </Link>
-    </div>
+            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
+              Quero aparecer aqui →
+            </Link>
+          </div>
 
-    {loadingVitrine ? (
-      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
-        Carregando vitrine...
-      </div>
-    ) : vitrineAnuncios.length === 0 ? (
-      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
-        Ainda não há anúncios suficientes para a vitrine.
-      </div>
-    ) : (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {vitrineAnuncios.map((c) => {
-          const imgs = Array.isArray(c.imagens) ? c.imagens : [];
-          const thumb = imgs?.[0] || "";
-
-          return (
-            <Link
-              key={c.id}
-              href={`/anuncios/${c.id}`}
-              className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-            >
-              <div className="relative h-28 bg-slate-100 overflow-hidden">
-                {thumb ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {vitrine.map((c) => (
+              <Link
+                key={c.titulo}
+                href={c.href}
+                className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+              >
+                <div className="relative h-28 bg-slate-100 overflow-hidden">
                   <img
-                    src={thumb}
+                    src={c.img}
                     alt={c.titulo}
                     className="w-full h-full object-cover group-hover:scale-[1.03] transition"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
-                    Sem imagem
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
+                  <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                    <span>{c.emoji}</span>
+                    <span>{c.tag}</span>
                   </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
-
-                <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                  <span>⭐</span>
-                  <span>{formatCategoria(c.categoria)}</span>
                 </div>
-              </div>
 
-              <div className="p-4">
-                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">{c.titulo}</p>
+                <div className="p-4">
+                  <p className="text-sm font-extrabold text-slate-900">{c.titulo}</p>
+                  <p className="mt-1 text-[12px] text-slate-600">{c.subtitulo}</p>
+                  <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                    Abrir agora →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
 
-                <p className="mt-1 text-[12px] text-slate-600 line-clamp-2">
-                  {c.descricao || ""}
-                </p>
-
-                <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-                  Ver anúncio →
-                </span>
-              </div>
+          <div className="mt-3 text-center sm:hidden">
+            <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+              Quero aparecer aqui →
             </Link>
-          );
-        })}
-      </div>
-    )}
+          </div>
+        </div>
+      </section>
 
-    <div className="mt-3 text-center sm:hidden">
-      <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-        Quero aparecer aqui →
-      </Link>
-    </div>
-  </div>
-</section>
+      {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
+      <section className="bg-white pb-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
+              <p className="text-[11px] text-slate-500">
+                Lançamento: por um período, todos aparecem aqui e vão renovando automaticamente.
+              </p>
+            </div>
 
-
-
-     {/* ÚLTIMOS ANÚNCIOS — LANÇAMENTO */}
-<section className="bg-white pb-10">
-  <div className="max-w-7xl mx-auto px-4">
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h2 className="text-lg font-bold text-slate-900">Últimos anúncios</h2>
-        <p className="text-[11px] text-slate-500">
-          Atualizando automaticamente com os anúncios mais recentes do Classilagos.
-        </p>
-      </div>
-
-      <Link
-        href="/anunciar"
-        className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700"
-      >
-        Anunciar →
-      </Link>
-    </div>
-
-    {loadingUltimos ? (
-      <p className="text-center text-slate-500">Carregando...</p>
-    ) : ultimosAnuncios.length === 0 ? (
-      <p className="text-center text-slate-500">
-        Ainda não há anúncios. Seja o primeiro a anunciar!
-      </p>
-    ) : (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {ultimosAnuncios.map((item) => {
-          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
-          const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
-
-          return (
-            <Link
-              key={item.id}
-              href={`/anuncios/${item.id}`}
-              className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
-            >
-              <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
-                {thumb ? (
-                  <img
-                    src={thumb}
-                    alt={item.titulo}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-[11px] text-slate-200">Sem imagem</span>
-                )}
-              </div>
-
-              <div className="p-3 space-y-1">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
-                  • Novo
-                </span>
-                <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
-                <p className="text-[11px] text-slate-600">
-                  {formatCategoria(item.categoria)} • {item.cidade}
-                </p>
-                {item.preco && (
-                  <p className="text-[11px] font-semibold text-slate-900">
-                    R$ {item.preco}
-                  </p>
-                )}
-              </div>
+            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
+              Anunciar →
             </Link>
-          );
-        })}
-      </div>
-    )}
-  </div>
-</section>
+          </div>
 
+          {loadingDestaques ? (
+            <p className="text-center text-slate-500">Carregando...</p>
+          ) : destaques.length === 0 ? (
+            <p className="text-center text-slate-500">
+              Ainda não há anúncios. Seja o primeiro a anunciar!
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {destaques.map((item) => {
+                const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+                const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
 
-      {/* ✅ BLOCO PREMIUM 3 COLUNAS (altura limitada + scroll interno + links corretos) */}
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/anuncios/${item.id}`}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
+                  >
+                    <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
+                      {thumb ? (
+                        <img src={thumb} alt={item.titulo} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
+                      )}
+                    </div>
+
+                    <div className="p-3 space-y-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
+                        • Destaque
+                      </span>
+                      <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
+                      <p className="text-[11px] text-slate-600">
+                        {formatCategoria(item.categoria)} • {item.cidade}
+                      </p>
+                      {item.preco && (
+                        <p className="text-[11px] font-semibold text-slate-900">R$ {item.preco}</p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ✅ BLOCO PREMIUM 3 COLUNAS (CORRIGIDO: esquerda últimas notícias / direita notícias) */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
           {/* ESQUERDA — ÚLTIMAS NOTÍCIAS */}
@@ -562,8 +503,7 @@ useEffect(() => {
               O que saiu agora na Região dos Lagos (últimas publicações).
             </p>
 
-            {/* altura controlada */}
-            <div className="space-y-3 max-h-[300px] overflow-auto pr-1">
+            <div className="space-y-3">
               {loadingNoticias ? (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
@@ -576,12 +516,11 @@ useEffect(() => {
                 ultimasNoticias.map((n) => (
                   <Link
                     key={n.id}
-                    href={`/noticias/${n.id}`}
+                    href={`/anuncios/${n.id}`}
                     className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
                   >
                     <p className="text-[10px] text-slate-500">
-                      {formatarDataBR(n.created_at)} •{" "}
-                      <span className="font-semibold text-slate-700">{n.cidade}</span>
+                      {formatarDataBR(n.created_at)} • <span className="font-semibold text-slate-700">{n.cidade}</span>
                     </p>
                     <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
                       {n.titulo}
@@ -598,7 +537,7 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* MEIO — TV */}
+          {/* MEIO — TV (IGUAL, NÃO MEXI) */}
           <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
@@ -647,11 +586,10 @@ useEffect(() => {
             </div>
 
             <p className="text-[11px] text-slate-600 mb-4">
-              Destaques recentes (imagem opcional, visual limpo).
+              Destaques recentes com imagem (layout leve, sem estourar altura).
             </p>
 
-            {/* altura controlada */}
-            <div className="space-y-3 max-h-[300px] overflow-auto pr-1">
+            <div className="space-y-3">
               {loadingNoticias ? (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
@@ -662,32 +600,37 @@ useEffect(() => {
                 </div>
               ) : (
                 noticiasCards.map((item) => {
-                  const thumb = item.imagem_capa || "";
-
+                  const imgs = Array.isArray(item.imagens) ? item.imagens : [];
+                  const thumb = imgs?.[0] || "";
                   return (
                     <Link
                       key={item.id}
-                      href={`/noticias/${item.id}`}
+                      href={`/anuncios/${item.id}`}
                       className="group block rounded-2xl bg-white border border-slate-200 overflow-hidden hover:bg-slate-50 transition"
                     >
-                      <div className="relative w-full h-24 bg-slate-200">
-                        {thumb ? (
-                          <img
-                            src={thumb}
-                            alt={item.titulo}
-                            className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-                          />
-                        ) : null}
-                      </div>
+                     <div className="relative w-full h-24 bg-slate-200">
+  {thumb ? (
+    <img
+      src={thumb}
+      alt={item.titulo}
+      className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+    />
+  ) : null}
+</div>
+
 
                       <div className="p-3">
                         <p className="text-[10px] text-slate-500">
-                          {formatarDataBR(item.created_at)} •{" "}
-                          <span className="font-semibold text-slate-700">{item.cidade}</span>
+                          {formatarDataBR(item.created_at)} • <span className="font-semibold text-slate-700">{item.cidade}</span>
                         </p>
                         <p className="mt-1 text-[12px] font-extrabold text-slate-900 line-clamp-2">
                           {item.titulo}
                         </p>
+                        {item.descricao && (
+                          <p className="mt-1 text-[11px] text-slate-600 line-clamp-2">
+                            {item.descricao}
+                          </p>
+                        )}
                       </div>
                     </Link>
                   );
@@ -704,17 +647,20 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* BANNER RODAPÉ (rotativo) — com respiro */}
-      <section className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator
-            images={bannersRodape}
-            interval={6500}
-            height={170}
-            maxWidth={720}
-          />
-        </div>
-      </section>
+   {/* BANNER RODAPÉ (rotativo) — com respiro */}
+<section className="bg-white py-8">
+  <div className="max-w-7xl mx-auto px-4">
+    <BannerRotator
+      images={bannersRodape}
+      interval={6500}
+      height={170}
+      maxWidth={720}
+    />
+  </div>
+</section>
+
+
+
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
