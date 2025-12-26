@@ -565,82 +565,102 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-      {/* FAIXA SERVIÇOS */}
-      <section className="bg-slate-900 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para imóveis</h2>
-          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
-          </p>
+    {/* FAIXA SERVIÇOS */}
+<section className="bg-slate-900 py-8">
+  <div className="max-w-6xl mx-auto px-4">
+    <h2 className="text-sm font-semibold text-white mb-1">
+      Serviços e informações para imóveis
+    </h2>
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-  <h3 className="text-sm font-semibold text-white mb-1">
-    IPTU e tributos
-  </h3>
-
-  {!linksCidade && (
-    <p className="text-[11px] text-slate-300">
-      Selecione uma cidade acima para ver o link da prefeitura e do IPTU.
+    <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+      Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
     </p>
-  )}
 
-  {linksCidade && (
-    <ul className="mt-2 space-y-1 text-[11px]">
-      {linksCidade.iptu && (
-        <li>
-          <a
-            href={linksCidade.iptu}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sky-400 hover:underline font-semibold"
-          >
-            • Consultar IPTU
-          </a>
-        </li>
-      )}
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-      {linksCidade.prefeitura && (
-        <li>
-          <a
-            href={linksCidade.prefeitura}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sky-400 hover:underline font-semibold"
-          >
-            • Site da Prefeitura
-          </a>
-        </li>
-      )}
+      {/* CARD 1 — IPTU */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          IPTU e tributos
+        </h3>
 
-      {!linksCidade.iptu && !linksCidade.prefeitura && (
-        <li className="text-slate-400">
-          Links ainda não cadastrados para esta cidade.
-        </li>
-      )}
-    </ul>
-  )}
-</div>
+        {!linksCidade && (
+          <p className="text-[11px] text-slate-300">
+            Selecione uma cidade acima para ver o link da prefeitura e do IPTU.
+          </p>
+        )}
 
+        {linksCidade && (
+          <ul className="mt-2 space-y-1 text-[11px]">
+            {linksCidade.iptu && (
+              <li>
+                <a
+                  href={linksCidade.iptu}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sky-400 hover:underline font-semibold"
+                >
+                  • Consultar IPTU
+                </a>
+              </li>
+            )}
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Financiamento imobiliário</h3>
-              <p className="text-[11px] text-slate-300">Dicas básicas sobre crédito, simulações e contato com bancos.</p>
-            </div>
+            {linksCidade.prefeitura && (
+              <li>
+                <a
+                  href={linksCidade.prefeitura}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sky-400 hover:underline font-semibold"
+                >
+                  • Site da Prefeitura
+                </a>
+              </li>
+            )}
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Regularização e documentos</h3>
-              <p className="text-[11px] text-slate-300">Orientações sobre escritura, registro, habite-se e etc.</p>
-            </div>
+            {!linksCidade.iptu && !linksCidade.prefeitura && (
+              <li className="text-slate-400">
+                Links ainda não cadastrados para esta cidade.
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Serviços para o seu imóvel</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para encontrar profissionais.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* CARD 2 */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Financiamento imobiliário
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Informações e simulações disponíveis diretamente com o anunciante.
+        </p>
+      </div>
+
+      {/* CARD 3 */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Regularização e documentos
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Escritura, registro, habite-se e orientações gerais.
+        </p>
+      </div>
+
+      {/* CARD 4 */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Serviços para o imóvel
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Em breve, profissionais indicados via LagoListas.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
     </main>
   );
 }
