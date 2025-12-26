@@ -1058,12 +1058,13 @@ export default function EditarAnuncioPage() {
 
               {/* AÇÕES */}
               <div className="pt-2 flex flex-col sm:flex-row gap-2 sm:justify-between">
-                <Link
-                  href={`/anuncios/${anuncioId}`}
-                  className="inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                >
-                  Ver anúncio
-                </Link>
+              <Link
+  href={`/anuncio/${anuncioId}`}
+  className="inline-flex justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+>
+  Ver anúncio
+</Link>
+
 
                 <button
                   type="submit"
