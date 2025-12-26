@@ -60,12 +60,12 @@ export default function Home() {
       href: "https://mercadolivre.com/sec/2nVCHmw",
       alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
     },
-    {
-      src: "/banners/rodape/banner-rodape-03.webp",
-      href: "https://mercadolivre.com/sec/17Q8
-mju",
-      alt: "Caixas de Som (Mercado Livre)",
-    },
+ {
+  src: "/banners/rodape/banner-rodape-03.webp",
+  href: "https://mercadolivre.com/sec/17Q8mju",
+  alt: "Caixas de Som (Mercado Livre)",
+},
+
     {
       src: "/banners/rodape/banner-rodape-04.webp",
       href: "https://mercadolivre.com/sec/2BbG4vr",
