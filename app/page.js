@@ -5,14 +5,14 @@ import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import BannerRotator from "./components/BannerRotator";
 import SmartSelect from "./components/SmartSelect";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "./supabaseClient";
 
 export default function Home() {
   const router = useRouter();
 
-  // HERO (WEBP em /public/hero) ✅ agora com 4
+  // HERO (WEBP em /public/hero)
   const heroImages = [
     "/hero/home-01.webp",
     "/hero/home-02.webp",
@@ -20,65 +20,62 @@ export default function Home() {
     "/hero/home-04.webp",
   ];
 
-  // BANNERS (padrão fixo: você só troca as imagens no GitHub e pronto)
-const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
+  // BANNERS
+  const bannersTopo = [
+    {
+      src: "/banners/topo/banner-topo-01.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-02.webp",
+      href: "https://mercadolivre.com/sec/2nVCHmw",
+      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-03.webp",
+      href: "https://mercadolivre.com/sec/17Q8mju",
+      alt: "Caixas de Som (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-04.webp",
+      href: "https://mercadolivre.com/sec/2BbG4vr",
+      alt: "TVs Smart (Mercado Livre)",
+    },
+    {
+      src: "/banners/topo/banner-topo-05.webp",
+      href: "https://mercadolivre.com/sec/32bqvEJ",
+      alt: "Celulares e Tablets (Mercado Livre)",
+    },
+  ];
 
-
-
-const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
-
+  const bannersRodape = [
+    {
+      src: "/banners/rodape/banner-rodape-01.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Ventiladores e Ar-condicionado (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-02.webp",
+      href: "https://mercadolivre.com/sec/2nVCHmw",
+      alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-03.webp",
+      href: "https://mercadolivre.com/sec/17Q8mju",
+      alt: "Caixas de Som (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-04.webp",
+      href: "https://mercadolivre.com/sec/2BbG4vr",
+      alt: "TVs Smart (Mercado Livre)",
+    },
+    {
+      src: "/banners/rodape/banner-rodape-05.webp",
+      href: "https://mercadolivre.com/sec/32bqvEJ",
+      alt: "Celulares e Tablets (Mercado Livre)",
+    },
+  ];
 
   // ORDEM DOS ÍCONES
   const categorias = [
@@ -151,7 +148,7 @@ const bannersRodape = [
     }
   };
 
-  // ANÚNCIOS EM DESTAQUE (LANÇAMENTO) — sempre os mais recentes
+  // ANÚNCIOS EM DESTAQUE — sempre os mais recentes
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -169,47 +166,80 @@ const bannersRodape = [
     carregarDestaquesLancamento();
   }, []);
 
-  // ✅ NOTÍCIAS (para os blocos ao lado da TV)
+  // ✅ NOTÍCIAS (texto puro)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
-  const [noticiasCards, setNoticiasCards] = useState([]);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
 
   useEffect(() => {
     let ativo = true;
 
-  async function carregarNoticias() {
-  setLoadingNoticias(true);
+    async function carregarNoticias() {
+      setLoadingNoticias(true);
 
-  // Esquerda: Últimas notícias (lista)
-  const { data: lista, error: errLista } = await supabase
-    .from("noticias")
-    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-    .eq("status", "publicado")
-    .order("created_at", { ascending: false })
-    .limit(6);
+      const { data: lista, error: errLista } = await supabase
+        .from("noticias")
+        .select("id, created_at, titulo, cidade")
+        .eq("status", "publicado")
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-  // Direita: Cards (3 notícias)
-  const { data: cards, error: errCards } = await supabase
-    .from("noticias")
-    .select("id, created_at, titulo, cidade, categoria, imagem_capa, fonte")
-    .eq("status", "publicado")
-    .order("created_at", { ascending: false })
-    .limit(3);
+      if (!ativo) return;
 
-  if (!ativo) return;
+      if (errLista) console.error("Erro últimas notícias:", errLista);
 
-  if (errLista) console.error("Erro últimas notícias:", errLista);
-  if (errCards) console.error("Erro cards notícias:", errCards);
-
-  setUltimasNoticias(lista || []);
-  setNoticiasCards(cards || []);
-  setLoadingNoticias(false);
-}
-
+      setUltimasNoticias(lista || []);
+      setLoadingNoticias(false);
+    }
 
     carregarNoticias();
     return () => { ativo = false; };
   }, []);
+
+  // ✅ SERVIÇOS (rotativo com até 3 anúncios)
+  const [servicos, setServicos] = useState([]);
+  const [loadingServicos, setLoadingServicos] = useState(true);
+  const [servicoIndex, setServicoIndex] = useState(0);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarServicos() {
+      setLoadingServicos(true);
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, created_at, titulo, cidade, categoria, imagens")
+        .eq("categoria", "servico")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (!ativo) return;
+
+      if (error) console.error("Erro serviços:", error);
+
+      setServicos(data || []);
+      setServicoIndex(0);
+      setLoadingServicos(false);
+    }
+
+    carregarServicos();
+    return () => { ativo = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!servicos || servicos.length <= 1) return;
+
+    const t = setInterval(() => {
+      setServicoIndex((prev) => (prev + 1) % servicos.length);
+    }, 4500);
+
+    return () => clearInterval(t);
+  }, [servicos]);
+
+  const servicoAtual = useMemo(() => {
+    if (!servicos?.length) return null;
+    return servicos[Math.min(servicoIndex, servicos.length - 1)];
+  }, [servicos, servicoIndex]);
 
   // VITRINE PREMIUM (fixa por enquanto)
   const vitrine = [
@@ -249,14 +279,10 @@ const bannersRodape = [
 
   return (
     <main className="bg-white">
-     {/* BANNER TOPO (rotator) */}
-<div className="py-4">
- <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720}
-
-  />
-</div>
-  
-
+      {/* BANNER TOPO (rotator) */}
+      <div className="py-4">
+        <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
+      </div>
 
       {/* HERO */}
       <section className="relative w-full">
@@ -314,20 +340,19 @@ const bannersRodape = [
                 />
               </div>
 
-            <SmartSelect
-  label="Categoria"
-  value={categoria || "Todas"}
-  onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
-  options={["Todas", ...categorias.map((c) => c.label)]}
-/>
+              <SmartSelect
+                label="Categoria"
+                value={categoria || "Todas"}
+                onChange={(v) => setCategoria(v === "Todas" ? "" : v)}
+                options={["Todas", ...categorias.map((c) => c.label)]}
+              />
 
-<SmartSelect
-  label="Cidade"
-  value={cidade || "Toda a região"}
-  onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
-  options={["Toda a região", ...cidades]}
-/>
-
+              <SmartSelect
+                label="Cidade"
+                value={cidade || "Toda a região"}
+                onChange={(v) => setCidade(v === "Toda a região" ? "" : v)}
+                options={["Toda a região", ...cidades]}
+              />
 
               <button
                 type="button"
@@ -370,7 +395,7 @@ const bannersRodape = [
         </div>
       </section>
 
-      {/* VITRINE PREMIUM — 1 TEXTO SÓ, DISCRETO */}
+      {/* VITRINE PREMIUM */}
       <section className="bg-white -mt-2 pb-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-3">
@@ -425,7 +450,7 @@ const bannersRodape = [
         </div>
       </section>
 
-      {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
+      {/* DESTAQUES (LANÇAMENTO) */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
@@ -487,11 +512,11 @@ const bannersRodape = [
         </div>
       </section>
 
-      {/* ✅ BLOCO PREMIUM 3 COLUNAS (CORRIGIDO: esquerda últimas notícias / direita notícias) */}
+      {/* ✅ BLOCO PREMIUM 3 COLUNAS — mesma altura da TV */}
       <section className="bg-white pb-10 -mt-4">
         <div className="max-w-7xl mx-auto px-4 grid gap-4 md:grid-cols-3 items-stretch">
-          {/* ESQUERDA — ÚLTIMAS NOTÍCIAS */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
+          {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto, scroll interno) */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
               <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
@@ -499,11 +524,11 @@ const bannersRodape = [
               </Link>
             </div>
 
-            <p className="text-[11px] text-slate-600 mb-4">
+            <p className="text-[11px] text-slate-600 mb-3">
               O que saiu agora na Região dos Lagos (últimas publicações).
             </p>
 
-            <div className="space-y-3">
+            <div className="flex-1 overflow-y-auto pr-1 space-y-3">
               {loadingNoticias ? (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
@@ -516,11 +541,12 @@ const bannersRodape = [
                 ultimasNoticias.map((n) => (
                   <Link
                     key={n.id}
-                    href={`/anuncios/${n.id}`}
+                    href={`/noticias/${n.id}`}
                     className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
                   >
                     <p className="text-[10px] text-slate-500">
-                      {formatarDataBR(n.created_at)} • <span className="font-semibold text-slate-700">{n.cidade}</span>
+                      {formatarDataBR(n.created_at)} •{" "}
+                      <span className="font-semibold text-slate-700">{n.cidade}</span>
                     </p>
                     <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
                       {n.titulo}
@@ -530,15 +556,15 @@ const bannersRodape = [
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-3">
               <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
                 Abrir portal de notícias →
               </Link>
             </div>
           </div>
 
-          {/* MEIO — TV (IGUAL, NÃO MEXI) */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col">
+          {/* MEIO — TV */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-white shadow-sm flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
               <a
@@ -576,91 +602,96 @@ const bannersRodape = [
             </a>
           </div>
 
-          {/* DIREITA — NOTÍCIAS (CARDS) */}
-          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col">
+          {/* DIREITA — SERVIÇOS (rotativo) */}
+          <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50 shadow-sm flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-extrabold text-slate-900">Notícias</h3>
-              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
+              <h3 className="font-extrabold text-slate-900">Serviços</h3>
+              <Link href="/servicos" className="text-[11px] font-semibold text-cyan-700">
                 Ver tudo →
               </Link>
             </div>
 
-            <p className="text-[11px] text-slate-600 mb-4">
-              Destaques recentes com imagem (layout leve, sem estourar altura).
+            <p className="text-[11px] text-slate-600 mb-3">
+              Encontre aqui os melhores profissionais na sua cidade.
             </p>
 
-            <div className="space-y-3">
-              {loadingNoticias ? (
-                <div className="rounded-2xl bg-white border border-slate-200 p-3">
+            <div className="flex-1 flex items-center">
+              {loadingServicos ? (
+                <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
                   <p className="text-[12px] text-slate-600">Carregando...</p>
                 </div>
-              ) : noticiasCards.length === 0 ? (
-                <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                  <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
+              ) : !servicoAtual ? (
+                <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
+                  <p className="text-[12px] text-slate-600">
+                    Ainda não há anúncios de serviços. Seja o primeiro!
+                  </p>
+                  <Link href="/anunciar" className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
+                    Anunciar serviço →
+                  </Link>
                 </div>
               ) : (
-                noticiasCards.map((item) => {
-                  const imgs = Array.isArray(item.imagens) ? item.imagens : [];
-                  const thumb = imgs?.[0] || "";
-                  return (
-                    <Link
-                      key={item.id}
-                      href={`/anuncios/${item.id}`}
-                      className="group block rounded-2xl bg-white border border-slate-200 overflow-hidden hover:bg-slate-50 transition"
-                    >
-                     <div className="relative w-full h-24 bg-slate-200">
-  {thumb ? (
-    <img
-      src={thumb}
-      alt={item.titulo}
-      className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-    />
-  ) : null}
-</div>
-
-
-                      <div className="p-3">
-                        <p className="text-[10px] text-slate-500">
-                          {formatarDataBR(item.created_at)} • <span className="font-semibold text-slate-700">{item.cidade}</span>
-                        </p>
-                        <p className="mt-1 text-[12px] font-extrabold text-slate-900 line-clamp-2">
-                          {item.titulo}
-                        </p>
-                        {item.descricao && (
-                          <p className="mt-1 text-[11px] text-slate-600 line-clamp-2">
-                            {item.descricao}
-                          </p>
-                        )}
+                <Link
+                  href={`/anuncios/${servicoAtual.id}`}
+                  className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+                >
+                  <div className="relative h-32 bg-slate-100 overflow-hidden">
+                    {Array.isArray(servicoAtual.imagens) && servicoAtual.imagens[0] ? (
+                      <img
+                        src={servicoAtual.imagens[0]}
+                        alt={servicoAtual.titulo}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                        Sem imagem
                       </div>
-                    </Link>
-                  );
-                })
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
+                    <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                      <span>🛠️</span>
+                      <span>Serviços</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                      {servicoAtual.titulo}
+                    </p>
+                    <p className="mt-1 text-[12px] text-slate-600">
+                      {servicoAtual.cidade}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-cyan-700">
+                        Ver detalhes →
+                      </span>
+
+                      {servicos.length > 1 ? (
+                        <span className="text-[10px] text-slate-500">
+                          {servicoIndex + 1}/{servicos.length}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </Link>
               )}
             </div>
 
-            <div className="mt-4">
-              <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
-                Abrir Notícias →
+            <div className="mt-3">
+              <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+                Quero anunciar meu serviço →
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-   {/* BANNER RODAPÉ (rotativo) — com respiro */}
-<section className="bg-white py-8">
-  <div className="max-w-7xl mx-auto px-4">
-    <BannerRotator
-      images={bannersRodape}
-      interval={6500}
-      height={170}
-      maxWidth={720}
-    />
-  </div>
-</section>
-
-
-
+      {/* BANNER RODAPÉ (rotativo) */}
+      <section className="bg-white py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+        </div>
+      </section>
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
