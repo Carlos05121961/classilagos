@@ -454,7 +454,6 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
               Quero aparecer aqui →
             </Link>
           </div>
-        </div>
       </section>
 
       {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
