@@ -329,21 +329,19 @@ useEffect(() => {
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-              <h1
-                className="
-                  text-2xl sm:text-3xl md:text-4xl font-extrabold
-                  tracking-[0.10em] uppercase
-                  bg-gradient-to-r from-amber-200 via-amber-400 to-orange-500
-                  bg-clip-text text-transparent
-                  [text-shadow:0_10px_28px_rgba(0,0,0,0.55)]
-                "
-              >
-                Classilagos – Região dos Lagos em um só lugar
-              </h1>
+            <h1
+  className="
+    text-2xl sm:text-3xl md:text-4xl font-extrabold
+    tracking-[0.08em] uppercase
+    text-amber-400
+    [text-shadow:0_6px_20px_rgba(0,0,0,0.85)]
+  "
+>
+  Classilagos – Região dos Lagos <br />
+  em um só lugar
+</h1>
 
-              <div className="mt-3 flex justify-center">
-                <div className="h-[3px] w-48 rounded-full bg-gradient-to-r from-transparent via-amber-300/80 to-transparent" />
-              </div>
+
             </div>
           </div>
         </HeroCarousel>
