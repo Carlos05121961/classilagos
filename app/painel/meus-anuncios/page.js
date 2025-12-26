@@ -180,35 +180,34 @@ export default function MeusAnunciosPage() {
                       )}
                     </div>
 
-                    {/* Ações (Premium: sempre visível no mobile) */}
-                    <div className="px-4 py-3 border-t border-slate-200 bg-white">
-                      <div className="grid grid-cols-2 gap-2">
-                        <Link
-                          href={`/anuncios/${anuncio.id}`}
-                          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-100"
-                        >
-                          Ver anúncio
-                        </Link>
+                  {/* Ações */}
+<div className="px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+  <div className="flex flex-wrap gap-2">
+    <Link
+      href={`/anuncios/${anuncio.id}`}
+      className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
+    >
+      Ver anúncio
+    </Link>
 
-                        {/* Em breve vamos ligar esse botão ao formulário de edição */}
-                        <button
-                          type="button"
-                          disabled
-                          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-2 text-[12px] font-semibold text-slate-400 cursor-not-allowed bg-slate-50"
-                          title="Em breve: edição do anúncio pelo formulário"
-                        >
-                          Editar
-                        </button>
+    <Link
+      href={`/painel/editar-anuncio/${anuncio.id}`}
+      className="rounded-full border border-slate-300 px-3 py-1 hover:bg-slate-100"
+    >
+      Editar
+    </Link>
+  </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(anuncio.id)}
-                          disabled={deletingId === anuncio.id}
-                          className="col-span-2 inline-flex items-center justify-center rounded-full bg-red-500/90 px-3 py-2 text-[12px] font-semibold text-white hover:bg-red-600 disabled:opacity-60"
-                        >
-                          {deletingId === anuncio.id ? "Excluindo…" : "Excluir anúncio"}
-                        </button>
-                      </div>
+  <button
+    type="button"
+    onClick={() => handleDelete(anuncio.id)}
+    disabled={deletingId === anuncio.id}
+    className="rounded-full bg-red-500/90 px-3 py-2 text-white hover:bg-red-600 text-[11px] disabled:opacity-60 w-full sm:w-auto"
+  >
+    {deletingId === anuncio.id ? "Excluindo…" : "Excluir"}
+  </button>
+</div>
+
 
                       <p className="mt-2 text-[10px] text-slate-400">
                         Dica: “Editar” será liberado quando a gente conectar ao formulário de edição.
