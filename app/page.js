@@ -241,7 +241,7 @@ export default function Home() {
     return servicos[Math.min(servicoIndex, servicos.length - 1)];
   }, [servicos, servicoIndex]);
 
-// ✅ VITRINE PREMIUM (CURADA) — anúncios marcados com vitrine=true
+// ✅ VITRINE PREMIUM — somente vitrine=true (curadoria manual)
 const [vitrineItems, setVitrineItems] = useState([]);
 const [loadingVitrine, setLoadingVitrine] = useState(true);
 
@@ -253,21 +253,25 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from("anuncios")
-      .select("id, titulo, categoria, cidade, imagens, created_at")
+      .select("id, titulo, categoria, cidade, imagens, created_at, prioridade")
       .eq("vitrine", true)
+      .order("prioridade", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(4);
 
     if (!ativo) return;
-
     if (error) console.error("Erro vitrine:", error);
+
     setVitrineItems(data || []);
     setLoadingVitrine(false);
   }
 
   carregarVitrine();
-  return () => { ativo = false; };
+  return () => {
+    ativo = false;
+  };
 }, []);
+
 
 
   return (
