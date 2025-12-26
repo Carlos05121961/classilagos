@@ -171,6 +171,22 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
     carregarDestaquesLancamento();
   }, []);
 
+  useEffect(() => {
+  async function carregarVitrineLancamento() {
+    const { data, error } = await supabase
+      .from("anuncios")
+      .select("id, created_at, categoria, titulo, descricao, cidade, imagens, preco")
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (!error) setVitrineAnuncios(data || []);
+    setLoadingVitrine(false);
+  }
+
+  carregarVitrineLancamento();
+}, []);
+
+
   // ✅ NOTÍCIAS (para os blocos ao lado da TV)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
   const [noticiasCards, setNoticiasCards] = useState([]);
