@@ -604,6 +604,60 @@ export default function AnuncioDetalhePage() {
                   <p className="text-xs text-slate-700 whitespace-pre-line">
                     {anuncio.descricao || "O candidato ainda não preencheu o resumo profissional."}
                   </p>
+                    
+{/* LINKS ÚTEIS – IPTU / PREFEITURA */}
+{((anuncio?.categoria || "").toLowerCase() === "imoveis") && linksCidade && (
+  <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <h3 className="text-sm font-bold text-slate-800">
+      Links úteis – Prefeitura de {anuncio.cidade}
+    </h3>
+
+    <ul className="mt-3 space-y-2 text-sm">
+      {linksCidade.iptu && (
+        <li>
+          <a
+            href={linksCidade.iptu}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-sky-700 hover:underline"
+          >
+            ▸ IPTU / Portal do contribuinte
+          </a>
+        </li>
+      )}
+
+      {linksCidade.certidoes && (
+        <li>
+          <a
+            href={linksCidade.certidoes}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-sky-700 hover:underline"
+          >
+            ▸ Certidões municipais
+          </a>
+        </li>
+      )}
+
+      {linksCidade.prefeitura && (
+        <li>
+          <a
+            href={linksCidade.prefeitura}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-sky-700 hover:underline"
+          >
+            ▸ Site oficial da Prefeitura
+          </a>
+        </li>
+      )}
+    </ul>
+
+    <p className="mt-3 text-[11px] text-slate-500">
+      Dica: os serviços podem exigir inscrição imobiliária ou CPF/CNPJ do proprietário.
+    </p>
+  </section>
+)}
                 </section>
 
                 <section className="bg-white rounded-3xl border border-slate-200 px-5 py-4 shadow-sm">
