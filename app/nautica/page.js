@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -13,60 +13,20 @@ const heroImages = ["/hero/nautica-01.webp", "/hero/nautica-02.webp", "/hero/nau
 
 // ✅ BANNERS AFILIADOS (Topo)
 const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/topo/banner-topo-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/topo/banner-topo-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 // ✅ BANNERS AFILIADOS (Rodapé) — PRINCIPAL
 const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
+  { src: "/banners/rodape/banner-rodape-01.webp", href: "https://mercadolivre.com/sec/2KgtVeb", alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-02.webp", href: "https://mercadolivre.com/sec/2nVCHmw", alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-03.webp", href: "https://mercadolivre.com/sec/17Q8mju", alt: "Caixas de Som (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-04.webp", href: "https://mercadolivre.com/sec/2BbG4vr", alt: "TVs Smart (Mercado Livre)" },
+  { src: "/banners/rodape/banner-rodape-05.webp", href: "https://mercadolivre.com/sec/32bqvEJ", alt: "Celulares e Tablets (Mercado Livre)" },
 ];
 
 const cidades = [
@@ -96,50 +56,44 @@ const tiposEmbarcacao = [
 
 // CATEGORIAS – slugs + links
 const categoriasLinha1 = [
-  {
-    nome: "Lanchas e veleiros à venda",
-    slug: "lanchas-veleiros",
-    href: "/nautica/lista?grupo=lanchas-veleiros&finalidade=venda",
-  },
-  {
-    nome: "Jetski, stand-up & caiaques",
-    slug: "jetski-caiaques",
-    href: "/nautica/lista?grupo=jetski-caiaques",
-  },
-  {
-    nome: "Barcos de pesca",
-    slug: "barcos-pesca",
-    href: "/nautica/lista?grupo=barcos-pesca",
-  },
-  {
-    nome: "Motores & equipamentos",
-    slug: "motores-equipamentos",
-    href: "/nautica/lista?grupo=motores-equipamentos",
-  },
+  { nome: "Lanchas e veleiros à venda", slug: "lanchas-veleiros", href: "/nautica/lista?grupo=lanchas-veleiros&finalidade=venda" },
+  { nome: "Jetski, stand-up & caiaques", slug: "jetski-caiaques", href: "/nautica/lista?grupo=jetski-caiaques" },
+  { nome: "Barcos de pesca", slug: "barcos-pesca", href: "/nautica/lista?grupo=barcos-pesca" },
+  { nome: "Motores & equipamentos", slug: "motores-equipamentos", href: "/nautica/lista?grupo=motores-equipamentos" },
 ];
 
 const categoriasLinha2 = [
-  {
-    nome: "Aluguel de embarcações",
-    slug: "aluguel-embarcacoes",
-    href: "/nautica/lista?finalidade=aluguel",
-  },
-  {
-    nome: "Marinas & guardarias",
-    slug: "marinas-guardarias",
-    href: "/nautica/lista?grupo=marinas-guardarias",
-  },
-  {
-    nome: "Serviços náuticos",
-    slug: "servicos-nauticos",
-    href: "/nautica/lista?grupo=servicos-nauticos",
-  },
-  {
-    nome: "Peças & acessórios",
-    slug: "pecas-acessorios",
-    href: "/nautica/lista?grupo=pecas-acessorios",
-  },
+  { nome: "Aluguel de embarcações", slug: "aluguel-embarcacoes", href: "/nautica/lista?finalidade=aluguel" },
+  { nome: "Marinas & guardarias", slug: "marinas-guardarias", href: "/nautica/lista?grupo=marinas-guardarias" },
+  { nome: "Serviços náuticos", slug: "servicos-nauticos", href: "/nautica/lista?grupo=servicos-nauticos" },
+  { nome: "Peças & acessórios", slug: "pecas-acessorios", href: "/nautica/lista?grupo=pecas-acessorios" },
 ];
+
+function normText(s) {
+  return (s || "").toString().toLowerCase().trim();
+}
+
+function isDestaqueTruthy(v) {
+  if (v === true) return true;
+  const s = normText(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = isDestaqueTruthy(a?.destaque) ? 1 : 0;
+    const db = isDestaqueTruthy(b?.destaque) ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
+}
 
 export default function NauticaPage() {
   const router = useRouter();
@@ -159,6 +113,7 @@ export default function NauticaPage() {
 
   // Preload das imagens do hero (evita “piscar”)
   useEffect(() => {
+    if (typeof window === "undefined") return;
     heroImages.forEach((src) => {
       const im = new window.Image();
       im.src = src;
@@ -190,7 +145,7 @@ export default function NauticaPage() {
     }
   }, [heroIndex, loadedSet]);
 
-  // Buscar anúncios de náutica no Supabase
+  // ✅ Buscar anúncios de náutica no Supabase (ORDEM PREMIUM)
   useEffect(() => {
     const fetchAnuncios = async () => {
       setLoadingAnuncios(true);
@@ -198,18 +153,21 @@ export default function NauticaPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, status, categoria, created_at"
+          "id, titulo, cidade, bairro, preco, imagens, subcategoria_nautica, finalidade_nautica, destaque, prioridade, status, categoria, created_at"
         )
         .eq("categoria", "nautica")
         .eq("status", "ativo")
+        // ✅ ordem premium (DB)
         .order("destaque", { ascending: false })
+        .order("prioridade", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Erro ao carregar anúncios de náutica:", error);
         setAnuncios([]);
       } else {
-        setAnuncios(data || []);
+        // ✅ reforço local (consistência)
+        setAnuncios(sortPremiumLocal(data || []));
       }
 
       setLoadingAnuncios(false);
@@ -223,20 +181,19 @@ export default function NauticaPage() {
     if (!anuncios || anuncios.length === 0) return null;
 
     let filtrados = [...anuncios];
-    const norm = (s) => (s || "").toLowerCase();
 
     switch (slug) {
       case "lanchas-veleiros":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
-          const fin = norm(a.finalidade_nautica);
+          const sub = normText(a.subcategoria_nautica);
+          const fin = normText(a.finalidade_nautica);
           return fin === "venda" && (sub.includes("lancha") || sub.includes("veleiro"));
         });
         break;
 
       case "jetski-caiaques":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
+          const sub = normText(a.subcategoria_nautica);
           return (
             sub.includes("jet") ||
             sub.includes("ski") ||
@@ -248,12 +205,12 @@ export default function NauticaPage() {
         break;
 
       case "barcos-pesca":
-        filtrados = filtrados.filter((a) => norm(a.subcategoria_nautica).includes("pesca"));
+        filtrados = filtrados.filter((a) => normText(a.subcategoria_nautica).includes("pesca"));
         break;
 
       case "motores-equipamentos":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
+          const sub = normText(a.subcategoria_nautica);
           if (!sub || sub === "outros") return false;
           if (sub.includes("motor")) return true;
           if (sub.includes("equip")) return true;
@@ -264,8 +221,8 @@ export default function NauticaPage() {
 
       case "aluguel-embarcacoes":
         filtrados = filtrados.filter((a) => {
-          const fin = norm(a.finalidade_nautica);
-          const sub = norm(a.subcategoria_nautica);
+          const fin = normText(a.finalidade_nautica);
+          const sub = normText(a.subcategoria_nautica);
           if (fin !== "aluguel") return false;
 
           if (
@@ -287,14 +244,14 @@ export default function NauticaPage() {
 
       case "marinas-guardarias":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
+          const sub = normText(a.subcategoria_nautica);
           return sub.includes("marina") || sub.includes("guardaria");
         });
         break;
 
       case "servicos-nauticos":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
+          const sub = normText(a.subcategoria_nautica);
           return (
             sub.includes("serviço") ||
             sub.includes("servico") ||
@@ -307,7 +264,7 @@ export default function NauticaPage() {
 
       case "pecas-acessorios":
         filtrados = filtrados.filter((a) => {
-          const sub = norm(a.subcategoria_nautica);
+          const sub = normText(a.subcategoria_nautica);
           if (!sub || sub === "outros") return false;
           if (sub === "peças & acessórios" || sub === "pecas & acessorios") return true;
           if (sub.includes("peça") || sub.includes("peca") || sub.includes("acess")) return true;
@@ -321,12 +278,16 @@ export default function NauticaPage() {
 
     if (filtrados.length === 0) return null;
 
-    const emDestaque = filtrados.find((a) => a.destaque === true);
+    // ✅ já está ordenado premium, mas mantém a preferência por destaque
+    const emDestaque = filtrados.find((a) => isDestaqueTruthy(a.destaque));
     return emDestaque || filtrados[0];
   }
 
-  // Anúncios recentes (simples: sempre os mais novos)
-  const destaques = anuncios && anuncios.length > 0 ? anuncios.slice(0, 12) : [];
+  // ✅ “recentes” agora é premium (top 12 ordenado)
+  const destaques = useMemo(() => {
+    if (!anuncios || anuncios.length === 0) return [];
+    return anuncios.slice(0, 12);
+  }, [anuncios]);
 
   // ✅ dispara a busca premium (motor do site)
   function handleBuscar() {
@@ -412,7 +373,6 @@ export default function NauticaPage() {
                 />
               </div>
 
-              {/* ✅ SMARTSELECT (Tipo) */}
               <SmartSelect
                 label="Tipo"
                 value={tipoBusca || "Todos"}
@@ -420,7 +380,6 @@ export default function NauticaPage() {
                 options={["Todos", ...tiposEmbarcacao]}
               />
 
-              {/* ✅ SMARTSELECT (Cidade) */}
               <SmartSelect
                 label="Cidade"
                 value={cidadeBusca || "Todas"}
