@@ -241,41 +241,34 @@ export default function Home() {
     return servicos[Math.min(servicoIndex, servicos.length - 1)];
   }, [servicos, servicoIndex]);
 
-  // VITRINE PREMIUM (fixa por enquanto)
-  const vitrine = [
-    {
-      titulo: "Passeio Turístico",
-      subtitulo: "Escunas • City tour • Trilhas",
-      tag: "Turismo",
-      href: "/turismo",
-      emoji: "🏖️",
-      img: "/banners/anuncio-03.png",
-    },
-    {
-      titulo: "Aluguel por Temporada",
-      subtitulo: "Casas • Apto • Semana/feriado",
-      tag: "Imóveis",
-      href: "/imoveis",
-      emoji: "🏠",
-      img: "/banners/anuncio-01.png",
-    },
-    {
-      titulo: "Pousadas & Hotéis",
-      subtitulo: "Hospedagem com charme",
-      tag: "Turismo",
-      href: "/turismo",
-      emoji: "🏨",
-      img: "/banners/anuncio-05.png",
-    },
-    {
-      titulo: "Locadora de Veículos",
-      subtitulo: "Carro para viagem e praia",
-      tag: "Veículos",
-      href: "/veiculos",
-      emoji: "🚗",
-      img: "/banners/anuncio-02.png",
-    },
-  ];
+// ✅ VITRINE PREMIUM (CURADA) — anúncios marcados com vitrine=true
+const [vitrineItems, setVitrineItems] = useState([]);
+const [loadingVitrine, setLoadingVitrine] = useState(true);
+
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarVitrine() {
+    setLoadingVitrine(true);
+
+    const { data, error } = await supabase
+      .from("anuncios")
+      .select("id, titulo, categoria, cidade, imagens, created_at")
+      .eq("vitrine", true)
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (!ativo) return;
+
+    if (error) console.error("Erro vitrine:", error);
+    setVitrineItems(data || []);
+    setLoadingVitrine(false);
+  }
+
+  carregarVitrine();
+  return () => { ativo = false; };
+}, []);
+
 
   return (
     <main className="bg-white">
