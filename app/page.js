@@ -157,27 +157,16 @@ export default function Home() {
 const [vitrineAnuncios, setVitrineAnuncios] = useState([]);
 const [loadingVitrine, setLoadingVitrine] = useState(true);
 
-  useEffect(() => {
-    async function carregarDestaquesLancamento() {
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(4);
-
-      if (!error) setDestaques(data || []);
-      setLoadingDestaques(false);
-    }
-    carregarDestaquesLancamento();
-  }, []);
-
-  useEffect(() => {
+// VITRINE — pega os próximos 4 para não repetir os “últimos”
+useEffect(() => {
   async function carregarVitrineLancamento() {
+    setLoadingVitrine(true);
+
     const { data, error } = await supabase
       .from("anuncios")
-      .select("id, created_at, categoria, titulo, descricao, cidade, imagens, preco")
+      .select("id, titulo, descricao, categoria, cidade, imagens, created_at, preco")
       .order("created_at", { ascending: false })
-      .limit(4);
+      .range(4, 7); // <- pega do 5º ao 8º
 
     if (!error) setVitrineAnuncios(data || []);
     setLoadingVitrine(false);
@@ -185,6 +174,25 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
 
   carregarVitrineLancamento();
 }, []);
+
+// ÚLTIMOS ANÚNCIOS — os 4 mais recentes
+useEffect(() => {
+  async function carregarUltimosAnuncios() {
+    setLoadingUltimos(true);
+
+    const { data, error } = await supabase
+      .from("anuncios")
+      .select("id, titulo, descricao, categoria, cidade, imagens, created_at, preco")
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (!error) setUltimosAnuncios(data || []);
+    setLoadingUltimos(false);
+  }
+
+  carregarUltimosAnuncios();
+}, []);
+
 
 
   // ✅ NOTÍCIAS (para os blocos ao lado da TV)
