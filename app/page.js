@@ -449,12 +449,16 @@ const [loadingVitrine, setLoadingVitrine] = useState(true);
 )}
 
 
-          <div className="mt-3 text-center sm:hidden">
-            <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-              Quero aparecer aqui →
-            </Link>
-          </div>
-      </section>
+       <div className="mt-3 text-center sm:hidden">
+  <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+    Quero aparecer aqui →
+  </Link>
+</div>
+
+</div> {/* ✅ fecha o container max-w-7xl mx-auto px-4 (VITRINE) */}
+
+</section>
+
 
       {/* DESTAQUES (LANÇAMENTO) — os mais recentes */}
       <section className="bg-white pb-10">
