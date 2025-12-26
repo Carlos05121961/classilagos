@@ -220,7 +220,10 @@ export default function EditarAnuncioPage() {
 
         // imoveis
         tipo_imovel: data.tipo_imovel || "",
-        finalidade: data.finalidade || "",
+       finalidade:
+  data.finalidade === "temporada"
+    ? "aluguel_temporada"
+    : (data.finalidade || ""),
         area: data.area || "",
         quartos: data.quartos || "",
         banheiros: data.banheiros || "",
