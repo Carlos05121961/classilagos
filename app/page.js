@@ -148,23 +148,54 @@ export default function Home() {
     }
   };
 
-  // ANÚNCIOS EM DESTAQUE — sempre os mais recentes
-  const [destaques, setDestaques] = useState([]);
-  const [loadingDestaques, setLoadingDestaques] = useState(true);
+// ✅ DESTAQUES — primeiro tenta destaque=true; se vazio, cai em recentes
+const [destaques, setDestaques] = useState([]);
+const [loadingDestaques, setLoadingDestaques] = useState(true);
 
-  useEffect(() => {
-    async function carregarDestaquesLancamento() {
-      const { data, error } = await supabase
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarDestaques() {
+    setLoadingDestaques(true);
+
+    // 1) Tenta pegar destaques manuais
+    const { data: destacados, error: errDest } = await supabase
+      .from("anuncios")
+      .select("*")
+      .eq("destaque", true)
+      .order("prioridade", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (!ativo) return;
+    if (errDest) console.error("Erro destaques:", errDest);
+
+    // 2) Se não tiver nenhum, pega os mais recentes (fallback)
+    if (!destacados || destacados.length === 0) {
+      const { data: recentes, error: errRec } = await supabase
         .from("anuncios")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(4);
 
-      if (!error) setDestaques(data || []);
+      if (!ativo) return;
+      if (errRec) console.error("Erro fallback recentes:", errRec);
+
+      setDestaques(recentes || []);
       setLoadingDestaques(false);
+      return;
     }
-    carregarDestaquesLancamento();
-  }, []);
+
+    setDestaques(destacados);
+    setLoadingDestaques(false);
+  }
+
+  carregarDestaques();
+  return () => {
+    ativo = false;
+  };
+}, []);
+
 
   // ✅ NOTÍCIAS (texto puro)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
