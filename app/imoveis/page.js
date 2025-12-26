@@ -220,6 +220,11 @@ export default function ImoveisPage() {
 
   const [imoveis, setImoveis] = useState([]);
   const [loadingImoveis, setLoadingImoveis] = useState(true);
+  const linksCidade = useMemo(() => {
+  const c = (buscaCidade || "").trim();
+  if (!c) return null;
+  return LINKS_OFICIAIS?.[c] || null;
+}, [buscaCidade]);
 
   useEffect(() => {
     heroImages.forEach((src) => {
