@@ -606,7 +606,6 @@ export default function ImoveisPage() {
 <Link
   href="/utilidades?tab=iptu"
   className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
->
 
 >
   <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
