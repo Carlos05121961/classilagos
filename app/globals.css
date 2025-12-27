@@ -49,33 +49,40 @@ textarea::placeholder {
 }
 
 /* =============================== */
-/* 💧 EFEITO LENTE (HOVER PREMIUM) */
+/* 💧 EFEITO LENTE D'ÁGUA (PREMIUM) */
 /* =============================== */
+
 .btn-lente {
   position: relative;
   overflow: hidden;
-  transform: translateZ(0);
+  transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
-.btn-lente::before {
+.btn-lente::after {
   content: "";
   position: absolute;
-  inset: -40%;
+  inset: -30%;
   background: radial-gradient(
-    circle at 30% 30%,
-    rgba(255,255,255,0.18),
-    rgba(255,255,255,0.04) 55%,
-    rgba(255,255,255,0) 70%
+    circle at center,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.10) 35%,
+    rgba(255, 255, 255, 0.04) 55%,
+    rgba(255, 255, 255, 0) 70%
   );
-  transform: translateX(-60%) rotate(10deg);
-  transition: transform 260ms ease-out, opacity 260ms ease-out;
   opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 240ms ease, transform 240ms ease;
   pointer-events: none;
 }
 
-.btn-lente:hover::before {
-  transform: translateX(25%) rotate(10deg);
+.btn-lente:hover {
+  transform: scale(1.015);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.btn-lente:hover::after {
   opacity: 1;
+  transform: scale(1);
 }
 
 
