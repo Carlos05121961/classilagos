@@ -1,139 +1,299 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { LINKS_OFICIAIS } from "../../lib/linksOficiais";
+
+// ✅ Se você já tem /lib/linksOficiais.js, pode importar.
+// Se ainda não tiver, deixe o objeto aqui mesmo (mas o ideal é no /lib).
+import { LINKS_OFICIAIS } from "@/lib/linksOficiais";
+
+function norm(s) {
+  return (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getLinksCidade(cidade) {
+  if (!cidade) return null;
+  if (LINKS_OFICIAIS[cidade]) return LINKS_OFICIAIS[cidade];
+
+  const alvo = norm(cidade);
+  const chave = Object.keys(LINKS_OFICIAIS).find((k) => norm(k) === alvo);
+  return chave ? LINKS_OFICIAIS[chave] : null;
+}
+
+const CIDADES = [
+  "Maricá",
+  "Saquarema",
+  "Araruama",
+  "Iguaba Grande",
+  "São Pedro da Aldeia",
+  "Arraial do Cabo",
+  "Cabo Frio",
+  "Búzios",
+  "Rio das Ostras",
+];
+
+// ✅ IPVA (RJ) — você pode trocar depois se quiser links mais específicos por cidade/serviço
+const LINKS_IPVA = {
+  detran_rj: "https://www.detran.rj.gov.br/",
+  sefaz_rj: "https://portal.fazenda.rj.gov.br/",
+};
+
+// ✅ Telefones úteis (exemplo Premium). Você pode editar depois.
+const TELEFONES_UTEIS = [
+  { titulo: "Emergência", itens: ["190 (Polícia)", "192 (SAMU)", "193 (Bombeiros)"] },
+  { titulo: "Defesa Civil", itens: ["199 (Defesa Civil)"] },
+];
 
 export default function UtilidadesPage() {
-  // IPVA RJ (geral do estado) — você pode trocar depois se quiser outro destino
-  const IPVA_RJ =
-    "https://www.ipva.rj.gov.br/ipva/";
+  const [tab, setTab] = useState("iptu"); // iptu | ipva | telefones
+  const [cidade, setCidade] = useState("");
 
-  // Telefones úteis (exemplos) — você me passa depois e eu ajusto certinho
-  const TELEFONES_UTEIS = [
-    { nome: "Emergência", tel: "190" },
-    { nome: "SAMU", tel: "192" },
-    { nome: "Bombeiros", tel: "193" },
-    { nome: "Defesa Civil", tel: "199" },
-  ];
+  const linksCidade = useMemo(() => getLinksCidade(cidade), [cidade]);
 
   return (
-    <main className="min-h-screen bg-[#F5FBFF] px-4 py-10">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Cabeçalho */}
-        <header className="flex items-start justify-between gap-3">
+    <main className="bg-slate-50 min-h-screen pb-14">
+      {/* topo */}
+      <section className="max-w-6xl mx-auto px-4 pt-8">
+        <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-              Central de Utilidades — Classilagos
+            <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-700 border border-sky-200">
+              Utilidades da Região
+            </span>
+            <h1 className="mt-3 text-2xl md:text-3xl font-extrabold text-slate-900">
+              Utilidades • IPTU • IPVA • Telefones úteis
             </h1>
             <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-              Links oficiais, consultas e informações úteis para a Região dos Lagos.
-              Tudo organizado em um só lugar.
+              Um atalho prático para serviços oficiais e informações importantes na Região dos Lagos.
             </p>
           </div>
 
           <Link
-            href="/imoveis"
-            className="hidden sm:inline-flex rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            href="/"
+            className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Voltar para Imóveis
+            Voltar para Home
           </Link>
-        </header>
+        </div>
 
-        {/* IPTU por cidade */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">IPTU — Prefeituras da Região</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Acesse o portal oficial de IPTU e o site da prefeitura da sua cidade.
-          </p>
+        {/* abas */}
+        <div className="mt-6 bg-white rounded-3xl border border-slate-200 shadow-sm p-2">
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setTab("iptu")}
+              className={`rounded-2xl px-3 py-2 font-semibold transition ${
+                tab === "iptu"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              IPTU (Cidades)
+            </button>
 
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {Object.entries(LINKS_OFICIAIS).map(([cidade, links]) => (
-              <div
-                key={cidade}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            <button
+              type="button"
+              onClick={() => setTab("ipva")}
+              className={`rounded-2xl px-3 py-2 font-semibold transition ${
+                tab === "ipva"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              IPVA (RJ)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab("telefones")}
+              className={`rounded-2xl px-3 py-2 font-semibold transition ${
+                tab === "telefones"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              Telefones úteis
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* conteúdo */}
+      <section className="max-w-6xl mx-auto px-4 mt-6">
+        {tab === "iptu" && (
+          <div className="grid gap-4 lg:grid-cols-[1fr,1.2fr]">
+            {/* seletor */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+              <h2 className="text-sm font-extrabold text-slate-900">IPTU — Portais oficiais por cidade</h2>
+              <p className="mt-1 text-xs text-slate-600">
+                Escolha a cidade e abra o portal do IPTU / Prefeitura.
+              </p>
+
+              <label className="block mt-4 text-[11px] font-semibold text-slate-600">
+                Selecione a cidade
+              </label>
+
+              <select
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
-                <p className="text-sm font-bold text-slate-900">{cidade}</p>
+                <option value="">— Escolher —</option>
+                {CIDADES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {links?.iptu ? (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {CIDADES.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCidade(c)}
+                    className={`rounded-2xl border px-3 py-2 text-[12px] font-semibold transition ${
+                      cidade === c
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* resultado */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+              <h2 className="text-sm font-extrabold text-slate-900">
+                {cidade ? `Links de ${cidade}` : "Selecione uma cidade"}
+              </h2>
+
+              {!cidade && (
+                <p className="mt-2 text-sm text-slate-600">
+                  Clique em uma cidade para mostrar os links oficiais.
+                </p>
+              )}
+
+              {cidade && !linksCidade && (
+                <p className="mt-2 text-sm text-slate-600">
+                  Ainda não há links cadastrados para esta cidade.
+                </p>
+              )}
+
+              {cidade && linksCidade && (
+                <div className="mt-4 space-y-3">
+                  {linksCidade.iptu && (
                     <a
-                      href={links.iptu}
+                      href={linksCidade.iptu}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-full bg-[#21D4FD] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3EC9C3]"
+                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
                     >
-                      Consultar IPTU
+                      <p className="text-sm font-extrabold text-slate-900">Consultar IPTU</p>
+                      <p className="text-[11px] text-slate-600 break-all">{linksCidade.iptu}</p>
                     </a>
-                  ) : (
-                    <span className="text-xs text-slate-500">IPTU: em breve</span>
                   )}
 
-                  {links?.prefeitura ? (
+                  {linksCidade.prefeitura && (
                     <a
-                      href={links.prefeitura}
+                      href={linksCidade.prefeitura}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
                     >
-                      Site da Prefeitura
+                      <p className="text-sm font-extrabold text-slate-900">Site oficial da Prefeitura</p>
+                      <p className="text-[11px] text-slate-600 break-all">{linksCidade.prefeitura}</p>
                     </a>
-                  ) : null}
+                  )}
+
+                  {linksCidade.certidoes && (
+                    <a
+                      href={linksCidade.certidoes}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+                    >
+                      <p className="text-sm font-extrabold text-slate-900">Certidões / Serviços</p>
+                      <p className="text-[11px] text-slate-600 break-all">{linksCidade.certidoes}</p>
+                    </a>
+                  )}
                 </div>
-              </div>
-            ))}
+              )}
+
+              <p className="mt-4 text-[11px] text-slate-500">
+                Dica: alguns portais abrem em nova aba e podem exigir CPF/CNPJ do contribuinte.
+              </p>
+            </div>
           </div>
-        </section>
+        )}
 
-        {/* IPVA */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">IPVA — Estado do RJ</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Consulta e serviços do IPVA (link estadual).
-          </p>
+        {tab === "ipva" && (
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-extrabold text-slate-900">IPVA — Estado do RJ</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Links oficiais para começar a consulta e serviços relacionados.
+            </p>
 
-          <div className="mt-4">
-            <a
-              href={IPVA_RJ}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Acessar IPVA RJ
-            </a>
-          </div>
-        </section>
-
-        {/* Telefones úteis */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">Telefones úteis</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Lista básica (vamos personalizar para a Região dos Lagos).
-          </p>
-
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {TELEFONES_UTEIS.map((t) => (
-              <div
-                key={t.tel}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between"
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <a
+                href={LINKS_IPVA.detran_rj}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
               >
-                <span className="text-sm font-semibold text-slate-800">{t.nome}</span>
-                <a
-                  href={`tel:${t.tel}`}
-                  className="rounded-full bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
-                >
-                  {t.tel}
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
+                <p className="text-sm font-extrabold text-slate-900">Detran RJ</p>
+                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.detran_rj}</p>
+              </a>
 
-        {/* Rodapé */}
-        <p className="text-[11px] text-slate-500">
-          Dica: esta página vai crescer com novas utilidades (certidões, ITBI, água, luz, cartórios, etc.)
-          sem precisar mexer nas páginas principais.
-        </p>
-      </div>
+              <a
+                href={LINKS_IPVA.sefaz_rj}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+              >
+                <p className="text-sm font-extrabold text-slate-900">SEFAZ RJ</p>
+                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.sefaz_rj}</p>
+              </a>
+            </div>
+
+            <p className="mt-4 text-[11px] text-slate-500">
+              Se você me passar o link exato do IPVA (consulta/guia), eu coloco aqui “na veia”.
+            </p>
+          </div>
+        )}
+
+        {tab === "telefones" && (
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-extrabold text-slate-900">Telefones úteis</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Lista básica (podemos expandir por cidade depois).
+            </p>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {TELEFONES_UTEIS.map((bloco) => (
+                <div key={bloco.titulo} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-extrabold text-slate-900">{bloco.titulo}</p>
+                  <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                    {bloco.itens.map((it) => (
+                      <li key={it}>• {it}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-4 text-[11px] text-slate-500">
+              Quer que eu monte “Telefones úteis por cidade” (UPA, Hospital, Rodoviária, Guarda Municipal etc.)?
+            </p>
+          </div>
+        )}
+      </section>
     </main>
   );
 }
