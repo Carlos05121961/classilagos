@@ -604,8 +604,10 @@ export default function ImoveisPage() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
 <Link
- href="/utilidades?tab=iptu"
-  className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block hover:bg-slate-800 transition"
+  href="/utilidades?tab=iptu"
+  className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
+>
+
 >
   <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
   <p className="text-[11px] text-slate-300">
