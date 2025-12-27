@@ -7,6 +7,29 @@ import { supabase } from "../../supabaseClient";
 import BannerRotator from "../../components/BannerRotator";
 import { LINKS_OFICIAIS } from "../../../lib/linksOficiais";
 
+// ⬇️ COLE AQUI (Parte 1)
+function normCidade(s) {
+  return (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getLinksCidade(cidade, LINKS_OFICIAIS) {
+  if (!cidade) return null;
+  if (LINKS_OFICIAIS[cidade]) return LINKS_OFICIAIS[cidade];
+
+  const alvo = normCidade(cidade);
+  const chave = Object.keys(LINKS_OFICIAIS).find(
+    (k) => normCidade(k) === alvo
+  );
+
+  return chave ? LINKS_OFICIAIS[chave] : null;
+}
+// ⬆️ ATÉ AQUI
+
 
 // BANNERS (padrão HOME)
 const BANNERS_TOPO = [
