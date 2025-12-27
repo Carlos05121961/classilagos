@@ -48,5 +48,34 @@ textarea::placeholder {
   animation: pulse-strong 1.8s infinite;
 }
 
+/* =============================== */
+/* 💧 EFEITO LENTE (HOVER PREMIUM) */
+/* =============================== */
+.btn-lente {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.btn-lente::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255,255,255,0.18),
+    rgba(255,255,255,0.04) 55%,
+    rgba(255,255,255,0) 70%
+  );
+  transform: translateX(-60%) rotate(10deg);
+  transition: transform 260ms ease-out, opacity 260ms ease-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn-lente:hover::before {
+  transform: translateX(25%) rotate(10deg);
+  opacity: 1;
+}
 
 
