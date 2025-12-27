@@ -602,54 +602,16 @@ export default function ImoveisPage() {
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-      {/* CARD 1 — IPTU */}
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-white mb-1">
-          IPTU e tributos
-        </h3>
+<Link
+  href="/utilidades"
+  className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block hover:bg-slate-800 transition"
+>
+  <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
+  <p className="text-[11px] text-slate-300">
+    Clique para abrir a página de Utilidades (IPTU por cidade e outros links).
+  </p>
+</Link>
 
-        {!linksCidade && (
-          <p className="text-[11px] text-slate-300">
-            Selecione uma cidade acima para ver o link da prefeitura e do IPTU.
-          </p>
-        )}
-
-        {linksCidade && (
-          <ul className="mt-2 space-y-1 text-[11px]">
-            {linksCidade.iptu && (
-              <li>
-                <a
-                  href={linksCidade.iptu}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-400 hover:underline font-semibold"
-                >
-                  • Consultar IPTU
-                </a>
-              </li>
-            )}
-
-            {linksCidade.prefeitura && (
-              <li>
-                <a
-                  href={linksCidade.prefeitura}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-400 hover:underline font-semibold"
-                >
-                  • Site da Prefeitura
-                </a>
-              </li>
-            )}
-
-            {!linksCidade.iptu && !linksCidade.prefeitura && (
-              <li className="text-slate-400">
-                Links ainda não cadastrados para esta cidade.
-              </li>
-            )}
-          </ul>
-        )}
-      </div>
 
       {/* CARD 2 */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
