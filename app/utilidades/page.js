@@ -5,7 +5,8 @@ import Link from "next/link";
 
 // ✅ Se você já tem /lib/linksOficiais.js, pode importar.
 // Se ainda não tiver, deixe o objeto aqui mesmo (mas o ideal é no /lib).
-import { LINKS_OFICIAIS } from "@/lib/linksOficiais";
+import { LINKS_OFICIAIS } from "../../lib/linksOficiais";
+
 
 function norm(s) {
   return (s || "")
