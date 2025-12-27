@@ -49,40 +49,43 @@ textarea::placeholder {
 }
 
 /* =============================== */
-/* 💧 EFEITO LENTE D'ÁGUA (PREMIUM) */
+/* 💧 EFEITO LENTE D'ÁGUA (MAIOR)  */
 /* =============================== */
 
 .btn-lente {
   position: relative;
   overflow: hidden;
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  transition: transform 240ms ease, box-shadow 240ms ease, filter 240ms ease;
+  will-change: transform;
 }
 
 .btn-lente::after {
   content: "";
   position: absolute;
-  inset: -30%;
+  inset: -55%; /* maior área da lente */
   background: radial-gradient(
     circle at center,
-    rgba(255, 255, 255, 0.22),
-    rgba(255, 255, 255, 0.10) 35%,
-    rgba(255, 255, 255, 0.04) 55%,
-    rgba(255, 255, 255, 0) 70%
+    rgba(255, 255, 255, 0.30),
+    rgba(255, 255, 255, 0.14) 35%,
+    rgba(255, 255, 255, 0.06) 55%,
+    rgba(255, 255, 255, 0) 72%
   );
   opacity: 0;
-  transform: scale(0.85);
-  transition: opacity 240ms ease, transform 240ms ease;
+  transform: scale(0.78); /* começa menor para “crescer” mais */
+  transition: opacity 260ms ease, transform 260ms ease;
   pointer-events: none;
 }
 
 .btn-lente:hover {
-  transform: scale(1.015);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  transform: scale(1.04); /* efeito maior no card */
+  filter: saturate(1.08);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
 }
 
 .btn-lente:hover::after {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1.06); /* lente cresce um pouco além */
 }
+
 
 
