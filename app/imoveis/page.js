@@ -590,7 +590,7 @@ export default function ImoveisPage() {
         </div>
       </section>
 
-    {/* FAIXA SERVIÇOS */}
+{/* FAIXA SERVIÇOS */}
 <section className="bg-slate-900 py-8">
   <div className="max-w-6xl mx-auto px-4">
     <h2 className="text-sm font-semibold text-white mb-1">
@@ -598,44 +598,50 @@ export default function ImoveisPage() {
     </h2>
 
     <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-      Use o Classilagos também como guia para entender tributos, documentos e serviços importantes.
+      Use o Classilagos como guia para acessar tributos, registros oficiais e serviços essenciais.
     </p>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-<Link
-  href="/utilidades?tab=iptu"
-  className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
-
->
-  <h3 className="text-sm font-semibold text-white mb-1">IPTU e tributos</h3>
-  <p className="text-[11px] text-slate-300">
-    Clique para abrir a página de Utilidades (IPTU por cidade e outros links).
-  </p>
-</Link>
-
-
-      {/* CARD 2 */}
-      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
+      {/* CARD 1 – IPTU */}
+      <Link
+        href="/utilidades?tab=iptu"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
+      >
         <h3 className="text-sm font-semibold text-white mb-1">
-          Financiamento imobiliário
+          IPTU e tributos
         </h3>
         <p className="text-[11px] text-slate-300">
-          Informações e simulações disponíveis diretamente com o anunciante.
+          Consulte IPTU e portais oficiais das prefeituras por cidade.
         </p>
-      </div>
+      </Link>
 
-      {/* CARD 3 */}
+      {/* CARD 2 – REGISTRO DE IMÓVEIS */}
+      <a
+        href="https://www.registrodeimoveis.org.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
+      >
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Registro de imóveis (ONR)
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Plataforma oficial para certidões, matrículas e serviços digitais.
+        </p>
+      </a>
+
+      {/* CARD 3 – DOCUMENTAÇÃO */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-white mb-1">
-          Regularização e documentos
+          Documentação e regularização
         </h3>
         <p className="text-[11px] text-slate-300">
           Escritura, registro, habite-se e orientações gerais.
         </p>
       </div>
 
-      {/* CARD 4 */}
+      {/* CARD 4 – SERVIÇOS */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-white mb-1">
           Serviços para o imóvel
