@@ -1,30 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-
-// ✅ Se você já tem /lib/linksOficiais.js, pode importar.
-// Se ainda não tiver, deixe o objeto aqui mesmo (mas o ideal é no /lib).
-import { LINKS_OFICIAIS } from "../../lib/linksOficiais";
-
-
-function norm(s) {
-  return (s || "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function getLinksCidade(cidade) {
-  if (!cidade) return null;
-  if (LINKS_OFICIAIS[cidade]) return LINKS_OFICIAIS[cidade];
-
-  const alvo = norm(cidade);
-  const chave = Object.keys(LINKS_OFICIAIS).find((k) => norm(k) === alvo);
-  return chave ? LINKS_OFICIAIS[chave] : null;
-}
+import { useSearchParams } from "next/navigation";
+import { LINKS_OFICIAIS } from "@/lib/linksOficiais";
 
 const CIDADES = [
   "Maricá",
@@ -38,21 +17,63 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-// ✅ IPVA (RJ) — você pode trocar depois se quiser links mais específicos por cidade/serviço
 const LINKS_IPVA = {
-  detran_rj: "https://www.detran.rj.gov.br/",
-  sefaz_rj: "https://portal.fazenda.rj.gov.br/",
+  ipva_rj: "https://portal.fazenda.rj.gov.br/ipva/",
+  detran_servicos: "https://www.detran.rj.gov.br/todos-os-servicos/servicos-drv.html",
 };
 
-// ✅ Telefones úteis (exemplo Premium). Você pode editar depois.
 const TELEFONES_UTEIS = [
-  { titulo: "Emergência", itens: ["190 (Polícia)", "192 (SAMU)", "193 (Bombeiros)"] },
-  { titulo: "Defesa Civil", itens: ["199 (Defesa Civil)"] },
+  {
+    titulo: "Emergências",
+    itens: ["190 (Polícia Militar)", "192 (SAMU)", "193 (Corpo de Bombeiros)", "199 (Defesa Civil)"],
+  },
+  {
+    titulo: "Turismo / Apoio ao turista",
+    itens: [
+      "DEAT RJ: (21) 2332-2924",
+      "DEAT RJ: (21) 2332-2429",
+      "DEAT RJ: (21) 2332-2885",
+      "Búzios / Cabo Frio: (22) 2633-0059",
+    ],
+  },
+  {
+    titulo: "Polícia Rodoviária (exemplos)",
+    itens: [
+      "BPRv Saquarema: (22) 2654-1497",
+      "BPRv Rio das Ostras: (21) 99171-7071",
+    ],
+  },
 ];
 
+// normaliza acentos
+function norm(s) {
+  return (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getLinksCidade(cidade) {
+  if (!cidade) return null;
+  if (LINKS_OFICIAIS[cidade]) return LINKS_OFICIAIS[cidade];
+  const alvo = norm(cidade);
+  const chave = Object.keys(LINKS_OFICIAIS).find((k) => norm(k) === alvo);
+  return chave ? LINKS_OFICIAIS[chave] : null;
+}
+
 export default function UtilidadesPage() {
+  const searchParams = useSearchParams();
+
   const [tab, setTab] = useState("iptu"); // iptu | ipva | telefones
   const [cidade, setCidade] = useState("");
+
+  // pega tab da URL: /utilidades?tab=iptu
+  useEffect(() => {
+    const t = (searchParams.get("tab") || "").toLowerCase();
+    if (t === "iptu" || t === "ipva" || t === "telefones") setTab(t);
+  }, [searchParams]);
 
   const linksCidade = useMemo(() => getLinksCidade(cidade), [cidade]);
 
@@ -69,16 +90,25 @@ export default function UtilidadesPage() {
               Utilidades • IPTU • IPVA • Telefones úteis
             </h1>
             <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-              Um atalho prático para serviços oficiais e informações importantes na Região dos Lagos.
+              Um atalho prático para serviços oficiais e contatos essenciais na Região dos Lagos.
             </p>
           </div>
 
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Voltar para Home
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/fale-conosco"
+              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Nos ajude a atualizar
+            </Link>
+
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Voltar
+            </Link>
+          </div>
         </div>
 
         {/* abas */}
@@ -117,7 +147,7 @@ export default function UtilidadesPage() {
                   : "bg-slate-50 text-slate-700 hover:bg-slate-100"
               }`}
             >
-              Telefones úteis
+              Telefones
             </button>
           </div>
         </div>
@@ -129,9 +159,11 @@ export default function UtilidadesPage() {
           <div className="grid gap-4 lg:grid-cols-[1fr,1.2fr]">
             {/* seletor */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
-              <h2 className="text-sm font-extrabold text-slate-900">IPTU — Portais oficiais por cidade</h2>
+              <h2 className="text-sm font-extrabold text-slate-900">
+                IPTU — Portais oficiais por cidade
+              </h2>
               <p className="mt-1 text-xs text-slate-600">
-                Escolha a cidade e abra o portal do IPTU / Prefeitura.
+                Escolha a cidade e abra o IPTU e/ou o site oficial da prefeitura.
               </p>
 
               <label className="block mt-4 text-[11px] font-semibold text-slate-600">
@@ -167,6 +199,10 @@ export default function UtilidadesPage() {
                   </button>
                 ))}
               </div>
+
+              <p className="mt-4 text-[11px] text-slate-500">
+                Alguns portais abrem em nova aba e podem solicitar CPF/CNPJ do contribuinte.
+              </p>
             </div>
 
             {/* resultado */}
@@ -194,7 +230,7 @@ export default function UtilidadesPage() {
                       href={linksCidade.iptu}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+                      className="btn-lente block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
                     >
                       <p className="text-sm font-extrabold text-slate-900">Consultar IPTU</p>
                       <p className="text-[11px] text-slate-600 break-all">{linksCidade.iptu}</p>
@@ -206,30 +242,16 @@ export default function UtilidadesPage() {
                       href={linksCidade.prefeitura}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+                      className="btn-lente block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
                     >
-                      <p className="text-sm font-extrabold text-slate-900">Site oficial da Prefeitura</p>
+                      <p className="text-sm font-extrabold text-slate-900">
+                        Site oficial da Prefeitura
+                      </p>
                       <p className="text-[11px] text-slate-600 break-all">{linksCidade.prefeitura}</p>
-                    </a>
-                  )}
-
-                  {linksCidade.certidoes && (
-                    <a
-                      href={linksCidade.certidoes}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
-                    >
-                      <p className="text-sm font-extrabold text-slate-900">Certidões / Serviços</p>
-                      <p className="text-[11px] text-slate-600 break-all">{linksCidade.certidoes}</p>
                     </a>
                   )}
                 </div>
               )}
-
-              <p className="mt-4 text-[11px] text-slate-500">
-                Dica: alguns portais abrem em nova aba e podem exigir CPF/CNPJ do contribuinte.
-              </p>
             </div>
           </div>
         )}
@@ -238,33 +260,33 @@ export default function UtilidadesPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
             <h2 className="text-sm font-extrabold text-slate-900">IPVA — Estado do RJ</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Links oficiais para começar a consulta e serviços relacionados.
+              Links oficiais para consulta e serviços relacionados.
             </p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <a
-                href={LINKS_IPVA.detran_rj}
+                href={LINKS_IPVA.ipva_rj}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+                className="btn-lente block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
               >
-                <p className="text-sm font-extrabold text-slate-900">Detran RJ</p>
-                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.detran_rj}</p>
+                <p className="text-sm font-extrabold text-slate-900">Portal IPVA (SEFAZ RJ)</p>
+                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.ipva_rj}</p>
               </a>
 
               <a
-                href={LINKS_IPVA.sefaz_rj}
+                href={LINKS_IPVA.detran_servicos}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
+                className="btn-lente block rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-slate-100 transition"
               >
-                <p className="text-sm font-extrabold text-slate-900">SEFAZ RJ</p>
-                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.sefaz_rj}</p>
+                <p className="text-sm font-extrabold text-slate-900">Detran RJ — Serviços</p>
+                <p className="text-[11px] text-slate-600 break-all">{LINKS_IPVA.detran_servicos}</p>
               </a>
             </div>
 
             <p className="mt-4 text-[11px] text-slate-500">
-              Se você me passar o link exato do IPVA (consulta/guia), eu coloco aqui “na veia”.
+              Dica: alguns serviços exigem login, placa/Renavam e validações do governo.
             </p>
           </div>
         )}
@@ -273,7 +295,7 @@ export default function UtilidadesPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
             <h2 className="text-sm font-extrabold text-slate-900">Telefones úteis</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Lista básica (podemos expandir por cidade depois).
+              Lista básica e direta. Depois expandimos por cidade (UPA, Hospital, Guarda Municipal etc.).
             </p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -289,12 +311,19 @@ export default function UtilidadesPage() {
               ))}
             </div>
 
-            <p className="mt-4 text-[11px] text-slate-500">
-              Quer que eu monte “Telefones úteis por cidade” (UPA, Hospital, Rodoviária, Guarda Municipal etc.)?
-            </p>
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-xs text-slate-600">
+                Achou um telefone atualizado da sua cidade?{" "}
+                <Link href="/fale-conosco" className="font-semibold text-sky-700 hover:underline">
+                  Envie pra gente aqui
+                </Link>
+                .
+              </p>
+            </div>
           </div>
         )}
       </section>
     </main>
   );
 }
+
