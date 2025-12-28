@@ -573,46 +573,70 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA */}
-      <section className="bg-slate-950 text-white py-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-base md:text-lg font-semibold mb-2">Serviços e informações para náutica</h2>
-          <p className="text-xs md:text-sm text-slate-300 mb-6 max-w-3xl">
-            Use o Classilagos também como guia para entender documentação, segurança, marinas e serviços importantes na hora de comprar,
-            manter ou alugar uma embarcação na Região dos Lagos.
-          </p>
+{/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA */}
+<section className="bg-slate-950 text-white py-10">
+  <div className="max-w-6xl mx-auto px-4">
+    <h2 className="text-base md:text-lg font-semibold mb-2">
+      Serviços e informações para náutica
+    </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs md:text-sm">
-            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
-              <p className="font-semibold mb-1">Documentação da embarcação</p>
-              <p className="text-slate-300 text-[12px] leading-snug">
-                Em breve, links para Capitania dos Portos, registro de embarcações, vistoria e normas de segurança.
-              </p>
-            </div>
+    <p className="text-xs md:text-sm text-slate-300 mb-6 max-w-3xl">
+      Use o Classilagos como guia para navegar dentro da lei, entender documentação,
+      habilitação e encontrar serviços náuticos na Região dos Lagos.
+    </p>
 
-            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
-              <p className="font-semibold mb-1">Habilitação náutica</p>
-              <p className="text-slate-300 text-[12px] leading-snug">
-                Informações sobre Arrais, Mestre e Motonauta, cursos e procedimentos para obter a carteira.
-              </p>
-            </div>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs md:text-sm">
 
-            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
-              <p className="font-semibold mb-1">Marinas e estrutura</p>
-              <p className="text-slate-300 text-[12px] leading-snug">
-                Em breve, integração com LagoListas para encontrar marinas, guardarias, vagas secas e molhadas em toda a região.
-              </p>
-            </div>
+      {/* CARD 1 – DOCUMENTAÇÃO */}
+      <a
+        href="https://www.marinha.mil.br/com1dn/sites/www.marinha.mil.br.com1dn/files/CSU---DelCFrio.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
+      >
+        <p className="font-semibold mb-1">Documentação da embarcação</p>
+        <p className="text-slate-300 text-[12px] leading-snug">
+          Inscrição, transferência, registro e normas oficiais da Capitania dos Portos
+          (Delegacia de Cabo Frio).
+        </p>
+      </a>
 
-            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4">
-              <p className="font-semibold mb-1">Serviços para sua embarcação</p>
-              <p className="text-slate-300 text-[12px] leading-snug">
-                Oficinas mecânicas, elétrica náutica, lavagem, pintura e outros serviços especializados próximos a você.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* CARD 2 – HABILITAÇÃO */}
+      <a
+        href="https://www.marinha.mil.br/delcfrio/habilitacao_amadores"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
+      >
+        <p className="font-semibold mb-1">Habilitação náutica</p>
+        <p className="text-slate-300 text-[12px] leading-snug">
+          Informações oficiais sobre Arrais, Motonauta e Mestre,
+          categorias e limites de navegação.
+        </p>
+      </a>
+
+      {/* CARD 3 – MARINAS */}
+      <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
+        <p className="font-semibold mb-1">Marinas e iate clubes</p>
+        <p className="text-slate-300 text-[12px] leading-snug">
+          Em breve, integração com o LagoListas para encontrar marinas,
+          guardarias, vagas secas e molhadas na região.
+        </p>
+      </div>
+
+      {/* CARD 4 – SERVIÇOS */}
+      <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
+        <p className="font-semibold mb-1">Serviços para sua embarcação</p>
+        <p className="text-slate-300 text-[12px] leading-snug">
+          Oficinas mecânicas, elétrica náutica, pintura, limpeza,
+          guincho e manutenção especializada (em breve).
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
       {/* Daqui pra baixo entra só o footer global */}
     </main>
