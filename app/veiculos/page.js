@@ -442,46 +442,67 @@ export default function VeiculosPage() {
         </div>
       </section>
 
-      {/* FAIXA – SERVIÇOS */}
-      <section className="bg-slate-900 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">Serviços e informações para veículos</h2>
-          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para entender documentos, custos e serviços importantes na hora de comprar, vender
-            ou trocar seu veículo na Região dos Lagos.
-          </p>
+{/* FAIXA – SERVIÇOS */}
+<section className="bg-slate-900 py-8">
+  <div className="max-w-6xl mx-auto px-4">
+    <h2 className="text-sm font-semibold text-white mb-1">
+      Serviços e informações para veículos
+    </h2>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">IPVA, multas e documentação</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, links diretos para consultar IPVA, multas, documentação, licenciamento e serviços do Detran.
-              </p>
-            </div>
+    <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+      Use o Classilagos como guia para acessar documentos, tributos e serviços essenciais
+      na hora de comprar, vender ou manter seu veículo na Região dos Lagos.
+    </p>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Financiamento e consórcio</h3>
-              <p className="text-[11px] text-slate-300">
-                Informações básicas sobre financiamento, consórcios, simulações e contato com bancos e financeiras.
-              </p>
-            </div>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Vistoria e laudos</h3>
-              <p className="text-[11px] text-slate-300">
-                Dicas sobre vistorias, laudos cautelares, transferência e cuidados ao comprar veículos.
-              </p>
-            </div>
+      {/* CARD 1 – IPVA / DETRAN */}
+      <a
+        href="/utilidades?tab=ipva"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
+      >
+        <h3 className="text-sm font-semibold text-white mb-1">
+          IPVA, multas e documentação
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Consulta de IPVA, licenciamento, multas e serviços oficiais do Detran RJ.
+        </p>
+      </a>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Serviços para o seu veículo</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, integração com o LagoListas para encontrar oficinas, lava-jatos, autoelétricas e mais.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* CARD 2 – VISTORIA */}
+      <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Vistoria e laudos
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Orientações sobre vistorias, laudos cautelares, transferência e compra segura.
+        </p>
+      </div>
+
+      {/* CARD 3 – SERVIÇOS */}
+      <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Serviços para o seu veículo
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Oficinas, lava-jato, autoelétrica e outros serviços via LagoListas (em breve).
+        </p>
+      </div>
+
+      {/* CARD 4 – FINANCIAMENTO (EM ESPERA) */}
+      <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
+        <h3 className="text-sm font-semibold text-white mb-1">
+          Financiamento e consórcio
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Conteúdos e parceiros financeiros serão integrados futuramente.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
     </main>
   );
 }
