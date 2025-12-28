@@ -456,7 +456,7 @@ export default function VeiculosPage() {
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-      {/* CARD 1 – IPVA / DETRAN */}
+      {/* CARD 1 – IPVA */}
       <a
         href="/utilidades?tab=ipva"
         className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
@@ -469,15 +469,20 @@ export default function VeiculosPage() {
         </p>
       </a>
 
-      {/* CARD 2 – VISTORIA */}
-      <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
+      {/* CARD 2 – VISTORIA / DETRAN */}
+      <a
+        href="https://www.detran.rj.gov.br/todos-os-servicos/servicos-drv.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition"
+      >
         <h3 className="text-sm font-semibold text-white mb-1">
           Vistoria e laudos
         </h3>
         <p className="text-[11px] text-slate-300">
-          Orientações sobre vistorias, laudos cautelares, transferência e compra segura.
+          Vistoria, laudo cautelar, transferência, comunicação de venda e outros serviços oficiais.
         </p>
-      </div>
+      </a>
 
       {/* CARD 3 – SERVIÇOS */}
       <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
@@ -489,7 +494,7 @@ export default function VeiculosPage() {
         </p>
       </div>
 
-      {/* CARD 4 – FINANCIAMENTO (EM ESPERA) */}
+      {/* CARD 4 – FINANCIAMENTO */}
       <div className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm transition">
         <h3 className="text-sm font-semibold text-white mb-1">
           Financiamento e consórcio
@@ -502,6 +507,7 @@ export default function VeiculosPage() {
     </div>
   </div>
 </section>
+
 
     </main>
   );
