@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { LINKS_OFICIAIS } from "@/lib/linksOficiais";
+import { LINKS_OFICIAIS } from "../../lib/linksOficiais";
+
 
 const CIDADES = [
   "Maricá",
