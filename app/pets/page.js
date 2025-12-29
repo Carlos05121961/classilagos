@@ -487,119 +487,73 @@ export default function PetsPage() {
         </div>
       </section>
 
-{/* LINKS ÚTEIS */}
-<section className="bg-slate-900 py-8 border-t border-slate-800">
+{/* FAIXA – SERVIÇOS (PETS) */}
+<section className="bg-slate-900 py-8">
   <div className="max-w-6xl mx-auto px-4">
-    <h2 className="text-sm font-semibold text-white mb-1">Links úteis para pets</h2>
-    <p className="text-xs text-slate-300 mb-5 max-w-2xl">
-      Use o Classilagos também como guia para cuidar bem dos seus animais na Região dos Lagos.
+    <h2 className="text-sm font-semibold text-white mb-1">
+      Serviços e informações para Pets
+    </h2>
+
+    <p className="text-xs text-slate-300 mb-4 max-w-2xl">
+      Atalhos rápidos para atendimento, zoonoses/castração e emergências na Região dos Lagos.
     </p>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* 1) Vacinação */}
+      {/* CARD 1 — Zoonoses / Castração (ativo) */}
       <a
-        href="SEU_LINK_AQUI"
+        href="https://wa.me/5522997684641"
         target="_blank"
-        rel="noreferrer"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
-        {/* EFEITO ÁGUA (padrão) */}
-        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
-          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
-        </span>
-
-        <h3 className="relative text-sm font-semibold text-white mb-1">Campanhas de vacinação</h3>
-        <p className="relative text-[11px] text-slate-300">
-          Informações sobre vacinação antirrábica e campanhas oficiais nas cidades da região.
+        <h3 className="text-sm font-semibold text-white mb-1">Zoonoses / Castração (Arraial)</h3>
+        <p className="text-[11px] text-slate-300">
+          UZCA Arraial do Cabo (WhatsApp): (22) 99768-4641
         </p>
-
-        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Abrir link
-          <span className="transition-transform group-hover:translate-x-0.5">→</span>
-        </div>
       </a>
 
-      {/* 2) Zoonoses */}
+      {/* CARD 2 — Hospital Vet 24h (ativo) */}
       <a
-        href="SEU_LINK_AQUI"
+        href="https://wa.me/5522998165398"
         target="_blank"
-        rel="noreferrer"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
-        {/* EFEITO ÁGUA (padrão) */}
-        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
-          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
-        </span>
-
-        <h3 className="relative text-sm font-semibold text-white mb-1">Centro de Zoonoses</h3>
-        <p className="relative text-[11px] text-slate-300">
-          Endereços e orientações sobre saúde pública, resgate e animais em situação de rua.
+        <h3 className="text-sm font-semibold text-white mb-1">Hospital Vet 24h (Cabo Frio)</h3>
+        <p className="text-[11px] text-slate-300">
+          WhatsApp: (22) 99816-5398 • Tel: (22) 2647-1610
         </p>
-
-        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Abrir link
-          <span className="transition-transform group-hover:translate-x-0.5">→</span>
-        </div>
       </a>
 
-      {/* 3) ONGs */}
+      {/* CARD 3 — Clínica 24h (ativo) */}
       <a
-        href="SEU_LINK_AQUI"
-        target="_blank"
-        rel="noreferrer"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        href="tel:+552226657393"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
-        {/* EFEITO ÁGUA (padrão) */}
-        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
-          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
-        </span>
-
-        <h3 className="relative text-sm font-semibold text-white mb-1">ONGs e proteção animal</h3>
-        <p className="relative text-[11px] text-slate-300">
-          Projetos de adoção, lares temporários e feiras de adoção na Região dos Lagos.
+        <h3 className="text-sm font-semibold text-white mb-1">Clínica 24h (Araruama)</h3>
+        <p className="text-[11px] text-slate-300">
+          Bom Pastor: (22) 2665-7393 • (22) 98823-7763
         </p>
-
-        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Abrir link
-          <span className="transition-transform group-hover:translate-x-0.5">→</span>
-        </div>
       </a>
 
-      {/* 4) Clínicas & Pet-shops (por enquanto “imóvel”, sem Lagolistas) */}
-      <a
-        href="SEU_LINK_AQUI"
-        target="_blank"
-        rel="noreferrer"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+      {/* CARD 4 — Telefones úteis (ativo) */}
+      <Link
+        href="/utilidades?tab=telefones"
+        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
-        {/* EFEITO ÁGUA (padrão) */}
-        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
-          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
-        </span>
-
-        <h3 className="relative text-sm font-semibold text-white mb-1">
-          Clínicas e Pet-shops perto de você
-        </h3>
-        <p className="relative text-[11px] text-slate-300">
-          Em breve: vamos puxar isso do Lagolistas. Por enquanto, segue com link externo/guia.
+        <h3 className="text-sm font-semibold text-white mb-1">Emergências (Telefones úteis)</h3>
+        <p className="text-[11px] text-slate-300">
+          Polícia 190 • SAMU 192 • Bombeiros 193 • Defesa Civil 199
         </p>
-
-        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Abrir guia
-          <span className="transition-transform group-hover:translate-x-0.5">→</span>
-        </div>
-      </a>
+      </Link>
     </div>
+
+    <p className="mt-4 text-[11px] text-slate-400">
+      Quer ajudar? Se tiver um contato oficial atualizado da sua cidade, depois colocamos um botão “Nos ajude a atualizar” na página de Utilidades.
+    </p>
   </div>
 </section>
+
 
 
 
