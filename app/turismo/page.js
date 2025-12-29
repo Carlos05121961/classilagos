@@ -493,117 +493,254 @@ function TurismoPageContent() {
         </div>
       </section>
 
-{/* TARJA PRETA — ACESSO & TRANSFERS (TURISMO) */}
+{/* TARJA PREMIUM — TURISMO (Aeroportos / Transfers / Segurança) */}
 <section className="bg-slate-950 text-slate-50">
-  <div className="max-w-6xl mx-auto px-4 py-10 space-y-4">
+  <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
     <div>
-      <h2 className="text-sm font-semibold">Acessos, aeroportos e transfers</h2>
+      <h2 className="text-sm font-semibold">Informações úteis para o turista</h2>
       <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
-        Links oficiais e contatos úteis para chegar na Região dos Lagos com segurança e praticidade.
+        Acessos, transfers e contatos de apoio — útil para quem chega na Região dos Lagos.
       </p>
     </div>
 
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Galeão */}
-      <a
-        href="https://www.galeon.com.br/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-      >
-        <p className="text-sm font-semibold text-white mb-1">Aeroporto Galeão (GIG)</p>
-        <p className="text-[11px] text-slate-300">
-          Site oficial: voos, transporte e serviços.
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN: Official airport info • ES: Info oficial del aeropuerto
-        </p>
-      </a>
+    {/* Abas */}
+    <TurismoTabs />
 
-      {/* Santos Dumont */}
-      <a
-        href="https://www.aeroportosantosdumont.net/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-      >
-        <p className="text-sm font-semibold text-white mb-1">Aeroporto Santos Dumont (SDU)</p>
-        <p className="text-[11px] text-slate-300">
-          Informações de embarque, desembarque e acesso.
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN: Flights & access • ES: Vuelos y acceso
-        </p>
-      </a>
-
-      {/* Aeroporto Cabo Frio */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
-        <p className="text-sm font-semibold text-white mb-1">Aeroporto Internacional de Cabo Frio</p>
-        <p className="text-[11px] text-slate-300">
-          Tel: <a className="underline hover:text-white" href="tel:+552226479500">(22) 2647-9500</a>
-        </p>
-        <p className="mt-1 text-[11px] text-slate-300">
-          End.: Estrada Velha do Arraial do Cabo, s/n • Praia Sudoeste, Cabo Frio – RJ
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN/ES: Phone & address (useful on arrival)
-        </p>
-      </div>
-
-      {/* Aeroporto Búzios */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
-        <p className="text-sm font-semibold text-white mb-1">Aeroporto de Búzios (SSBZ)</p>
-        <p className="text-[11px] text-slate-300">
-          Centro de Operações:
-          <br />
-          <a className="underline hover:text-white" href="tel:+552226236033">+55 (22) 2623-6033</a>{" "}
-          •{" "}
-          <a className="underline hover:text-white" href="tel:+552226236517">+55 (22) 2623-6517</a>
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN: Ops Center • ES: Centro de Operaciones
-        </p>
-      </div>
-    </div>
-
-    {/* Transfers (linha extra) */}
-    <div className="grid gap-4 lg:grid-cols-2">
-      <a
-        href="https://transferrgturismo.com.br/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-      >
-        <p className="text-sm font-semibold text-white mb-1">Transfer Rio ⇄ Região</p>
-        <p className="text-[11px] text-slate-300">
-          Opções de transfer e turismo (site).
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN: Transfers • ES: Traslados
-        </p>
-      </a>
-
-      <a
-        href="https://ads.brazilconnection.com.br/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-      >
-        <p className="text-sm font-semibold text-white mb-1">Transfers & conexões</p>
-        <p className="text-[11px] text-slate-300">
-          Alternativas de transporte e atendimento (site).
-        </p>
-        <p className="mt-2 text-[10px] text-slate-400">
-          EN: Options • ES: Opciones
-        </p>
-      </a>
-    </div>
+    {/* Painel */}
+    <TurismoPainel />
 
     <p className="text-[11px] text-slate-400">
-      Dica: quer indicar um transfer confiável da sua cidade? Em breve colocaremos um botão “Nos ajude a atualizar”.
+      Dica: depois a gente liga isso ao LagoListas (transfer local por cidade, guias, suporte ao turista e serviços).
     </p>
   </div>
 </section>
+
+{/* ======= COMPONENTES LOCAIS (coloque abaixo dentro do mesmo page.js) ======= */}
+function TurismoTabs() {
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
+
+  const tabs = [
+    { key: "aeroportos", label: "Aeroportos", sub: "EN: Airports • ES: Aeropuertos" },
+    { key: "transfers", label: "Transfers", sub: "EN: Transfers • ES: Traslados" },
+    { key: "seguranca", label: "Segurança", sub: "EN: Safety • ES: Seguridad" },
+  ];
+
+  return (
+    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {tabs.map((t) => {
+          const active = tab === t.key;
+          return (
+            <Link
+              key={t.key}
+              href={`/turismo?tab=${t.key}`}
+              className={[
+                "btn-lente rounded-2xl px-4 py-3 text-center text-xs font-semibold border transition",
+                active
+                  ? "bg-white text-slate-900 border-white"
+                  : "bg-slate-900/60 text-slate-100 border-slate-800 hover:bg-slate-900",
+              ].join(" ")}
+            >
+              {t.label}
+              <div className="mt-1 text-[10px] font-normal opacity-80">{t.sub}</div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TurismoPainel() {
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
+
+  if (tab === "transfers") {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+        <h3 className="text-sm font-semibold mb-3">Transfers e conexões</h3>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <a
+            href="https://transferrgturismo.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+          >
+            <p className="text-sm font-semibold text-white mb-1">Transfer Rio ⇄ Região</p>
+            <p className="text-[11px] text-slate-300">Opções de transfer e turismo (site).</p>
+          </a>
+
+          <a
+            href="https://ads.brazilconnection.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+          >
+            <p className="text-sm font-semibold text-white mb-1">Transfers & conexões</p>
+            <p className="text-[11px] text-slate-300">Alternativas de transporte e atendimento (site).</p>
+          </a>
+        </div>
+
+        <p className="mt-4 text-[11px] text-slate-400">
+          Em breve: “Transfers por cidade” via LagoListas (Cabo Frio, Búzios, Arraial, Maricá etc.).
+        </p>
+      </div>
+    );
+  }
+
+  if (tab === "seguranca") {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold mb-2">Segurança e defesa do consumidor</h3>
+          <p className="text-[11px] text-slate-300">
+            Contatos úteis para turista e atendimento ao consumidor.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <p className="text-sm font-semibold text-white mb-1">Apoio ao turista (DEAT / RJ)</p>
+          <p className="text-[11px] text-slate-300">
+            Tel:{" "}
+            <a className="underline hover:text-white" href="tel:+552123322924">(21) 2332-2924</a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552123322429">2332-2429</a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552123322885">2332-2885</a>
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">
+            (Útil em situações de turista no RJ / Região.)
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Cabo Frio</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/5522999072821"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 99907-2821
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">
+              Rua Nicola Aslan (Braga) ou Shopping UnaPark (Tamoios).
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Búzios</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/552226230314"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 2623-0314
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">
+              Travessa dos Pescadores (Centro).
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Arraial do Cabo</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/552226221417"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 2622-1417
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">
+              Rua Ezer Teixeira de Melo (Praia dos Anjos).
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <p className="text-[11px] text-slate-300">
+            Emergência: <strong>190</strong> Polícia • <strong>193</strong> Bombeiros •{" "}
+            <strong>199</strong> Defesa Civil
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // AEROPORTOS (default)
+  return (
+    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+      <h3 className="text-sm font-semibold mb-3">Aeroportos</h3>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <a
+          href="https://www.galeon.com.br/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+        >
+          <p className="text-sm font-semibold text-white mb-1">Galeão (GIG)</p>
+          <p className="text-[11px] text-slate-300">Site oficial: voos, acesso e serviços.</p>
+        </a>
+
+        <a
+          href="https://www.aeroportosantosdumont.net/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+        >
+          <p className="text-sm font-semibold text-white mb-1">Santos Dumont (SDU)</p>
+          <p className="text-[11px] text-slate-300">Informações de embarque, desembarque e acesso.</p>
+        </a>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Cabo Frio</p>
+          <p className="text-[11px] text-slate-300">
+            Tel:{" "}
+            <a className="underline hover:text-white" href="tel:+552226479500">
+              (22) 2647-9500
+            </a>
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">
+            End.: Estrada Velha do Arraial do Cabo, s/n • Praia Sudoeste, Cabo Frio – RJ
+          </p>
+        </div>
+
+        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Búzios (SSBZ)</p>
+          <p className="text-[11px] text-slate-300">
+            Centro de Operações:
+            <br />
+            <a className="underline hover:text-white" href="tel:+552226236033">
+              +55 (22) 2623-6033
+            </a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552226236517">
+              +55 (22) 2623-6517
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
     </main>
   );
