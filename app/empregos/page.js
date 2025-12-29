@@ -577,57 +577,51 @@ export default function EmpregosPage() {
     </h2>
 
     <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-      Atalhos úteis para quem busca trabalho, qualificação profissional e oportunidades na Região dos Lagos.
+      Atalhos úteis para vagas oficiais, qualificação profissional e oportunidades na Região dos Lagos.
     </p>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-      {/* CARD 1 — SINE */}
+      {/* CARD 1 — Vagas (SINE / MTE) */}
       <a
-        href="https://www.gov.br/pt-br/servicos/buscar-emprego-no-sine"
+        href="https://servicos.mte.gov.br/empregador/#/login"
         target="_blank"
         rel="noopener noreferrer"
         className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
         <h3 className="text-sm font-semibold text-white mb-1">
-          Emprego formal (SINE)
+          Vagas oficiais (SINE / MTE)
         </h3>
         <p className="text-[11px] text-slate-300">
-          Vagas oficiais do SINE Digital em todo o Brasil.
+          Acesso ao portal oficial do Ministério do Trabalho para vagas e serviços do emprego.
         </p>
       </a>
 
-      {/* CARD 2 — Cursos gratuitos */}
+      {/* CARD 2 — Cursos / Qualificação (Caminho Digital) */}
       <a
-        href="https://www.rj.senac.br/gratuito"
+        href="https://www.gov.br/trabalho-e-emprego/pt-br/servicos/trabalhador/qualificacao-profissional/caminho-digital"
         target="_blank"
         rel="noopener noreferrer"
         className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
       >
         <h3 className="text-sm font-semibold text-white mb-1">
-          Cursos gratuitos
+          Cursos e qualificação (gratuitos)
         </h3>
         <p className="text-[11px] text-slate-300">
-          SENAC RJ, SESC e programas de qualificação profissional.
+          Caminho Digital: cursos e trilhas de qualificação profissional (oficial).
         </p>
       </a>
 
-      {/* CARD 3 — Concursos */}
-      <a
-        href="https://www.gov.br/pt-br/servicos/buscar-concursos-e-selecoes"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm block transition hover:bg-slate-800"
-      >
+      {/* CARD 3 — Concursos (em espera) */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-white mb-1">
-          Concursos públicos
+          Concursos e seleções
         </h3>
         <p className="text-[11px] text-slate-300">
-          Acesse seleções e concursos abertos em órgãos públicos.
+          Em breve: página oficial estável com consultas por órgão e período.
         </p>
-      </a>
+      </div>
 
-      {/* CARD 4 — Banco de empregos */}
+      {/* CARD 4 — Banco de empregos (Classilagos) */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-white mb-1">
           Banco de empregos Classilagos
@@ -636,10 +630,10 @@ export default function EmpregosPage() {
           Em breve: vagas locais, currículos e oportunidades na região.
         </p>
       </div>
-
     </div>
   </div>
 </section>
+
 
 
       {/* rodapé global vem do layout */}
