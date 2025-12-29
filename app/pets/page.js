@@ -496,112 +496,111 @@ export default function PetsPage() {
     </p>
 
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Card / Botão */}
-      <button
-        type="button"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-        onClick={() => alert("Em breve: vamos ligar este botão a links oficiais de vacinação por cidade.")}
+      {/* 1) Vacinação */}
+      <a
+        href="SEU_LINK_AQUI"
+        target="_blank"
+        rel="noreferrer"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
       >
-        {/* efeito água */}
+        {/* EFEITO ÁGUA (padrão) */}
         <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
           <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
         </span>
 
-        <h3 className="relative text-sm font-semibold text-white mb-1">
-          Campanhas de vacinação
-        </h3>
+        <h3 className="relative text-sm font-semibold text-white mb-1">Campanhas de vacinação</h3>
         <p className="relative text-[11px] text-slate-300">
           Informações sobre vacinação antirrábica e campanhas oficiais nas cidades da região.
         </p>
 
         <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Ver orientações
+          Abrir link
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
-      </button>
+      </a>
 
-      {/* Card / Botão */}
-      <button
-        type="button"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-        onClick={() => alert("Em breve: vamos colocar links oficiais / contatos de Centro de Zoonoses por cidade.")}
+      {/* 2) Zoonoses */}
+      <a
+        href="SEU_LINK_AQUI"
+        target="_blank"
+        rel="noreferrer"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
       >
-        {/* efeito água */}
+        {/* EFEITO ÁGUA (padrão) */}
         <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
           <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
         </span>
 
-        <h3 className="relative text-sm font-semibold text-white mb-1">
-          Centro de Zoonoses
-        </h3>
+        <h3 className="relative text-sm font-semibold text-white mb-1">Centro de Zoonoses</h3>
         <p className="relative text-[11px] text-slate-300">
           Endereços e orientações sobre saúde pública, resgate e animais em situação de rua.
         </p>
 
         <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Ver contatos
+          Abrir link
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
-      </button>
+      </a>
 
-      {/* Card / Botão */}
-      <button
-        type="button"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-        onClick={() => alert("Em breve: lista de ONGs/feiras de adoção por cidade, com contatos e redes.")}
+      {/* 3) ONGs */}
+      <a
+        href="SEU_LINK_AQUI"
+        target="_blank"
+        rel="noreferrer"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
       >
-        {/* efeito água */}
+        {/* EFEITO ÁGUA (padrão) */}
         <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
           <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
         </span>
 
-        <h3 className="relative text-sm font-semibold text-white mb-1">
-          ONGs e proteção animal
-        </h3>
+        <h3 className="relative text-sm font-semibold text-white mb-1">ONGs e proteção animal</h3>
         <p className="relative text-[11px] text-slate-300">
           Projetos de adoção, lares temporários e feiras de adoção na Região dos Lagos.
         </p>
 
         <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Ver projetos
+          Abrir link
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
-      </button>
+      </a>
 
-      {/* Card / Botão */}
-      <button
-        type="button"
-        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-        onClick={() => alert("Em breve: aqui vai puxar anúncios de Lagolistas (Clínicas e Pet-shops) perto de você.")}
+      {/* 4) Clínicas & Pet-shops (por enquanto “imóvel”, sem Lagolistas) */}
+      <a
+        href="SEU_LINK_AQUI"
+        target="_blank"
+        rel="noreferrer"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/70 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
       >
-        {/* efeito água */}
+        {/* EFEITO ÁGUA (padrão) */}
         <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute -left-14 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
           <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+          <span className="absolute -bottom-14 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
         </span>
 
         <h3 className="relative text-sm font-semibold text-white mb-1">
           Clínicas e Pet-shops perto de você
         </h3>
         <p className="relative text-[11px] text-slate-300">
-          Em breve: anúncios e contatos de serviços pet na sua cidade, direto no Classilagos.
+          Em breve: vamos puxar isso do Lagolistas. Por enquanto, segue com link externo/guia.
         </p>
 
         <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
-          Buscar perto de mim
+          Abrir guia
           <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
-      </button>
+      </a>
     </div>
   </div>
 </section>
+
 
 
       {/* Daqui pra baixo entra só o footer global */}
