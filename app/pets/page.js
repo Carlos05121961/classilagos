@@ -487,45 +487,122 @@ export default function PetsPage() {
         </div>
       </section>
 
-      {/* LINKS ÚTEIS */}
-      <section className="bg-slate-900 py-8 border-t border-slate-800">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-sm font-semibold text-white mb-1">Links úteis para pets</h2>
-          <p className="text-xs text-slate-300 mb-4 max-w-2xl">
-            Use o Classilagos também como guia para cuidar bem dos seus animais na Região dos Lagos.
-          </p>
+{/* LINKS ÚTEIS */}
+<section className="bg-slate-900 py-8 border-t border-slate-800">
+  <div className="max-w-6xl mx-auto px-4">
+    <h2 className="text-sm font-semibold text-white mb-1">Links úteis para pets</h2>
+    <p className="text-xs text-slate-300 mb-5 max-w-2xl">
+      Use o Classilagos também como guia para cuidar bem dos seus animais na Região dos Lagos.
+    </p>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Campanhas de vacinação</h3>
-              <p className="text-[11px] text-slate-300">
-                Informações sobre vacinação antirrábica e campanhas oficiais nas cidades da região.
-              </p>
-            </div>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Card / Botão */}
+      <button
+        type="button"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        onClick={() => alert("Em breve: vamos ligar este botão a links oficiais de vacinação por cidade.")}
+      >
+        {/* efeito água */}
+        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
+          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+        </span>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Centro de Zoonoses</h3>
-              <p className="text-[11px] text-slate-300">
-                Endereços e orientações sobre saúde pública, resgate e animais em situação de rua.
-              </p>
-            </div>
+        <h3 className="relative text-sm font-semibold text-white mb-1">
+          Campanhas de vacinação
+        </h3>
+        <p className="relative text-[11px] text-slate-300">
+          Informações sobre vacinação antirrábica e campanhas oficiais nas cidades da região.
+        </p>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">ONGs e proteção animal</h3>
-              <p className="text-[11px] text-slate-300">
-                Projetos de adoção, lares temporários e feiras de adoção na Região dos Lagos.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-white mb-1">Dicas de bem-estar pet</h3>
-              <p className="text-[11px] text-slate-300">
-                Em breve, conteúdos especiais sobre alimentação, comportamento e cuidados gerais.
-              </p>
-            </div>
-          </div>
+        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
+          Ver orientações
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
-      </section>
+      </button>
+
+      {/* Card / Botão */}
+      <button
+        type="button"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        onClick={() => alert("Em breve: vamos colocar links oficiais / contatos de Centro de Zoonoses por cidade.")}
+      >
+        {/* efeito água */}
+        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
+          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+        </span>
+
+        <h3 className="relative text-sm font-semibold text-white mb-1">
+          Centro de Zoonoses
+        </h3>
+        <p className="relative text-[11px] text-slate-300">
+          Endereços e orientações sobre saúde pública, resgate e animais em situação de rua.
+        </p>
+
+        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
+          Ver contatos
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+        </div>
+      </button>
+
+      {/* Card / Botão */}
+      <button
+        type="button"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        onClick={() => alert("Em breve: lista de ONGs/feiras de adoção por cidade, com contatos e redes.")}
+      >
+        {/* efeito água */}
+        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
+          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+        </span>
+
+        <h3 className="relative text-sm font-semibold text-white mb-1">
+          ONGs e proteção animal
+        </h3>
+        <p className="relative text-[11px] text-slate-300">
+          Projetos de adoção, lares temporários e feiras de adoção na Região dos Lagos.
+        </p>
+
+        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
+          Ver projetos
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+        </div>
+      </button>
+
+      {/* Card / Botão */}
+      <button
+        type="button"
+        className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+        onClick={() => alert("Em breve: aqui vai puxar anúncios de Lagolistas (Clínicas e Pet-shops) perto de você.")}
+      >
+        {/* efeito água */}
+        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="absolute -left-10 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-sky-400/15 blur-2xl" />
+          <span className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
+          <span className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-blue-500/10 blur-2xl" />
+        </span>
+
+        <h3 className="relative text-sm font-semibold text-white mb-1">
+          Clínicas e Pet-shops perto de você
+        </h3>
+        <p className="relative text-[11px] text-slate-300">
+          Em breve: anúncios e contatos de serviços pet na sua cidade, direto no Classilagos.
+        </p>
+
+        <div className="relative mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-sky-300">
+          Buscar perto de mim
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>
+
 
       {/* Daqui pra baixo entra só o footer global */}
     </main>
