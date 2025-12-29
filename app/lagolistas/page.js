@@ -72,6 +72,10 @@ export default function LagoListasPage() {
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ JANELINHA (Guia rápido LagoListas) — padrão IPTU/Utilidades
+  const [openInfo, setOpenInfo] = useState(false);
+  const [infoTab, setInfoTab] = useState("cadastrar"); // cadastrar | seguranca | ajuda
+
   // Busca (vai para /busca)
   const [buscaTexto, setBuscaTexto] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
@@ -507,6 +511,246 @@ export default function LagoListasPage() {
         )}
       </section>
 
+      {/* ✅ GUIA RÁPIDO — LAGOLISTAS (3 botões + janelinha / padrão IPTU) */}
+      <section className="bg-white pb-10">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Guia rápido do LagoListas</h2>
+                <p className="mt-1 text-[11px] text-slate-600 max-w-2xl">
+                  Dicas e atalhos para anunciar, contratar com mais segurança e pedir ajuda.
+                  <span className="block mt-1 text-[10px] text-slate-500">
+                    EN: Quick guide • ES: Guía rápida
+                  </span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setOpenInfo((v) => !v)}
+                className="rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
+              >
+                {openInfo ? "Fechar" : "Abrir"} informações
+              </button>
+            </div>
+
+            {/* Botões (abas) */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setInfoTab("cadastrar");
+                  setOpenInfo(true);
+                }}
+                className={[
+                  "btn-lente rounded-2xl border px-4 py-3 text-left transition",
+                  infoTab === "cadastrar"
+                    ? "bg-white border-slate-300 shadow-sm"
+                    : "bg-white/60 border-slate-200 hover:bg-white",
+                ].join(" ")}
+              >
+                <div className="text-xs font-semibold text-slate-900">Cadastrar meu negócio</div>
+                <div className="mt-0.5 text-[10px] text-slate-600">
+                  EN: List my business • ES: Registrar mi negocio
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInfoTab("seguranca");
+                  setOpenInfo(true);
+                }}
+                className={[
+                  "btn-lente rounded-2xl border px-4 py-3 text-left transition",
+                  infoTab === "seguranca"
+                    ? "bg-white border-slate-300 shadow-sm"
+                    : "bg-white/60 border-slate-200 hover:bg-white",
+                ].join(" ")}
+              >
+                <div className="text-xs font-semibold text-slate-900">Contratar com segurança</div>
+                <div className="mt-0.5 text-[10px] text-slate-600">
+                  EN: Hire safely • ES: Contratar con seguridad
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInfoTab("ajuda");
+                  setOpenInfo(true);
+                }}
+                className={[
+                  "btn-lente rounded-2xl border px-4 py-3 text-left transition",
+                  infoTab === "ajuda"
+                    ? "bg-white border-slate-300 shadow-sm"
+                    : "bg-white/60 border-slate-200 hover:bg-white",
+                ].join(" ")}
+              >
+                <div className="text-xs font-semibold text-slate-900">Ajuda & denúncias</div>
+                <div className="mt-0.5 text-[10px] text-slate-600">
+                  EN: Help • ES: Ayuda
+                </div>
+              </button>
+            </div>
+
+            {/* Janelinha (painel compacto) */}
+            {openInfo && (
+              <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4 sm:p-5">
+                {infoTab === "cadastrar" && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-900">Cadastrar meu negócio</h3>
+
+                    <ul className="text-[11px] text-slate-700 space-y-2 list-disc pl-5">
+                      <li>
+                        <strong>Título</strong> claro (ex.: “Clínica Veterinária X”, “Oficina Y”, “Pizzaria Z”).
+                      </li>
+                      <li>
+                        <strong>Segmento</strong> (área_profissional) — escolha o mais correto.
+                      </li>
+                      <li>
+                        <strong>Cidade</strong> obrigatória; <strong>bairro</strong> ajuda muito na busca.
+                      </li>
+                      <li>
+                        <strong>Logo primeiro</strong> + até <strong>5 fotos</strong> (máx. 6 imagens).
+                      </li>
+                      <li>
+                        <strong>Contato</strong> principal: WhatsApp ou telefone ou email.
+                      </li>
+                      <li>
+                        <strong>Links</strong> (opcional): site e Instagram.
+                      </li>
+                    </ul>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Link
+                        href="/anunciar/lagolistas"
+                        className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-[11px] font-semibold text-white hover:bg-blue-700"
+                      >
+                        Anunciar no LagoListas
+                      </Link>
+
+                      <a
+                        href="#cadastros"
+                        className="inline-flex items-center justify-center rounded-full bg-slate-100 px-5 py-2 text-[11px] font-semibold text-slate-900 hover:bg-slate-200 border border-slate-200"
+                      >
+                        Ver cadastros
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {infoTab === "seguranca" && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-900">Contratar com segurança</h3>
+
+                    <ul className="text-[11px] text-slate-700 space-y-2 list-disc pl-5">
+                      <li>Peça <strong>orçamento por escrito</strong> (WhatsApp serve).</li>
+                      <li>Combine <strong>prazo</strong>, <strong>valor</strong> e o que está incluído.</li>
+                      <li>Se for serviço maior, prefira <strong>pagamento por etapa</strong>.</li>
+                      <li>Peça <strong>fotos</strong> de trabalhos anteriores e <strong>referências</strong>.</li>
+                      <li>Quando existir, confirme <strong>MEI/CNPJ</strong> e dados do profissional.</li>
+                    </ul>
+
+                    <p className="text-[11px] text-slate-500">
+                      Dica: depois a gente liga isso a “selo/avaliações” e LagoListas por cidade.
+                      <span className="block mt-1 text-[10px] text-slate-400">
+                        EN/ES: We’ll add ratings & verification later.
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                {infoTab === "ajuda" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Ajuda & denúncias</h3>
+                      <p className="mt-1 text-[11px] text-slate-600">
+                        Contatos úteis de Procon na região (para orientação e reclamações).
+                      </p>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-900 mb-1">Procon — Cabo Frio</p>
+                        <p className="text-[11px] text-slate-700">
+                          WhatsApp:{" "}
+                          <a
+                            className="text-blue-700 font-semibold hover:underline"
+                            href="https://wa.me/5522999072821"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            (22) 99907-2821
+                          </a>
+                        </p>
+                        <p className="text-[11px] text-slate-600 mt-1">
+                          Rua Nicola Aslan (Braga) ou Shopping UnaPark (Tamoios).
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-900 mb-1">Procon — Búzios</p>
+                        <p className="text-[11px] text-slate-700">
+                          WhatsApp:{" "}
+                          <a
+                            className="text-blue-700 font-semibold hover:underline"
+                            href="https://wa.me/552226230314"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            (22) 2623-0314
+                          </a>
+                        </p>
+                        <p className="text-[11px] text-slate-600 mt-1">
+                          Travessa dos Pescadores (Centro).
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-900 mb-1">Procon — Arraial do Cabo</p>
+                        <p className="text-[11px] text-slate-700">
+                          WhatsApp:{" "}
+                          <a
+                            className="text-blue-700 font-semibold hover:underline"
+                            href="https://wa.me/552226221417"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            (22) 2622-1417
+                          </a>
+                        </p>
+                        <p className="text-[11px] text-slate-600 mt-1">
+                          Rua Ezer Teixeira de Melo (Praia dos Anjos).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href="/fale-conosco"
+                        className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
+                      >
+                        Fale com o Classilagos
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => setOpenInfo(false)}
+                        className="inline-flex items-center justify-center rounded-full bg-slate-100 px-5 py-2 text-[11px] font-semibold text-slate-900 hover:bg-slate-200 border border-slate-200"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ✅ BANNER RODAPÉ (PRINCIPAL) */}
       <section className="bg-white py-10 border-t">
         <div className="max-w-7xl mx-auto px-4">
@@ -518,3 +762,4 @@ export default function LagoListasPage() {
     </main>
   );
 }
+
