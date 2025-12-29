@@ -65,7 +65,247 @@ const bannersRodape = [
   },
 ];
 
-// COMPONENTE PRINCIPAL (usa useSearchParams, faz o fetch, renderiza tudo)
+/* =========================================================================
+   COMPONENTES LOCAIS — TARJA PREMIUM TURISMO (ABAS + PAINEL)
+   (✅ FICAM FORA DO JSX / FORA DO RETURN)
+   ========================================================================= */
+
+function TurismoTabs() {
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
+
+  const tabs = [
+    { key: "aeroportos", label: "Aeroportos", sub: "EN: Airports • ES: Aeropuertos" },
+    { key: "transfers", label: "Transfers", sub: "EN: Transfers • ES: Traslados" },
+    { key: "seguranca", label: "Segurança", sub: "EN: Safety • ES: Seguridad" },
+  ];
+
+  return (
+    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {tabs.map((t) => {
+          const active = tab === t.key;
+
+          // ✅ mantém outros params (ex: secao) e só troca o tab
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("tab", t.key);
+          const href = `/turismo?${params.toString()}`;
+
+          return (
+            <Link
+              key={t.key}
+              href={href}
+              className={[
+                "btn-lente rounded-2xl px-4 py-3 text-center text-xs font-semibold border transition",
+                active
+                  ? "bg-white text-slate-900 border-white"
+                  : "bg-slate-900/60 text-slate-100 border-slate-800 hover:bg-slate-900",
+              ].join(" ")}
+            >
+              {t.label}
+              <div className="mt-1 text-[10px] font-normal opacity-80">{t.sub}</div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TurismoPainel() {
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
+
+  if (tab === "transfers") {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+        <h3 className="text-sm font-semibold mb-3">Transfers e conexões</h3>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <a
+            href="https://transferrgturismo.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+          >
+            <p className="text-sm font-semibold text-white mb-1">Transfer Rio ⇄ Região</p>
+            <p className="text-[11px] text-slate-300">Opções de transfer e turismo (site).</p>
+            <p className="mt-2 text-[10px] text-slate-400">EN: Transfers • ES: Traslados</p>
+          </a>
+
+          <a
+            href="https://ads.brazilconnection.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+          >
+            <p className="text-sm font-semibold text-white mb-1">Transfers & conexões</p>
+            <p className="text-[11px] text-slate-300">Alternativas de transporte e atendimento (site).</p>
+            <p className="mt-2 text-[10px] text-slate-400">EN: Options • ES: Opciones</p>
+          </a>
+        </div>
+
+        <p className="mt-4 text-[11px] text-slate-400">
+          Em breve: “Transfers por cidade” via LagoListas (Cabo Frio, Búzios, Arraial, Maricá etc.).
+        </p>
+      </div>
+    );
+  }
+
+  if (tab === "seguranca") {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold mb-2">Segurança e defesa do consumidor</h3>
+          <p className="text-[11px] text-slate-300">Contatos úteis para turista e atendimento ao consumidor.</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <p className="text-sm font-semibold text-white mb-1">Apoio ao turista (DEAT / RJ)</p>
+          <p className="text-[11px] text-slate-300">
+            Tel:{" "}
+            <a className="underline hover:text-white" href="tel:+552123322924">
+              (21) 2332-2924
+            </a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552123322429">
+              2332-2429
+            </a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552123322885">
+              2332-2885
+            </a>
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">(Útil em situações de turista no RJ / Região.)</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Cabo Frio</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/5522999072821"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 99907-2821
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">Rua Nicola Aslan (Braga) ou Shopping UnaPark (Tamoios).</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Búzios</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/552226230314"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 2623-0314
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">Travessa dos Pescadores (Centro).</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+            <p className="text-sm font-semibold text-white mb-1">Procon — Arraial do Cabo</p>
+            <p className="text-[11px] text-slate-300">
+              WhatsApp:{" "}
+              <a
+                className="underline hover:text-white"
+                href="https://wa.me/552226221417"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                (22) 2622-1417
+              </a>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-300">Rua Ezer Teixeira de Melo (Praia dos Anjos).</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <p className="text-[11px] text-slate-300">
+            Emergência: <strong>190</strong> Polícia • <strong>193</strong> Bombeiros • <strong>199</strong> Defesa Civil
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // AEROPORTOS (default)
+  return (
+    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+      <h3 className="text-sm font-semibold mb-3">Aeroportos</h3>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <a
+          href="https://www.galeon.com.br/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+        >
+          <p className="text-sm font-semibold text-white mb-1">Galeão (GIG)</p>
+          <p className="text-[11px] text-slate-300">Site oficial: voos, acesso e serviços.</p>
+          <p className="mt-2 text-[10px] text-slate-400">EN: Official info • ES: Info oficial</p>
+        </a>
+
+        <a
+          href="https://www.aeroportosantosdumont.net/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+        >
+          <p className="text-sm font-semibold text-white mb-1">Santos Dumont (SDU)</p>
+          <p className="text-[11px] text-slate-300">Informações de embarque, desembarque e acesso.</p>
+          <p className="mt-2 text-[10px] text-slate-400">EN: Flights & access • ES: Vuelos y acceso</p>
+        </a>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Cabo Frio</p>
+          <p className="text-[11px] text-slate-300">
+            Tel:{" "}
+            <a className="underline hover:text-white" href="tel:+552226479500">
+              (22) 2647-9500
+            </a>
+          </p>
+          <p className="mt-1 text-[11px] text-slate-300">
+            End.: Estrada Velha do Arraial do Cabo, s/n • Praia Sudoeste, Cabo Frio – RJ
+          </p>
+          <p className="mt-2 text-[10px] text-slate-400">EN/ES: Phone & address</p>
+        </div>
+
+        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Búzios (SSBZ)</p>
+          <p className="text-[11px] text-slate-300">
+            Centro de Operações:
+            <br />
+            <a className="underline hover:text-white" href="tel:+552226236033">
+              +55 (22) 2623-6033
+            </a>{" "}
+            •{" "}
+            <a className="underline hover:text-white" href="tel:+552226236517">
+              +55 (22) 2623-6517
+            </a>
+          </p>
+          <p className="mt-2 text-[10px] text-slate-400">EN: Ops Center • ES: Centro de Operaciones</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   PAGE CONTENT
+   ========================================================================= */
+
 function TurismoPageContent() {
   // Imagens do hero de Turismo
   const heroImages = [
@@ -199,17 +439,12 @@ function TurismoPageContent() {
   const pilarFiltro = pilaresValidos.includes(secao || "") ? secao : null;
 
   // Se houver filtro de pilar, aplica nos anúncios
-  const anunciosFiltrados = pilarFiltro
-    ? anuncios.filter((a) => a.pilar_turismo === pilarFiltro)
-    : anuncios;
+  const anunciosFiltrados = pilarFiltro ? anuncios.filter((a) => a.pilar_turismo === pilarFiltro) : anuncios;
 
   const destaques = anunciosFiltrados.filter((a) => a.destaque);
   const recentes = anunciosFiltrados.filter((a) => !a.destaque);
 
-  const textoFiltro =
-    pilarFiltro && labelPilar[pilarFiltro]
-      ? ` – ${labelPilar[pilarFiltro]}`
-      : "";
+  const textoFiltro = pilarFiltro && labelPilar[pilarFiltro] ? ` – ${labelPilar[pilarFiltro]}` : "";
 
   return (
     <main className="bg-white min-h-screen">
@@ -220,7 +455,7 @@ function TurismoPageContent() {
         </div>
       </section>
 
-      {/* HERO TURISMO – CARROSSEL DE IMAGENS (texto mais forte + sombra boa) */}
+      {/* HERO TURISMO – CARROSSEL DE IMAGENS */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -233,7 +468,6 @@ function TurismoPageContent() {
             className="object-cover transition-opacity duration-700"
           />
 
-          {/* overlay premium */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/55" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
@@ -260,11 +494,10 @@ function TurismoPageContent() {
                 className="w-12 h-12 md:w-16 md:h-16 rounded-2xl drop-shadow"
               />
             </div>
-            <h2 className="text-sm md:text-base font-bold text-sky-700 mb-1">
-              GUIA ONDE – Turismo Classilagos
-            </h2>
+            <h2 className="text-sm md:text-base font-bold text-sky-700 mb-1">GUIA ONDE – Turismo Classilagos</h2>
             <p className="text-[11px] md:text-xs text-slate-600 max-w-2xl">
-              Escolha por tipo de experiência e encontre lugares para se hospedar, comer, passear e se divertir em toda a Região dos Lagos.
+              Escolha por tipo de experiência e encontre lugares para se hospedar, comer, passear e se divertir em toda a Região dos
+              Lagos.
             </p>
           </div>
 
@@ -301,23 +534,13 @@ function TurismoPageContent() {
               >
                 <div className="flex items-center justify-center mb-2">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
-                    <Image
-                      src={card.icon}
-                      alt={card.title}
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-contain"
-                    />
+                    <Image src={card.icon} alt={card.title} width={80} height={80} className="w-full h-full object-contain" />
                   </div>
                 </div>
 
-                <h3 className="text-xs sm:text-sm font-semibold text-sky-700 text-center mb-1">
-                  {card.title}
-                </h3>
+                <h3 className="text-xs sm:text-sm font-semibold text-sky-700 text-center mb-1">{card.title}</h3>
 
-                <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">
-                  {card.desc}
-                </p>
+                <p className="text-[11px] text-slate-600 flex-1 mb-3 text-center">{card.desc}</p>
 
                 <button
                   type="button"
@@ -331,23 +554,33 @@ function TurismoPageContent() {
         </div>
       </section>
 
-      <div className="h-4 sm:h-6" />
+      {/* CTA ANUNCIAR NO TURISMO */}
+      <section className="max-w-6xl mx-auto px-4 pb-10">
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 py-8 px-4 text-center text-xs sm:text-sm text-slate-600">
+          Em breve, o Classilagos Turismo será o grande guia da região, com pousadas, hotéis, bares, restaurantes, passeios, eventos,
+          guias e muito mais em todas as cidades.
+          <br />
+          <span className="font-semibold">Aproveite a fase de lançamento para anunciar gratuitamente e ganhar destaque desde o início.</span>
+          <div className="mt-4">
+            <Link
+              href="/anunciar/turismo"
+              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Anunciar no turismo
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* DESTAQUES DE TURISMO */}
       <section className="max-w-6xl mx-auto px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm md:text-base font-semibold text-slate-900">
-            Destaques de turismo{textoFiltro}
-          </h2>
-          <span className="text-[11px] text-slate-500">
-            Anúncios com mais destaque aparecem primeiro.
-          </span>
+          <h2 className="text-sm md:text-base font-semibold text-slate-900">Destaques de turismo{textoFiltro}</h2>
+          <span className="text-[11px] text-slate-500">Anúncios com mais destaque aparecem primeiro.</span>
         </div>
 
         {erro && (
-          <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3 mb-3">
-            {erro}
-          </div>
+          <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3 mb-3">{erro}</div>
         )}
 
         {loading ? (
@@ -355,21 +588,18 @@ function TurismoPageContent() {
         ) : anunciosFiltrados.length === 0 ? (
           <p className="text-[11px] text-slate-500">
             Ainda não há anúncios de turismo publicados
-            {pilarFiltro && labelPilar[pilarFiltro] ? ` em "${labelPilar[pilarFiltro]}".` : "."}{" "}
-            Aproveite a fase de lançamento para ser um dos primeiros a aparecer aqui!
+            {pilarFiltro && labelPilar[pilarFiltro] ? ` em "${labelPilar[pilarFiltro]}".` : "."} Aproveite a fase de lançamento para
+            ser um dos primeiros a aparecer aqui!
           </p>
         ) : destaques.length === 0 ? (
           <p className="text-[11px] text-slate-500 mb-2">
             Quando houver anúncios em destaque
-            {pilarFiltro && labelPilar[pilarFiltro] ? ` em "${labelPilar[pilarFiltro]}",` : ","}{" "}
-            eles aparecerão aqui no topo.
+            {pilarFiltro && labelPilar[pilarFiltro] ? ` em "${labelPilar[pilarFiltro]}",` : ","} eles aparecerão aqui no topo.
           </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
             {destaques.map((anuncio) => {
-              const imagemCapa =
-                anuncio.imagens && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
-
+              const imagemCapa = anuncio.imagens && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
               const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
 
               return (
@@ -381,11 +611,7 @@ function TurismoPageContent() {
                   <div className="h-36 bg-slate-100 overflow-hidden relative">
                     {imagemCapa && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imagemCapa}
-                        alt={anuncio.titulo}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                      />
+                      <img src={imagemCapa} alt={anuncio.titulo} className="w-full h-full object-cover group-hover:scale-[1.03] transition" />
                     )}
                     <span className="absolute top-2 left-2 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-semibold text-white shadow">
                       Destaque
@@ -394,25 +620,17 @@ function TurismoPageContent() {
                   <div className="p-3 flex-1 flex flex-col justify-between">
                     <div className="space-y-1">
                       <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {labelPilar[anuncio.pilar_turismo] || "Turismo"} •{" "}
-                        {labelSubcategoria(anuncio.subcategoria_turismo)}
+                        {labelPilar[anuncio.pilar_turismo] || "Turismo"} • {labelSubcategoria(anuncio.subcategoria_turismo)}
                       </p>
-                      <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h3>
+                      <h3 className="text-sm font-bold text-slate-900 line-clamp-2">{anuncio.titulo}</h3>
                       <p className="text-[11px] text-slate-600">
                         {anuncio.cidade}
                         {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
-                      {precoExibicao && (
-                        <p className="text-[11px] text-emerald-700 font-semibold">
-                          {precoExibicao}
-                        </p>
-                      )}
+                      {precoExibicao && <p className="text-[11px] text-emerald-700 font-semibold">{precoExibicao}</p>}
                     </div>
                     <p className="mt-2 text-[10px] text-slate-400">
-                      Publicado em{" "}
-                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
+                      Publicado em {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
                 </Link>
@@ -426,19 +644,13 @@ function TurismoPageContent() {
       {!loading && anunciosFiltrados.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 pb-10">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm md:text-base font-semibold text-slate-900">
-              Últimos anúncios de turismo{textoFiltro}
-            </h2>
-            <span className="text-[11px] text-slate-500">
-              Em breve: filtros por cidade e por tipo de experiência.
-            </span>
+            <h2 className="text-sm md:text-base font-semibold text-slate-900">Últimos anúncios de turismo{textoFiltro}</h2>
+            <span className="text-[11px] text-slate-500">Em breve: filtros por cidade e por tipo de experiência.</span>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
             {(recentes.length > 0 ? recentes : anunciosFiltrados).map((anuncio) => {
-              const imagemCapa =
-                anuncio.imagens && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
-
+              const imagemCapa = anuncio.imagens && anuncio.imagens.length > 0 ? anuncio.imagens[0] : null;
               const precoExibicao = anuncio.faixa_preco || anuncio.preco || "";
 
               return (
@@ -450,34 +662,20 @@ function TurismoPageContent() {
                   <div className="h-28 bg-slate-100 overflow-hidden">
                     {imagemCapa && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imagemCapa}
-                        alt={anuncio.titulo}
-                        className="w-full h-full object-cover group-hover:scale-[1.04] transition"
-                      />
+                      <img src={imagemCapa} alt={anuncio.titulo} className="w-full h-full object-cover group-hover:scale-[1.04] transition" />
                     )}
                   </div>
                   <div className="p-3 flex-1 flex flex-col justify-between">
                     <div className="space-y-1">
-                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                        {labelPilar[anuncio.pilar_turismo] || "Turismo"}
-                      </p>
-                      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">
-                        {anuncio.titulo}
-                      </h3>
+                      <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">{labelPilar[anuncio.pilar_turismo] || "Turismo"}</p>
+                      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2">{anuncio.titulo}</h3>
                       <p className="text-[11px] text-slate-600">
                         {anuncio.cidade}
                         {anuncio.bairro ? ` • ${anuncio.bairro}` : ""}
                       </p>
-                      {precoExibicao && (
-                        <p className="text-[11px] text-emerald-700 font-semibold">
-                          {precoExibicao}
-                        </p>
-                      )}
+                      {precoExibicao && <p className="text-[11px] text-emerald-700 font-semibold">{precoExibicao}</p>}
                     </div>
-                    <p className="mt-2 text-[10px] text-slate-400">
-                      {new Date(anuncio.created_at).toLocaleDateString("pt-BR")}
-                    </p>
+                    <p className="mt-2 text-[10px] text-slate-400">{new Date(anuncio.created_at).toLocaleDateString("pt-BR")}</p>
                   </div>
                 </Link>
               );
@@ -493,268 +691,41 @@ function TurismoPageContent() {
         </div>
       </section>
 
-{/* TARJA PREMIUM — TURISMO (Aeroportos / Transfers / Segurança) */}
-<section className="bg-slate-950 text-slate-50">
-  <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
-    <div>
-      <h2 className="text-sm font-semibold">Informações úteis para o turista</h2>
-      <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
-        Acessos, transfers e contatos de apoio — útil para quem chega na Região dos Lagos.
-      </p>
-    </div>
-
-    {/* Abas */}
-    <TurismoTabs />
-
-    {/* Painel */}
-    <TurismoPainel />
-
-    <p className="text-[11px] text-slate-400">
-      Dica: depois a gente liga isso ao LagoListas (transfer local por cidade, guias, suporte ao turista e serviços).
-    </p>
-  </div>
-</section>
-
-{/* ======= COMPONENTES LOCAIS (coloque abaixo dentro do mesmo page.js) ======= */}
-function TurismoTabs() {
-  const searchParams = useSearchParams();
-  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
-
-  const tabs = [
-    { key: "aeroportos", label: "Aeroportos", sub: "EN: Airports • ES: Aeropuertos" },
-    { key: "transfers", label: "Transfers", sub: "EN: Transfers • ES: Traslados" },
-    { key: "seguranca", label: "Segurança", sub: "EN: Safety • ES: Seguridad" },
-  ];
-
-  return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-2">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        {tabs.map((t) => {
-          const active = tab === t.key;
-          return (
-            <Link
-              key={t.key}
-              href={`/turismo?tab=${t.key}`}
-              className={[
-                "btn-lente rounded-2xl px-4 py-3 text-center text-xs font-semibold border transition",
-                active
-                  ? "bg-white text-slate-900 border-white"
-                  : "bg-slate-900/60 text-slate-100 border-slate-800 hover:bg-slate-900",
-              ].join(" ")}
-            >
-              {t.label}
-              <div className="mt-1 text-[10px] font-normal opacity-80">{t.sub}</div>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function TurismoPainel() {
-  const searchParams = useSearchParams();
-  const tab = (searchParams.get("tab") || "aeroportos").toLowerCase();
-
-  if (tab === "transfers") {
-    return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
-        <h3 className="text-sm font-semibold mb-3">Transfers e conexões</h3>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <a
-            href="https://transferrgturismo.com.br/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-          >
-            <p className="text-sm font-semibold text-white mb-1">Transfer Rio ⇄ Região</p>
-            <p className="text-[11px] text-slate-300">Opções de transfer e turismo (site).</p>
-          </a>
-
-          <a
-            href="https://ads.brazilconnection.com.br/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-          >
-            <p className="text-sm font-semibold text-white mb-1">Transfers & conexões</p>
-            <p className="text-[11px] text-slate-300">Alternativas de transporte e atendimento (site).</p>
-          </a>
-        </div>
-
-        <p className="mt-4 text-[11px] text-slate-400">
-          Em breve: “Transfers por cidade” via LagoListas (Cabo Frio, Búzios, Arraial, Maricá etc.).
-        </p>
-      </div>
-    );
-  }
-
-  if (tab === "seguranca") {
-    return (
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold mb-2">Segurança e defesa do consumidor</h3>
-          <p className="text-[11px] text-slate-300">
-            Contatos úteis para turista e atendimento ao consumidor.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-          <p className="text-sm font-semibold text-white mb-1">Apoio ao turista (DEAT / RJ)</p>
-          <p className="text-[11px] text-slate-300">
-            Tel:{" "}
-            <a className="underline hover:text-white" href="tel:+552123322924">(21) 2332-2924</a>{" "}
-            •{" "}
-            <a className="underline hover:text-white" href="tel:+552123322429">2332-2429</a>{" "}
-            •{" "}
-            <a className="underline hover:text-white" href="tel:+552123322885">2332-2885</a>
-          </p>
-          <p className="mt-1 text-[11px] text-slate-300">
-            (Útil em situações de turista no RJ / Região.)
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-            <p className="text-sm font-semibold text-white mb-1">Procon — Cabo Frio</p>
-            <p className="text-[11px] text-slate-300">
-              WhatsApp:{" "}
-              <a
-                className="underline hover:text-white"
-                href="https://wa.me/5522999072821"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                (22) 99907-2821
-              </a>
-            </p>
-            <p className="mt-1 text-[11px] text-slate-300">
-              Rua Nicola Aslan (Braga) ou Shopping UnaPark (Tamoios).
+      {/* TARJA PREMIUM — TURISMO (Aeroportos / Transfers / Segurança) */}
+      <section className="bg-slate-950 text-slate-50">
+        <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
+          <div>
+            <h2 className="text-sm font-semibold">Informações úteis para o turista</h2>
+            <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
+              Acessos, transfers e contatos de apoio — útil para quem chega na Região dos Lagos.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-            <p className="text-sm font-semibold text-white mb-1">Procon — Búzios</p>
-            <p className="text-[11px] text-slate-300">
-              WhatsApp:{" "}
-              <a
-                className="underline hover:text-white"
-                href="https://wa.me/552226230314"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                (22) 2623-0314
-              </a>
-            </p>
-            <p className="mt-1 text-[11px] text-slate-300">
-              Travessa dos Pescadores (Centro).
-            </p>
-          </div>
+          {/* Abas */}
+          <TurismoTabs />
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-            <p className="text-sm font-semibold text-white mb-1">Procon — Arraial do Cabo</p>
-            <p className="text-[11px] text-slate-300">
-              WhatsApp:{" "}
-              <a
-                className="underline hover:text-white"
-                href="https://wa.me/552226221417"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                (22) 2622-1417
-              </a>
-            </p>
-            <p className="mt-1 text-[11px] text-slate-300">
-              Rua Ezer Teixeira de Melo (Praia dos Anjos).
-            </p>
-          </div>
-        </div>
+          {/* Painel */}
+          <TurismoPainel />
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-          <p className="text-[11px] text-slate-300">
-            Emergência: <strong>190</strong> Polícia • <strong>193</strong> Bombeiros •{" "}
-            <strong>199</strong> Defesa Civil
+          <p className="text-[11px] text-slate-400">
+            Dica: depois a gente liga isso ao LagoListas (transfer local por cidade, guias, suporte ao turista e serviços).
           </p>
         </div>
-      </div>
-    );
-  }
-
-  // AEROPORTOS (default)
-  return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
-      <h3 className="text-sm font-semibold mb-3">Aeroportos</h3>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <a
-          href="https://www.galeon.com.br/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-        >
-          <p className="text-sm font-semibold text-white mb-1">Galeão (GIG)</p>
-          <p className="text-[11px] text-slate-300">Site oficial: voos, acesso e serviços.</p>
-        </a>
-
-        <a
-          href="https://www.aeroportosantosdumont.net/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
-        >
-          <p className="text-sm font-semibold text-white mb-1">Santos Dumont (SDU)</p>
-          <p className="text-[11px] text-slate-300">Informações de embarque, desembarque e acesso.</p>
-        </a>
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
-          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Cabo Frio</p>
-          <p className="text-[11px] text-slate-300">
-            Tel:{" "}
-            <a className="underline hover:text-white" href="tel:+552226479500">
-              (22) 2647-9500
-            </a>
-          </p>
-          <p className="mt-1 text-[11px] text-slate-300">
-            End.: Estrada Velha do Arraial do Cabo, s/n • Praia Sudoeste, Cabo Frio – RJ
-          </p>
-        </div>
-
-        <div className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
-          <p className="text-sm font-semibold text-white mb-1">Aeroporto de Búzios (SSBZ)</p>
-          <p className="text-[11px] text-slate-300">
-            Centro de Operações:
-            <br />
-            <a className="underline hover:text-white" href="tel:+552226236033">
-              +55 (22) 2623-6033
-            </a>{" "}
-            •{" "}
-            <a className="underline hover:text-white" href="tel:+552226236517">
-              +55 (22) 2623-6517
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
+      </section>
     </main>
   );
 }
 
-// WRAPPER COM SUSPENSE (resolve o erro do useSearchParams no Next)
+/* =========================================================================
+   WRAPPER COM SUSPENSE (resolve o erro do useSearchParams no Next)
+   ========================================================================= */
+
 export default function TurismoPage() {
   return (
     <Suspense
       fallback={
         <main className="bg-white min-h-screen">
-          <section className="max-w-6xl mx-auto px-4 py-10 text-sm text-slate-600">
-            Carregando turismo…
-          </section>
+          <section className="max-w-6xl mx-auto px-4 py-10 text-sm text-slate-600">Carregando turismo…</section>
         </main>
       }
     >
@@ -762,3 +733,4 @@ export default function TurismoPage() {
     </Suspense>
   );
 }
+
