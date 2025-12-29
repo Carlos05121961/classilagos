@@ -493,25 +493,118 @@ function TurismoPageContent() {
         </div>
       </section>
 
-      {/* CTA ANUNCIAR NO TURISMO */}
-      <section className="max-w-6xl mx-auto px-4 pb-10">
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 py-8 px-4 text-center text-xs sm:text-sm text-slate-600">
-          Em breve, o Classilagos Turismo será o grande guia da região, com pousadas, hotéis, bares, restaurantes, passeios, eventos,
-          guias e muito mais em todas as cidades.
+{/* TARJA PRETA — ACESSO & TRANSFERS (TURISMO) */}
+<section className="bg-slate-950 text-slate-50">
+  <div className="max-w-6xl mx-auto px-4 py-10 space-y-4">
+    <div>
+      <h2 className="text-sm font-semibold">Acessos, aeroportos e transfers</h2>
+      <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
+        Links oficiais e contatos úteis para chegar na Região dos Lagos com segurança e praticidade.
+      </p>
+    </div>
+
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Galeão */}
+      <a
+        href="https://www.galeon.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+      >
+        <p className="text-sm font-semibold text-white mb-1">Aeroporto Galeão (GIG)</p>
+        <p className="text-[11px] text-slate-300">
+          Site oficial: voos, transporte e serviços.
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN: Official airport info • ES: Info oficial del aeropuerto
+        </p>
+      </a>
+
+      {/* Santos Dumont */}
+      <a
+        href="https://www.aeroportosantosdumont.net/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+      >
+        <p className="text-sm font-semibold text-white mb-1">Aeroporto Santos Dumont (SDU)</p>
+        <p className="text-[11px] text-slate-300">
+          Informações de embarque, desembarque e acesso.
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN: Flights & access • ES: Vuelos y acceso
+        </p>
+      </a>
+
+      {/* Aeroporto Cabo Frio */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+        <p className="text-sm font-semibold text-white mb-1">Aeroporto Internacional de Cabo Frio</p>
+        <p className="text-[11px] text-slate-300">
+          Tel: <a className="underline hover:text-white" href="tel:+552226479500">(22) 2647-9500</a>
+        </p>
+        <p className="mt-1 text-[11px] text-slate-300">
+          End.: Estrada Velha do Arraial do Cabo, s/n • Praia Sudoeste, Cabo Frio – RJ
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN/ES: Phone & address (useful on arrival)
+        </p>
+      </div>
+
+      {/* Aeroporto Búzios */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm">
+        <p className="text-sm font-semibold text-white mb-1">Aeroporto de Búzios (SSBZ)</p>
+        <p className="text-[11px] text-slate-300">
+          Centro de Operações:
           <br />
-          <span className="font-semibold">
-            Aproveite a fase de lançamento para anunciar gratuitamente e ganhar destaque desde o início.
-          </span>
-          <div className="mt-4">
-            <Link
-              href="/anunciar/turismo"
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Anunciar no turismo
-            </Link>
-          </div>
-        </div>
-      </section>
+          <a className="underline hover:text-white" href="tel:+552226236033">+55 (22) 2623-6033</a>{" "}
+          •{" "}
+          <a className="underline hover:text-white" href="tel:+552226236517">+55 (22) 2623-6517</a>
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN: Ops Center • ES: Centro de Operaciones
+        </p>
+      </div>
+    </div>
+
+    {/* Transfers (linha extra) */}
+    <div className="grid gap-4 lg:grid-cols-2">
+      <a
+        href="https://transferrgturismo.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+      >
+        <p className="text-sm font-semibold text-white mb-1">Transfer Rio ⇄ Região</p>
+        <p className="text-[11px] text-slate-300">
+          Opções de transfer e turismo (site).
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN: Transfers • ES: Traslados
+        </p>
+      </a>
+
+      <a
+        href="https://ads.brazilconnection.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-lente rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-sm block transition hover:bg-slate-900"
+      >
+        <p className="text-sm font-semibold text-white mb-1">Transfers & conexões</p>
+        <p className="text-[11px] text-slate-300">
+          Alternativas de transporte e atendimento (site).
+        </p>
+        <p className="mt-2 text-[10px] text-slate-400">
+          EN: Options • ES: Opciones
+        </p>
+      </a>
+    </div>
+
+    <p className="text-[11px] text-slate-400">
+      Dica: quer indicar um transfer confiável da sua cidade? Em breve colocaremos um botão “Nos ajude a atualizar”.
+    </p>
+  </div>
+</section>
+
     </main>
   );
 }
