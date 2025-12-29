@@ -502,43 +502,58 @@ export default function ServicosPage() {
         </div>
       </section>
 
-      {/* TARJA PRETA */}
-      <section className="bg-slate-950 text-slate-50">
-        <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold">Serviços e informações para contratar com segurança</h2>
-            <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
-              Use o Classilagos também como guia para encontrar profissionais, empresas e serviços confiáveis em toda a Região dos Lagos.
-            </p>
-          </div>
+{/* TARJA PRETA – CONTRATE COM SEGURANÇA */}
+<section className="bg-slate-950 text-slate-50">
+  <div className="max-w-5xl mx-auto px-4 py-8 space-y-4">
+    <div>
+      <h2 className="text-sm font-semibold">
+        Contrate serviços com mais segurança
+      </h2>
+      <p className="mt-1 text-[11px] text-slate-300 max-w-2xl">
+        O Classilagos ajuda você a escolher profissionais confiáveis, evitar problemas
+        e tomar decisões mais seguras ao contratar serviços na Região dos Lagos.
+      </p>
+    </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
-              <h3 className="text-xs font-semibold mb-1">Classimed – Saúde &amp; bem-estar</h3>
-              <p className="text-[11px] text-slate-300 mb-3">Profissionais de saúde, terapias, clínicas e bem-estar perto de você.</p>
-              <Link href="/servicos/lista?tipo=classimed" className="inline-flex items-center text-[11px] font-semibold text-emerald-300 hover:text-emerald-200">
-                Ver serviços de saúde →
-              </Link>
-            </div>
+    <div className="grid gap-4 md:grid-cols-3">
+      
+      {/* CARD 1 */}
+      <div className="btn-lente rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+        <h3 className="text-xs font-semibold mb-1">
+          Como contratar com segurança
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Dicas importantes para verificar profissionais, evitar golpes,
+          combinar pagamentos e contratar com mais tranquilidade.
+        </p>
+      </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
-              <h3 className="text-xs font-semibold mb-1">Festas &amp; Eventos</h3>
-              <p className="text-[11px] text-slate-300 mb-3">Buffet, decoração, fotografia, som, iluminação e espaços para todos os tipos de eventos.</p>
-              <Link href="/servicos/lista?tipo=eventos" className="inline-flex items-center text-[11px] font-semibold text-pink-300 hover:text-pink-200">
-                Ver serviços para festas →
-              </Link>
-            </div>
+      {/* CARD 2 */}
+      <div className="btn-lente rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+        <h3 className="text-xs font-semibold mb-1">
+          Profissionais verificados
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Em breve, perfis com informações completas, histórico,
+          avaliações e selo de confiança Classilagos.
+        </p>
+      </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
-              <h3 className="text-xs font-semibold mb-1">Profissionais &amp; serviços</h3>
-              <p className="text-[11px] text-slate-300 mb-3">Manutenção, reformas, serviços técnicos e especializados para casa, empresa ou condomínio.</p>
-              <Link href="/servicos/lista?tipo=profissionais" className="inline-flex items-center text-[11px] font-semibold text-blue-300 hover:text-blue-200">
-                Ver profissionais disponíveis →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* CARD 3 */}
+      <div className="btn-lente rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+        <h3 className="text-xs font-semibold mb-1">
+          Indique um profissional
+        </h3>
+        <p className="text-[11px] text-slate-300">
+          Conhece alguém de confiança? Em breve você poderá indicar
+          profissionais e ajudar a fortalecer o comércio local.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
       {/* Footer global vem do layout */}
     </main>
