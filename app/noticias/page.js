@@ -21,20 +21,62 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
+// ✅ BANNERS AFILIADOS (Topo) — padrão do site (mesmos de Veículos/Imóveis)
 const BANNERS_TOPO_NOTICIAS = [
-  "/banners/topo/topo-noticias-01.webp",
-  "/banners/topo/topo-noticias-02.webp",
-  "/banners/topo/topo-noticias-03.webp",
-  "/banners/topo/topo-noticias-04.webp",
-  "/banners/topo/topo-noticias-05.webp",
+  {
+    src: "/banners/topo/banner-topo-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/topo/banner-topo-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
+// ✅ BANNERS AFILIADOS (Rodapé) — padrão do site
 const BANNERS_RODAPE_NOTICIAS = [
-  "/banners/rodape/rodape-noticias-01.webp",
-  "/banners/rodape/rodape-noticias-02.webp",
-  "/banners/rodape/rodape-noticias-03.webp",
-  "/banners/rodape/rodape-noticias-04.webp",
-  "/banners/rodape/rodape-noticias-05.webp",
+  {
+    src: "/banners/rodape/banner-rodape-01.webp",
+    href: "https://mercadolivre.com/sec/2KgtVeb",
+    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-02.webp",
+    href: "https://mercadolivre.com/sec/2nVCHmw",
+    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-03.webp",
+    href: "https://mercadolivre.com/sec/17Q8mju",
+    alt: "Caixas de Som (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-04.webp",
+    href: "https://mercadolivre.com/sec/2BbG4vr",
+    alt: "TVs Smart (Mercado Livre)",
+  },
+  {
+    src: "/banners/rodape/banner-rodape-05.webp",
+    href: "https://mercadolivre.com/sec/32bqvEJ",
+    alt: "Celulares e Tablets (Mercado Livre)",
+  },
 ];
 
 function formatDateBR(value) {
@@ -106,47 +148,69 @@ function formatAgendaDate(iso) {
  *  COMPONENTS
  *  ========================= */
 
-function BannerRotator({ images = [], height = 170, label = "" }) {
+// ✅ Banner Rotator CLICÁVEL (href) — padrão premium
+function BannerRotator({ items = [], height = 170, label = "" }) {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    if (!images || images.length <= 1) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % images.length), 5000);
+    if (!items || items.length <= 1) return;
+    const t = setInterval(() => setIdx((p) => (p + 1) % items.length), 5000);
     return () => clearInterval(t);
-  }, [images]);
+  }, [items]);
 
-  const current = images?.[idx] || null;
+  const current = items?.[idx] || null;
+  const clickable = Boolean(current?.href);
+
+  const Card = (
+    <div
+      className={[
+        "relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden",
+        clickable ? "cursor-pointer" : "",
+      ].join(" ")}
+      style={{ height }}
+      title={current?.alt || label || "Banner"}
+    >
+      {current?.src ? (
+        <Image
+          key={current.src}
+          src={current.src}
+          alt={current.alt || label || "Banner"}
+          fill
+          sizes="(max-width: 768px) 100vw, 760px"
+          className="object-contain"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
+          (sem banner)
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <section className="w-full bg-slate-100 border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center">
-        <div
-          className="relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden"
-          style={{ height }}
-        >
-          {current ? (
-            <Image
-              key={current}
-              src={current}
-              alt={label || "Banner"}
-              fill
-              sizes="(max-width: 768px) 100vw, 760px"
-              className="object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
-              (sem banner)
-            </div>
-          )}
-        </div>
+        {clickable ? (
+          <Link
+            href={current.href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={current.alt || "Abrir banner"}
+            className="block"
+          >
+            {Card}
+          </Link>
+        ) : (
+          Card
+        )}
 
         {label ? (
           <p className="mt-2 text-[11px] text-slate-500 text-center">{label}</p>
         ) : null}
 
-        {images?.length > 1 && (
+        {items?.length > 1 && (
           <div className="mt-2 flex gap-2">
-            {images.map((_, i) => (
+            {items.map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -193,6 +257,21 @@ function PainelRapidoRegiao() {
             <p>Ponte Rio–Niterói: fluxo intenso</p>
             <p>Via Lagos: normal</p>
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Link
+            href="/noticias/cameras"
+            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800"
+          >
+            Ver câmeras
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Voltar ao Classilagos
+          </Link>
         </div>
 
         <p className="text-[10px] text-slate-400">
@@ -311,30 +390,18 @@ function AgendaPremium() {
 
 /** ✅ HERO MAPA PREMIUM + bolinhas vermelhas (desktop) / select (mobile) */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  
-// ✅ PINS CORRIGIDOS (baseado na imagem do mapa 1925x802)
-const pins = [
-  { cidade: "Maricá", left: "15.1%", top: "77.7%" },
-  { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
-  { cidade: "Araruama", left: "47.5%", top: "66.2%" },
-
-  // Região da Lagoa / entorno
-  { cidade: "Iguaba Grande", left: "63.7%", top: "60.1%" },
-
-  // ✅ Este ponto NÃO existe como bolinha na imagem, então eu posicionei “no lugar certo”
-  // (entre Iguaba e Cabo Frio, em terra, alinhado com a geografia real)
-  { cidade: "São Pedro da Aldeia", left: "67.8%", top: "64.8%" },
-
-  // Litoral leste
-  { cidade: "Cabo Frio", left: "71.4%", top: "69.1%" },
-  { cidade: "Arraial do Cabo", left: "67.3%", top: "78.2%" },
-
-  // Península / norte-leste
-  { cidade: "Búzios", left: "75.6%", top: "49.4%" },
-  { cidade: "Rio das Ostras", left: "74.2%", top: "7.9%" },
-];
-
-
+  // ✅ PINS (baseado na imagem do mapa 1925x802)
+  const pins = [
+    { cidade: "Maricá", left: "15.1%", top: "77.7%" },
+    { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
+    { cidade: "Araruama", left: "47.5%", top: "66.2%" },
+    { cidade: "Iguaba Grande", left: "63.7%", top: "60.1%" },
+    { cidade: "São Pedro da Aldeia", left: "67.8%", top: "64.8%" },
+    { cidade: "Cabo Frio", left: "71.4%", top: "69.1%" },
+    { cidade: "Arraial do Cabo", left: "67.3%", top: "78.2%" },
+    { cidade: "Búzios", left: "75.6%", top: "49.4%" },
+    { cidade: "Rio das Ostras", left: "74.2%", top: "7.9%" },
+  ];
 
   const pick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
@@ -354,7 +421,7 @@ const pins = [
               className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
             />
 
-            {/* overlays leves (sem poluir) */}
+            {/* overlays leves */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             <div
@@ -536,9 +603,9 @@ export default function NoticiasHomePage() {
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
       {/* BANNER TOPO */}
       <BannerRotator
-        images={BANNERS_TOPO_NOTICIAS}
+        items={BANNERS_TOPO_NOTICIAS}
         height={120}
-        label="Espaço para banners institucionais e Prefeituras (em breve)."
+        label="Ofertas e destaques (Mercado Livre)."
       />
 
       {/* HERO MAPA */}
@@ -554,10 +621,16 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Filtro por cidade (chips com scroll no mobile) */}
+          {/* Filtro por cidade */}
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
+              <Link
+                href="/"
+                className="text-[11px] font-semibold text-sky-700 hover:underline"
+              >
+                Voltar ao Classilagos →
+              </Link>
             </div>
 
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -821,9 +894,9 @@ export default function NoticiasHomePage() {
 
       {/* BANNER RODAPÉ */}
       <BannerRotator
-        images={BANNERS_RODAPE_NOTICIAS}
+        items={BANNERS_RODAPE_NOTICIAS}
         height={170}
-        label="Área reservada para campanhas públicas, utilidade e comunicados oficiais."
+        label="Ofertas e destaques (Mercado Livre)."
       />
     </main>
   );
