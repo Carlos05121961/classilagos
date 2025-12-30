@@ -6,19 +6,24 @@ export const dynamic = "force-dynamic";
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: { persistSession: false },
-  }
+  { auth: { persistSession: false } }
 );
 
-export async function GET() {
+export async function GET(req) {
   try {
-    const { data, error } = await supabase
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status"); // "rascunho" | "publicado" | null
+
+    let query = supabase
       .from("noticias")
       .select("*")
-      .eq("tipo", "importada")
-      .eq("status", "rascunho")
+      // externas: fonte conhecida OU link_original preenchido
+      .or("fonte.eq.G1,fonte.eq.RC24h,link_original.not.is.null")
       .order("created_at", { ascending: false });
+
+    if (status) query = query.eq("status", status);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Erro listar-importadas:", error);
