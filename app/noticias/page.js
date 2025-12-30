@@ -108,6 +108,34 @@ function decodeHtmlEntities(input = "") {
   return txt.value || str;
 }
 
+/** ✅ Badge do tipo (Importada / Correspondente / Classilagos) */
+function getTipoInfo(tipoRaw) {
+  const t = (tipoRaw || "").toString().trim().toLowerCase();
+
+  if (t === "importada") {
+    return {
+      label: "IMPORTADA",
+      cls: "bg-slate-50 text-slate-700 border-slate-200",
+      title: "Conteúdo importado (com fonte e referência)",
+    };
+  }
+
+  if (t === "correspondente") {
+    return {
+      label: "CORRESPONDENTE",
+      cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      title: "Matéria enviada por correspondente Classilagos",
+    };
+  }
+
+  // padrão: autoral / classilagos / vazio
+  return {
+    label: "CLASSILAGOS",
+    cls: "bg-sky-50 text-sky-700 border-sky-200",
+    title: "Conteúdo autoral / curadoria Classilagos",
+  };
+}
+
 /** ✅ Agenda (MVP) — depois podemos puxar do Supabase */
 const AGENDA_EVENTOS_MVP = [
   {
@@ -459,7 +487,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     </select>
                   </div>
 
-                  {/* BOTÕES (agora clicam) */}
+                  {/* BOTÕES */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href="/noticias/cameras"
@@ -494,7 +522,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
 
-              {/* Desktop: camada SEM clique (só os pins clicam) */}
+              {/* Desktop: só os pins clicam */}
               <div className="absolute inset-0 hidden md:block pointer-events-none">
                 {pins.map((p) => {
                   const ativo = cidadeAtiva === p.cidade;
@@ -505,7 +533,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                       onClick={() => pick(p.cidade)}
                       style={{ left: p.left, top: p.top }}
                       className={[
-                        "pointer-events-auto", // <- só o pin recebe clique
+                        "pointer-events-auto",
                         "absolute -translate-x-1/2 -translate-y-1/2",
                         "h-3.5 w-3.5 rounded-full",
                         "bg-red-600 border border-white shadow",
@@ -530,7 +558,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     </section>
   );
 }
-
 
 /** =========================
  *  PAGE
@@ -568,7 +595,7 @@ export default function NoticiasHomePage() {
 
       const { data, error } = await supabase
         .from("noticias")
-        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at, status")
+        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at, published_at, status, tipo")
         .eq("status", "publicado")
         .order("created_at", { ascending: false })
         .limit(24);
@@ -601,7 +628,7 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* BANNER TOPO (clicável) */}
+      {/* BANNER TOPO */}
       <BannerRotator banners={bannersTopo} height={120} label="Ofertas e parceiros (afiliados)." />
 
       {/* HERO MAPA */}
@@ -681,11 +708,27 @@ export default function NoticiasHomePage() {
                         className="w-full h-full object-cover group-hover:scale-[1.03] transition"
                       />
                     </div>
+
                     <div className="flex-1 p-4 space-y-2 flex flex-col justify-between">
                       <div>
-                        <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
+                            {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
+                          </p>
+
+                          {(() => {
+                            const info = getTipoInfo(destaques[0].tipo);
+                            return (
+                              <span
+                                title={info.title}
+                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-extrabold tracking-wide ${info.cls}`}
+                              >
+                                {info.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
+
                         <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
                           {decodeHtmlEntities(destaques[0].titulo)}
                         </h3>
@@ -693,41 +736,56 @@ export default function NoticiasHomePage() {
                           {decodeHtmlEntities(destaques[0].resumo)}
                         </p>
                       </div>
+
                       <p className="text-[11px] text-slate-400">
-                        {formatDateBR(destaques[0].created_at)}
+                        {formatDateBR(destaques[0].published_at || destaques[0].created_at)}
                       </p>
                     </div>
                   </Link>
                 )}
 
-                {destaques.slice(1).map((n) => (
-                  <Link
-                    key={n.id}
-                    href={`/noticias/${n.id}`}
-                    className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
-                  >
-                    <div className="h-32 overflow-hidden bg-slate-100">
-                      <img
-                        src={n.imagem_capa || imagemFallback}
-                        alt={decodeHtmlEntities(n.titulo) || "Notícia"}
-                        className="w-full h-full object-cover group-hover:scale-[1.05] transition"
-                      />
-                    </div>
-                    <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
-                      <div>
-                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(n.cidade)} • {safeText(n.categoria)}
-                        </p>
-                        <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
-                          {decodeHtmlEntities(n.titulo)}
-                        </h3>
+                {destaques.slice(1).map((n) => {
+                  const info = getTipoInfo(n.tipo);
+                  return (
+                    <Link
+                      key={n.id}
+                      href={`/noticias/${n.id}`}
+                      className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
+                    >
+                      <div className="h-32 overflow-hidden bg-slate-100">
+                        <img
+                          src={n.imagem_capa || imagemFallback}
+                          alt={decodeHtmlEntities(n.titulo) || "Notícia"}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition"
+                        />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {formatDateBR(n.created_at)}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+
+                      <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                              {safeText(n.cidade)} • {safeText(n.categoria)}
+                            </p>
+                            <span
+                              title={info.title}
+                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-extrabold tracking-wide ${info.cls}`}
+                            >
+                              {info.label}
+                            </span>
+                          </div>
+
+                          <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
+                            {decodeHtmlEntities(n.titulo)}
+                          </h3>
+                        </div>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {formatDateBR(n.published_at || n.created_at)}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -741,37 +799,52 @@ export default function NoticiasHomePage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {recentes.map((n) => (
-                  <Link
-                    key={n.id}
-                    href={`/noticias/${n.id}`}
-                    className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
-                  >
-                    <div className="h-32 overflow-hidden bg-slate-100">
-                      <img
-                        src={n.imagem_capa || imagemFallback}
-                        alt={decodeHtmlEntities(n.titulo) || "Notícia"}
-                        className="w-full h-full object-cover group-hover:scale-[1.05] transition"
-                      />
-                    </div>
-                    <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
-                      <div>
-                        <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
-                          {safeText(n.cidade)} • {safeText(n.categoria)}
-                        </p>
-                        <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
-                          {decodeHtmlEntities(n.titulo)}
-                        </h3>
-                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
-                          {decodeHtmlEntities(n.resumo)}
+                {recentes.map((n) => {
+                  const info = getTipoInfo(n.tipo);
+                  return (
+                    <Link
+                      key={n.id}
+                      href={`/noticias/${n.id}`}
+                      className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
+                    >
+                      <div className="h-32 overflow-hidden bg-slate-100">
+                        <img
+                          src={n.imagem_capa || imagemFallback}
+                          alt={decodeHtmlEntities(n.titulo) || "Notícia"}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition"
+                        />
+                      </div>
+
+                      <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[10px] text-sky-700 font-semibold uppercase tracking-wide">
+                              {safeText(n.cidade)} • {safeText(n.categoria)}
+                            </p>
+                            <span
+                              title={info.title}
+                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-extrabold tracking-wide ${info.cls}`}
+                            >
+                              {info.label}
+                            </span>
+                          </div>
+
+                          <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
+                            {decodeHtmlEntities(n.titulo)}
+                          </h3>
+
+                          <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
+                            {decodeHtmlEntities(n.resumo)}
+                          </p>
+                        </div>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {formatDateBR(n.published_at || n.created_at)}
                         </p>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {formatDateBR(n.created_at)}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -878,7 +951,7 @@ export default function NoticiasHomePage() {
         </aside>
       </section>
 
-      {/* BANNER RODAPÉ (clicável) */}
+      {/* BANNER RODAPÉ */}
       <BannerRotator banners={bannersRodape} height={120} label="Ofertas e parceiros (afiliados)." />
     </main>
   );
