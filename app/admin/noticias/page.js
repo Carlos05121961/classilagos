@@ -15,8 +15,8 @@ export default function AdminNoticiasPage() {
         </h1>
         <p className="mt-1 text-sm text-slate-600 max-w-2xl">
           Aqui você controla as notícias que aparecem no Classilagos: importa
-          matérias do G1 e RC24h, revisa com IA, publica no portal e organiza
-          o que é mais importante para a Região dos Lagos.
+          matérias do G1 e RC24h, revisa com IA, publica no portal e organiza o
+          que é mais importante para a Região dos Lagos.
         </p>
       </div>
 
@@ -43,6 +43,12 @@ export default function AdminNoticiasPage() {
               className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-700"
             >
               Abrir painel de notícias importadas
+            </Link>
+            <Link
+              href="/painel/importar-noticias"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Importar agora
             </Link>
           </div>
         </div>
@@ -71,6 +77,61 @@ export default function AdminNoticiasPage() {
         </div>
       </div>
 
+      {/* ✅ NOVOS CARDS (o que você pediu) */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Criar notícia manual */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Criar nova notícia (manual)
+            </h2>
+            <p className="mt-1 text-xs text-slate-600">
+              Publique uma notícia autoral (ex.: correspondente) com título,
+              cidade, categoria, resumo e texto. Você pode salvar como rascunho
+              ou publicar.
+            </p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/painel/criar-noticia"
+              className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-xs md:text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              Criar nova notícia
+            </Link>
+          </div>
+        </div>
+
+        {/* Submissões */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Submissões (Correspondentes / Comunicados)
+            </h2>
+            <p className="mt-1 text-xs text-slate-600">
+              Central para aprovar conteúdos que chegam de correspondentes e
+              comunicados oficiais (prefeituras/secretarias/imprensa). Nada
+              entra automático — você decide.
+            </p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/painel/submissoes"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Abrir central de submissões
+            </Link>
+            <Link
+              href="/noticias/correspondentes"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Ver rede de correspondentes
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Próximas funcionalidades (informativo) */}
       <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4">
         <h2 className="text-sm font-semibold text-slate-900">
@@ -81,12 +142,10 @@ export default function AdminNoticiasPage() {
         </p>
         <ul className="mt-2 list-disc pl-5 text-xs text-slate-600 space-y-1">
           <li>Cadastrar notícias 100% autorais direto pelo painel.</li>
+          <li>Destacar algumas notícias como “capa” ou “manchete principal”.</li>
           <li>
-            Destacar algumas notícias como “capa” ou “manchete principal”.
-          </li>
-          <li>
-            Separar as notícias em categorias: Local, Regional, Nacional,
-            Turismo etc.
+            Separar as notícias em categorias: Local, Regional, Nacional, Turismo
+            etc.
           </li>
           <li>
             Histórico de importações e filtros para ver o que já foi publicado
