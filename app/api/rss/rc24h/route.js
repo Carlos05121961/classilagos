@@ -25,8 +25,32 @@ function limparTexto(str = "") {
     .replace(/<!\[CDATA\[/g, "")
     .replace(/\]\]>/g, "")
     .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function cortarResumo(texto = "", max = 240) {
+  const t = limparTexto(texto);
+  if (!t) return "";
+  if (t.length <= max) return t;
+  return t.slice(0, max).replace(/\s+\S*$/, "").trim() + "...";
+}
+
+function extrairImagem(itemXml = "") {
+  // 1) <media:content url="...">
+  const m1 = itemXml.match(/<media:content[^>]+url="([^"]+)"/i);
+  if (m1?.[1]) return m1[1];
+
+  // 2) <enclosure url="...">
+  const m2 = itemXml.match(/<enclosure[^>]+url="([^"]+)"/i);
+  if (m2?.[1]) return m2[1];
+
+  // 3) <img src="..."> dentro do description/content
+  const m3 = itemXml.match(/<img[^>]+src="([^"]+)"/i);
+  if (m3?.[1]) return m3[1];
+
+  return null;
 }
 
 function parseRssItems(xml, maxItens = 40) {
@@ -36,20 +60,23 @@ function parseRssItems(xml, maxItens = 40) {
   for (const bloco of blocos) {
     const [itemXml] = bloco.split("</item>");
 
-    const getTag = (tag) => {
+    const getTagRaw = (tag) => {
       const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
       const match = itemXml.match(regex);
-      return match ? limparTexto(match[1]) : "";
+      return match ? match[1] : "";
     };
 
-    const title = getTag("title");
-    const link = getTag("link");
-    const description = getTag("description");
-    const pubDate = getTag("pubDate");
+    const title = limparTexto(getTagRaw("title"));
+    const link = limparTexto(getTagRaw("link"));
+    const descriptionRaw = getTagRaw("description");
+    const description = limparTexto(descriptionRaw);
+    const pubDate = limparTexto(getTagRaw("pubDate"));
 
     if (!title || !link) continue;
 
-    itens.push({ title, link, description, pubDate });
+    const imagem = extrairImagem(itemXml) || null;
+
+    itens.push({ title, link, description, pubDate, imagem });
     if (itens.length >= maxItens) break;
   }
 
@@ -57,7 +84,7 @@ function parseRssItems(xml, maxItens = 40) {
 }
 
 function detectarCidade(texto = "") {
-  const t = texto.toLowerCase();
+  const t = (texto || "").toLowerCase();
   for (const cidade of CIDADES) {
     if (t.includes(cidade.toLowerCase())) return cidade;
   }
@@ -116,18 +143,17 @@ export async function POST() {
       if (urlsExistentes.has(item.link)) continue;
 
       const textoCompleto = item.description || item.title;
-      const resumo = (textoCompleto || "").slice(0, 220);
       const cidade = detectarCidade(`${item.title} ${item.description}`);
 
       registrosParaInserir.push({
         titulo: item.title,
-        resumo,
-        texto: textoCompleto,
+        resumo: cortarResumo(textoCompleto, 240) || item.title,
+        texto: limparTexto(textoCompleto) || item.title,
         fonte: "RC24h",
         link_original: item.link,
-        cidade,
+        cidade: cidade || "Região dos Lagos",
         categoria: "Geral",
-        imagem_capa: null,
+        imagem_capa: item.imagem || null,
         tipo: "importada",
         status: "rascunho",
       });
