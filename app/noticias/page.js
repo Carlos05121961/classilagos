@@ -96,7 +96,6 @@ function decodeHtmlEntities(input = "") {
   const str = safeText(input);
   if (!str) return "";
   if (typeof window === "undefined") {
-    // fallback simples no SSR (não costuma rodar aqui pq é client)
     return str
       .replace(/&#8230;/g, "...")
       .replace(/&#8220;|&#8221;/g, '"')
@@ -176,7 +175,6 @@ function BannerRotator({ banners = [], height = 120, label = "" }) {
   }, [banners]);
 
   const current = banners?.[idx] || null;
-
   const isExternal = (href) => typeof href === "string" && /^https?:\/\//i.test(href);
 
   return (
@@ -203,7 +201,6 @@ function BannerRotator({ banners = [], height = 120, label = "" }) {
                 className="object-contain cursor-pointer"
                 priority={false}
               />
-              {/* Overlay hover sutil */}
               <span className="absolute inset-0 opacity-0 hover:opacity-100 transition bg-black/0 hover:bg-black/5" />
             </Link>
           ) : (
@@ -384,7 +381,6 @@ function AgendaPremium() {
 
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  // ✅ PINS (como você já tinha)
   const pins = [
     { cidade: "Maricá", left: "15.1%", top: "77.7%" },
     { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
@@ -460,6 +456,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     </select>
                   </div>
 
+                  {/* ✅ BOTÕES DO HERO */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href="/noticias/cameras"
@@ -475,6 +472,15 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     >
                       Ver todas as notícias
                     </button>
+
+                    {/* ✅ BOTÃO DISCRETO - CORRESPONDENTES */}
+                    <Link
+                      href="/noticias/correspondentes"
+                      className="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-[11px] md:text-sm font-semibold text-white/90 border border-white/10 hover:bg-white/15 hover:text-white backdrop-blur"
+                      title="Correspondentes culturais por cidade"
+                    >
+                      Correspondentes
+                    </Link>
                   </div>
 
                   <div className="mt-3">
@@ -532,7 +538,6 @@ export default function NoticiasHomePage() {
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
-  // lê ?cidade=... na URL
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -540,7 +545,6 @@ export default function NoticiasHomePage() {
     if (cidade) setCidadeFiltro(cidade);
   }, []);
 
-  // aplica filtro e atualiza URL
   const aplicarCidade = (cidade) => {
     const val = cidade || "Todas";
     setCidadeFiltro(val);
@@ -589,17 +593,12 @@ export default function NoticiasHomePage() {
   const destaques = noticiasFiltradas.slice(0, 3);
   const recentes = noticiasFiltradas.slice(3, 15);
 
-  // 👉 Se seu fallback atual é “a placa Classilagos”, troque aqui por uma imagem mais bonita.
   const imagemFallback = "/banners/noticias-default.webp";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
       {/* BANNER TOPO (clicável) */}
-      <BannerRotator
-        banners={bannersTopo}
-        height={120}
-        label="Ofertas e parceiros (afiliados)."
-      />
+      <BannerRotator banners={bannersTopo} height={120} label="Ofertas e parceiros (afiliados)." />
 
       {/* HERO MAPA */}
       <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
@@ -672,7 +671,6 @@ export default function NoticiasHomePage() {
                     className="md:col-span-2 group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col md:flex-row"
                   >
                     <div className="md:w-2/3 h-48 md:h-auto overflow-hidden bg-slate-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={destaques[0].imagem_capa || imagemFallback}
                         alt={decodeHtmlEntities(destaques[0].titulo) || "Notícia"}
@@ -705,7 +703,6 @@ export default function NoticiasHomePage() {
                     className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
                   >
                     <div className="h-32 overflow-hidden bg-slate-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
                         alt={decodeHtmlEntities(n.titulo) || "Notícia"}
@@ -747,7 +744,6 @@ export default function NoticiasHomePage() {
                     className="group rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-md transition flex flex-col"
                   >
                     <div className="h-32 overflow-hidden bg-slate-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
                         alt={decodeHtmlEntities(n.titulo) || "Notícia"}
@@ -879,11 +875,7 @@ export default function NoticiasHomePage() {
       </section>
 
       {/* BANNER RODAPÉ (clicável) */}
-      <BannerRotator
-        banners={bannersRodape}
-        height={120}
-        label="Ofertas e parceiros (afiliados)."
-      />
+      <BannerRotator banners={bannersRodape} height={120} label="Ofertas e parceiros (afiliados)." />
     </main>
   );
 }
