@@ -4,8 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const FEED_URL =
-  "https://g1.globo.com/rss/g1/rio-de-janeiro/regiao-dos-lagos/";
+const FEED_URL = "https://g1.globo.com/rss/g1/rio-de-janeiro/regiao-dos-lagos/";
 
 const CIDADES = [
   "Maricá",
@@ -47,7 +46,29 @@ function limparTexto(str = "") {
 function extrairTag(bloco, tag) {
   const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
   const match = bloco.match(regex);
-  return match ? limparTexto(match[1]) : null;
+  return match ? match[1] : null; // aqui ainda vem com HTML/CDATA
+}
+
+function extrairAtributoTag(bloco, tag, attr) {
+  const regex = new RegExp(`<${tag}[^>]*${attr}="([^"]+)"[^>]*\\/?>`, "i");
+  const match = bloco.match(regex);
+  return match ? match[1] : null;
+}
+
+function extrairImagem(bloco, descricaoRaw = "") {
+  // 1) <media:content url="...">
+  const media = extrairAtributoTag(bloco, "media:content", "url");
+  if (media) return media;
+
+  // 2) <enclosure url="...">
+  const enclosure = extrairAtributoTag(bloco, "enclosure", "url");
+  if (enclosure) return enclosure;
+
+  // 3) <img src="..."> dentro do description/content
+  const imgMatch = (descricaoRaw || "").match(/<img[^>]+src="([^"]+)"/i);
+  if (imgMatch?.[1]) return imgMatch[1];
+
+  return null;
 }
 
 function detectarCidade(texto) {
@@ -58,34 +79,50 @@ function detectarCidade(texto) {
   return "Região dos Lagos";
 }
 
+function cortarResumo(texto, max = 240) {
+  const t = limparTexto(texto || "");
+  if (!t) return "";
+  if (t.length <= max) return t;
+  return t.slice(0, max).replace(/\s+\S*$/, "").trim() + "...";
+}
+
 function parseRss(xml) {
   const partes = xml.split("<item>").slice(1);
-  const itens = partes
+
+  return partes
     .map((parte) => {
       const bloco = parte.split("</item>")[0];
-      const titulo = extrairTag(bloco, "title");
-      const link = extrairTag(bloco, "link");
-      const descricao =
+
+      const tituloRaw = extrairTag(bloco, "title");
+      const linkRaw = extrairTag(bloco, "link");
+
+      const descRaw =
         extrairTag(bloco, "description") ||
         extrairTag(bloco, "content:encoded") ||
         "";
 
+      const titulo = limparTexto(tituloRaw || "");
+      const link = limparTexto(linkRaw || "");
+
       if (!titulo || !link) return null;
 
-      const cidade = detectarCidade(`${titulo} ${descricao || ""}`);
+      const cidade = detectarCidade(`${titulo} ${limparTexto(descRaw)}`);
+
+      const imagem = extrairImagem(bloco, descRaw);
+      const resumo = cortarResumo(descRaw, 240);
+      const texto = limparTexto(descRaw) || resumo || titulo;
 
       return {
         titulo,
         link_original: link,
-        resumo: descricao || "",
-        texto: descricao || "",
+        resumo: resumo || titulo,
+        texto: texto || titulo,
         cidade,
         categoria: "Geral",
+        imagem_capa: imagem,
       };
     })
     .filter(Boolean);
-
-  return itens;
 }
 
 export async function POST() {
@@ -104,20 +141,24 @@ export async function POST() {
       headers: {
         "user-agent":
           "Mozilla/5.0 (compatible; ClassilagosBot/1.0; +https://classilagos.shop)",
-        accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8,*/*;q=0.1",
+        accept:
+          "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8,*/*;q=0.1",
       },
     });
 
+    const contentType = res.headers.get("content-type") || "";
     const text = await res.text();
 
-    // Se não for XML de verdade, devolve um erro “explicativo”
-    if (!res.ok || !text.includes("<rss") && !text.includes("<feed")) {
+    // validação robusta
+    const pareceRss = text.includes("<item>") || text.includes("<rss");
+    if (!res.ok || (!pareceRss && !contentType.includes("xml"))) {
       return NextResponse.json(
         {
           ok: false,
           error: "O G1 não retornou RSS/XML válido.",
           http_status: res.status,
-          preview: text.slice(0, 200),
+          content_type: contentType,
+          preview: text.slice(0, 250),
         },
         { status: 500 }
       );
@@ -146,7 +187,7 @@ export async function POST() {
         categoria: item.categoria,
         resumo: item.resumo || item.titulo,
         texto: item.texto || item.titulo,
-        imagem_capa: null,
+        imagem_capa: item.imagem_capa || null,
         fonte: "G1 Região dos Lagos",
         link_original: item.link_original,
         tipo: "importada",
