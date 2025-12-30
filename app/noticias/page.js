@@ -411,15 +411,18 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
+            {/* overlays SEM clique */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             <div
               className="absolute inset-0 pointer-events-none"
               style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.30)" }}
             />
 
-            <div className="absolute inset-0">
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10">
+            {/* camada principal */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* conteúdo clicável */}
+              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 pointer-events-auto">
                 <div className="max-w-xl">
                   <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
                     REGIÃO DOS LAGOS
@@ -456,7 +459,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     </select>
                   </div>
 
-                  {/* ✅ BOTÕES DO HERO */}
+                  {/* BOTÕES (agora clicam) */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href="/noticias/cameras"
@@ -473,7 +476,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                       Ver todas as notícias
                     </button>
 
-                    {/* ✅ BOTÃO DISCRETO - CORRESPONDENTES */}
                     <Link
                       href="/noticias/correspondentes"
                       className="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-[11px] md:text-sm font-semibold text-white/90 border border-white/10 hover:bg-white/15 hover:text-white backdrop-blur"
@@ -492,8 +494,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
 
-              {/* Desktop: bolinhas */}
-              <div className="absolute inset-0 hidden md:block">
+              {/* Desktop: camada SEM clique (só os pins clicam) */}
+              <div className="absolute inset-0 hidden md:block pointer-events-none">
                 {pins.map((p) => {
                   const ativo = cidadeAtiva === p.cidade;
                   return (
@@ -503,6 +505,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                       onClick={() => pick(p.cidade)}
                       style={{ left: p.left, top: p.top }}
                       className={[
+                        "pointer-events-auto", // <- só o pin recebe clique
                         "absolute -translate-x-1/2 -translate-y-1/2",
                         "h-3.5 w-3.5 rounded-full",
                         "bg-red-600 border border-white shadow",
@@ -527,6 +530,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     </section>
   );
 }
+
 
 /** =========================
  *  PAGE
