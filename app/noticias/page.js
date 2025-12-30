@@ -21,8 +21,8 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-// ✅ BANNERS AFILIADOS (Topo) — padrão do site (mesmos de Veículos/Imóveis)
-const BANNERS_TOPO_NOTICIAS = [
+/** ✅ BANNERS AFILIADOS (Topo) */
+const bannersTopo = [
   {
     src: "/banners/topo/banner-topo-01.webp",
     href: "https://mercadolivre.com/sec/2KgtVeb",
@@ -50,8 +50,8 @@ const BANNERS_TOPO_NOTICIAS = [
   },
 ];
 
-// ✅ BANNERS AFILIADOS (Rodapé) — padrão do site
-const BANNERS_RODAPE_NOTICIAS = [
+/** ✅ BANNERS AFILIADOS (Rodapé) */
+const bannersRodape = [
   {
     src: "/banners/rodape/banner-rodape-01.webp",
     href: "https://mercadolivre.com/sec/2KgtVeb",
@@ -89,6 +89,24 @@ function formatDateBR(value) {
 
 function safeText(v) {
   return typeof v === "string" ? v : "";
+}
+
+/** ✅ Decodifica coisas tipo &#8230; &#8220; etc */
+function decodeHtmlEntities(input = "") {
+  const str = safeText(input);
+  if (!str) return "";
+  if (typeof window === "undefined") {
+    // fallback simples no SSR (não costuma rodar aqui pq é client)
+    return str
+      .replace(/&#8230;/g, "...")
+      .replace(/&#8220;|&#8221;/g, '"')
+      .replace(/&#8216;|&#8217;/g, "'")
+      .replace(/&#8211;/g, "-")
+      .replace(/&nbsp;/g, " ");
+  }
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value || str;
 }
 
 /** ✅ Agenda (MVP) — depois podemos puxar do Supabase */
@@ -148,69 +166,60 @@ function formatAgendaDate(iso) {
  *  COMPONENTS
  *  ========================= */
 
-// ✅ Banner Rotator CLICÁVEL (href) — padrão premium
-function BannerRotator({ items = [], height = 170, label = "" }) {
+function BannerRotator({ banners = [], height = 120, label = "" }) {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    if (!items || items.length <= 1) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % items.length), 5000);
+    if (!banners || banners.length <= 1) return;
+    const t = setInterval(() => setIdx((p) => (p + 1) % banners.length), 5000);
     return () => clearInterval(t);
-  }, [items]);
+  }, [banners]);
 
-  const current = items?.[idx] || null;
-  const clickable = Boolean(current?.href);
+  const current = banners?.[idx] || null;
 
-  const Card = (
-    <div
-      className={[
-        "relative w-full max-w-[760px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden",
-        clickable ? "cursor-pointer" : "",
-      ].join(" ")}
-      style={{ height }}
-      title={current?.alt || label || "Banner"}
-    >
-      {current?.src ? (
-        <Image
-          key={current.src}
-          src={current.src}
-          alt={current.alt || label || "Banner"}
-          fill
-          sizes="(max-width: 768px) 100vw, 760px"
-          className="object-contain"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
-          (sem banner)
-        </div>
-      )}
-    </div>
-  );
+  const isExternal = (href) => typeof href === "string" && /^https?:\/\//i.test(href);
 
   return (
     <section className="w-full bg-slate-100 border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col items-center">
-        {clickable ? (
-          <Link
-            href={current.href}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={current.alt || "Abrir banner"}
-            className="block"
-          >
-            {Card}
-          </Link>
-        ) : (
-          Card
-        )}
+        <div
+          className="relative w-full max-w-[900px] rounded-3xl bg-white border border-slate-200 shadow overflow-hidden"
+          style={{ height }}
+        >
+          {current ? (
+            <Link
+              href={current.href || "#"}
+              target={isExternal(current.href) ? "_blank" : undefined}
+              rel={isExternal(current.href) ? "noreferrer" : undefined}
+              className="absolute inset-0 block"
+              title={current.alt || "Banner"}
+            >
+              <Image
+                key={current.src}
+                src={current.src}
+                alt={current.alt || label || "Banner"}
+                fill
+                sizes="(max-width: 768px) 100vw, 900px"
+                className="object-contain cursor-pointer"
+                priority={false}
+              />
+              {/* Overlay hover sutil */}
+              <span className="absolute inset-0 opacity-0 hover:opacity-100 transition bg-black/0 hover:bg-black/5" />
+            </Link>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
+              (sem banner)
+            </div>
+          )}
+        </div>
 
         {label ? (
           <p className="mt-2 text-[11px] text-slate-500 text-center">{label}</p>
         ) : null}
 
-        {items?.length > 1 && (
+        {banners?.length > 1 && (
           <div className="mt-2 flex gap-2">
-            {items.map((_, i) => (
+            {banners.map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -257,21 +266,6 @@ function PainelRapidoRegiao() {
             <p>Ponte Rio–Niterói: fluxo intenso</p>
             <p>Via Lagos: normal</p>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Link
-            href="/noticias/cameras"
-            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800"
-          >
-            Ver câmeras
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Voltar ao Classilagos
-          </Link>
         </div>
 
         <p className="text-[10px] text-slate-400">
@@ -388,9 +382,9 @@ function AgendaPremium() {
   );
 }
 
-/** ✅ HERO MAPA PREMIUM + bolinhas vermelhas (desktop) / select (mobile) */
+/** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  // ✅ PINS (baseado na imagem do mapa 1925x802)
+  // ✅ PINS (como você já tinha)
   const pins = [
     { cidade: "Maricá", left: "15.1%", top: "77.7%" },
     { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
@@ -421,7 +415,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
             />
 
-            {/* overlays leves */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
             <div
@@ -429,7 +422,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.30)" }}
             />
 
-            {/* texto do hero */}
             <div className="absolute inset-0">
               <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10">
                 <div className="max-w-xl">
@@ -488,14 +480,13 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                   <div className="mt-3">
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
                       <span className="h-2 w-2 rounded-full bg-white/80" />
-                      Exibindo:{" "}
-                      <b className="text-white">{cidadeAtiva || "Todas"}</b>
+                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* DESKTOP: bolinhas vermelhas */}
+              {/* Desktop: bolinhas */}
               <div className="absolute inset-0 hidden md:block">
                 {pins.map((p) => {
                   const ativo = cidadeAtiva === p.cidade;
@@ -541,7 +532,7 @@ export default function NoticiasHomePage() {
   const [erro, setErro] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("Todas");
 
-  // lê ?cidade=... na URL (sem useSearchParams)
+  // lê ?cidade=... na URL
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -597,15 +588,17 @@ export default function NoticiasHomePage() {
 
   const destaques = noticiasFiltradas.slice(0, 3);
   const recentes = noticiasFiltradas.slice(3, 15);
+
+  // 👉 Se seu fallback atual é “a placa Classilagos”, troque aqui por uma imagem mais bonita.
   const imagemFallback = "/banners/noticias-default.webp";
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* BANNER TOPO */}
+      {/* BANNER TOPO (clicável) */}
       <BannerRotator
-        items={BANNERS_TOPO_NOTICIAS}
+        banners={bannersTopo}
         height={120}
-        label="Ofertas e destaques (Mercado Livre)."
+        label="Ofertas e parceiros (afiliados)."
       />
 
       {/* HERO MAPA */}
@@ -625,12 +618,6 @@ export default function NoticiasHomePage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
-              <Link
-                href="/"
-                className="text-[11px] font-semibold text-sky-700 hover:underline"
-              >
-                Voltar ao Classilagos →
-              </Link>
             </div>
 
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -663,8 +650,7 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[11px] text-slate-500">
-              Exibindo:{" "}
-              <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
+              Exibindo: <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
             </p>
           </div>
 
@@ -689,7 +675,7 @@ export default function NoticiasHomePage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={destaques[0].imagem_capa || imagemFallback}
-                        alt={safeText(destaques[0].titulo) || "Notícia"}
+                        alt={decodeHtmlEntities(destaques[0].titulo) || "Notícia"}
                         className="w-full h-full object-cover group-hover:scale-[1.03] transition"
                       />
                     </div>
@@ -699,10 +685,10 @@ export default function NoticiasHomePage() {
                           {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
                         </p>
                         <h3 className="text-base md:text-lg font-bold text-slate-900 line-clamp-2">
-                          {safeText(destaques[0].titulo)}
+                          {decodeHtmlEntities(destaques[0].titulo)}
                         </h3>
                         <p className="mt-1 text-xs text-slate-600 line-clamp-3">
-                          {safeText(destaques[0].resumo)}
+                          {decodeHtmlEntities(destaques[0].resumo)}
                         </p>
                       </div>
                       <p className="text-[11px] text-slate-400">
@@ -722,7 +708,7 @@ export default function NoticiasHomePage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
-                        alt={safeText(n.titulo) || "Notícia"}
+                        alt={decodeHtmlEntities(n.titulo) || "Notícia"}
                         className="w-full h-full object-cover group-hover:scale-[1.05] transition"
                       />
                     </div>
@@ -732,7 +718,7 @@ export default function NoticiasHomePage() {
                           {safeText(n.cidade)} • {safeText(n.categoria)}
                         </p>
                         <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
-                          {safeText(n.titulo)}
+                          {decodeHtmlEntities(n.titulo)}
                         </h3>
                       </div>
                       <p className="text-[11px] text-slate-400 mt-1">
@@ -764,7 +750,7 @@ export default function NoticiasHomePage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={n.imagem_capa || imagemFallback}
-                        alt={safeText(n.titulo) || "Notícia"}
+                        alt={decodeHtmlEntities(n.titulo) || "Notícia"}
                         className="w-full h-full object-cover group-hover:scale-[1.05] transition"
                       />
                     </div>
@@ -774,10 +760,10 @@ export default function NoticiasHomePage() {
                           {safeText(n.cidade)} • {safeText(n.categoria)}
                         </p>
                         <h3 className="text-sm font-bold text-slate-900 line-clamp-2">
-                          {safeText(n.titulo)}
+                          {decodeHtmlEntities(n.titulo)}
                         </h3>
                         <p className="mt-1 text-[11px] text-slate-600 line-clamp-3">
-                          {safeText(n.resumo)}
+                          {decodeHtmlEntities(n.resumo)}
                         </p>
                       </div>
                       <p className="text-[11px] text-slate-400 mt-1">
@@ -892,13 +878,12 @@ export default function NoticiasHomePage() {
         </aside>
       </section>
 
-      {/* BANNER RODAPÉ */}
+      {/* BANNER RODAPÉ (clicável) */}
       <BannerRotator
-        items={BANNERS_RODAPE_NOTICIAS}
-        height={170}
-        label="Ofertas e destaques (Mercado Livre)."
+        banners={bannersRodape}
+        height={120}
+        label="Ofertas e parceiros (afiliados)."
       />
     </main>
   );
 }
-
