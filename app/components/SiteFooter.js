@@ -9,7 +9,7 @@ export default function SiteFooter() {
       <div
         className="absolute inset-0 opacity-25 pointer-events-none"
         style={{
-          backgroundImage: "url('/footer-oceano.jpg')",
+          backgroundImage: "url('/footer-oceano.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
