@@ -7,7 +7,7 @@ export default function SiteFooter() {
     <footer className="mt-12 text-slate-200 border-t border-slate-700 relative">
       {/* IMAGEM DE FUNDO */}
       <div
-        className="absolute inset-0 opacity-45 pointer-events-none"
+       className="absolute inset-0 opacity-55 pointer-events-none"
         style={{
           backgroundImage: "url('/footer-oceano.webp')",
           backgroundSize: "cover",
@@ -17,7 +17,7 @@ export default function SiteFooter() {
       />
 
       {/* OVERLAY ESCURO */}
-    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950/80" />
+   <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/45 to-slate-950/85" />
 
       {/* CONTEÚDO */}
       <div className="relative z-10 pt-36 pb-10">
