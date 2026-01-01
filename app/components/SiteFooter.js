@@ -3,84 +3,109 @@
 import Link from "next/link";
 
 export default function SiteFooter() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="mt-12 text-slate-200 border-t border-slate-700 relative">
-      {/* IMAGEM DE FUNDO */}
+    <footer className="mt-12 text-slate-200 border-t border-slate-700 relative overflow-hidden">
+      {/* FUNDO (PEIXINHOS) */}
       <div
-       className="absolute inset-0 opacity-55 pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: "url('/footer-oceano.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
+          opacity: 0.38, // + visível, sem “brigar” com o texto
         }}
       />
 
-      {/* OVERLAY ESCURO */}
-   <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/45 to-slate-950/85" />
+      {/* OVERLAY ESCURO (mantém legibilidade) */}
+      <div className="absolute inset-0 bg-slate-950/70" />
+
+      {/* DEGRADÊ DE TRANSIÇÃO NO TOPO (encosta melhor na seção acima) */}
+      <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-slate-950/0 via-slate-950/30 to-slate-950/70 pointer-events-none" />
 
       {/* CONTEÚDO */}
-      <div className="relative z-10 pt-36 pb-10">
-        <div className="max-w-6xl mx-auto px-4 space-y-8">
-
-          {/* LINKS INSTITUCIONAIS */}
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] text-slate-300">
+      <div className="relative z-10 pt-16 pb-10">
+        <div className="max-w-6xl mx-auto px-4">
+          {/* LINKS SUPERIORES */}
+          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] text-slate-200/85 mb-6">
             <Link href="/quem-somos" className="hover:text-white transition">
               Quem somos
             </Link>
-
             <Link href="/como-anunciar" className="hover:text-white transition">
               Como anunciar
             </Link>
-
-            <Link href="/fale-conosco" className="hover:text-white transition font-semibold text-white">
+            <Link href="/fale-conosco" className="hover:text-white transition font-semibold">
               Fale conosco
             </Link>
-
             <Link href="/termos-de-uso" className="hover:text-white transition">
               Termos de uso
             </Link>
-
             <Link
               href="/politica-de-privacidade"
               className="hover:text-white transition"
             >
               Política de privacidade
             </Link>
-          </div>
+          </nav>
 
-          {/* BLOCO DE CONTATOS OFICIAIS */}
-          <div className="text-center space-y-2">
-            <p className="text-[11px] uppercase tracking-wide text-slate-400">
+          {/* CONTATO OFICIAL */}
+          <div className="text-center">
+            <p className="text-[11px] tracking-[0.14em] text-slate-200/70 uppercase">
               Contato oficial Classilagos
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-[11px] text-slate-300">
-              <span>📧 fale-conosco@classilagos.shop</span>
-              <span>📧 comercial@classilagos.shop</span>
-              <span>📰 noticias@classilagos.shop</span>
-              <span>🏛️ imprensa@classilagos.shop</span>
+            <div className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[11px] text-slate-100/90">
+              <a
+                href="mailto:fale-conosco@classilagos.shop"
+                className="inline-flex items-center gap-2 hover:text-white transition"
+              >
+                ✉️ <span>fale-conosco@classilagos.shop</span>
+              </a>
+
+              <a
+                href="mailto:comercial@classilagos.shop"
+                className="inline-flex items-center gap-2 hover:text-white transition"
+              >
+                🧾 <span>comercial@classilagos.shop</span>
+              </a>
+
+              <a
+                href="mailto:noticias@classilagos.shop"
+                className="inline-flex items-center gap-2 hover:text-white transition"
+              >
+                📰 <span>noticias@classilagos.shop</span>
+              </a>
+
+              <a
+                href="mailto:imprensa@classilagos.shop"
+                className="inline-flex items-center gap-2 hover:text-white transition"
+              >
+                🏛️ <span>imprensa@classilagos.shop</span>
+              </a>
             </div>
 
-            <p className="text-[10px] text-slate-500 max-w-xl mx-auto">
-              Para anúncios, parcerias comerciais, envio de pautas, comunicados
-              oficiais e contato institucional com o portal.
+            <p className="mt-3 text-[10px] text-slate-200/60 max-w-2xl mx-auto">
+              Para anúncios, parcerias comerciais, envio de pautas, comunicados oficiais e
+              contato institucional com o portal.
             </p>
           </div>
 
-          {/* MARCA */}
-          <div className="text-center">
-            <p className="text-sm font-semibold text-white">Classilagos</p>
+          {/* DIVISOR */}
+          <div className="mt-8 h-px bg-white/10" />
 
-            <p className="text-[11px] text-slate-400 max-w-xl mx-auto">
-              O seu guia de compras, serviços, turismo e oportunidades na Região
-              dos Lagos.
+          {/* MARCA */}
+          <div className="text-center mt-7">
+            <p className="text-base font-semibold text-white">Classilagos</p>
+            <p className="mt-1 text-[11px] text-slate-200/70">
+              O seu guia de compras, serviços, turismo e oportunidades na Região dos Lagos.
             </p>
           </div>
 
           {/* COPYRIGHT */}
-          <p className="text-[10px] text-center text-slate-500">
-            © {new Date().getFullYear()} Classilagos. Todos os direitos reservados.
+          <p className="text-[10px] text-center text-slate-200/45 mt-6">
+            © {year} Classilagos. Todos os direitos reservados.
           </p>
         </div>
       </div>
