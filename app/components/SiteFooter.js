@@ -17,7 +17,7 @@ export default function SiteFooter() {
       />
 
       {/* OVERLAY ESCURO */}
-      <div className="absolute inset-0 bg-slate-950/70" />
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950/80" />
 
       {/* CONTEÚDO */}
       <div className="relative z-10 pt-36 pb-10">
