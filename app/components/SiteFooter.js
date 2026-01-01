@@ -92,8 +92,6 @@ export default function SiteFooter() {
             </p>
           </div>
 
-          {/* DIVISOR */}
-          <div className="mt-8 h-px bg-white/10" />
 
           {/* MARCA */}
           <div className="text-center mt-7">
