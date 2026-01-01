@@ -22,8 +22,8 @@ export default function FaleConoscoPage() {
             Fale conosco
           </h1>
           <p className="mt-2 text-sm md:text-base text-slate-300 max-w-2xl">
-            Dúvidas, sugestões, parcerias ou suporte? Envie sua mensagem
-            para a equipe Classilagos.
+            Dúvidas, sugestões, pautas, parcerias ou contato institucional?
+            Envie sua mensagem para a equipe Classilagos.
           </p>
         </div>
       </section>
@@ -61,26 +61,15 @@ export default function FaleConoscoPage() {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold mb-1">
-                    E-mail
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full rounded-xl bg-slate-950/70 border border-slate-700 px-3 py-2 text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/70"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">
-                    WhatsApp (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-xl bg-slate-950/70 border border-slate-700 px-3 py-2 text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/70"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  required
+                  className="w-full rounded-xl bg-slate-950/70 border border-slate-700 px-3 py-2 text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/70"
+                />
               </div>
 
               <div>
@@ -111,6 +100,11 @@ export default function FaleConoscoPage() {
               >
                 Enviar mensagem
               </button>
+
+              <p className="text-[11px] text-slate-400 pt-2">
+                Dica: para assuntos específicos, você também pode falar direto com nossa equipe
+                pelos e-mails oficiais ao lado.
+              </p>
             </form>
           </div>
 
@@ -118,15 +112,52 @@ export default function FaleConoscoPage() {
           <div className="space-y-4">
             <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5">
               <h3 className="text-sm font-semibold text-slate-50 mb-2">
-                Contato direto
+                Contato direto (e-mails oficiais)
               </h3>
-              <p className="text-xs text-slate-300 mb-1">
-                📩 <strong>E-mail:</strong> contato@classilagos.tv
-              </p>
-              <p className="text-xs text-slate-300 mb-1">
-                📱 <strong>WhatsApp Comercial:</strong> em breve
-              </p>
-              <p className="text-xs text-slate-400 mt-3">
+
+              <div className="space-y-2 text-xs text-slate-300">
+                <p>
+                  ✉️ <strong>Geral / Dúvidas:</strong>{" "}
+                  <a
+                    className="underline text-slate-100 hover:text-white"
+                    href="mailto:fale-conosco@classilagos.shop"
+                  >
+                    fale-conosco@classilagos.shop
+                  </a>
+                </p>
+
+                <p>
+                  💼 <strong>Parcerias / Anúncios:</strong>{" "}
+                  <a
+                    className="underline text-slate-100 hover:text-white"
+                    href="mailto:comercial@classilagos.shop"
+                  >
+                    comercial@classilagos.shop
+                  </a>
+                </p>
+
+                <p>
+                  📰 <strong>Pautas / Notícias:</strong>{" "}
+                  <a
+                    className="underline text-slate-100 hover:text-white"
+                    href="mailto:noticias@classilagos.shop"
+                  >
+                    noticias@classilagos.shop
+                  </a>
+                </p>
+
+                <p>
+                  🏛️ <strong>Imprensa / Institucional:</strong>{" "}
+                  <a
+                    className="underline text-slate-100 hover:text-white"
+                    href="mailto:imprensa@classilagos.shop"
+                  >
+                    imprensa@classilagos.shop
+                  </a>
+                </p>
+              </div>
+
+              <p className="text-xs text-slate-400 mt-4">
                 Atendimento de segunda a sexta, das 9h às 18h.
               </p>
             </div>
@@ -137,8 +168,27 @@ export default function FaleConoscoPage() {
               </h3>
               <p className="text-xs text-slate-300">
                 Quer anunciar sua marca em destaque, banners ou ações especiais?
-                Fale conosco para montar um plano sob medida para a sua empresa
+                Fale com o nosso time comercial e montamos um plano sob medida para a sua empresa
                 na Região dos Lagos.
+              </p>
+
+              <div className="mt-3">
+                <a
+                  href="mailto:comercial@classilagos.shop"
+                  className="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-[11px] font-semibold text-white border border-white/10 hover:bg-white/15"
+                >
+                  Falar com o comercial →
+                </a>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-5">
+              <h3 className="text-sm font-semibold text-slate-50 mb-2">
+                Observação
+              </h3>
+              <p className="text-xs text-slate-300">
+                Por enquanto, o atendimento é feito via e-mail. Em breve, quando definirmos um canal oficial,
+                podemos adicionar WhatsApp e outros contatos aqui sem bagunçar o padrão do site.
               </p>
             </div>
           </div>
