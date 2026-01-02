@@ -38,17 +38,16 @@ export default function CandidatarCorrespondentePage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!canSend) return;
+    if (!canSend || enviando) return;
 
     setEnviando(true);
     setErro("");
 
     try {
-      const res = await fetch("/api/noticias", {
+      const res = await fetch("/api/correspondentes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tipo: "candidatura-correspondente",
           nome,
           cidade,
           whatsapp,
@@ -59,7 +58,7 @@ export default function CandidatarCorrespondentePage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Falha no envio");
+      if (!res.ok) throw new Error("Erro no envio");
 
       setSucesso(true);
     } catch (err) {
@@ -71,6 +70,7 @@ export default function CandidatarCorrespondentePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
+      {/* TOPO */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-2">
           <p className="text-[11px] text-slate-500">
@@ -82,8 +82,8 @@ export default function CandidatarCorrespondentePage() {
           </h1>
 
           <p className="text-sm text-slate-600">
-            Envie sua candidatura. A equipe do Classilagos fará a curadoria e
-            entrará em contato para aprovação.
+            Envie sua candidatura. A equipe do Classilagos fará a curadoria
+            e entrará em contato.
           </p>
 
           <div className="mt-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700">
@@ -91,7 +91,7 @@ export default function CandidatarCorrespondentePage() {
               Diretriz editorial
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Cultura, turismo, comércio, histórias locais.</li>
+              <li>Cultura, turismo, comércio e histórias locais.</li>
               <li>Proibido: violência, sensacionalismo.</li>
               <li>Proibido: política partidária.</li>
               <li>Reportagens especiais podem ser remuneradas.</li>
@@ -100,6 +100,7 @@ export default function CandidatarCorrespondentePage() {
         </div>
       </section>
 
+      {/* FORMULÁRIO */}
       <section className="max-w-3xl mx-auto px-4 pt-6">
         <div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
           {sucesso ? (
@@ -125,16 +126,18 @@ export default function CandidatarCorrespondentePage() {
                   placeholder="Seu nome"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="rounded-2xl border px-3 py-2 text-sm"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                 />
 
                 <select
                   value={cidade}
                   onChange={(e) => setCidade(e.target.value)}
-                  className="rounded-2xl border px-3 py-2 text-sm bg-white"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm bg-white"
                 >
                   {CIDADES.map((c) => (
-                    <option key={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                 </select>
 
@@ -142,14 +145,14 @@ export default function CandidatarCorrespondentePage() {
                   placeholder="WhatsApp"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
-                  className="rounded-2xl border px-3 py-2 text-sm"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                 />
 
                 <input
                   placeholder="E-mail"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-2xl border px-3 py-2 text-sm"
+                  className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
                 />
               </div>
 
@@ -157,7 +160,7 @@ export default function CandidatarCorrespondentePage() {
                 placeholder="Instagram (opcional)"
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
-                className="w-full rounded-2xl border px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
               />
 
               <textarea
@@ -165,7 +168,7 @@ export default function CandidatarCorrespondentePage() {
                 value={perfil}
                 onChange={(e) => setPerfil(e.target.value)}
                 rows={4}
-                className="w-full rounded-2xl border px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
               />
 
               <textarea
@@ -173,7 +176,7 @@ export default function CandidatarCorrespondentePage() {
                 value={ideias}
                 onChange={(e) => setIdeias(e.target.value)}
                 rows={4}
-                className="w-full rounded-2xl border px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
               />
 
               <label className="flex gap-2 text-xs text-slate-700">
@@ -185,9 +188,7 @@ export default function CandidatarCorrespondentePage() {
                 Concordo com a diretriz editorial
               </label>
 
-              {erro && (
-                <p className="text-xs text-red-600">{erro}</p>
-              )}
+              {erro && <p className="text-xs text-red-600">{erro}</p>}
 
               <div className="flex gap-2 flex-wrap">
                 <button
@@ -196,7 +197,7 @@ export default function CandidatarCorrespondentePage() {
                   className={`rounded-full px-6 py-2 text-sm font-semibold text-white ${
                     canSend
                       ? "bg-sky-600 hover:bg-sky-700"
-                      : "bg-slate-300"
+                      : "bg-slate-300 cursor-not-allowed"
                   }`}
                 >
                   {enviando ? "Enviando..." : "Enviar candidatura"}
@@ -204,7 +205,7 @@ export default function CandidatarCorrespondentePage() {
 
                 <Link
                   href="/noticias/correspondentes"
-                  className="rounded-full border px-6 py-2 text-sm"
+                  className="rounded-full border border-slate-200 px-6 py-2 text-sm"
                 >
                   Voltar
                 </Link>
