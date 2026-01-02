@@ -22,14 +22,22 @@ export async function POST(req) {
       );
     }
 
+    const port = Number(process.env.SMTP_PORT);
+
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: false,
+      port,
+      secure: port === 465, // 🔑 regra correta
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      tls: {
+        rejectUnauthorized: false, // Zoho precisa disso na Vercel
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     const textoEmail = `
@@ -56,9 +64,14 @@ ${ideias || "-"}
       text: textoEmail,
     });
 
-    return NextResponse.json({ success: true });
+    // ✅ resposta clara para o frontend
+    return NextResponse.json(
+      { success: true, message: "Candidatura enviada com sucesso." },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("ERRO CORRESPONDENTES:", error);
+
     return NextResponse.json(
       { error: "Erro ao enviar candidatura." },
       { status: 500 }
