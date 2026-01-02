@@ -15,6 +15,7 @@ export async function POST(req) {
       ideias,
     } = body;
 
+    // 🔒 Validação básica
     if (!nome || !cidade || !whatsapp || !email || !perfil) {
       return NextResponse.json(
         { error: "Dados obrigatórios não informados." },
@@ -22,18 +23,19 @@ export async function POST(req) {
       );
     }
 
-    const port = Number(process.env.SMTP_PORT);
+    // ✅ USANDO AS VARIÁVEIS CORRETAS DA VERCEL (ZOHO)
+    const port = Number(process.env.ZOHO_SMTP_PORT);
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host: process.env.ZOHO_SMTP_HOST,
       port,
-      secure: port === 465, // 🔑 regra correta
+      secure: port === 465, // SSL automático se for 465
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.ZOHO_SMTP_USER,
+        pass: process.env.ZOHO_SMTP_PASS,
       },
       tls: {
-        rejectUnauthorized: false, // Zoho precisa disso na Vercel
+        rejectUnauthorized: false, // necessário na Vercel + Zoho
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
@@ -57,7 +59,7 @@ ${ideias || "-"}
     `.trim();
 
     await transporter.sendMail({
-      from: `"Classilagos" <${process.env.SMTP_USER}>`,
+      from: `"Classilagos" <${process.env.ZOHO_SMTP_USER}>`,
       to: "correspondentes@classilagos.shop",
       replyTo: email,
       subject: `Candidatura Correspondente Cultural — ${cidade} — ${nome}`,
@@ -78,3 +80,4 @@ ${ideias || "-"}
     );
   }
 }
+
