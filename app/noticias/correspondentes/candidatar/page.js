@@ -1,10 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-
-// ✅ Coloque aqui o e-mail oficial para receber candidaturas
-const EMAIL_EDITORIA = "correspondentes@classilagos.shop";
 
 const CIDADES = [
   "Maricá",
@@ -18,10 +15,6 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-function onlyText(v) {
-  return typeof v === "string" ? v : "";
-}
-
 export default function CandidatarCorrespondentePage() {
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("Maricá");
@@ -32,45 +25,9 @@ export default function CandidatarCorrespondentePage() {
   const [ideias, setIdeias] = useState("");
   const [aceitaRegras, setAceitaRegras] = useState(false);
 
-  const assunto = useMemo(() => {
-    const n = onlyText(nome).trim() || "Sem nome";
-    const c = onlyText(cidade).trim() || "Sem cidade";
-    return `Candidatura Correspondente Cultural — ${c} — ${n}`;
-  }, [nome, cidade]);
-
-  const corpo = useMemo(() => {
-    const n = onlyText(nome).trim();
-    const c = onlyText(cidade).trim();
-    const w = onlyText(whatsapp).trim();
-    const ig = onlyText(instagram).trim();
-    const em = onlyText(email).trim();
-    const p = onlyText(perfil).trim();
-    const i = onlyText(ideias).trim();
-
-    return `
-CANDIDATURA – CORRESPONDENTE CULTURAL CLASSILAGOS
-
-Nome: ${n}
-Cidade: ${c}
-WhatsApp: ${w}
-E-mail: ${em}
-Instagram: ${ig}
-
-Perfil / Experiência (quem é você e por que quer representar sua cidade):
-${p}
-
-Ideias de pautas (cultura, comércio, turismo, história):
-${i}
-
-Aceita diretriz editorial (sem violência e sem política partidária): ${
-      aceitaRegras ? "SIM" : "NÃO"
-    }
-
-ANEXOS (IMPORTANTE):
-- Envie 2 a 5 fotos (se tiver), ou links de trabalhos (drive/instagram/portfólio).
-- Se tiver, inclua 1 vídeo curto (opcional).
-`.trim();
-  }, [nome, cidade, instagram, whatsapp, email, perfil, ideias, aceitaRegras]);
+  const [enviando, setEnviando] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
+  const [erro, setErro] = useState("");
 
   const canSend =
     nome.trim().length >= 3 &&
@@ -79,19 +36,38 @@ ANEXOS (IMPORTANTE):
     perfil.trim().length >= 10 &&
     aceitaRegras;
 
-  // ✅ mailto (abre o e-mail do usuário)
-  const mailtoHref = `mailto:${encodeURIComponent(
-    EMAIL_EDITORIA
-  )}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!canSend) return;
 
-  const copyToClipboard = async () => {
+    setEnviando(true);
+    setErro("");
+
     try {
-      await navigator.clipboard.writeText(corpo);
-      alert("Texto da candidatura copiado. Cole no e-mail, se precisar.");
-    } catch {
-      alert("Não consegui copiar automaticamente. Selecione e copie manualmente.");
+      const res = await fetch("/api/noticias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: "candidatura-correspondente",
+          nome,
+          cidade,
+          whatsapp,
+          email,
+          instagram,
+          perfil,
+          ideias,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Falha no envio");
+
+      setSucesso(true);
+    } catch (err) {
+      setErro("Não foi possível enviar agora. Tente novamente em instantes.");
+    } finally {
+      setEnviando(false);
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
@@ -106,156 +82,134 @@ ANEXOS (IMPORTANTE):
           </h1>
 
           <p className="text-sm text-slate-600">
-            Preencha os dados e envie sua candidatura por e-mail. O Classilagos faz curadoria e
-            entra em contato para aprovação.
+            Envie sua candidatura. A equipe do Classilagos fará a curadoria e
+            entrará em contato para aprovação.
           </p>
 
           <div className="mt-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700">
-            <p className="font-semibold text-slate-900 mb-1">Diretriz editorial</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Conteúdo positivo: cultura, turismo, comércio tradicional, histórias.</li>
-              <li>Proibido: violência, policial, sensacionalismo.</li>
-              <li>Proibido: política partidária.</li>
-              <li>Reportagens comemorativas podem ser remuneradas (comissão 70/30).</li>
-            </ul>
-            <p className="mt-2 text-[10px] text-slate-500">
-              Envio de fotos: anexe no e-mail (2 a 5 fotos). Pode mandar link do Drive/Instagram também.
+            <p className="font-semibold text-slate-900 mb-1">
+              Diretriz editorial
             </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Cultura, turismo, comércio, histórias locais.</li>
+              <li>Proibido: violência, sensacionalismo.</li>
+              <li>Proibido: política partidária.</li>
+              <li>Reportagens especiais podem ser remuneradas.</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section className="max-w-3xl mx-auto px-4 pt-6">
         <div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <div>
-              <label className="text-[11px] font-semibold text-slate-700">Seu nome</label>
-              <input
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-                placeholder="Ex: João Silva"
-              />
-            </div>
+          {sucesso ? (
+            <div className="rounded-2xl bg-green-50 border border-green-200 p-4 text-center">
+              <p className="font-semibold text-green-800">
+                ✅ Candidatura enviada com sucesso!
+              </p>
+              <p className="text-sm text-green-700 mt-1">
+                Em breve entraremos em contato pelo e-mail ou WhatsApp informado.
+              </p>
 
-            <div>
-              <label className="text-[11px] font-semibold text-slate-700">Cidade</label>
-              <select
-                value={cidade}
-                onChange={(e) => setCidade(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400 bg-white"
+              <Link
+                href="/noticias"
+                className="inline-block mt-4 rounded-full bg-sky-600 px-6 py-2 text-sm font-semibold text-white hover:bg-sky-700"
               >
-                {CIDADES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                Ir para Notícias
+              </Link>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  placeholder="Seu nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="rounded-2xl border px-3 py-2 text-sm"
+                />
 
-            <div>
-              <label className="text-[11px] font-semibold text-slate-700">Seu WhatsApp</label>
-              <input
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-                placeholder="Ex: (22) 99999-9999"
-              />
-            </div>
+                <select
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  className="rounded-2xl border px-3 py-2 text-sm bg-white"
+                >
+                  {CIDADES.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
 
-            <div>
-              <label className="text-[11px] font-semibold text-slate-700">Seu e-mail</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-                placeholder="Ex: seuemail@gmail.com"
-              />
-            </div>
+                <input
+                  placeholder="WhatsApp"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  className="rounded-2xl border px-3 py-2 text-sm"
+                />
 
-            <div className="md:col-span-2">
-              <label className="text-[11px] font-semibold text-slate-700">
-                Instagram (opcional)
-              </label>
+                <input
+                  placeholder="E-mail"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rounded-2xl border px-3 py-2 text-sm"
+                />
+              </div>
+
               <input
+                placeholder="Instagram (opcional)"
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-                placeholder="https://instagram.com/..."
+                className="w-full rounded-2xl border px-3 py-2 text-sm"
               />
-            </div>
-          </div>
 
-          <div>
-            <label className="text-[11px] font-semibold text-slate-700">
-              Quem é você e por que quer representar sua cidade?
-            </label>
-            <textarea
-              value={perfil}
-              onChange={(e) => setPerfil(e.target.value)}
-              rows={4}
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-              placeholder="Conte um pouco da sua história, experiência com fotos, eventos, cultura, turismo, etc."
-            />
-          </div>
+              <textarea
+                placeholder="Quem é você e por que quer representar sua cidade?"
+                value={perfil}
+                onChange={(e) => setPerfil(e.target.value)}
+                rows={4}
+                className="w-full rounded-2xl border px-3 py-2 text-sm"
+              />
 
-          <div>
-            <label className="text-[11px] font-semibold text-slate-700">
-              Ideias de pautas (o que você faria como correspondente)
-            </label>
-            <textarea
-              value={ideias}
-              onChange={(e) => setIdeias(e.target.value)}
-              rows={4}
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-400"
-              placeholder="Ex: comércio com 30 anos, festas tradicionais, personagens locais, trilhas, cultura..."
-            />
-          </div>
+              <textarea
+                placeholder="Ideias de pautas"
+                value={ideias}
+                onChange={(e) => setIdeias(e.target.value)}
+                rows={4}
+                className="w-full rounded-2xl border px-3 py-2 text-sm"
+              />
 
-          <label className="flex items-start gap-2 text-[11px] text-slate-700">
-            <input
-              type="checkbox"
-              checked={aceitaRegras}
-              onChange={(e) => setAceitaRegras(e.target.checked)}
-              className="mt-1"
-            />
-            Eu concordo com a diretriz editorial (sem violência e sem política partidária).
-          </label>
+              <label className="flex gap-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={aceitaRegras}
+                  onChange={(e) => setAceitaRegras(e.target.checked)}
+                />
+                Concordo com a diretriz editorial
+              </label>
 
-          <div className="flex gap-2 flex-wrap">
-            <a
-              href={canSend ? mailtoHref : "#"}
-              onClick={(e) => {
-                if (!canSend) e.preventDefault();
-              }}
-              className={`inline-flex items-center rounded-full px-5 py-2 text-xs md:text-sm font-semibold text-white ${
-                canSend ? "bg-sky-600 hover:bg-sky-700" : "bg-slate-300 cursor-not-allowed"
-              }`}
-              title={`Enviar para ${EMAIL_EDITORIA}`}
-            >
-              Enviar candidatura por e-mail
-            </a>
+              {erro && (
+                <p className="text-xs text-red-600">{erro}</p>
+              )}
 
-            <button
-              type="button"
-              onClick={copyToClipboard}
-              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Copiar texto
-            </button>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  type="submit"
+                  disabled={!canSend || enviando}
+                  className={`rounded-full px-6 py-2 text-sm font-semibold text-white ${
+                    canSend
+                      ? "bg-sky-600 hover:bg-sky-700"
+                      : "bg-slate-300"
+                  }`}
+                >
+                  {enviando ? "Enviando..." : "Enviar candidatura"}
+                </button>
 
-            <Link
-              href="/noticias/correspondentes"
-              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Voltar
-            </Link>
-          </div>
-
-          {!canSend && (
-            <p className="text-[11px] text-slate-500">
-              Preencha nome, WhatsApp, e-mail, descrição do perfil e aceite a diretriz editorial para enviar.
-            </p>
+                <Link
+                  href="/noticias/correspondentes"
+                  className="rounded-full border px-6 py-2 text-sm"
+                >
+                  Voltar
+                </Link>
+              </div>
+            </form>
           )}
         </div>
       </section>
