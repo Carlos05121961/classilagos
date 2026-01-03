@@ -724,6 +724,17 @@ useEffect(() => {
   </div>
 </section>
 
+{/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
+<section className="bg-white py-10">
+  <div className="max-w-7xl mx-auto px-4">
+    <BannerRotator
+      images={bannersRodape}
+      interval={6500}
+      height={170}
+      maxWidth={720}
+    />
+  </div>
+</section>
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
@@ -790,18 +801,6 @@ useEffect(() => {
               Abrir Empregos →
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* ✅ BANNER RODAPÉ (HOME) — antes do Footer */}
-      <section className="bg-white py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator
-            images={bannersRodape}
-            interval={6500}
-            height={170}
-            maxWidth={720}
-          />
         </div>
       </section>
 
