@@ -792,6 +792,19 @@ useEffect(() => {
           </div>
         </div>
       </section>
+
+      {/* ✅ BANNER RODAPÉ (HOME) — antes do Footer */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator
+            images={bannersRodape}
+            interval={6500}
+            height={170}
+            maxWidth={720}
+          />
+        </div>
+      </section>
+
     </main>
   );
 }
