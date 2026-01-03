@@ -60,7 +60,7 @@ ${ideias || "-"}
 
     await transporter.sendMail({
       from: `"Classilagos" <${process.env.ZOHO_SMTP_USER}>`,
-      to: "correspondentes@classilagos.shop",
+      to: "correspondente@classilagos.shop",
       replyTo: email,
       subject: `Candidatura Correspondente Cultural — ${cidade} — ${nome}`,
       text: textoEmail,
