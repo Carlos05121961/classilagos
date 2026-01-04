@@ -98,7 +98,7 @@ export async function POST(req) {
       from: `"Classilagos" <${USER}>`,
       to: TO,
       cc: CC,
-      replyTo: email,
+      replyTo: { name: nome, address: email },
       subject,
       text,
       html,
