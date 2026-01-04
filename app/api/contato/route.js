@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export const runtime = "nodejs"; // ✅ IMPORTANTÍSSIMO: nodemailer precisa de Node runtime
+export const runtime = "nodejs"; // ✅ nodemailer precisa de Node runtime
 export const dynamic = "force-dynamic"; // evita cache em rota POST
 
 function json(status, data) {
@@ -58,11 +58,16 @@ export async function POST(req) {
       port: portNum,
       secure,
       auth: { user: USER, pass: PASS },
+      // ✅ ajuda muito em Vercel + Zoho
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
-    // destinos (ajuste aqui se quiser)
-    const TO = "fale-conosco@classilagos.shop";
-    const CC = ["comercial@classilagos.shop", "imprensa@classilagos.shop"];
+    // ✅ destinos (só os que existem hoje)
+    const TO = "faleconosco@classilagos.shop"; // ✅ sem hífen
+    const CC = []; // ✅ removido por enquanto (comercial/imprensa não existem)
 
     const subject = `[Classilagos • Fale Conosco] ${assunto}`;
 
@@ -90,10 +95,10 @@ export async function POST(req) {
     `;
 
     await transporter.sendMail({
-      from: `"Classilagos" <${USER}>`, // geralmente precisa ser o mesmo USER do SMTP
+      from: `"Classilagos" <${USER}>`,
       to: TO,
       cc: CC,
-      replyTo: email, // ✅ responder vai direto pro visitante
+      replyTo: email,
       subject,
       text,
       html,
@@ -101,7 +106,6 @@ export async function POST(req) {
 
     return json(200, { ok: true });
   } catch (err) {
-    // log interno (Vercel logs)
     console.error("CONTATO_API_ERROR:", err);
     return json(500, {
       ok: false,
