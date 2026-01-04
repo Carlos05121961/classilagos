@@ -66,7 +66,7 @@ export async function POST(req) {
     });
 
     // ✅ destinos (só os que existem hoje)
-    const TO = "faleconosco@classilagos.shop"; // ✅ sem hífen
+    const TO = USER; // entrega sempre na caixa que autentica no SMTP
     const CC = []; // ✅ removido por enquanto (comercial/imprensa não existem)
 
     const subject = `[Classilagos • Fale Conosco] ${assunto}`;
