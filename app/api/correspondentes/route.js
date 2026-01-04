@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const runtime = "nodejs"; // nodemailer precisa de Node runtime
+export const dynamic = "force-dynamic"; // evita cache em rota POST
 
-function j(status, data) {
+function json(status, data) {
   return NextResponse.json(data, { status });
 }
 
@@ -20,18 +20,17 @@ export async function POST(req) {
     const perfil = String(body?.perfil || "").trim();
     const ideias = String(body?.ideias || "").trim();
 
-    // 🔒 Validação básica
-    if (!nome || !cidade || !whatsapp || !email || !perfil) {
-      return j(400, { ok: false, error: "Dados obrigatórios não informados." });
-    }
-    if (!email.includes("@")) {
-      return j(400, { ok: false, error: "Informe um e-mail válido." });
-    }
+    // ✅ validação básica
+    if (!nome || nome.length < 3) return json(400, { ok: false, error: "Informe seu nome." });
+    if (!cidade) return json(400, { ok: false, error: "Informe sua cidade." });
+    if (!whatsapp || whatsapp.length < 8) return json(400, { ok: false, error: "Informe seu WhatsApp." });
+    if (!email || !email.includes("@")) return json(400, { ok: false, error: "Informe um e-mail válido." });
+    if (!perfil || perfil.length < 10) return json(400, { ok: false, error: "Descreva seu perfil (mínimo 10 caracteres)." });
 
-    // ✅ ENV do Zoho
+    // ✅ ENV do Zoho (server-only)
     const HOST = process.env.ZOHO_SMTP_HOST;
     const PORT = process.env.ZOHO_SMTP_PORT;
-    const USER = process.env.ZOHO_SMTP_USER; // contato@classilagos.shop
+    const USER = process.env.ZOHO_SMTP_USER; // contato@classilagos.shop (mailbox real)
     const PASS = process.env.ZOHO_SMTP_PASS;
 
     const missing = [];
@@ -41,24 +40,28 @@ export async function POST(req) {
     if (!PASS) missing.push("ZOHO_SMTP_PASS");
 
     if (missing.length) {
-      return j(500, { ok: false, error: `SMTP não configurado. Faltando: ${missing.join(", ")}` });
+      return json(500, {
+        ok: false,
+        error: `Servidor de e-mail não configurado. Faltando: ${missing.join(", ")}`,
+      });
     }
 
     const portNum = Number(PORT);
-    const secure = portNum === 465;
+    const secure = portNum === 465; // 465 SSL, 587 STARTTLS
 
     const transporter = nodemailer.createTransport({
       host: HOST,
       port: portNum,
       secure,
       auth: { user: USER, pass: PASS },
+      // ✅ ajuda muito em Vercel + Zoho
       tls: { rejectUnauthorized: false },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000,
     });
 
-    // ✅ Entrega garantida: manda para o USER real
+    // ✅ entrega garantida (não depende de alias)
     const TO = USER;
 
     const subject = `[Classilagos • Correspondente] ${cidade} — ${nome}`;
@@ -87,10 +90,10 @@ ${ideias || "-"}
       text: textoEmail,
     });
 
-    return j(200, { ok: true, message: "Candidatura enviada com sucesso." });
+    return json(200, { ok: true, message: "Candidatura enviada com sucesso." });
   } catch (error) {
     console.error("ERRO CORRESPONDENTES:", error);
-    return j(500, { ok: false, error: "Erro ao enviar candidatura." });
+    return json(500, { ok: false, error: "Erro ao enviar candidatura." });
   }
 }
 
