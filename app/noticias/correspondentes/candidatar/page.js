@@ -15,6 +15,45 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
+function TermoBox() {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <p className="text-[11px] font-extrabold text-slate-900 uppercase tracking-wide">
+          Termo de Adesão e Responsabilidade
+        </p>
+        <Link
+          href="/noticias/correspondentes/termo"
+          className="text-[11px] font-semibold text-sky-700 underline"
+        >
+          Abrir versão completa →
+        </Link>
+      </div>
+
+      {/* Caixa rolável do termo (resumo) */}
+      <div className="max-h-48 overflow-auto rounded-2xl border border-slate-200 bg-white p-3 text-[12px] text-slate-700 leading-relaxed">
+        <p className="font-semibold text-slate-900">Resumo do termo</p>
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>Participação autônoma, sem vínculo empregatício com o Classilagos.</li>
+          <li>Conteúdos passam por curadoria editorial (podem ser ajustados ou recusados).</li>
+          <li>Linha editorial: cultura, turismo, comércio tradicional e histórias locais.</li>
+          <li>Proibido: violência, sensacionalismo e política partidária.</li>
+          <li>
+            Quando houver remuneração, aplica-se comissão <strong>70% (correspondente) / 30% (Classilagos)</strong>,
+            mediante acordo prévio.
+          </li>
+          <li>O correspondente autoriza publicação e divulgação do conteúdo no Classilagos.</li>
+          <li>Sem indenização por conteúdos não publicados; regras completas na página do termo.</li>
+        </ul>
+      </div>
+
+      <p className="text-[11px] text-slate-500">
+        Dica: você confirma o aceite marcando a opção abaixo antes de enviar sua candidatura.
+      </p>
+    </div>
+  );
+}
+
 export default function CandidatarCorrespondentePage() {
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("Maricá");
@@ -24,6 +63,7 @@ export default function CandidatarCorrespondentePage() {
   const [perfil, setPerfil] = useState("");
   const [ideias, setIdeias] = useState("");
   const [aceitaRegras, setAceitaRegras] = useState(false);
+  const [aceitaTermo, setAceitaTermo] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
@@ -34,7 +74,8 @@ export default function CandidatarCorrespondentePage() {
     whatsapp.trim().length >= 8 &&
     email.trim().length >= 6 &&
     perfil.trim().length >= 10 &&
-    aceitaRegras;
+    aceitaRegras &&
+    aceitaTermo;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -82,8 +123,8 @@ export default function CandidatarCorrespondentePage() {
           </h1>
 
           <p className="text-sm text-slate-600">
-            Envie sua candidatura. A equipe do Classilagos fará a curadoria
-            e entrará em contato.
+            Envie sua candidatura. A equipe do Classilagos fará a curadoria e
+            entrará em contato.
           </p>
 
           <div className="mt-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700">
@@ -179,14 +220,29 @@ export default function CandidatarCorrespondentePage() {
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
               />
 
-              <label className="flex gap-2 text-xs text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={aceitaRegras}
-                  onChange={(e) => setAceitaRegras(e.target.checked)}
-                />
-                Concordo com a diretriz editorial
-              </label>
+              {/* TERMO */}
+              <TermoBox />
+
+              {/* CHECKBOXES */}
+              <div className="space-y-2">
+                <label className="flex gap-2 text-xs text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={aceitaRegras}
+                    onChange={(e) => setAceitaRegras(e.target.checked)}
+                  />
+                  Concordo com a diretriz editorial
+                </label>
+
+                <label className="flex gap-2 text-xs text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={aceitaTermo}
+                    onChange={(e) => setAceitaTermo(e.target.checked)}
+                  />
+                  Li e aceito o Termo de Adesão e Responsabilidade
+                </label>
+              </div>
 
               {erro && <p className="text-xs text-red-600">{erro}</p>}
 
@@ -210,6 +266,12 @@ export default function CandidatarCorrespondentePage() {
                   Voltar
                 </Link>
               </div>
+
+              {!aceitaTermo && (
+                <p className="text-[11px] text-slate-500">
+                  Para enviar, é necessário marcar o aceite do termo.
+                </p>
+              )}
             </form>
           )}
         </div>
