@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import HeroCarousel from "./components/HeroCarousel";
-import BannerRotator from "./components/BannerRotator";
-import SmartSelect from "./components/SmartSelect";
+
+import HeroCarousel from "../components/HeroCarousel";
+import BannerRotator from "../components/BannerRotator";
+import SmartSelect from "../components/SmartSelect";
+
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "./supabaseClient";
+
+import { supabase } from "../supabaseClient";
+
 
 export default function Home() {
   const router = useRouter();
