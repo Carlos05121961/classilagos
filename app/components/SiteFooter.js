@@ -36,7 +36,7 @@ export default function SiteFooter() {
             <Link href="/como-anunciar" className="hover:text-white transition">
               Como anunciar
             </Link>
-            <Link href="/fale-conosco" className="hover:text-white transition font-semibold">
+            <Link href="/faleconosco" className="hover:text-white transition font-semibold">
               Fale conosco
             </Link>
             <Link href="/termos-de-uso" className="hover:text-white transition">
