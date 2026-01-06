@@ -11,7 +11,6 @@ import SmartSelect from "../components/SmartSelect";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { supabase } from "../supabaseClient";
 
 
