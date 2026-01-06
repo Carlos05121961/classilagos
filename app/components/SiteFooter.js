@@ -36,7 +36,7 @@ export default function SiteFooter() {
             <Link href="/como-anunciar" className="hover:text-white transition">
               Como anunciar
             </Link>
-            <Link href="/faleconosco" className="hover:text-white transition font-semibold">
+            <Link href="/fale-conosco" className="hover:text-white transition font-semibold">
               Fale conosco
             </Link>
             <Link href="/termos-de-uso" className="hover:text-white transition">
@@ -61,7 +61,7 @@ export default function SiteFooter() {
                 href="mailto:fale-conosco@classilagos.shop"
                 className="inline-flex items-center gap-2 hover:text-white transition"
               >
-                ✉️ <span>fale-conosco@classilagos.shop</span>
+                ✉️ <span>faleconosco@classilagos.shop</span>
               </a>
 
               <a
