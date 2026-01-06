@@ -11,17 +11,17 @@ export default function PortalLanding() {
         <div className="relative w-full max-w-[1536px] aspect-[16/9]">
           <Image
             src="/branding/30anos-classilagos-shop.png"
-            alt="classilagos.shop – 30 anos"
+            alt="classilagos.shop — 30 anos"
             fill
             priority
             quality={100}
             sizes="100vw"
-            style={{ objectFit: "contain" }}
+            className="object-contain"
           />
 
-          {/* ÁREA CLICÁVEL — Entrar no portal */}
+          {/* ÁREA CLICÁVEL — ENTRAR NO PORTAL */}
           <Link
-            href="/"
+            href="/home"
             aria-label="Entrar no portal"
             className="absolute"
             style={{
@@ -32,9 +32,9 @@ export default function PortalLanding() {
             }}
           />
 
-          {/* ÁREA CLICÁVEL — Cadastro */}
+          {/* ÁREA CLICÁVEL — ANUNCIAR GRÁTIS (LAGOLISTAS) */}
           <Link
-            href="/cadastro"
+            href="/lagolistas"
             aria-label="Cadastre seu negócio gratuitamente"
             className="absolute"
             style={{
