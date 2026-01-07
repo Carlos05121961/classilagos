@@ -4,26 +4,32 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function MobileAnunciarBar() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
 
-  // ✅ Agora a barra PODE aparecer na Home:
-  // - "/" (caso você use a root)
-  // - "/home" (que é o que você usa hoje no mobile)
+  // ✅ Não mostra na home (tanto "/" quanto "/home")
   const isHome = pathname === "/" || pathname === "/home";
+  if (isHome) return null;
 
-  // ✅ Páginas/fluxos onde NÃO queremos a barra (pra não atrapalhar)
-  // Usamos "startsWith" para cobrir rotas filhas (ex: /anunciar/imoveis)
+  // ✅ Páginas/fluxos onde NÃO queremos a barra (já tem CTA ou é área logada)
+  // Usamos "startsWith" pra cobrir rotas filhas (ex: /anunciar/..., /painel/...)
   const hiddenPrefixes = [
-    "/anunciar", // todo o fluxo de anunciar
+    "/anunciar",
     "/login",
     "/cadastro",
-    "/painel",   // área logada já tem ações
-    "/admin",    // admin
+    "/painel",
+    "/admin",
+    "/imoveis",
+    "/veiculos",
+    "/nautica",
+    "/pets",
+    "/empregos",
+    "/servicos",
+    "/turismo",
+    "/lagolistas",
+    "/noticias",
   ];
 
-  const shouldHide =
-    !isHome && hiddenPrefixes.some((p) => pathname?.startsWith(p));
-
+  const shouldHide = hiddenPrefixes.some((p) => pathname.startsWith(p));
   if (shouldHide) return null;
 
   return (
@@ -39,35 +45,15 @@ export default function MobileAnunciarBar() {
           </span>
         </div>
 
-        {/* BOTÃO ANUNCIE GRÁTIS — PREMIUM */}
+        {/* Botão */}
         <Link
           href="/anunciar"
-          className="
-            inline-flex
-            items-center
-            gap-1.5
-            rounded-full
-            bg-gradient-to-r
-            from-cyan-500
-            to-sky-500
-            text-white
-            text-[11px]
-            px-4
-            py-1.5
-            font-semibold
-            shadow-md
-            hover:from-cyan-600
-            hover:to-sky-600
-            pulse-strong
-          "
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-sky-500 text-white text-[11px] px-4 py-1.5 font-semibold shadow-md hover:from-cyan-600 hover:to-sky-600"
         >
           <span className="text-sm">📣</span>
           <span>Anuncie grátis</span>
         </Link>
       </div>
-
-      {/* ✅ espaço pra não cobrir o conteúdo no fim da página */}
-      <div className="h-2" />
     </div>
   );
 }
