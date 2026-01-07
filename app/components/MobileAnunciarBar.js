@@ -6,30 +6,29 @@ import { usePathname } from "next/navigation";
 export default function MobileAnunciarBar() {
   const pathname = usePathname();
 
-  // Não mostra na home
-  if (pathname === "/") return null;
+  // ✅ Agora a barra PODE aparecer na Home:
+  // - "/" (caso você use a root)
+  // - "/home" (que é o que você usa hoje no mobile)
+  const isHome = pathname === "/" || pathname === "/home";
 
-  // Páginas onde NÃO queremos a barra (já tem CTA forte no topo)
-  const hiddenPaths = [
-    "/anunciar",
-    "/anunciar/formulario",
-    "/imoveis",
-    "/veiculos",
-    "/nautica",
-    "/pets",
-    "/empregos",
-    "/servicos",
-    "/turismo",
-    "/lagolistas",
-    "/noticias",
+  // ✅ Páginas/fluxos onde NÃO queremos a barra (pra não atrapalhar)
+  // Usamos "startsWith" para cobrir rotas filhas (ex: /anunciar/imoveis)
+  const hiddenPrefixes = [
+    "/anunciar", // todo o fluxo de anunciar
+    "/login",
+    "/cadastro",
+    "/painel",   // área logada já tem ações
+    "/admin",    // admin
   ];
 
-  if (hiddenPaths.includes(pathname)) return null;
+  const shouldHide =
+    !isHome && hiddenPrefixes.some((p) => pathname?.startsWith(p));
+
+  if (shouldHide) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-lg shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
-
         {/* Texto da barra */}
         <div className="flex flex-col leading-tight max-w-[60%]">
           <span className="text-[11px] font-semibold text-slate-800">
@@ -40,7 +39,7 @@ export default function MobileAnunciarBar() {
           </span>
         </div>
 
-        {/* BOTÃO ANUNCIE GRÁTIS — GRADIENTE + ÍCONE + PULSE PREMIUM */}
+        {/* BOTÃO ANUNCIE GRÁTIS — PREMIUM */}
         <Link
           href="/anunciar"
           className="
@@ -66,6 +65,10 @@ export default function MobileAnunciarBar() {
           <span>Anuncie grátis</span>
         </Link>
       </div>
+
+      {/* ✅ espaço pra não cobrir o conteúdo no fim da página */}
+      <div className="h-2" />
     </div>
   );
 }
+
