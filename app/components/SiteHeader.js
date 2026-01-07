@@ -92,9 +92,7 @@ export default function SiteHeader() {
         </Link>
 
         {/* MENU DESKTOP (1 linha, sem quebrar) */}
-       <nav className="hidden md:flex items-center justify-center gap-4 text-[12.5px] font-semibold min-w-0 overflow-hidden px-6">
-
-
+        <nav className="hidden md:flex items-center justify-center gap-4 text-[12.5px] font-semibold min-w-0 overflow-hidden px-6">
           {categorias.map((c) => (
             <Link
               key={c.href}
@@ -111,7 +109,6 @@ export default function SiteHeader() {
           >
             Notícias
           </Link>
-
 
           {isAdmin && (
             <Link
@@ -137,8 +134,34 @@ export default function SiteHeader() {
           <UserMenu />
         </div>
 
-        {/* MOBILE */}
+        {/* ✅ MOBILE (CTA visível + conta + menu) */}
         <div className="flex items-center gap-2 md:hidden col-span-2 justify-end">
+          <Link
+            href="/anunciar"
+            className="
+              inline-flex
+              items-center
+              gap-1.5
+              rounded-full
+              bg-gradient-to-r
+              from-cyan-500
+              to-sky-500
+              text-white
+              text-[12px]
+              px-4
+              py-2
+              font-extrabold
+              shadow-md
+              hover:from-cyan-600
+              hover:to-sky-600
+              whitespace-nowrap
+            "
+            title="Anuncie grátis no Classilagos"
+          >
+            <span className="text-sm">📣</span>
+            <span>Anuncie grátis</span>
+          </Link>
+
           <UserMenu />
 
           <button
@@ -240,5 +263,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-
-
