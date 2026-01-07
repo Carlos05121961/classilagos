@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function PortalRedirect() {
-  redirect("/");
+export default function Page() {
+  redirect("/portal");
 }
