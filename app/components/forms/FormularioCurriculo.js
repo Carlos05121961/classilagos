@@ -43,11 +43,16 @@ export default function FormularioCurriculo() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // login
+  // login (blindado)
   useEffect(() => {
+    let alive = true;
     supabase.auth.getUser().then(({ data }) => {
+      if (!alive) return;
       if (!data.user) router.push("/login");
     });
+    return () => {
+      alive = false;
+    };
   }, [router]);
 
   const cidades = [
@@ -109,7 +114,6 @@ export default function FormularioCurriculo() {
       return;
     }
 
-    // limite recomendado (ajuste se quiser)
     const maxBytes = 1.5 * 1024 * 1024; // 1,5MB
     if (file.size > maxBytes) {
       setErro("A foto está muito pesada. Use uma imagem de até 1,5MB.");
@@ -128,8 +132,9 @@ export default function FormularioCurriculo() {
     setErro("");
     setSucesso("");
 
-    const { data } = await supabase.auth.getUser();
-    const user = data?.user;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       setErro("Você precisa estar logado para cadastrar seu currículo.");
@@ -137,7 +142,6 @@ export default function FormularioCurriculo() {
       return;
     }
 
-    // obrigatórios
     if (!nome || !cidade || !areaProfissional) {
       setErro("Preencha pelo menos Nome, Cidade e Área profissional.");
       return;
@@ -159,11 +163,11 @@ export default function FormularioCurriculo() {
       return;
     }
 
-    setUploading(true);
-
     let fotoUrl = null;
 
     try {
+      setUploading(true);
+
       const bucket = "anuncios";
 
       // Upload da foto (opcional)
@@ -171,20 +175,18 @@ export default function FormularioCurriculo() {
         const ext = fotoFile.name.split(".").pop();
         const path = `curriculos/${user.id}/foto-${Date.now()}.${ext}`;
 
-        const { error: uploadErroFoto } = await supabase.storage
-          .from(bucket)
-          .upload(path, fotoFile);
+        const { error: uploadErroFoto } = await supabase.storage.from(bucket).upload(path, fotoFile);
 
         if (uploadErroFoto) {
           console.error("Erro upload foto currículo:", uploadErroFoto);
-          throw uploadErroFoto;
+          setErro("Não consegui enviar a foto. Tente outra imagem ou cadastre sem foto.");
+          return;
         }
 
         const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(path);
         fotoUrl = publicData?.publicUrl || null;
       }
 
-      // Monta título e descrição
       const titulo = `Currículo - ${nome}${areaProfissional ? ` (${areaProfissional})` : ""}`;
 
       const descricaoBase =
@@ -193,7 +195,6 @@ export default function FormularioCurriculo() {
         formacaoAcademica?.trim() ||
         "Currículo cadastrado no banco de talentos do Classilagos.";
 
-      // INSERT
       const { data: inserted, error: insertError } = await supabase
         .from("anuncios")
         .insert({
@@ -210,7 +211,7 @@ export default function FormularioCurriculo() {
           whatsapp: whatsapp || null,
           email: email || null,
 
-          // currículo (seu schema)
+          // currículo
           area_profissional: areaProfissional,
           escolaridade_minima: escolaridade || null,
           formacao_academica: formacaoAcademica || null,
@@ -218,7 +219,7 @@ export default function FormularioCurriculo() {
           habilidades: habilidades || null,
           idiomas: idiomas || null,
 
-          // foto
+          // foto (coluna específica)
           curriculo_foto_url: fotoUrl,
 
           status: "ativo",
@@ -230,13 +231,12 @@ export default function FormularioCurriculo() {
       if (insertError) {
         console.error("Erro ao inserir currículo:", insertError);
         setErro(`Erro ao salvar seu currículo: ${insertError.message || "Tente novamente."}`);
-        setUploading(false);
         return;
       }
 
       setSucesso("Currículo cadastrado com sucesso! Redirecionando…");
 
-      // limpa (opcional — vou manter, mas o redirect acontece rápido)
+      // limpa (opcional)
       setNome("");
       setCidade("");
       setBairro("");
@@ -260,8 +260,6 @@ export default function FormularioCurriculo() {
     } catch (err) {
       console.error(err);
       setErro(`Erro ao salvar seu currículo: ${err?.message || "Tente novamente."}`);
-      setUploading(false);
-      return;
     } finally {
       setUploading(false);
     }
@@ -307,9 +305,7 @@ export default function FormularioCurriculo() {
 
           <div className="grid gap-3 md:grid-cols-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Idade (opcional)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Idade (opcional)</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -338,9 +334,7 @@ export default function FormularioCurriculo() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Bairro / Região
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -374,9 +368,7 @@ export default function FormularioCurriculo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Escolaridade
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Escolaridade</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -387,9 +379,7 @@ export default function FormularioCurriculo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Formação acadêmica / cursos
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Formação acadêmica / cursos</label>
             <textarea
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
               value={formacaoAcademica}
@@ -399,9 +389,7 @@ export default function FormularioCurriculo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Experiências profissionais
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Experiências profissionais</label>
             <textarea
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-emerald-400"
               value={experienciasProf}
@@ -412,9 +400,7 @@ export default function FormularioCurriculo() {
 
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Habilidades / competências
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Habilidades / competências</label>
               <textarea
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 value={habilidades}
@@ -424,9 +410,7 @@ export default function FormularioCurriculo() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Resumo profissional
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Resumo profissional</label>
               <textarea
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 value={resumo}
@@ -437,9 +421,7 @@ export default function FormularioCurriculo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Idiomas (se houver)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Idiomas (se houver)</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -457,11 +439,7 @@ export default function FormularioCurriculo() {
             <div className="aspect-square flex items-center justify-center text-[11px] text-slate-500">
               {fotoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={fotoPreview}
-                  alt="Preview da foto"
-                  className="h-full w-full object-cover bg-white"
-                />
+                <img src={fotoPreview} alt="Preview da foto" className="h-full w-full object-cover bg-white" />
               ) : (
                 "Sem foto"
               )}
