@@ -69,14 +69,15 @@ export default function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-[auto,1fr,auto] items-center gap-4">
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0">
-          <Image
-            src="/logo-classilagos-shop.png"
-            alt="Classilagos"
-            width={220}
-            height={70}
-            priority
-            className="w-[150px] sm:w-[170px] md:w-[190px]"
-          />
+<Image
+  src="/logo-classilagos-shop.png"
+  alt="Classilagos"
+  width={260}
+  height={80}
+  priority
+  className="max-h-[64px] w-auto"
+ />
+
         </Link>
 
         {/* MENU DESKTOP */}
