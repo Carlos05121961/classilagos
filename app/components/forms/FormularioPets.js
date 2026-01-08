@@ -16,6 +16,19 @@ function isValidYoutubeUrl(url) {
   );
 }
 
+/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function FormularioPets() {
   const router = useRouter();
 
@@ -105,6 +118,22 @@ export default function FormularioPets() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previews]);
+
+  const limparFormulario = () => {
+    setTitulo("");
+    setDescricao("");
+    setCidade("");
+    setBairro("");
+    setSubcategoria("");
+    setPreco("");
+    setArquivos([]);
+    setVideoUrl("");
+    setNomeContato("");
+    setTelefone("");
+    setWhatsapp("");
+    setEmail("");
+    setAceitoTermos(false);
+  };
 
   const enviarAnuncio = async (e) => {
     e.preventDefault();
@@ -204,6 +233,7 @@ export default function FormularioPets() {
 
         // específicos de pets
         subcategoria_pet: subcategoria,
+
         // compatibilidade com motores/buscas existentes
         tipo_imovel: subcategoria,
 
@@ -224,36 +254,12 @@ export default function FormularioPets() {
 
     setSucesso("Anúncio de pets enviado com sucesso! Redirecionando…");
 
-    // ✅ Redireciona para a página do anúncio novo (padrão)
     setTimeout(() => {
       router.push(`/anuncios/${data.id}`);
     }, 1200);
 
-    // Limpa formulário (opcional — se você quiser manter preenchido, eu tiro)
-    setTitulo("");
-    setDescricao("");
-    setCidade("");
-    setBairro("");
-    setSubcategoria("");
-    setPreco("");
-    setArquivos([]);
-    setVideoUrl("");
-    setNomeContato("");
-    setTelefone("");
-    setWhatsapp("");
-    setEmail("");
-    setAceitoTermos(false);
+    limparFormulario();
   };
-
-  const Card = ({ title, subtitle, children }) => (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <form onSubmit={enviarAnuncio} className="space-y-4">
@@ -304,10 +310,7 @@ export default function FormularioPets() {
       </Card>
 
       {/* PRINCIPAL */}
-      <Card
-        title="Informações do anúncio"
-        subtitle="Título bom + descrição clara = mais contatos no WhatsApp."
-      >
+      <Card title="Informações do anúncio" subtitle="Título bom + descrição clara = mais contatos no WhatsApp.">
         <div className="space-y-3">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700">
@@ -361,9 +364,7 @@ export default function FormularioPets() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Bairro / Região
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -403,9 +404,7 @@ export default function FormularioPets() {
         {arquivos.length > 0 && (
           <>
             <div className="mt-2 flex items-center justify-between">
-              <p className="text-[11px] text-slate-500">
-                {arquivos.length} arquivo(s) selecionado(s).
-              </p>
+              <p className="text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
               <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
             </div>
 
@@ -441,9 +440,7 @@ export default function FormularioPets() {
 
       {/* VÍDEO */}
       <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
-        <label className="block text-[11px] font-semibold text-slate-700">
-          URL do vídeo (YouTube)
-        </label>
+        <label className="block text-[11px] font-semibold text-slate-700">URL do vídeo (YouTube)</label>
         <input
           type="text"
           className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -457,9 +454,7 @@ export default function FormularioPets() {
       <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
         <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Nome para contato
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Nome para contato</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -541,4 +536,3 @@ export default function FormularioPets() {
     </form>
   );
 }
-
