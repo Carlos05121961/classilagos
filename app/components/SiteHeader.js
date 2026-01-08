@@ -72,10 +72,10 @@ export default function SiteHeader() {
 <Image
   src="/logo-classilagos-shop.png"
   alt="Classilagos"
-  width={260}
-  height={80}
+  width={300}
+  height={90}
   priority
-  className="max-h-[64px] w-auto"
+  className="max-h-[80px] w-auto"
  />
 
         </Link>
