@@ -96,6 +96,69 @@ export default function EditarAnuncioPage() {
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
 
+  // ✅ FOTOS (upload no editar)
+const MAX_IMAGENS = 8;
+const BUCKET_IMAGENS = "anuncios";
+
+const [imagens, setImagens] = useState([]);      // URLs que já estão salvas no anúncio
+const [novasFiles, setNovasFiles] = useState([]); // arquivos escolhidos agora
+const [uploading, setUploading] = useState(false);
+
+function removerImagem(url) {
+  setImagens((prev) => prev.filter((u) => u !== url));
+}
+
+async function uploadNovasImagens() {
+  if (!novasFiles?.length) return [];
+
+  // limita total (existentes + novas)
+  const vagas = Math.max(0, MAX_IMAGENS - (imagens?.length || 0));
+  if (vagas <= 0) {
+    setErro(`Você já atingiu o limite de ${MAX_IMAGENS} fotos.`);
+    return [];
+  }
+
+  const filesParaUpload = novasFiles.slice(0, vagas);
+
+  setUploading(true);
+  setErro("");
+
+  try {
+    const urls = [];
+
+    for (const file of filesParaUpload) {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const safeName = (file.name || "foto").replace(/[^\w.-]+/g, "_");
+      const path = `${anuncioId}/${Date.now()}-${Math.random().toString(16).slice(2)}-${safeName}`;
+
+      const { error: upErr } = await supabase
+        .storage
+        .from(BUCKET_IMAGENS)
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type || `image/${ext}`,
+        });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from(BUCKET_IMAGENS).getPublicUrl(path);
+      if (data?.publicUrl) urls.push(data.publicUrl);
+    }
+
+    // limpa seleção depois do upload
+    setNovasFiles([]);
+    return urls;
+  } catch (e) {
+    console.error("Erro upload imagens:", e);
+    setErro("Não foi possível enviar as fotos agora. Tente novamente.");
+    return [];
+  } finally {
+    setUploading(false);
+  }
+}
+
+
   // Form (base + campos avançados)
   const [form, setForm] = useState({
     // base
