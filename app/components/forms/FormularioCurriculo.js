@@ -10,6 +10,56 @@ function isValidEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
+// ✅ Card fora do componente (evita remount a cada render)
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ✅ listas fora (estabilidade + organização)
+const CIDADES = [
+  "Maricá",
+  "Saquarema",
+  "Araruama",
+  "Iguaba Grande",
+  "São Pedro da Aldeia",
+  "Arraial do Cabo",
+  "Cabo Frio",
+  "Búzios",
+  "Rio das Ostras",
+];
+
+const AREAS = [
+  "Administração",
+  "Atendimento / Caixa",
+  "Comércio / Vendas",
+  "Construção civil",
+  "Serviços gerais",
+  "Educação",
+  "Saúde",
+  "Hotelaria / Turismo",
+  "Motorista / Entregador",
+  "TI / Informática",
+  "Beleza / Estética",
+  "Gastronomia / Cozinha",
+  "Limpeza / Conservação",
+  "Segurança / Portaria",
+  "Financeiro / Contábil",
+  "Marketing / Mídias sociais",
+  "Logística / Estoque",
+  "Telemarketing / Call Center",
+  "Industrial / Produção",
+  "Autônomo / Freelancer",
+  "Outros",
+];
+
 export default function FormularioCurriculo() {
   const router = useRouter();
 
@@ -36,60 +86,19 @@ export default function FormularioCurriculo() {
   // Foto do currículo
   const [fotoFile, setFotoFile] = useState(null);
 
-  // Checkbox de confirmação
+  // Checkbox
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // login (blindado)
+  // login
   useEffect(() => {
-    let alive = true;
     supabase.auth.getUser().then(({ data }) => {
-      if (!alive) return;
       if (!data.user) router.push("/login");
     });
-    return () => {
-      alive = false;
-    };
   }, [router]);
-
-  const cidades = [
-    "Maricá",
-    "Saquarema",
-    "Araruama",
-    "Iguaba Grande",
-    "São Pedro da Aldeia",
-    "Arraial do Cabo",
-    "Cabo Frio",
-    "Búzios",
-    "Rio das Ostras",
-  ];
-
-  const areas = [
-    "Administração",
-    "Atendimento / Caixa",
-    "Comércio / Vendas",
-    "Construção civil",
-    "Serviços gerais",
-    "Educação",
-    "Saúde",
-    "Hotelaria / Turismo",
-    "Motorista / Entregador",
-    "TI / Informática",
-    "Beleza / Estética",
-    "Gastronomia / Cozinha",
-    "Limpeza / Conservação",
-    "Segurança / Portaria",
-    "Financeiro / Contábil",
-    "Marketing / Mídias sociais",
-    "Logística / Estoque",
-    "Telemarketing / Call Center",
-    "Industrial / Produção",
-    "Autônomo / Freelancer",
-    "Outros",
-  ];
 
   // preview da foto
   const fotoPreview = useMemo(() => {
@@ -132,9 +141,8 @@ export default function FormularioCurriculo() {
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
 
     if (!user) {
       setErro("Você precisa estar logado para cadastrar seu currículo.");
@@ -163,11 +171,11 @@ export default function FormularioCurriculo() {
       return;
     }
 
+    setUploading(true);
+
     let fotoUrl = null;
 
     try {
-      setUploading(true);
-
       const bucket = "anuncios";
 
       // Upload da foto (opcional)
@@ -176,18 +184,13 @@ export default function FormularioCurriculo() {
         const path = `curriculos/${user.id}/foto-${Date.now()}.${ext}`;
 
         const { error: uploadErroFoto } = await supabase.storage.from(bucket).upload(path, fotoFile);
-
-        if (uploadErroFoto) {
-          console.error("Erro upload foto currículo:", uploadErroFoto);
-          setErro("Não consegui enviar a foto. Tente outra imagem ou cadastre sem foto.");
-          return;
-        }
+        if (uploadErroFoto) throw uploadErroFoto;
 
         const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(path);
         fotoUrl = publicData?.publicUrl || null;
       }
 
-      const titulo = `Currículo - ${nome}${areaProfissional ? ` (${areaProfissional})` : ""}`;
+      const tituloDb = `Currículo - ${nome}${areaProfissional ? ` (${areaProfissional})` : ""}`;
 
       const descricaoBase =
         resumo?.trim() ||
@@ -200,7 +203,7 @@ export default function FormularioCurriculo() {
         .insert({
           user_id: user.id,
           categoria: "curriculo",
-          titulo,
+          titulo: tituloDb,
           descricao: descricaoBase,
           cidade,
           bairro,
@@ -211,7 +214,6 @@ export default function FormularioCurriculo() {
           whatsapp: whatsapp || null,
           email: email || null,
 
-          // currículo
           area_profissional: areaProfissional,
           escolaridade_minima: escolaridade || null,
           formacao_academica: formacaoAcademica || null,
@@ -219,7 +221,6 @@ export default function FormularioCurriculo() {
           habilidades: habilidades || null,
           idiomas: idiomas || null,
 
-          // foto (coluna específica)
           curriculo_foto_url: fotoUrl,
 
           status: "ativo",
@@ -229,30 +230,11 @@ export default function FormularioCurriculo() {
         .single();
 
       if (insertError) {
-        console.error("Erro ao inserir currículo:", insertError);
         setErro(`Erro ao salvar seu currículo: ${insertError.message || "Tente novamente."}`);
         return;
       }
 
       setSucesso("Currículo cadastrado com sucesso! Redirecionando…");
-
-      // limpa (opcional)
-      setNome("");
-      setCidade("");
-      setBairro("");
-      setIdade("");
-      setAreaProfissional("");
-      setEscolaridade("");
-      setFormacaoAcademica("");
-      setExperienciasProf("");
-      setHabilidades("");
-      setIdiomas("");
-      setResumo("");
-      setTelefone("");
-      setWhatsapp("");
-      setEmail("");
-      setFotoFile(null);
-      setAceitoTermos(false);
 
       setTimeout(() => {
         router.push(`/anuncios/${inserted.id}`);
@@ -264,16 +246,6 @@ export default function FormularioCurriculo() {
       setUploading(false);
     }
   };
-
-  const Card = ({ title, subtitle, children }) => (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -325,7 +297,7 @@ export default function FormularioCurriculo() {
                 required
               >
                 <option value="">Selecione...</option>
-                {cidades.map((c) => (
+                {CIDADES.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -359,7 +331,7 @@ export default function FormularioCurriculo() {
               required
             >
               <option value="">Selecione...</option>
-              {areas.map((a) => (
+              {AREAS.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
@@ -496,9 +468,7 @@ export default function FormularioCurriculo() {
           </div>
         </div>
 
-        <p className="mt-2 text-[11px] text-slate-500">
-          Pelo menos um desses canais será exibido para empresas.
-        </p>
+        <p className="mt-2 text-[11px] text-slate-500">Pelo menos um desses canais será exibido para empresas.</p>
       </Card>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -510,8 +480,8 @@ export default function FormularioCurriculo() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações são verdadeiras e autorizo a exibição do meu currículo para empresas
-            na plataforma Classilagos.
+            Declaro que as informações são verdadeiras e autorizo a exibição do meu currículo para empresas na plataforma
+            Classilagos.
           </span>
         </label>
 
@@ -526,4 +496,3 @@ export default function FormularioCurriculo() {
     </form>
   );
 }
-
