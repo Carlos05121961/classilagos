@@ -25,6 +25,19 @@ function isValidYoutubeUrl(url) {
   );
 }
 
+/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function FormularioNautica() {
   const router = useRouter();
 
@@ -254,10 +267,8 @@ export default function FormularioNautica() {
         subcategoria_nautica: subcategoria,
         finalidade_nautica: finalidade,
 
-        // ✅ Campo genérico usado no site inteiro (ajuda cards e busca)
+        // Campo genérico do site
         tipo_imovel: subcategoria,
-
-        // ✅ Campo genérico (já usado em outros pilares)
         finalidade,
 
         marca_embarcacao: marcaEmbarcacao,
@@ -305,16 +316,6 @@ export default function FormularioNautica() {
       router.push(`/anuncios/${data.id}`);
     }, 1200);
   };
-
-  const Card = ({ title, subtitle, children }) => (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <form onSubmit={enviarAnuncio} className="space-y-4">
@@ -833,4 +834,3 @@ export default function FormularioNautica() {
     </form>
   );
 }
-
