@@ -11,6 +11,19 @@ function isValidEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
+// ✅ PREMIUM FIX: Card FORA do componente (evita perder foco ao digitar)
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function FormularioEmpregos() {
   const router = useRouter();
 
@@ -145,9 +158,7 @@ export default function FormularioEmpregos() {
         const ext = logo.name.split(".").pop();
         const path = `${user.id}/empregos-logo-${Date.now()}.${ext}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("anuncios")
-          .upload(path, logo);
+        const { error: uploadError } = await supabase.storage.from("anuncios").upload(path, logo);
 
         if (uploadError) {
           console.error("Erro ao fazer upload da logo:", uploadError);
@@ -161,7 +172,6 @@ export default function FormularioEmpregos() {
       }
 
       // ✅ importante: categoria consistente
-      // (se o resto do site usa "empregos", mantenha "empregos")
       const categoriaEmpregos = "empregos";
 
       const { data: inserted, error } = await supabase
@@ -216,16 +226,6 @@ export default function FormularioEmpregos() {
       setUploading(false);
     }
   };
-
-  const Card = ({ title, subtitle, children }) => (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <form onSubmit={enviarFormulario} className="space-y-4">
@@ -304,9 +304,7 @@ export default function FormularioEmpregos() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Modelo
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Modelo</label>
               <select
                 className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
                 value={modeloTrabalho}
@@ -320,9 +318,7 @@ export default function FormularioEmpregos() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Carga horária
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Carga horária</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -335,9 +331,7 @@ export default function FormularioEmpregos() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Faixa salarial
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Faixa salarial</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -348,9 +342,7 @@ export default function FormularioEmpregos() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Benefícios
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Benefícios</label>
               <textarea
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-sky-400"
                 placeholder="Vale-transporte, alimentação, plano de saúde..."
@@ -385,9 +377,7 @@ export default function FormularioEmpregos() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Bairro
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Bairro</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -428,15 +418,8 @@ export default function FormularioEmpregos() {
           </div>
 
           <div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              className="text-sm"
-            />
-            <p className="mt-2 text-[11px] text-slate-500">
-              JPG/PNG até 1,5MB. (Dica: logo quadrada fica mais bonita)
-            </p>
+            <input type="file" accept="image/*" onChange={handleLogoChange} className="text-sm" />
+            <p className="mt-2 text-[11px] text-slate-500">JPG/PNG até 1,5MB. (Dica: logo quadrada fica mais bonita)</p>
 
             {logo && (
               <button
@@ -455,9 +438,7 @@ export default function FormularioEmpregos() {
       <Card title="Dados de contato" subtitle="Pelo menos um meio será exibido (WhatsApp, telefone ou e-mail).">
         <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Nome do responsável
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Nome do responsável</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -514,8 +495,8 @@ export default function FormularioEmpregos() {
             onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
           />
           <span>
-            Declaro que todas as informações desta vaga são verdadeiras, estão de acordo com a legislação
-            vigente e que não há conteúdo discriminatório ou ilegal.
+            Declaro que todas as informações desta vaga são verdadeiras, estão de acordo com a legislação vigente e que
+            não há conteúdo discriminatório ou ilegal.
           </span>
         </label>
 
