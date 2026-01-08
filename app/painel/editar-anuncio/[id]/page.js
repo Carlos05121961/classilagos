@@ -637,6 +637,68 @@ async function uploadNovasImagens() {
                 </div>
               </section>
 
+{/* ✅ FOTOS DO ANÚNCIO */}
+<section className="space-y-3">
+  <h2 className="text-sm font-bold text-slate-900">Fotos do anúncio</h2>
+
+  {/* Fotos já salvas */}
+  {!!imagens?.length && (
+    <div>
+      <p className="text-[11px] font-semibold text-slate-700 mb-2">
+        Fotos atuais ({imagens.length}/{MAX_IMAGENS})
+      </p>
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {imagens.map((url) => (
+          <div key={url} className="relative rounded-xl overflow-hidden border border-slate-200 bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="Foto do anúncio" className="h-24 w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => removerImagem(url)}
+              className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[11px] px-2 py-1 hover:bg-black/75"
+              title="Remover esta foto"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-2 text-[11px] text-slate-500">
+        Dica: você pode remover fotos aqui e depois salvar.
+      </p>
+    </div>
+  )}
+
+  {/* Selecionar novas fotos */}
+  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+    <label className="text-[11px] font-semibold text-slate-700">
+      Adicionar novas fotos (até {MAX_IMAGENS} no total)
+    </label>
+
+    <input
+      type="file"
+      accept="image/*"
+      multiple
+      onChange={(e) => setNovasFiles(Array.from(e.target.files || []))}
+      className="mt-2 block w-full text-sm"
+    />
+
+    {!!novasFiles?.length && (
+      <p className="mt-2 text-[11px] text-slate-600">
+        Selecionadas agora: <strong>{novasFiles.length}</strong>
+      </p>
+    )}
+
+    <p className="mt-2 text-[11px] text-slate-500">
+      As fotos só são enviadas quando você clicar em <strong>Salvar alterações</strong>.
+    </p>
+  </div>
+</section>
+
+
+
               {/* IMÓVEIS */}
               {isImoveis && (
                 <section className="space-y-3">
