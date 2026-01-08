@@ -65,9 +65,8 @@ export default function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-[60] bg-white border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-[60] bg-white text-slate-900 border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-[auto,1fr,auto] items-center gap-4">
-
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0">
           <Image
@@ -81,19 +80,23 @@ export default function SiteHeader() {
         </Link>
 
         {/* MENU DESKTOP */}
-        <nav className="hidden md:flex items-center justify-center gap-4 text-[12.5px] font-semibold">
+        <nav className="hidden md:flex items-center justify-center gap-4 text-[12.5px] font-semibold text-slate-800">
           {categorias.map((c) => (
-            <Link key={c.href} href={c.href} className="hover:text-slate-600">
+            <Link
+              key={c.href}
+              href={c.href}
+              className="transition hover:text-slate-900"
+            >
               {c.label}
             </Link>
           ))}
 
-          <Link href="/noticias" className="hover:text-slate-600">
+          <Link href="/noticias" className="transition hover:text-slate-900">
             Notícias
           </Link>
 
           {isAdmin && (
-            <Link href="/admin" className="hover:text-slate-600">
+            <Link href="/admin" className="transition hover:text-slate-900">
               Administração
             </Link>
           )}
