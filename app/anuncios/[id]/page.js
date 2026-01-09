@@ -292,39 +292,41 @@ export default function AnuncioDetalhePage() {
   const isImoveis = anuncio.categoria === "imoveis";
 
 // Imagens
-const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
-const temImagens = imagens.length > 0;
+const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens.filter(Boolean) : [];
 
-// LOGO (novo campo) + compatibilidade com anúncios antigos
-const logoUrl = (anuncio.logo_url || "").toString().trim();
+// Detecta se o anúncio tem perfil "empresa" (revenda / imobiliária / corretor / negócio)
+const temPerfilEmpresa =
+  !!anuncio.imobiliaria ||
+  !!anuncio.corretor ||
+  !!anuncio.creci ||
+  !!anuncio.nome_negocio;
 
-// heurística simples e segura (não quebra nada)
+// Heurística simples: URL parece ser logo (nome ou tamanho típico)
 function pareceLogo(url) {
-  if (!url || typeof url !== "string") return false;
-  const u = url.toLowerCase();
-  return u.includes("logo") || u.includes("logomarca") || u.includes("marca");
+  const u = (url || "").toLowerCase();
+  return (
+    u.includes("logo") ||
+    u.includes("logomarca") ||
+    u.includes("marca") ||
+    u.includes("avatar") ||
+    u.includes("fachada") // opcional
+  );
 }
 
-// Se não tiver logo_url ainda, mas o anúncio for VEÍCULOS e a primeira imagem for logo,
-// tratamos como "logo legado" (para não virar capa)
+// Logo legado: quando a logo foi enviada como primeira imagem (caso antigo)
 const logoLegado =
-  !logoUrl && anuncio.categoria === "veiculos" && imagens.length > 0 && pareceLogo(imagens[0])
-    ? imagens[0]
-    : "";
+  temPerfilEmpresa && imagens.length > 0 && pareceLogo(imagens[0]) ? imagens[0] : "";
 
-// Galeria final: remove a logo (quando for veiculos)
-const galeriaFinal =
-  anuncio.categoria === "veiculos"
-    ? imagens.filter((u) => u && u !== logoLegado && !pareceLogo(u))
-    : imagens.filter(Boolean);
+// Galeria segura: remove logo da galeria quando for perfil empresa
+const galeriaSafe = temPerfilEmpresa
+  ? imagens.filter((u) => u && u !== logoLegado && !pareceLogo(u))
+  : imagens;
 
-// Se depois do filtro ficar vazio (caso extremo), volta pro array original
-const galeriaSafe = galeriaFinal.length > 0 ? galeriaFinal : imagens.filter(Boolean);
-
-const logoFinal = logoUrl || logoLegado;
+const temImagens = galeriaSafe.length > 0;
 
 // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
-const mostrarGaleria = galeriaSafe.length > 0 && !isCurriculo && !isEmprego;
+const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
+
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
