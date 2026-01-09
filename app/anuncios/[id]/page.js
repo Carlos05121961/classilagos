@@ -798,6 +798,22 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
                 Resumo do anúncio
               </h2>
 
+           {/* Logo da empresa (quando existir) */}
+{(logoFinal) && (
+  <div className="mb-3 flex items-center gap-3">
+    <img
+      src={logoFinal}
+      alt="Logomarca"
+      className="h-12 w-12 rounded-xl object-cover border border-slate-200 bg-white"
+    />
+    <div className="text-[11px] text-slate-600 leading-tight">
+      <p className="font-semibold text-slate-800">Logomarca</p>
+      <p className="text-slate-500">Empresa / Revenda</p>
+    </div>
+  </div>
+)}
+          
+              
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-700">
                 {anuncio.preco && (
                   <div>
