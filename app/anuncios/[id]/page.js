@@ -575,16 +575,16 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
             <div className="w-full flex justify-center">
               <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
                 <img
-                  src={imagens[fotoIndex]}
+                  src={galeriaSafe[fotoIndex]}
                   alt={anuncio.titulo}
                   className="w-full h-full object-cover object-center"
                 />
               </div>
             </div>
 
-            {imagens.length > 1 && (
+           {galeriaSafe.length > 1 && (
               <div className="w-full max-w-4xl mx-auto grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                {imagens.map((url, index) => (
+               {galeriaSafe.map((url, index) => ( 
                   <button
                     key={index}
                     type="button"
