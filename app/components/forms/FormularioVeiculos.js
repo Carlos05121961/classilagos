@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import ImageUploader from "@/app/components/ImageUploader";
+
 
 function onlyDigits(v) {
   return String(v || "").replace(/\D+/g, "");
