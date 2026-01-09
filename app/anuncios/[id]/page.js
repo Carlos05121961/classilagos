@@ -294,38 +294,51 @@ export default function AnuncioDetalhePage() {
 // Imagens
 const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens.filter(Boolean) : [];
 
-// Detecta se o anúncio tem perfil "empresa" (revenda / imobiliária / corretor / negócio)
+// Detecta "perfil empresa" (revenda / imobiliária / comércio)
+// ✅ Aqui incluí campos típicos de empresa + o cenário de VEÍCULOS (Loja/Revenda)
 const temPerfilEmpresa =
-  !!anuncio.imobiliaria ||
-  !!anuncio.corretor ||
-  !!anuncio.creci ||
-  !!anuncio.nome_negocio;
+  anuncio.categoria === "veiculos"
+    ? Boolean(
+        anuncio.loja_revenda ||
+          anuncio.lojaRevenda ||
+          anuncio.revendedor ||
+          anuncio.concessionaria ||
+          (typeof anuncio.nome_negocio === "string" && anuncio.nome_negocio.trim()) ||
+          (typeof anuncio.razao_social === "string" && anuncio.razao_social.trim()) ||
+          (typeof anuncio.cnpj === "string" && anuncio.cnpj.trim())
+      )
+    : Boolean(
+        (typeof anuncio.imobiliaria === "string" && anuncio.imobiliaria.trim()) ||
+          (typeof anuncio.corretor === "string" && anuncio.corretor.trim()) ||
+          (typeof anuncio.creci === "string" && anuncio.creci.trim()) ||
+          (typeof anuncio.nome_negocio === "string" && anuncio.nome_negocio.trim()) ||
+          (typeof anuncio.razao_social === "string" && anuncio.razao_social.trim()) ||
+          (typeof anuncio.cnpj === "string" && anuncio.cnpj.trim())
+      );
 
-// Heurística simples: URL parece ser logo (nome ou tamanho típico)
-function pareceLogo(url) {
-  const u = (url || "").toLowerCase();
-  return (
-    u.includes("logo") ||
-    u.includes("logomarca") ||
-    u.includes("marca") ||
-    u.includes("avatar") ||
-    u.includes("fachada") // opcional
-  );
-}
+// ✅ Logo "oficial" (se existir um campo separado no banco)
+const logoUrl = (anuncio.logo_url || anuncio.logo || "").toString().trim();
 
-// Logo legado: quando a logo foi enviada como primeira imagem (caso antigo)
-const logoLegado =
-  temPerfilEmpresa && imagens.length > 0 && pareceLogo(imagens[0]) ? imagens[0] : "";
+// ✅ Compatibilidade com anúncios antigos:
+// se for perfil empresa e NÃO tiver logoUrl, tratamos a 1ª imagem como logomarca
+const logoLegado = !logoUrl && temPerfilEmpresa && imagens.length > 0 ? imagens[0] : "";
 
-// Galeria segura: remove logo da galeria quando for perfil empresa
-const galeriaSafe = temPerfilEmpresa
-  ? imagens.filter((u) => u && u !== logoLegado && !pareceLogo(u))
-  : imagens;
+// ✅ Logo final que pode ser exibida no “lugar certo”
+const logoFinal = logoUrl || logoLegado;
+
+// ✅ Galeria segura: remove logo da galeria quando for perfil empresa
+const galeriaBase =
+  temPerfilEmpresa && imagens.length > 1
+    ? imagens.slice(1) // remove a 1ª (logo legado)
+    : imagens;
+
+const galeriaSafe = galeriaBase.length > 0 ? galeriaBase : imagens;
 
 const temImagens = galeriaSafe.length > 0;
 
 // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
 const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
+
 
 
   // Contatos
