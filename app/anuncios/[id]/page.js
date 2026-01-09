@@ -817,7 +817,7 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
     <img
       src={logoFinal}
       alt="Logomarca"
-      className="h-12 w-12 rounded-xl object-cover border border-slate-200 bg-white"
+      className="h-20 w-20 rounded-xl object-cover border border-slate-200 bg-white"
     />
     <div className="text-[11px] text-slate-600 leading-tight">
       <p className="font-semibold text-slate-800">Logomarca</p>
