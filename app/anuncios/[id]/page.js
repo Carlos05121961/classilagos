@@ -294,28 +294,26 @@ export default function AnuncioDetalhePage() {
 // Imagens
 const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens.filter(Boolean) : [];
 
-// Detecta "perfil empresa" (revenda / imobiliária / comércio)
-// ✅ Aqui incluí campos típicos de empresa + o cenário de VEÍCULOS (Loja/Revenda)
+// Detecta se o anúncio tem perfil "empresa" (revenda / imobiliária / comércio)
+// Regra: NÃO aplicar em Lagolistas (pra não duplicar lá)
 const temPerfilEmpresa =
   anuncio.categoria !== "lagolistas" &&
-  (
-    anuncio.categoria === "veiculos"
-      ? Boolean(
-          anuncio.loja_revenda ||
+  (anuncio.categoria === "veiculos"
+    ? Boolean(
+        anuncio.loja_revenda ||
           anuncio.lojaRevenda ||
           anuncio.revendedor ||
           anuncio.concessionaria ||
           (typeof anuncio.nome_negocio === "string" && anuncio.nome_negocio.trim()) ||
           (typeof anuncio.razao_social === "string" && anuncio.razao_social.trim()) ||
           (typeof anuncio.cnpj === "string" && anuncio.cnpj.trim())
-        )
-      : Boolean(
-          (typeof anuncio.imobiliaria === "string" && anuncio.imobiliaria.trim()) ||
+      )
+    : Boolean(
+        (typeof anuncio.imobiliaria === "string" && anuncio.imobiliaria.trim()) ||
           (typeof anuncio.corretor === "string" && anuncio.corretor.trim()) ||
           (typeof anuncio.creci === "string" && anuncio.creci.trim()) ||
           (typeof anuncio.nome_negocio === "string" && anuncio.nome_negocio.trim())
-        )
-  );
+      ));
 
           (typeof anuncio.razao_social === "string" && anuncio.razao_social.trim()) ||
           (typeof anuncio.cnpj === "string" && anuncio.cnpj.trim())
