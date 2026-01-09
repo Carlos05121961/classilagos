@@ -169,7 +169,7 @@ export default function AnuncioDetalhePage() {
         let q1 = supabase
           .from("anuncios")
           .select(campos)
-          .eq("categoria", "imoveis")
+          .eq("categoria", data.categoria)
           .neq("id", data.id)
           .order("destaque", { ascending: false })
           .order("created_at", { ascending: false })
