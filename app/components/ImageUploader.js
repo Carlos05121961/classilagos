@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { processAndUploadImages, IMAGE_RULES } from "@/app/lib/imageUpload";
+import { processAndUploadImages, IMAGE_RULES } from "../lib/imageUpload";
+
 
 export default function ImageUploader({
   supabase,
