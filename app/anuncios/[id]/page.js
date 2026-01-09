@@ -315,9 +315,6 @@ const temPerfilEmpresa =
           (typeof anuncio.nome_negocio === "string" && anuncio.nome_negocio.trim())
       ));
 
-          (typeof anuncio.razao_social === "string" && anuncio.razao_social.trim()) ||
-          (typeof anuncio.cnpj === "string" && anuncio.cnpj.trim())
-      );
 
 // ✅ Logo "oficial" (se existir um campo separado no banco)
 const logoUrl = (anuncio.logo_url || anuncio.logo || "").toString().trim();
