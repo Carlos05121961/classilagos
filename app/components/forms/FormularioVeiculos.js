@@ -45,6 +45,7 @@ export default function FormularioVeiculos() {
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
   const [isLojaRevenda, setIsLojaRevenda] = useState(false);
+  const [imagens, setImagens] = useState([]);
 
   // Campos básicos
   const [titulo, setTitulo] = useState("");
