@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
-import { processAndUploadImages, IMAGE_RULES } from "../lib/imageUpload";
+import ImageUploader from "../../components/ImageUploader";
+import { IMAGE_RULES } from "../../lib/imageUpload";
+
 
 
 function onlyDigits(v) {
