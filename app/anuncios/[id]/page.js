@@ -291,11 +291,40 @@ export default function AnuncioDetalhePage() {
   const isPets = anuncio.categoria === "pets";
   const isImoveis = anuncio.categoria === "imoveis";
 
-  // Imagens
-  const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
-  const temImagens = imagens.length > 0;
-  // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
-  const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
+// Imagens
+const imagens = Array.isArray(anuncio.imagens) ? anuncio.imagens : [];
+const temImagens = imagens.length > 0;
+
+// LOGO (novo campo) + compatibilidade com anúncios antigos
+const logoUrl = (anuncio.logo_url || "").toString().trim();
+
+// heurística simples e segura (não quebra nada)
+function pareceLogo(url) {
+  if (!url || typeof url !== "string") return false;
+  const u = url.toLowerCase();
+  return u.includes("logo") || u.includes("logomarca") || u.includes("marca");
+}
+
+// Se não tiver logo_url ainda, mas o anúncio for VEÍCULOS e a primeira imagem for logo,
+// tratamos como "logo legado" (para não virar capa)
+const logoLegado =
+  !logoUrl && anuncio.categoria === "veiculos" && imagens.length > 0 && pareceLogo(imagens[0])
+    ? imagens[0]
+    : "";
+
+// Galeria final: remove a logo (quando for veiculos)
+const galeriaFinal =
+  anuncio.categoria === "veiculos"
+    ? imagens.filter((u) => u && u !== logoLegado && !pareceLogo(u))
+    : imagens.filter(Boolean);
+
+// Se depois do filtro ficar vazio (caso extremo), volta pro array original
+const galeriaSafe = galeriaFinal.length > 0 ? galeriaFinal : imagens.filter(Boolean);
+
+const logoFinal = logoUrl || logoLegado;
+
+// Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
+const mostrarGaleria = galeriaSafe.length > 0 && !isCurriculo && !isEmprego;
 
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
