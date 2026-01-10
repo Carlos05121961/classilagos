@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 
@@ -10,15 +11,27 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
-  <body className="bg-slate-950 text-slate-50 overflow-x-hidden">
+      <head>
+        {/* Google Ads Tag (AW-17865509628) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17865509628"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17865509628');
+          `}
+        </Script>
+      </head>
 
+      <body className="bg-slate-950 text-slate-50 overflow-x-hidden">
         <SiteHeader />
-
         {children}
-
         <SiteFooter />
       </body>
     </html>
   );
 }
-
