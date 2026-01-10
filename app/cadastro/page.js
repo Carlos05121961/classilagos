@@ -5,7 +5,6 @@ import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
 // Tenta descobrir o webmail a partir do domínio do e-mail
-function getWebmailUrl(email) {
   const domain = email.split("@")[1]?.toLowerCase();
   if (!domain) return null;
 
@@ -124,12 +123,6 @@ export default function CadastroPage() {
     setConfirmarSenha("");
   }
 
-  function handleAbrirEmail() {
-    const url = getWebmailUrl(email);
-    if (url) {
-      window.open(url, "_blank");
-    }
-  }
 
   // NOVO → ao fechar o modal, redireciona para o index
   function handleFecharModal() {
