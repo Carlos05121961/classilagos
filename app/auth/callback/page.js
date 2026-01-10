@@ -1,57 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "../../supabaseClient";
+import { Suspense } from "react";
+import CallbackClient from "./CallbackClient";
 
 export default function AuthCallbackPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [msg, setMsg] = useState("Confirmando seu e-mail...");
-
-  useEffect(() => {
-    async function run() {
-      try {
-        const code = searchParams.get("code");
-
-        // Se não vier "code", manda pro login
-        if (!code) {
-          setMsg("Link inválido ou expirado. Indo para o login...");
-          router.replace("/login");
-          return;
-        }
-
-        // Troca o code por sessão (fica logado)
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-        if (error) {
-          console.error("exchangeCodeForSession error:", error);
-          setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
-          router.replace("/login");
-          return;
-        }
-
-        // Sucesso: vai logado pro painel
-        setMsg("E-mail confirmado! Entrando no seu painel...");
-        router.replace("/painel");
-      } catch (e) {
-        console.error(e);
-        setMsg("Erro inesperado. Indo para o login...");
-        router.replace("/login");
-      }
-    }
-
-    run();
-  }, [router, searchParams]);
-
   return (
-    <main className="min-h-[60vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
-        <h1 className="text-xl font-semibold text-slate-900 mb-2">
-          Confirmação de e-mail
-        </h1>
-        <p className="text-sm text-slate-600">{msg}</p>
-      </div>
-    </main>
+    <Suspense fallback={<div className="p-6 text-center">Confirmando…</div>}>
+      <CallbackClient />
+    </Suspense>
   );
 }
