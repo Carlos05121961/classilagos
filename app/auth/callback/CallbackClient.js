@@ -23,7 +23,6 @@ export default function CallbackClient() {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (error) {
-          console.error("exchangeCodeForSession error:", error);
           setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
           router.replace("/login");
           return;
@@ -31,8 +30,7 @@ export default function CallbackClient() {
 
         setMsg("E-mail confirmado! Entrando no seu painel...");
         router.replace("/painel");
-      } catch (e) {
-        console.error(e);
+      } catch {
         setMsg("Erro inesperado. Indo para o login...");
         router.replace("/login");
       }
