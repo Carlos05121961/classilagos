@@ -1,28 +1,57 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "../../supabaseClient";
 
-export default function EmailConfirmado() {
+export default function AuthCallbackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [msg, setMsg] = useState("Confirmando seu e-mail...");
+
   useEffect(() => {
-    console.log("E-mail confirmado pelo Supabase.");
-  }, []);
+    async function run() {
+      try {
+        const code = searchParams.get("code");
+
+        // Se não vier "code", manda pro login
+        if (!code) {
+          setMsg("Link inválido ou expirado. Indo para o login...");
+          router.replace("/login");
+          return;
+        }
+
+        // Troca o code por sessão (fica logado)
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error("exchangeCodeForSession error:", error);
+          setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
+          router.replace("/login");
+          return;
+        }
+
+        // Sucesso: vai logado pro painel
+        setMsg("E-mail confirmado! Entrando no seu painel...");
+        router.replace("/painel");
+      } catch (e) {
+        console.error(e);
+        setMsg("Erro inesperado. Indo para o login...");
+        router.replace("/login");
+      }
+    }
+
+    run();
+  }, [router, searchParams]);
 
   return (
-    <main className="max-w-md mx-auto px-4 py-16 text-center">
-      <h1 className="text-2xl font-bold mb-4">E-mail confirmado!</h1>
-
-      <p className="text-gray-700 mb-6">
-        Seu e-mail foi confirmado com sucesso.  
-        Agora você já pode entrar na sua conta e começar a anunciar.
-      </p>
-
-      <Link
-        href="/login"
-        className="inline-block px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition"
-      >
-        Ir para o Login
-      </Link>
+    <main className="min-h-[60vh] flex items-center justify-center px-4">
+      <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
+        <h1 className="text-xl font-semibold text-slate-900 mb-2">
+          Confirmação de e-mail
+        </h1>
+        <p className="text-sm text-slate-600">{msg}</p>
+      </div>
     </main>
   );
 }
