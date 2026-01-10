@@ -1,15 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👈 NOVO
+  const [checking, setChecking] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // ✅ Se já estiver logado, não mostra login: vai direto pro painel
+  useEffect(() => {
+    let active = true;
+
+    async function check() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!active) return;
+
+        if (user) {
+          router.replace("/painel");
+          return;
+        }
+
+        setChecking(false);
+      } catch {
+        if (active) setChecking(false);
+      }
+    }
+
+    check();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -22,7 +56,7 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
     });
@@ -30,9 +64,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      console.error("Erro no login:", error);
-
-      const msg = error.message.toLowerCase();
+      const msg = (error.message || "").toLowerCase();
 
       if (msg.includes("invalid login credentials")) {
         setErro("E-mail ou senha incorretos. Confira os dados e tente novamente.");
@@ -43,20 +75,29 @@ export default function LoginPage() {
       } else {
         setErro("Não foi possível fazer login agora. Tente novamente em instantes.");
       }
-
       return;
     }
 
-    // Login OK → agora vai para a PÁGINA INICIAL
-    window.location.href = "/";
+    // ✅ Login OK → vai pro painel
+    router.replace("/painel");
+  }
+
+  // ✅ Enquanto checa sessão, mostra só uma mensagem (evita “piscada” do form)
+  if (checking) {
+    return (
+      <main className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">Entrando…</h1>
+          <p className="text-sm text-slate-600">Verificando sua sessão.</p>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-md mx-auto bg-white shadow-lg rounded-2xl px-6 py-6">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">
-          Fazer login
-        </h1>
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Fazer login</h1>
         <p className="text-sm text-slate-600 mb-4">
           Acesse sua conta para gerenciar seus anúncios no Classilagos.
         </p>
@@ -68,12 +109,8 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* E-mail */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
               E-mail
             </label>
             <input
@@ -88,12 +125,8 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Senha com olho */}
           <div>
-            <label
-              htmlFor="senha"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="senha" className="block text-sm font-medium text-slate-700 mb-1">
               Senha
             </label>
 
@@ -118,16 +151,12 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-1 text-xs text-right">
-              <Link
-                href="/esqueci-senha"
-                className="text-cyan-600 hover:underline"
-              >
+              <Link href="/esqueci-senha" className="text-cyan-600 hover:underline">
                 Esqueci minha senha
               </Link>
             </div>
           </div>
 
-          {/* Botão */}
           <div className="pt-2">
             <button
               type="submit"
@@ -138,7 +167,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Link para cadastro */}
           <p className="text-xs text-slate-600 text-center mt-2">
             Ainda não tem conta?{" "}
             <Link href="/cadastro" className="text-cyan-600 font-semibold">
