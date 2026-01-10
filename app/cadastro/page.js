@@ -4,24 +4,6 @@ import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
-// Tenta descobrir o webmail a partir do domínio do e-mail
-  const domain = email.split("@")[1]?.toLowerCase();
-  if (!domain) return null;
-
-  const map = {
-    "gmail.com": "https://mail.google.com",
-    "outlook.com": "https://outlook.live.com/mail",
-    "hotmail.com": "https://outlook.live.com/mail",
-    "live.com": "https://outlook.live.com/mail",
-    "yahoo.com": "https://mail.yahoo.com",
-    "uol.com.br": "https://email.uol.com.br",
-    "bol.com.br": "https://email.bol.uol.com.br",
-    "icloud.com": "https://www.icloud.com/mail",
-  };
-
-  return map[domain] || `https://${domain}`;
-}
-
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
@@ -33,69 +15,46 @@ export default function CadastroPage() {
   const [maiorDeIdade, setMaiorDeIdade] = useState(false);
 
   const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState("");
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  function normalizeEmail(v) {
+    return String(v || "").trim().toLowerCase();
+  }
+
+  function normalizeWhatsapp(v) {
+    return String(v || "").replace(/\D/g, ""); // só números
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
-    setSucesso("");
     setShowModal(false);
 
-    // validações básicas
-    const partesNome = nome.trim().split(" ").filter(Boolean);
-    if (partesNome.length < 2) {
-      setErro("Por favor, informe nome e sobrenome.");
-      return;
-    }
+    const nomeLimpo = String(nome || "").trim();
+    const cidadeLimpa = String(cidade || "").trim();
+    const whatsappLimpo = normalizeWhatsapp(whatsapp);
+    const emailLimpo = normalizeEmail(email);
 
-    if (!cidade.trim()) {
-      setErro("Informe a cidade.");
-      return;
-    }
+    const partesNome = nomeLimpo.split(" ").filter(Boolean);
+    if (partesNome.length < 2) return setErro("Por favor, informe nome e sobrenome.");
+    if (!cidadeLimpa) return setErro("Informe a cidade.");
+    if (!whatsappLimpo) return setErro("Informe o WhatsApp (DDD + número).");
+    if (!emailLimpo) return setErro("Informe o e-mail.");
 
-    if (!whatsapp.trim()) {
-      setErro("Informe o WhatsApp.");
-      return;
-    }
+    if (senha.length < 6) return setErro("A senha deve ter pelo menos 6 caracteres.");
+    if (senha !== confirmarSenha) return setErro("A confirmação de senha não confere.");
 
-    if (!email.trim()) {
-      setErro("Informe o e-mail.");
-      return;
-    }
-
-    if (senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
-
-    if (senha !== confirmarSenha) {
-      setErro("A confirmação de senha não confere.");
-      return;
-    }
-
-    if (!maiorDeIdade) {
-      setErro("Você precisa confirmar que tem 18 anos ou mais.");
-      return;
-    }
-
-    if (!aceitaTermos) {
-      setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
-      return;
-    }
+    if (!maiorDeIdade) return setErro("Você precisa confirmar que tem 18 anos ou mais.");
+    if (!aceitaTermos) return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
+    const { error } = await supabase.auth.signUp({
+      email: emailLimpo,
       password: senha,
       options: {
-        data: {
-          nome,
-          cidade,
-          whatsapp,
-        },
+        data: { nome: nomeLimpo, cidade: cidadeLimpa, whatsapp: whatsappLimpo },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -105,7 +64,8 @@ export default function CadastroPage() {
     if (error) {
       console.error("Erro ao criar conta:", error);
 
-      if (error.message?.toLowerCase().includes("already registered")) {
+      const msg = String(error.message || "").toLowerCase();
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exist")) {
         setErro("Este e-mail já está cadastrado. Tente fazer login.");
       } else {
         setErro("Erro ao criar conta. Tente novamente em alguns instantes.");
@@ -113,28 +73,20 @@ export default function CadastroPage() {
       return;
     }
 
-    // deu certo: mensagem + modal
-    setSucesso(
-      "Enviamos um e-mail para você. Abra a caixa de entrada (e também Spam ou Promoções), procure pelo Classilagos e clique no botão para confirmar e ativar sua conta."
-    );
+    // sucesso: abre só o modal (sem botão de ir para o e-mail)
     setShowModal(true);
-
     setSenha("");
     setConfirmarSenha("");
   }
 
-
-function handleFecharModal() {
-  setShowModal(false);
-}
-
+  function handleFecharModal() {
+    setShowModal(false);
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 relative">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">
-          Criar conta
-        </h1>
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Criar conta</h1>
         <p className="text-sm text-slate-600 mb-4">
           Preencha seus dados para começar a anunciar no Classilagos.
         </p>
@@ -145,23 +97,10 @@ function handleFecharModal() {
           </div>
         )}
 
-        {sucesso && (
-          <div className="mb-4 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-3 text-sm text-emerald-900 flex gap-2">
-            <span className="mt-[2px]">✅</span>
-            <div>
-              <p className="font-semibold">Conta criada com sucesso!</p>
-              <p className="text-xs md:text-sm mt-1">{sucesso}</p>
-            </div>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nome */}
           <div>
-            <label
-              htmlFor="nome"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="nome" className="block text-sm font-medium text-slate-700 mb-1">
               Nome completo *
             </label>
             <input
@@ -177,10 +116,7 @@ function handleFecharModal() {
 
           {/* Cidade */}
           <div>
-            <label
-              htmlFor="cidade"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="cidade" className="block text-sm font-medium text-slate-700 mb-1">
               Cidade *
             </label>
             <input
@@ -196,10 +132,7 @@ function handleFecharModal() {
 
           {/* WhatsApp */}
           <div>
-            <label
-              htmlFor="whatsapp"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="whatsapp" className="block text-sm font-medium text-slate-700 mb-1">
               WhatsApp *
             </label>
             <input
@@ -215,10 +148,7 @@ function handleFecharModal() {
 
           {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
               E-mail *
             </label>
             <input
@@ -235,10 +165,7 @@ function handleFecharModal() {
           {/* Senhas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label
-                htmlFor="senha"
-                className="block text-sm font-medium text-slate-700 mb-1"
-              >
+              <label htmlFor="senha" className="block text-sm font-medium text-slate-700 mb-1">
                 Senha *
               </label>
               <input
@@ -250,6 +177,7 @@ function handleFecharModal() {
                 required
               />
             </div>
+
             <div>
               <label
                 htmlFor="confirmarSenha"
@@ -289,11 +217,11 @@ function handleFecharModal() {
               />
               <span>
                 Li e aceito os{" "}
-                <Link href="/termos" className="text-cyan-600 underline">
+                <Link href="/termos-de-uso" className="text-cyan-600 underline">
                   Termos de Uso
                 </Link>{" "}
                 e a{" "}
-                <Link href="/privacidade" className="text-cyan-600 underline">
+                <Link href="/politica-de-privacidade" className="text-cyan-600 underline">
                   Política de Privacidade
                 </Link>
                 .
@@ -321,39 +249,31 @@ function handleFecharModal() {
           </p>
         </form>
 
-        {/* MODAL */}
+        {/* MODAL (sem botão de abrir e-mail) */}
         {showModal && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
             <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
               <h2 className="text-lg font-semibold text-slate-900 mb-1">
                 Conta criada com sucesso! 🎉
               </h2>
+
               <p className="text-xs text-slate-600 mb-3">
                 Agora é só abrir seu e-mail, encontrar a mensagem do{" "}
-                <strong>Classilagos</strong> e clicar no botão de confirmação
-                para ativar a sua conta.
-              </p>
-              <p className="text-[11px] text-slate-500 mb-4">
-                Dica: se não aparecer na caixa de entrada, confira também as
-                pastas <strong>Spam</strong> e <strong>Promoções</strong>.
+                <strong>Classilagos</strong> e clicar no botão de confirmação para ativar a sua conta.
               </p>
 
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleAbrirEmail}
-                  className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
-                >
-                  Abrir meu e-mail
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFecharModal}
-                  className="w-full text-[11px] text-slate-500 mt-1"
-                >
-                  Fechar esta janela
-                </button>
-              </div>
+              <p className="text-[11px] text-slate-500 mb-4">
+                Dica: se não aparecer na caixa de entrada, confira também as pastas{" "}
+                <strong>Spam</strong> e <strong>Promoções</strong>.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleFecharModal}
+                className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
+              >
+                Fechar esta janela
+              </button>
             </div>
           </div>
         )}
