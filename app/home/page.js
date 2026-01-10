@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 
@@ -12,7 +10,6 @@ import SmartSelect from "../components/SmartSelect";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
-
 
 export default function Home() {
   const router = useRouter();
@@ -133,6 +130,9 @@ export default function Home() {
   const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
 
+  // GASTRONOMIA (fixo, sem dependência)
+  const guiaGastroHref = "/turismo?secao=onde_comer";
+
   // BUSCA
   const [q, setQ] = useState("");
   const [categoria, setCategoria] = useState("");
@@ -153,54 +153,49 @@ export default function Home() {
     }
   };
 
-// ✅ DESTAQUES — primeiro tenta destaque=true; se vazio, cai em recentes
-const [destaques, setDestaques] = useState([]);
-const [loadingDestaques, setLoadingDestaques] = useState(true);
+  // ✅ DESTAQUES — primeiro tenta destaque=true; se vazio, cai em recentes
+  const [destaques, setDestaques] = useState([]);
+  const [loadingDestaques, setLoadingDestaques] = useState(true);
 
-useEffect(() => {
-  let ativo = true;
+  useEffect(() => {
+    let ativo = true;
 
-  async function carregarDestaques() {
-    setLoadingDestaques(true);
+    async function carregarDestaques() {
+      setLoadingDestaques(true);
 
-    // 1) Tenta pegar destaques manuais
-    const { data: destacados, error: errDest } = await supabase
-      .from("anuncios")
-      .select("*")
-      .eq("destaque", true)
-      .order("prioridade", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(4);
-
-    if (!ativo) return;
-    if (errDest) console.error("Erro destaques:", errDest);
-
-    // 2) Se não tiver nenhum, pega os mais recentes (fallback)
-    if (!destacados || destacados.length === 0) {
-      const { data: recentes, error: errRec } = await supabase
+      const { data: destacados, error: errDest } = await supabase
         .from("anuncios")
         .select("*")
+        .eq("destaque", true)
+        .order("prioridade", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(4);
 
       if (!ativo) return;
-      if (errRec) console.error("Erro fallback recentes:", errRec);
+      if (errDest) console.error("Erro destaques:", errDest);
 
-      setDestaques(recentes || []);
+      if (!destacados || destacados.length === 0) {
+        const { data: recentes, error: errRec } = await supabase
+          .from("anuncios")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (!ativo) return;
+        if (errRec) console.error("Erro fallback recentes:", errRec);
+
+        setDestaques(recentes || []);
+        setLoadingDestaques(false);
+        return;
+      }
+
+      setDestaques(destacados);
       setLoadingDestaques(false);
-      return;
     }
 
-    setDestaques(destacados);
-    setLoadingDestaques(false);
-  }
-
-  carregarDestaques();
-  return () => {
-    ativo = false;
-  };
-}, []);
-
+    carregarDestaques();
+    return () => { ativo = false; };
+  }, []);
 
   // ✅ NOTÍCIAS (texto puro)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
@@ -231,84 +226,34 @@ useEffect(() => {
     return () => { ativo = false; };
   }, []);
 
-  // ✅ SERVIÇOS (rotativo com até 3 anúncios)
-  const [servicos, setServicos] = useState([]);
-  const [loadingServicos, setLoadingServicos] = useState(true);
-  const [servicoIndex, setServicoIndex] = useState(0);
+  // ✅ VITRINE PREMIUM — somente vitrine=true (curadoria manual)
+  const [vitrineItems, setVitrineItems] = useState([]);
+  const [loadingVitrine, setLoadingVitrine] = useState(true);
 
   useEffect(() => {
     let ativo = true;
 
-    async function carregarServicos() {
-      setLoadingServicos(true);
+    async function carregarVitrine() {
+      setLoadingVitrine(true);
 
       const { data, error } = await supabase
         .from("anuncios")
-        .select("id, created_at, titulo, cidade, categoria, imagens")
-        .eq("categoria", "servico")
+        .select("id, titulo, categoria, cidade, imagens, created_at, prioridade")
+        .eq("vitrine", true)
+        .order("prioridade", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(4);
 
       if (!ativo) return;
+      if (error) console.error("Erro vitrine:", error);
 
-      if (error) console.error("Erro serviços:", error);
-
-      setServicos(data || []);
-      setServicoIndex(0);
-      setLoadingServicos(false);
+      setVitrineItems(data || []);
+      setLoadingVitrine(false);
     }
 
-    carregarServicos();
+    carregarVitrine();
     return () => { ativo = false; };
   }, []);
-
-  useEffect(() => {
-    if (!servicos || servicos.length <= 1) return;
-
-    const t = setInterval(() => {
-      setServicoIndex((prev) => (prev + 1) % servicos.length);
-    }, 4500);
-
-    return () => clearInterval(t);
-  }, [servicos]);
-
-  const servicoAtual = useMemo(() => {
-    if (!servicos?.length) return null;
-    return servicos[Math.min(servicoIndex, servicos.length - 1)];
-  }, [servicos, servicoIndex]);
-
-// ✅ VITRINE PREMIUM — somente vitrine=true (curadoria manual)
-const [vitrineItems, setVitrineItems] = useState([]);
-const [loadingVitrine, setLoadingVitrine] = useState(true);
-
-useEffect(() => {
-  let ativo = true;
-
-  async function carregarVitrine() {
-    setLoadingVitrine(true);
-
-    const { data, error } = await supabase
-      .from("anuncios")
-      .select("id, titulo, categoria, cidade, imagens, created_at, prioridade")
-      .eq("vitrine", true)
-      .order("prioridade", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(4);
-
-    if (!ativo) return;
-    if (error) console.error("Erro vitrine:", error);
-
-    setVitrineItems(data || []);
-    setLoadingVitrine(false);
-  }
-
-  carregarVitrine();
-  return () => {
-    ativo = false;
-  };
-}, []);
-
-
 
   return (
     <main className="bg-white">
@@ -334,19 +279,17 @@ useEffect(() => {
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-            <h1
-  className="
-    text-2xl sm:text-3xl md:text-4xl font-extrabold
-    tracking-[0.08em] uppercase
-    text-amber-400
-    [text-shadow:0_6px_20px_rgba(0,0,0,0.85)]
-  "
->
-  Classilagos – Região dos Lagos <br />
-  em um só lugar
-</h1>
-
-
+              <h1
+                className="
+                  text-2xl sm:text-3xl md:text-4xl font-extrabold
+                  tracking-[0.08em] uppercase
+                  text-amber-400
+                  [text-shadow:0_6px_20px_rgba(0,0,0,0.85)]
+                "
+              >
+                Classilagos – Região dos Lagos <br />
+                em um só lugar
+              </h1>
             </div>
           </div>
         </HeroCarousel>
@@ -426,78 +369,76 @@ useEffect(() => {
         </div>
       </section>
 
-  {/* VITRINE PREMIUM */}
-<section className="bg-white -mt-2 pb-8">
-  <div className="max-w-7xl mx-auto px-4">
-    <div className="flex items-end justify-between gap-4 mb-3">
-      <div>
-        <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
-        <p className="text-[11px] text-slate-500">
-          Turismo • Temporada • Hospedagem • Mobilidade
-        </p>
-      </div>
+      {/* VITRINE PREMIUM */}
+      <section className="bg-white -mt-2 pb-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">Vitrine Premium</h2>
+              <p className="text-[11px] text-slate-500">
+                Turismo • Temporada • Hospedagem • Mobilidade
+              </p>
+            </div>
 
-      <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
-        Quero aparecer aqui →
-      </Link>
-    </div>
-
-    {loadingVitrine ? (
-      <p className="text-center text-slate-500">Carregando vitrine...</p>
-    ) : vitrineItems.length === 0 ? (
-      <p className="text-center text-slate-500">
-        Ainda não há itens na vitrine. Marque anúncios com vitrine=true no Supabase.
-      </p>
-    ) : (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {vitrineItems.map((c) => {
-          const thumb =
-            Array.isArray(c.imagens) && c.imagens[0]
-              ? c.imagens[0]
-              : "/banners/anuncio-01.png";
-
-          return (
-            <Link
-              key={c.id}
-              href={`/anuncios/${c.id}`}
-              className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-            >
-              <div className="relative h-28 bg-slate-100 overflow-hidden">
-                <img
-                  src={thumb}
-                  alt={c.titulo}
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
-                <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                  <span>{formatCategoria(c.categoria)}</span>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-                  {c.titulo}
-                </p>
-                <p className="mt-1 text-[12px] text-slate-600">{c.cidade}</p>
-                <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-                  Abrir agora →
-                </span>
-              </div>
+            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
+              Quero aparecer aqui →
             </Link>
-          );
-        })}
-      </div>
-    )}
+          </div>
 
-    <div className="mt-3 text-center sm:hidden">
-      <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-        Quero aparecer aqui →
-      </Link>
-    </div>
-  </div>
-</section>
+          {loadingVitrine ? (
+            <p className="text-center text-slate-500">Carregando vitrine...</p>
+          ) : vitrineItems.length === 0 ? (
+            <p className="text-center text-slate-500">
+              Ainda não há itens na vitrine. Marque anúncios com vitrine=true no Supabase.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {vitrineItems.map((c) => {
+                const thumb =
+                  Array.isArray(c.imagens) && c.imagens[0]
+                    ? c.imagens[0]
+                    : "/banners/anuncio-01.png";
 
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/anuncios/${c.id}`}
+                    className="group rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+                  >
+                    <div className="relative h-28 bg-slate-100 overflow-hidden">
+                      <img
+                        src={thumb}
+                        alt={c.titulo}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
+                      <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                        <span>{formatCategoria(c.categoria)}</span>
+                      </div>
+                    </div>
 
+                    <div className="p-4">
+                      <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                        {c.titulo}
+                      </p>
+                      <p className="mt-1 text-[12px] text-slate-600">{c.cidade}</p>
+                      <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                        Abrir agora →
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-3 text-center sm:hidden">
+            <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+              Quero aparecer aqui →
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* DESTAQUES (LANÇAMENTO) */}
       <section className="bg-white pb-10">
@@ -561,185 +502,176 @@ useEffect(() => {
         </div>
       </section>
 
-{/* ✅ HOME – BLOCO 3 COLUNAS (ALTURA CONTROLADA / PROFISSIONAL) */}
-<section className="bg-white pb-10 -mt-4">
-  <div className="max-w-7xl mx-auto px-4">
-    <div className="grid gap-4 md:grid-cols-3 items-stretch">
-      {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto / rolagem interna) */}
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
-        <div className="p-5 pb-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
-            <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
-              Ver tudo →
-            </Link>
-          </div>
-          <p className="mt-1 text-[11px] text-slate-600">
-            O que saiu agora na Região dos Lagos (últimas publicações).
-          </p>
-        </div>
-
-        {/* área rolável */}
-        <div className="px-5 pb-5 flex-1 overflow-auto">
-          <div className="space-y-3">
-            {loadingNoticias ? (
-              <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                <p className="text-[12px] text-slate-600">Carregando...</p>
+      {/* ✅ HOME – BLOCO 3 COLUNAS (ALTURA CONTROLADA / PROFISSIONAL) */}
+      <section className="bg-white pb-10 -mt-4">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid gap-4 md:grid-cols-3 items-stretch">
+            {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto / rolagem interna) */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
+              <div className="p-5 pb-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold text-slate-900">Últimas notícias</h3>
+                  <Link href="/noticias" className="text-[11px] font-semibold text-cyan-700">
+                    Ver tudo →
+                  </Link>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600">
+                  O que saiu agora na Região dos Lagos (últimas publicações).
+                </p>
               </div>
-            ) : ultimasNoticias.length === 0 ? (
-              <div className="rounded-2xl bg-white border border-slate-200 p-3">
-                <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
-              </div>
-            ) : (
-              ultimasNoticias.map((n) => (
-                <Link
-                  key={n.id}
-                  href={`/noticias/${n.id}`}
-                  className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
-                >
-                  <p className="text-[10px] text-slate-500">
-                    {formatarDataBR(n.created_at)} •{" "}
-                    <span className="font-semibold text-slate-700">{n.cidade}</span>
-                  </p>
-                  <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
-                    {n.titulo}
-                  </p>
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* MEIO — TV (altura controlada, vídeo centralizado) */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-[430px] flex flex-col">
-        <div className="p-5 pb-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
-            <a
-              href={tvChannelUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] font-semibold text-red-600 hover:text-red-700"
-            >
-              YouTube →
-            </a>
-          </div>
-          <p className="mt-1 text-[11px] text-slate-600">
-            Reportagens, cultura, turismo e acontecimentos da Região.
-          </p>
-        </div>
-
-        <div className="px-5 pb-5 flex-1 flex flex-col">
-          <div className="relative w-full rounded-2xl overflow-hidden bg-slate-900/80 flex-1">
-            <iframe
-              src={tvEmbedUrl}
-              title="Classilagos TV"
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full border-0"
-            />
-          </div>
-
-          <a
-            href={tvChannelUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex items-center text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
-          >
-            Ver mais vídeos →
-          </a>
-        </div>
-      </div>
-
-      {/* DIREITA — SERVIÇOS (card rotativo ou fixo, sem estourar altura) */}
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
-        <div className="p-5 pb-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-slate-900">Serviços</h3>
-            <Link href="/servicos" className="text-[11px] font-semibold text-cyan-700">
-              Ver tudo →
-            </Link>
-          </div>
-          <p className="mt-1 text-[11px] text-slate-600">
-            Encontre aqui os melhores profissionais na sua cidade.
-          </p>
-        </div>
-
-        <div className="px-5 pb-5 flex-1 flex items-center">
-          {loadingServicos ? (
-            <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
-              <p className="text-[12px] text-slate-600">Carregando...</p>
-            </div>
-          ) : !servicoAtual ? (
-            <div className="w-full rounded-2xl bg-white border border-slate-200 p-4">
-              <p className="text-[12px] text-slate-600">
-                Ainda não há anúncios de serviços. Seja o primeiro!
-              </p>
-              <Link href="/anunciar" className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
-                Anunciar serviço →
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href={`/anuncios/${servicoAtual.id}`}
-              className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-            >
-              <div className="relative h-36 bg-slate-100 overflow-hidden">
-                {Array.isArray(servicoAtual.imagens) && servicoAtual.imagens[0] ? (
-                  <img
-                    src={servicoAtual.imagens[0]}
-                    alt={servicoAtual.titulo}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
-                    Sem imagem
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-                <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                  <span>🛠️</span>
-                  <span>Serviços</span>
+              {/* área rolável */}
+              <div className="px-5 pb-5 flex-1 overflow-auto">
+                <div className="space-y-3">
+                  {loadingNoticias ? (
+                    <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                      <p className="text-[12px] text-slate-600">Carregando...</p>
+                    </div>
+                  ) : ultimasNoticias.length === 0 ? (
+                    <div className="rounded-2xl bg-white border border-slate-200 p-3">
+                      <p className="text-[12px] text-slate-600">Ainda não há notícias.</p>
+                    </div>
+                  ) : (
+                    ultimasNoticias.map((n) => (
+                      <Link
+                        key={n.id}
+                        href={`/noticias/${n.id}`}
+                        className="block rounded-2xl bg-white border border-slate-200 p-3 hover:bg-slate-50 transition"
+                      >
+                        <p className="text-[10px] text-slate-500">
+                          {formatarDataBR(n.created_at)} •{" "}
+                          <span className="font-semibold text-slate-700">{n.cidade}</span>
+                        </p>
+                        <p className="mt-1 text-[12px] font-semibold text-slate-900 line-clamp-2">
+                          {n.titulo}
+                        </p>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="p-4">
-                <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-                  {servicoAtual.titulo}
+            {/* MEIO — TV (altura controlada, vídeo centralizado) */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-[430px] flex flex-col">
+              <div className="p-5 pb-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold text-slate-900">TV Classilagos</h3>
+                  <a
+                    href={tvChannelUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                  >
+                    YouTube →
+                  </a>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600">
+                  Reportagens, cultura, turismo e acontecimentos da Região.
                 </p>
-                <p className="mt-1 text-[12px] text-slate-600">{servicoAtual.cidade}</p>
-
-                <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-                  Ver detalhes →
-                </span>
               </div>
-            </Link>
-          )}
-        </div>
 
-        <div className="px-5 pb-5">
-          <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
-            Quero anunciar meu serviço →
-          </Link>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+              <div className="px-5 pb-5 flex-1 flex flex-col">
+                <div className="relative w-full rounded-2xl overflow-hidden bg-slate-900/80 flex-1">
+                  <iframe
+                    src={tvEmbedUrl}
+                    title="Classilagos TV"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full border-0"
+                  />
+                </div>
 
-{/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
-<section className="bg-white py-10">
-  <div className="max-w-7xl mx-auto px-4">
-    <BannerRotator
-      images={bannersRodape}
-      interval={6500}
-      height={170}
-      maxWidth={720}
-    />
-  </div>
-</section>
+                <a
+                  href={tvChannelUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
+                >
+                  Ver mais vídeos →
+                </a>
+              </div>
+            </div>
+
+            {/* DIREITA — GUIA GASTRONÔMICO (fixo, sem dependência) */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
+              <div className="p-5 pb-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold text-slate-900">Guia Gastronômico</h3>
+                  <Link href={guiaGastroHref} className="text-[11px] font-semibold text-cyan-700">
+                    Ver guia →
+                  </Link>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600">
+                  Bares e restaurantes com pratos incríveis na Região dos Lagos.
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 flex-1 flex items-center">
+                <Link
+                  href={guiaGastroHref}
+                  className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+                >
+                  <div className="relative h-36 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-200 via-rose-100 to-cyan-100" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.85),transparent_55%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.65),transparent_60%)]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent" />
+
+                    <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
+                      <span>🍤</span>
+                      <span>Onde comer</span>
+                    </div>
+
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-sm font-extrabold text-slate-900 [text-shadow:0_1px_10px_rgba(255,255,255,0.65)]">
+                        Descubra sabores da região
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-700">
+                        Frutos do mar • Comida caseira • Quiosques • Pizzarias
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                      Guia de Bares e Restaurantes
+                    </p>
+                    <p className="mt-1 text-[12px] text-slate-600">
+                      Veja opções por cidade e seja encontrado.
+                    </p>
+
+                    <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
+                      Abrir agora →
+                    </span>
+                  </div>
+                </Link>
+              </div>
+
+              <div className="px-5 pb-5 flex items-center justify-between gap-3">
+                <Link href={guiaGastroHref} className="text-[11px] font-semibold text-cyan-700">
+                  Quero ver o guia →
+                </Link>
+                <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+                  Cadastrar restaurante →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
+      <section className="bg-white py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <BannerRotator
+            images={bannersRodape}
+            interval={6500}
+            height={170}
+            maxWidth={720}
+          />
+        </div>
+      </section>
 
       {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
@@ -808,9 +740,7 @@ useEffect(() => {
           </div>
         </div>
       </section>
-
     </main>
   );
 }
-
 
