@@ -55,7 +55,7 @@ export default function CadastroPage() {
       password: senha,
       options: {
         data: { nome: nomeLimpo, cidade: cidadeLimpa, whatsapp: whatsappLimpo },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `https://www.classilagos.shop/auth/callback`,
       },
     });
 
