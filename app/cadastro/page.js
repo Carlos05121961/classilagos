@@ -124,11 +124,10 @@ export default function CadastroPage() {
   }
 
 
-  // NOVO → ao fechar o modal, redireciona para o index
-  function handleFecharModal() {
-    setShowModal(false);
-    window.location.href = "/"; // REDIRECIONA PARA A PÁGINA INICIAL
-  }
+function handleFecharModal() {
+  setShowModal(false);
+}
+
 
   return (
     <main className="min-h-screen bg-slate-50 py-8">
