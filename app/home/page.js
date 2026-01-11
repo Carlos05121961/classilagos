@@ -127,7 +127,7 @@ export default function Home() {
   };
 
   // TV
-  const tvEmbedUrl = "https://www.youtube.com/embed/Q1z3SdRcYxs";
+  const tvEmbedUrl = "https://www.youtube.com/embed/videoseries?list=PL2kE-amExmabP5AbWRs7IU8mGIu-HZF5n";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
 
   // GASTRONOMIA (fixo, sem dependência)
