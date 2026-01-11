@@ -586,7 +586,7 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
         {mostrarGaleria && (
           <section className="w-full flex flex-col gap-3" id="fachada">
             <div className="w-full flex justify-center">
-              <div className="relative w-full max-w-4xl aspect-[16/9] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
+             <div className="relative w-full max-w-3xl aspect-[4/3] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg">
                 <img
                   src={galeriaSafe[fotoIndex]}
                   alt={anuncio.titulo}
