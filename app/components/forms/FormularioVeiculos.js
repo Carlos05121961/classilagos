@@ -82,8 +82,6 @@ export default function FormularioVeiculos() {
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ Upload separado: LOGOMARCA (Loja/Revenda)
-  const [logoArquivo, setLogoArquivo] = useState(null);
 
   // Vídeo (URL – apenas YouTube)
   const [videoUrl, setVideoUrl] = useState("");
