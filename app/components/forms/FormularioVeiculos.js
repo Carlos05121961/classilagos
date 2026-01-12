@@ -3,9 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
-import ImageUploader from "../ImageUploader";
-
-
 
 function onlyDigits(v) {
   return String(v || "").replace(/\D+/g, "");
@@ -18,17 +15,15 @@ function formatCEP(v) {
 }
 
 function formatBRLInput(v) {
-  // deixa o usuário digitar "75000" e vira "75.000"
   const d = onlyDigits(v);
   if (!d) return "";
-  // sem centavos (pra não inventar)
   const n = Number(d);
   if (!Number.isFinite(n)) return "";
   return n.toLocaleString("pt-BR");
 }
 
 function isYoutubeUrl(url) {
-  if (!url) return true; // opcional
+  if (!url) return true;
   try {
     const u = new URL(url);
     const host = u.hostname.replace("www.", "");
@@ -38,15 +33,21 @@ function isYoutubeUrl(url) {
   }
 }
 
+function getFileExt(file) {
+  const name = String(file?.name || "");
+  const parts = name.split(".");
+  const ext = parts.length > 1 ? parts.pop() : "jpg";
+  return String(ext || "jpg").toLowerCase();
+}
+
 export default function FormularioVeiculos() {
   const router = useRouter();
 
   // Classificação do anúncio
-  const [condicaoVeiculo, setCondicaoVeiculo] = useState(""); // usado / seminovo / 0km
+  const [condicaoVeiculo, setCondicaoVeiculo] = useState("");
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
   const [isLojaRevenda, setIsLojaRevenda] = useState(false);
-  const [imagens, setImagens] = useState([]);
 
   // Campos básicos
   const [titulo, setTitulo] = useState("");
@@ -59,8 +60,8 @@ export default function FormularioVeiculos() {
   const [cep, setCep] = useState("");
 
   // Tipo / finalidade
-  const [finalidade, setFinalidade] = useState(""); // Venda / Troca / Aluguel
-  const [tipoVeiculo, setTipoVeiculo] = useState(""); // Carro / Moto / etc.
+  const [finalidade, setFinalidade] = useState("");
+  const [tipoVeiculo, setTipoVeiculo] = useState("");
 
   // Detalhes do veículo
   const [marca, setMarca] = useState("");
@@ -82,8 +83,10 @@ export default function FormularioVeiculos() {
   const [arquivos, setArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  // ✅ Logo separada (Loja/Revenda)
+  const [logoArquivo, setLogoArquivo] = useState(null);
 
-  // Vídeo (URL – apenas YouTube)
+  // Vídeo
   const [videoUrl, setVideoUrl] = useState("");
 
   // Contatos
@@ -124,9 +127,7 @@ export default function FormularioVeiculos() {
   ];
 
   const finalidades = ["Venda", "Troca", "Aluguel"];
-
   const combustiveis = ["Gasolina", "Etanol", "Flex", "Diesel", "GNV", "Elétrico"];
-
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
 
   // ====== previews das fotos ======
@@ -156,8 +157,7 @@ export default function FormularioVeiculos() {
         } catch {}
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arquivos]);
+  }, [previews]);
 
   useEffect(() => {
     // cleanup blob url (logo)
@@ -240,47 +240,45 @@ export default function FormularioVeiculos() {
 
     const contatoPrincipal = whatsapp || telefone || email;
 
+    // ✅ Premium: fotos SEMPRE primeiro, logo SEMPRE por último
     let urlsUploadFotos = [];
     let urlUploadLogo = null;
 
     try {
       setUploading(true);
+
       const bucketName = "anuncios";
+      const basePath = `${user.id}/veiculos`;
 
-      // ✅ 1) upload da LOGO (se houver)
-      if (logoArquivo) {
-        const ext = logoArquivo.name.split(".").pop();
-        const filePath = `${user.id}/logo-${Date.now()}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, logoArquivo);
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-        urlUploadLogo = publicData.publicUrl;
-      }
-
-      // ✅ 2) upload das fotos do veículo (até 8)
+      // ✅ 1) Upload das FOTOS (até 8) — PRIMEIRO
       if (arquivos.length > 0) {
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
-            const fileExt = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-${index}.${fileExt}`;
+            const ext = getFileExt(file);
+            const filePath = `${basePath}/fotos/${Date.now()}-${index}.${ext}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from(bucketName)
-              .upload(filePath, file);
-
+            const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
             if (uploadError) throw uploadError;
 
             const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-            return publicData.publicUrl;
+            return publicData?.publicUrl;
           })
         );
 
-        urlsUploadFotos = uploads;
+        urlsUploadFotos = uploads.filter(Boolean);
+      }
+
+      // ✅ 2) Upload da LOGO — DEPOIS (e só se existir)
+      // (Se não for loja/revenda, você pode deixar a logo vazia sem problema)
+      if (logoArquivo) {
+        const ext = getFileExt(logoArquivo);
+        const filePath = `${basePath}/logo/logo-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, logoArquivo);
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+        urlUploadLogo = publicData?.publicUrl || null;
       }
     } catch (err) {
       console.error(err);
@@ -291,9 +289,11 @@ export default function FormularioVeiculos() {
       setUploading(false);
     }
 
-  // ✅ imagens: SOMENTE fotos do anúncio (logo NÃO entra no array)
-const imagens = [...(urlsUploadFotos || [])];
-
+    // ✅ imagens: fotos primeiro (cards ok), logo por último (se existir)
+    const imagens = [
+      ...(urlsUploadFotos || []),
+      ...(urlUploadLogo ? [urlUploadLogo] : []),
+    ];
 
     const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
@@ -341,12 +341,12 @@ ${detalhesVeiculoTexto}
         contato: contatoPrincipal,
 
         // reutilizados
-        tipo_imovel: tipoVeiculo, // tipo do veículo
-        finalidade: finalidade.toLowerCase(), // venda / troca / aluguel
+        tipo_imovel: tipoVeiculo,
+        finalidade: finalidade.toLowerCase(),
         nome_contato: nomeContato.trim(),
 
         // usados nos cards
-        condicao_veiculo: condicaoVeiculo, // usado | seminovo | 0km
+        condicao_veiculo: condicaoVeiculo,
         zero_km: condicaoVeiculo === "0km",
         financiado: isFinanciado,
         consignado: isConsignado,
@@ -772,18 +772,16 @@ ${detalhesVeiculoTexto}
             </select>
           </div>
 
-          <div className="grid gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">IPVA pago?</label>
-              <select
-                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={ipvaPago}
-                onChange={(e) => setIpvaPago(e.target.value)}
-              >
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">IPVA pago?</label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={ipvaPago}
+              onChange={(e) => setIpvaPago(e.target.value)}
+            >
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
           </div>
         </div>
 
@@ -841,12 +839,12 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* ✅ 6.1) LOGOMARCA DA LOJA (se Loja/Revenda) */}
+      {/* ✅ 6.1) LOGOMARCA DA LOJA */}
       {isLojaRevenda && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (recomendado)</h3>
+          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (opcional)</h3>
           <p className="mt-1 text-[11px] text-slate-500">
-            Essa imagem fica <b>separada</b> e entra como <b>primeira foto</b> do anúncio (ótimo para cards e identidade da revenda).
+            Premium: a logo é enviada separada e salva <b>por último</b> no conjunto de imagens (não rouba a 1ª foto do veículo nos cards).
           </p>
 
           <div className="mt-4">
