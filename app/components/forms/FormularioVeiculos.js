@@ -293,11 +293,9 @@ export default function FormularioVeiculos() {
       setUploading(false);
     }
 
-    // ✅ imagens: logo primeiro (se existir), depois fotos
-    const imagens = [
-      ...(urlUploadLogo ? [urlUploadLogo] : []),
-      ...(urlsUploadFotos || []),
-    ];
+  // ✅ imagens: SOMENTE fotos do anúncio (logo NÃO entra no array)
+const imagens = [...(urlsUploadFotos || [])];
+
 
     const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
