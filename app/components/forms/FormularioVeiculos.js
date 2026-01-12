@@ -23,7 +23,7 @@ function formatBRLInput(v) {
 }
 
 function isYoutubeUrl(url) {
-  if (!url) return true;
+  if (!url) return true; // opcional
   try {
     const u = new URL(url);
     const host = u.hostname.replace("www.", "");
@@ -33,18 +33,11 @@ function isYoutubeUrl(url) {
   }
 }
 
-function getFileExt(file) {
-  const name = String(file?.name || "");
-  const parts = name.split(".");
-  const ext = parts.length > 1 ? parts.pop() : "jpg";
-  return String(ext || "jpg").toLowerCase();
-}
-
 export default function FormularioVeiculos() {
   const router = useRouter();
 
   // Classificação do anúncio
-  const [condicaoVeiculo, setCondicaoVeiculo] = useState("");
+  const [condicaoVeiculo, setCondicaoVeiculo] = useState(""); // usado / seminovo / 0km
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
   const [isLojaRevenda, setIsLojaRevenda] = useState(false);
@@ -60,8 +53,8 @@ export default function FormularioVeiculos() {
   const [cep, setCep] = useState("");
 
   // Tipo / finalidade
-  const [finalidade, setFinalidade] = useState("");
-  const [tipoVeiculo, setTipoVeiculo] = useState("");
+  const [finalidade, setFinalidade] = useState(""); // Venda / Troca / Aluguel
+  const [tipoVeiculo, setTipoVeiculo] = useState(""); // Carro / Moto / etc.
 
   // Detalhes do veículo
   const [marca, setMarca] = useState("");
@@ -79,12 +72,10 @@ export default function FormularioVeiculos() {
   // Valores
   const [preco, setPreco] = useState("");
 
-  // Upload de arquivos (fotos)
-  const [arquivos, setArquivos] = useState([]);
+  // Upload de arquivos
+  const [arquivos, setArquivos] = useState([]); // fotos do veículo (até 8)
+  const [logoArquivo, setLogoArquivo] = useState(null); // logo separada
   const [uploading, setUploading] = useState(false);
-
-  // ✅ Logo separada (Loja/Revenda)
-  const [logoArquivo, setLogoArquivo] = useState(null);
 
   // Vídeo
   const [videoUrl, setVideoUrl] = useState("");
@@ -157,7 +148,8 @@ export default function FormularioVeiculos() {
         } catch {}
       });
     };
-  }, [previews]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arquivos]);
 
   useEffect(() => {
     // cleanup blob url (logo)
@@ -217,6 +209,18 @@ export default function FormularioVeiculos() {
     return "";
   }
 
+  async function uploadToPublicUrl(bucketName, userId, file, prefix) {
+    const ext = file.name.split(".").pop();
+    const safeExt = (ext || "jpg").toLowerCase();
+    const filePath = `${userId}/${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+    const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+    return publicData.publicUrl;
+  }
+
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -240,45 +244,26 @@ export default function FormularioVeiculos() {
 
     const contatoPrincipal = whatsapp || telefone || email;
 
-    // ✅ Premium: fotos SEMPRE primeiro, logo SEMPRE por último
     let urlsUploadFotos = [];
     let urlUploadLogo = null;
 
     try {
       setUploading(true);
-
       const bucketName = "anuncios";
-      const basePath = `${user.id}/veiculos`;
 
-      // ✅ 1) Upload das FOTOS (até 8) — PRIMEIRO
+      // ✅ 1) LOGO (se houver) -> logo_url (SEPARADO)
+      if (logoArquivo) {
+        urlUploadLogo = await uploadToPublicUrl(bucketName, user.id, logoArquivo, "logo");
+      }
+
+      // ✅ 2) FOTOS (até 8) -> imagens[] (SOMENTE fotos)
       if (arquivos.length > 0) {
         const uploads = await Promise.all(
           arquivos.map(async (file, index) => {
-            const ext = getFileExt(file);
-            const filePath = `${basePath}/fotos/${Date.now()}-${index}.${ext}`;
-
-            const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
-            if (uploadError) throw uploadError;
-
-            const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-            return publicData?.publicUrl;
+            return uploadToPublicUrl(bucketName, user.id, file, `foto-${index}`);
           })
         );
-
-        urlsUploadFotos = uploads.filter(Boolean);
-      }
-
-      // ✅ 2) Upload da LOGO — DEPOIS (e só se existir)
-      // (Se não for loja/revenda, você pode deixar a logo vazia sem problema)
-      if (logoArquivo) {
-        const ext = getFileExt(logoArquivo);
-        const filePath = `${basePath}/logo/logo-${Date.now()}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, logoArquivo);
-        if (uploadError) throw uploadError;
-
-        const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-        urlUploadLogo = publicData?.publicUrl || null;
+        urlsUploadFotos = uploads;
       }
     } catch (err) {
       console.error(err);
@@ -289,11 +274,8 @@ export default function FormularioVeiculos() {
       setUploading(false);
     }
 
-    // ✅ imagens: fotos primeiro (cards ok), logo por último (se existir)
-    const imagens = [
-      ...(urlsUploadFotos || []),
-      ...(urlUploadLogo ? [urlUploadLogo] : []),
-    ];
+    // ✅ imagens: SOMENTE fotos do veículo (logo NÃO entra no array)
+    const imagens = [...(urlsUploadFotos || [])];
 
     const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
@@ -333,7 +315,10 @@ ${detalhesVeiculoTexto}
         endereco: endereco.trim(),
         cep: cep.trim(),
         preco: preco.trim(),
-        imagens,
+
+        imagens, // ✅ só fotos
+        logo_url: urlUploadLogo, // ✅ logo separada
+
         video_url: videoUrl.trim(),
         telefone: telefone.trim(),
         whatsapp: whatsapp.trim(),
@@ -772,16 +757,18 @@ ${detalhesVeiculoTexto}
             </select>
           </div>
 
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-700">IPVA pago?</label>
-            <select
-              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={ipvaPago}
-              onChange={(e) => setIpvaPago(e.target.value)}
-            >
-              <option value="nao">Não</option>
-              <option value="sim">Sim</option>
-            </select>
+          <div className="grid gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">IPVA pago?</label>
+              <select
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={ipvaPago}
+                onChange={(e) => setIpvaPago(e.target.value)}
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -839,12 +826,12 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* ✅ 6.1) LOGOMARCA DA LOJA */}
+      {/* ✅ 6.1) LOGOMARCA DA LOJA (se Loja/Revenda) */}
       {isLojaRevenda && (
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (opcional)</h3>
+          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (recomendado)</h3>
           <p className="mt-1 text-[11px] text-slate-500">
-            Premium: a logo é enviada separada e salva <b>por último</b> no conjunto de imagens (não rouba a 1ª foto do veículo nos cards).
+            Essa imagem fica <b>separada</b> e aparece no “Resumo do anúncio”. Ela <b>NÃO</b> vira foto principal do card.
           </p>
 
           <div className="mt-4">
@@ -1051,4 +1038,3 @@ ${detalhesVeiculoTexto}
     </form>
   );
 }
-
