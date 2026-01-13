@@ -205,6 +205,8 @@ export default function FormularioImoveis() {
     }
 
     const imagens = urlsUpload;
+const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
+
 
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
@@ -216,6 +218,7 @@ export default function FormularioImoveis() {
       endereco,
       preco,
       imagens,
+      capa_url,
       video_url: videoUrl,
       telefone,
       whatsapp,
