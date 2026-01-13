@@ -360,22 +360,20 @@ export default function ImoveisPage() {
         filtrados = filtrados.filter((a) => norm(a.tipo_imovel).includes("terreno"));
         break;
 
-      case "lancamentos": {
-        const comPalavra = filtrados.filter((a) => {
-          const t = norm(a.titulo);
-          const d = norm(a.descricao);
-          return (
-            t.includes("lançamento") ||
-            t.includes("lancamento") ||
-            d.includes("lançamento") ||
-            d.includes("lancamento")
-          );
-        });
+case "lancamentos": {
+  filtrados = filtrados.filter((a) => {
+    const t = norm(a.titulo);
+    const d = norm(a.descricao);
+    return (
+      t.includes("lançamento") ||
+      t.includes("lancamento") ||
+      d.includes("lançamento") ||
+      d.includes("lancamento")
+    );
+  });
+  break;
+}
 
-        if (comPalavra.length > 0) filtrados = comPalavra;
-        else filtrados = filtrados.filter((a) => norm(a.finalidade) === "venda");
-        break;
-      }
 
       default:
         break;
