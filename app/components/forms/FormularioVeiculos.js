@@ -256,15 +256,26 @@ export default function FormularioVeiculos() {
         urlUploadLogo = await uploadToPublicUrl(bucketName, user.id, logoArquivo, "logo");
       }
 
-      // ✅ 2) FOTOS (até 8) -> imagens[] (SOMENTE fotos)
-      if (arquivos.length > 0) {
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            return uploadToPublicUrl(bucketName, user.id, file, `foto-${index}`);
-          })
-        );
-        urlsUploadFotos = uploads;
-      }
+// ✅ 2) FOTOS (até 8) -> imagens[] (SOMENTE fotos, ORDEM GARANTIDA)
+if (arquivos.length > 0) {
+  const uploads = await Promise.all(
+    arquivos.map(async (file, index) => {
+      const url = await uploadToPublicUrl(
+        bucketName,
+        user.id,
+        file,
+        `foto-${index}`
+      );
+      return { index, url };
+    })
+  );
+
+  // 🔒 garante a mesma ordem escolhida no formulário
+  uploads.sort((a, b) => a.index - b.index);
+
+  urlsUploadFotos = uploads.map((u) => u.url);
+}
+
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
