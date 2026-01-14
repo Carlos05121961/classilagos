@@ -46,13 +46,23 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "comida_por_kilo_delivery", label: "Comida a quilo / delivery" },
     { value: "outros_gastronomia", label: "Outros tipos de gastronomia" },
   ],
+
+  // ✅ ATUALIZADO (inclui Teatro/Cinema, Cultura, Museus)
   onde_se_divertir: [
     { value: "casa_show_musica_ao_vivo", label: "Casa de show / música ao vivo" },
     { value: "pub_balada", label: "Pub / balada" },
     { value: "evento_festival", label: "Eventos / festivais" },
     { value: "parque_lazer", label: "Parques e espaços de lazer" },
+
+    // ✅ NOVOS ITENS (pedidos)
+    { value: "teatro_cinema", label: "Teatros e cinemas" },
+    { value: "ponto_de_cultura", label: "Pontos de cultura" },
+    { value: "museu", label: "Museus" },
+
     { value: "outros_diversao", label: "Outros locais para se divertir" },
   ],
+
+  // ✅ ATUALIZADO (inclui Teatro/Cinema, Cultura, Museus)
   onde_passear: [
     { value: "passeio_escuna_barco", label: "Passeio de escuna / barco" },
     { value: "passeio_lancha_taxi_lancha", label: "Passeio de lancha / táxi lancha" },
@@ -61,8 +71,15 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "city_tour_cultural", label: "City tour / tour cultural" },
     { value: "mergulho_esportes_aquaticos", label: "Mergulho / esportes aquáticos" },
     { value: "turismo_rural_ecologico", label: "Turismo rural / ecológico" },
+
+    // ✅ NOVOS ITENS (pedidos)
+    { value: "teatro_cinema", label: "Teatros e cinemas" },
+    { value: "ponto_de_cultura", label: "Pontos de cultura" },
+    { value: "museu", label: "Museus" },
+
     { value: "outros_passeios", label: "Outros tipos de passeios" },
   ],
+
   servicos_turismo: [
     { value: "agencia_turismo", label: "Agência de turismo / receptivo" },
     { value: "guia_turistico_credenciado", label: "Guia de turismo credenciado" },
@@ -258,69 +275,43 @@ export default function FormularioTurismo() {
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade."
-      );
+      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
       return;
     }
 
     // monta bloco de detalhes extras para enriquecer a descrição automaticamente
     const detalhesExtras = [];
 
-    if (faixaPreco) {
-      detalhesExtras.push(`Faixa de preço: ${faixaPreco}.`);
-    }
+    if (faixaPreco) detalhesExtras.push(`Faixa de preço: ${faixaPreco}.`);
 
     if (pilar === "onde_comer") {
-      if (tipoCozinha) {
-        detalhesExtras.push(`Tipo de cozinha: ${tipoCozinha}.`);
-      }
+      if (tipoCozinha) detalhesExtras.push(`Tipo de cozinha: ${tipoCozinha}.`);
       if (facilidadesGastronomia.length > 0) {
-        detalhesExtras.push(
-          `Facilidades: ${facilidadesGastronomia.join(", ")}.`
-        );
+        detalhesExtras.push(`Facilidades: ${facilidadesGastronomia.join(", ")}.`);
       }
     }
 
     if (pilar === "onde_ficar") {
       if (comodidadesHospedagem.length > 0) {
-        detalhesExtras.push(
-          `Comodidades: ${comodidadesHospedagem.join(", ")}.`
-        );
+        detalhesExtras.push(`Comodidades: ${comodidadesHospedagem.join(", ")}.`);
       }
     }
 
     if (pilar === "onde_passear") {
-      if (tipoPasseio) {
-        detalhesExtras.push(`Tipo de passeio: ${tipoPasseio}.`);
-      }
-      if (duracaoPasseio) {
-        detalhesExtras.push(`Duração média: ${duracaoPasseio}.`);
-      }
-      if (pontosPrincipais) {
-        detalhesExtras.push(`Pontos principais: ${pontosPrincipais}.`);
-      }
+      if (tipoPasseio) detalhesExtras.push(`Tipo de passeio: ${tipoPasseio}.`);
+      if (duracaoPasseio) detalhesExtras.push(`Duração média: ${duracaoPasseio}.`);
+      if (pontosPrincipais) detalhesExtras.push(`Pontos principais: ${pontosPrincipais}.`);
     }
 
-    if (publicoAlvo) {
-      detalhesExtras.push(`Ideal para: ${publicoAlvo}.`);
-    }
+    if (publicoAlvo) detalhesExtras.push(`Ideal para: ${publicoAlvo}.`);
+    if (horarioFuncionamento) detalhesExtras.push(`Horário de funcionamento: ${horarioFuncionamento}.`);
 
-    if (horarioFuncionamento) {
-      detalhesExtras.push(`Horário de funcionamento: ${horarioFuncionamento}.`);
-    }
-
-    const descricaoFinal = [
-      descricao.trim(),
-      detalhesExtras.length > 0 ? detalhesExtras.join(" ") : "",
-    ]
+    const descricaoFinal = [descricao.trim(), detalhesExtras.length ? detalhesExtras.join(" ") : ""]
       .filter(Boolean)
       .join("\n\n");
 
@@ -396,11 +387,7 @@ export default function FormularioTurismo() {
 
     if (error) {
       console.error("Erro ao salvar anúncio de turismo:", error);
-      setErro(
-        `Erro ao salvar anúncio: ${
-          error.message || "Tente novamente em instantes."
-        }`
-      );
+      setErro(`Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`);
       return;
     }
 
@@ -443,7 +430,6 @@ export default function FormularioTurismo() {
 
   // opções da subcategoria de acordo com o pilar selecionado
   const subcategoriasAtuais = SUBCATEGORIAS_POR_PILAR[pilar] || [];
-
   const faixasPrecoAtuais = FAIXA_PRECO_POR_PILAR[pilar] || [];
 
   return (
@@ -629,12 +615,9 @@ export default function FormularioTurismo() {
       </div>
 
       {/* BLOCO: DETALHES ESPECÍFICOS POR TIPO */}
-      {/* Faixa de preço aparece para quase todos os pilares */}
       {faixasPrecoAtuais.length > 0 && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Faixa de preço
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900">Faixa de preço</h2>
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
               Selecione a faixa que melhor representa seu negócio
@@ -658,9 +641,7 @@ export default function FormularioTurismo() {
       {/* Hospedagem */}
       {pilar === "onde_ficar" && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Detalhes da hospedagem
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900">Detalhes da hospedagem</h2>
 
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
@@ -674,10 +655,7 @@ export default function FormularioTurismo() {
             </label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {COMODIDADES_HOSPEDAGEM.map((item) => (
-                <label
-                  key={item}
-                  className="flex items-center gap-2 text-[11px] text-slate-700"
-                >
+                <label key={item} className="flex items-center gap-2 text-[11px] text-slate-700">
                   <input
                     type="checkbox"
                     className="h-3 w-3"
@@ -703,9 +681,7 @@ export default function FormularioTurismo() {
               <option value="Casais">Casais</option>
               <option value="Famílias">Famílias</option>
               <option value="Grupos de amigos">Grupos de amigos</option>
-              <option value="Turistas em trabalho/negócios">
-                Turistas em trabalho/negócios
-              </option>
+              <option value="Turistas em trabalho/negócios">Turistas em trabalho/negócios</option>
             </select>
           </div>
         </div>
@@ -735,9 +711,7 @@ export default function FormularioTurismo() {
                 <option value="Massas e pizzas">Massas e pizzas</option>
                 <option value="Comida internacional">Comida internacional</option>
                 <option value="Lanches e petiscos">Lanches e petiscos</option>
-                <option value="Cafés, doces e sobremesas">
-                  Cafés, doces e sobremesas
-                </option>
+                <option value="Cafés, doces e sobremesas">Cafés, doces e sobremesas</option>
               </select>
             </div>
 
@@ -755,7 +729,7 @@ export default function FormularioTurismo() {
                 <option value="Casais">Casais</option>
                 <option value="Grupos de amigos">Grupos de amigos</option>
                 <option value="Turistas em geral">Turistas em geral</option>
-                <option value="Eventos e grupos">
+                <option value="Eventos e grupos (festas, confraternizações)">
                   Eventos e grupos (festas, confraternizações)
                 </option>
               </select>
@@ -768,10 +742,7 @@ export default function FormularioTurismo() {
             </label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
               {FACILIDADES_GASTRONOMIA.map((item) => (
-                <label
-                  key={item}
-                  className="flex items-center gap-2 text-[11px] text-slate-700"
-                >
+                <label key={item} className="flex items-center gap-2 text-[11px] text-slate-700">
                   <input
                     type="checkbox"
                     className="h-3 w-3"
@@ -789,9 +760,7 @@ export default function FormularioTurismo() {
       {/* Passeios */}
       {pilar === "onde_passear" && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Informações do passeio
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-900">Informações do passeio</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
@@ -804,25 +773,13 @@ export default function FormularioTurismo() {
                 onChange={(e) => setTipoPasseio(e.target.value)}
               >
                 <option value="">Selecione...</option>
-                <option value="Passeio de barco / escuna">
-                  Passeio de barco / escuna
-                </option>
-                <option value="Passeio de lancha / táxi lancha">
-                  Passeio de lancha / táxi lancha
-                </option>
-                <option value="Passeio de buggy / quadriciclo">
-                  Passeio de buggy / quadriciclo
-                </option>
+                <option value="Passeio de barco / escuna">Passeio de barco / escuna</option>
+                <option value="Passeio de lancha / táxi lancha">Passeio de lancha / táxi lancha</option>
+                <option value="Passeio de buggy / quadriciclo">Passeio de buggy / quadriciclo</option>
                 <option value="Trilhas e caminhadas">Trilhas e caminhadas</option>
-                <option value="City tour / tour cultural">
-                  City tour / tour cultural
-                </option>
-                <option value="Mergulho / esportes aquáticos">
-                  Mergulho / esportes aquáticos
-                </option>
-                <option value="Outro tipo de passeio">
-                  Outro tipo de passeio
-                </option>
+                <option value="City tour / tour cultural">City tour / tour cultural</option>
+                <option value="Mergulho / esportes aquáticos">Mergulho / esportes aquáticos</option>
+                <option value="Outro tipo de passeio">Outro tipo de passeio</option>
               </select>
             </div>
 
@@ -856,9 +813,7 @@ export default function FormularioTurismo() {
 
       {/* BLOCO: ONLINE / REDES */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Site, reservas e redes sociais
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Site, reservas e redes sociais</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -919,9 +874,7 @@ export default function FormularioTurismo() {
 
       {/* BLOCO: VÍDEO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Vídeo (opcional)
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             URL do vídeo (YouTube)
@@ -938,9 +891,7 @@ export default function FormularioTurismo() {
 
       {/* BLOCO: CONTATO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Dados de contato
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
 
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
@@ -999,9 +950,7 @@ export default function FormularioTurismo() {
 
       {/* BLOCO: HORÁRIO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Horário de funcionamento
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Horário de funcionamento</h2>
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Descreva de forma simples (opcional)
@@ -1026,9 +975,8 @@ export default function FormularioTurismo() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que
-            assumo total responsabilidade pelo conteúdo publicado. Estou ciente
-            e de acordo com os{" "}
+            Declaro que as informações deste anúncio são verdadeiras e que assumo total
+            responsabilidade pelo conteúdo publicado. Estou ciente e de acordo com os{" "}
             <a
               href="/termos-de-uso"
               className="text-cyan-700 underline hover:text-cyan-800"
@@ -1047,9 +995,7 @@ export default function FormularioTurismo() {
         className="mt-2 w-full bg-sky-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-sky-700 transition disabled:opacity-60"
         disabled={uploading}
       >
-        {uploading
-          ? "Enviando anúncio..."
-          : "Publicar anúncio de turismo"}
+        {uploading ? "Enviando anúncio..." : "Publicar anúncio de turismo"}
       </button>
     </form>
   );
