@@ -54,6 +54,7 @@ export default function SiteHeader() {
   }, [open]);
 
   const categorias = [
+    { label: "Notícias", href: "/noticias" },
     { label: "Imóveis", href: "/imoveis" },
     { label: "Veículos", href: "/veiculos" },
     { label: "Náutica", href: "/nautica" },
