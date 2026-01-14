@@ -88,7 +88,7 @@ const BANNERS_RODAPE = [
 ];
 
 
-export default function AnuncioDetalhePage() {
+export default function AnuncioDetalheClient({ id }) {
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
