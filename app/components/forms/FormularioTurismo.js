@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
@@ -53,12 +53,9 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "pub_balada", label: "Pub / balada" },
     { value: "evento_festival", label: "Eventos / festivais" },
     { value: "parque_lazer", label: "Parques e espaços de lazer" },
-
-    // ✅ NOVOS ITENS (pedidos)
     { value: "teatro_cinema", label: "Teatros e cinemas" },
     { value: "ponto_de_cultura", label: "Pontos de cultura" },
     { value: "museu", label: "Museus" },
-
     { value: "outros_diversao", label: "Outros locais para se divertir" },
   ],
 
@@ -71,12 +68,9 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "city_tour_cultural", label: "City tour / tour cultural" },
     { value: "mergulho_esportes_aquaticos", label: "Mergulho / esportes aquáticos" },
     { value: "turismo_rural_ecologico", label: "Turismo rural / ecológico" },
-
-    // ✅ NOVOS ITENS (pedidos)
     { value: "teatro_cinema", label: "Teatros e cinemas" },
     { value: "ponto_de_cultura", label: "Pontos de cultura" },
     { value: "museu", label: "Museus" },
-
     { value: "outros_passeios", label: "Outros tipos de passeios" },
   ],
 
@@ -95,49 +89,18 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "produtos_regionais", label: "Produtos regionais / gourmet" },
     { value: "outros_produtos_turisticos", label: "Outros produtos turísticos" },
   ],
-  outros: [
-    { value: "turismo_geral", label: "Turismo / serviços gerais" },
-  ],
+  outros: [{ value: "turismo_geral", label: "Turismo / serviços gerais" }],
 };
 
 // faixas de preço por pilar (gravadas em faixa_preco)
 const FAIXA_PRECO_POR_PILAR = {
-  onde_ficar: [
-    "Diária até R$ 200",
-    "Diária de R$ 200 a R$ 400",
-    "Diária acima de R$ 400",
-    "Consultar valores",
-  ],
-  onde_comer: [
-    "Economia / popular",
-    "Intermediário",
-    "Gastronomia refinada",
-    "Consultar valores",
-  ],
-  onde_passear: [
-    "Passeios até R$ 100",
-    "Passeios de R$ 100 a R$ 250",
-    "Passeios acima de R$ 250",
-    "Consultar valores",
-  ],
-  servicos_turismo: [
-    "Valores sob consulta",
-    "Pacotes promocionais",
-    "Atendimento personalizado",
-  ],
-  produtos_turisticos: [
-    "Lembrancinhas acessíveis",
-    "Produtos intermediários",
-    "Produtos premium",
-  ],
-  onde_se_divertir: [
-    "Entrada gratuita / consumação",
-    "Ingressos até R$ 50",
-    "Ingressos acima de R$ 50",
-  ],
-  outros: [
-    "Valores sob consulta",
-  ],
+  onde_ficar: ["Diária até R$ 200", "Diária de R$ 200 a R$ 400", "Diária acima de R$ 400", "Consultar valores"],
+  onde_comer: ["Economia / popular", "Intermediário", "Gastronomia refinada", "Consultar valores"],
+  onde_passear: ["Passeios até R$ 100", "Passeios de R$ 100 a R$ 250", "Passeios acima de R$ 250", "Consultar valores"],
+  servicos_turismo: ["Valores sob consulta", "Pacotes promocionais", "Atendimento personalizado"],
+  produtos_turisticos: ["Lembrancinhas acessíveis", "Produtos intermediários", "Produtos premium"],
+  onde_se_divertir: ["Entrada gratuita / consumação", "Ingressos até R$ 50", "Ingressos acima de R$ 50"],
+  outros: ["Valores sob consulta"],
 };
 
 // comodidades para hospedagem (vamos jogar isso para dentro da descrição final)
@@ -195,8 +158,10 @@ export default function FormularioTurismo() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // upload de fotos
-  const [arquivos, setArquivos] = useState([]);
+  // ✅ UPLOAD (Padrão Premium: logo + capa + galeria)
+  const [logoArquivo, setLogoArquivo] = useState(null); // opcional
+  const [capaArquivo, setCapaArquivo] = useState(null); // recomendado
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 7
   const [uploading, setUploading] = useState(false);
 
   // vídeo
@@ -230,10 +195,38 @@ export default function FormularioTurismo() {
     setFaixaPreco("");
   }, [pilar]);
 
-  const handleArquivosChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 8));
+  // ✅ handlers uploads
+  const handleLogoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setLogoArquivo(file);
   };
+
+  const handleCapaChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setCapaArquivo(file);
+  };
+
+  const handleGaleriaChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setGaleriaArquivos(files.slice(0, 7)); // até 7 (capa + 7 = 8 total)
+  };
+
+  // ✅ previews (Padrão Premium)
+  const logoPreview = useMemo(() => (logoArquivo ? URL.createObjectURL(logoArquivo) : null), [logoArquivo]);
+  const capaPreview = useMemo(() => (capaArquivo ? URL.createObjectURL(capaArquivo) : null), [capaArquivo]);
+  const galeriaPreviews = useMemo(() => {
+    if (!galeriaArquivos?.length) return [];
+    return galeriaArquivos.map((f) => URL.createObjectURL(f));
+  }, [galeriaArquivos]);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      if (capaPreview) URL.revokeObjectURL(capaPreview);
+      galeriaPreviews.forEach((p) => URL.revokeObjectURL(p));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logoPreview, capaPreview, galeriaPreviews]);
 
   // checkbox comodidades hospedagem
   const toggleComodidadeHospedagem = (item) => {
@@ -315,33 +308,56 @@ export default function FormularioTurismo() {
       .filter(Boolean)
       .join("\n\n");
 
-    // upload de imagens
-    let urlsUpload = [];
+    // ✅ UPLOAD PREMIUM: logo (opcional) + capa (recomendada) + galeria (opcional)
+    // regra: imagens[] sempre começa pela CAPA (se existir). Assim o card fica bonito.
+    let logoUrl = null;
+    let capaUrl = null;
+    const galeriaUrls = [];
 
     try {
-      if (arquivos.length > 0) {
+      const bucket = "anuncios";
+
+      // LOGO (opcional)
+      if (logoArquivo) {
+        setUploading(true);
+        const ext = logoArquivo.name.split(".").pop();
+        const path = `turismo/${user.id}/turismo-logo-${Date.now()}.${ext}`;
+
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, logoArquivo);
+        if (upErr) throw upErr;
+
+        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+        logoUrl = pub.publicUrl;
+      }
+
+      // CAPA (recomendada)
+      if (capaArquivo) {
+        setUploading(true);
+        const ext = capaArquivo.name.split(".").pop();
+        const path = `turismo/${user.id}/turismo-capa-${Date.now()}.${ext}`;
+
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, capaArquivo);
+        if (upErr) throw upErr;
+
+        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+        capaUrl = pub.publicUrl;
+      }
+
+      // GALERIA (até 7)
+      if (galeriaArquivos && galeriaArquivos.length > 0) {
         setUploading(true);
 
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-turismo-${index}.${ext}`;
+        for (let i = 0; i < galeriaArquivos.length; i++) {
+          const file = galeriaArquivos[i];
+          const ext = file.name.split(".").pop();
+          const path = `turismo/${user.id}/turismo-galeria-${Date.now()}-${i}.${ext}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from("anuncios")
-              .upload(filePath, file);
+          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
+          if (upErr) throw upErr;
 
-            if (uploadError) throw uploadError;
-
-            const { data: publicData } = supabase.storage
-              .from("anuncios")
-              .getPublicUrl(filePath);
-
-            return publicData.publicUrl;
-          })
-        );
-
-        urlsUpload = uploads;
+          const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+          galeriaUrls.push(pub.publicUrl);
+        }
       }
     } catch (err) {
       console.error("Erro ao enviar imagens de turismo:", err);
@@ -352,7 +368,16 @@ export default function FormularioTurismo() {
       setUploading(false);
     }
 
-    const imagens = urlsUpload;
+    // ✅ monta imagens (CAPA sempre primeiro)
+    // - capaUrl (se existir) entra primeiro
+    // - depois galeria
+    // - logo entra por último (para não virar capa do card)
+    let imagens = [];
+    if (capaUrl) imagens.push(capaUrl);
+    if (galeriaUrls.length) imagens = imagens.concat(galeriaUrls);
+    if (logoUrl) imagens.push(logoUrl);
+
+    if (imagens.length === 0) imagens = null;
 
     // INSERT no Supabase
     const { data, error } = await supabase
@@ -411,7 +436,12 @@ export default function FormularioTurismo() {
     setPublicoAlvo("");
     setSiteUrl("");
     setInstagram("");
-    setArquivos([]);
+
+    // ✅ reset upload
+    setLogoArquivo(null);
+    setCapaArquivo(null);
+    setGaleriaArquivos([]);
+
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
@@ -444,6 +474,100 @@ export default function FormularioTurismo() {
           {sucesso}
         </p>
       )}
+
+      {/* ✅ BLOCO PREMIUM: FOTOS + LOGOMARCA (NO TOPO) */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-slate-900">Fotos e logomarca (no topo)</h3>
+        <p className="mt-1 text-[11px] text-slate-600">
+          Recomendado: JPG/PNG até ~2MB. A <b>capa</b> vira a foto principal do card.
+        </p>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {/* LOGO */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-900">Logomarca (opcional, mas recomendado)</p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              A logo aparece junto com as fotos (não vira capa).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="mt-3 w-full text-xs"
+            />
+
+            {logoPreview && (
+              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoPreview} alt="Preview logo" className="h-32 w-full object-contain" />
+              </div>
+            )}
+          </div>
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-900">Foto de capa (recomendada)</p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              Essa deve ser a foto mais bonita (fachada / vitrine / ambiente).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCapaChange}
+              className="mt-3 w-full text-xs"
+            />
+
+            {capaPreview && (
+              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={capaPreview} alt="Preview capa" className="h-32 w-full object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold text-slate-900">Galeria (opcional) — até 7 fotos</p>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Fotos extras: quartos, piscina, pratos, equipe, detalhes, praia, roteiro do passeio…
+          </p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleGaleriaChange}
+            className="mt-3 w-full text-xs"
+          />
+
+          {galeriaArquivos.length > 0 && (
+            <>
+              <p className="mt-2 text-[11px] text-slate-500">
+                {galeriaArquivos.length} foto(s) selecionada(s).
+              </p>
+
+              <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+                {galeriaPreviews.map((src, idx) => (
+                  <div
+                    key={idx}
+                    className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <p className="mt-3 text-[11px] text-slate-500">
+            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG/PNG.
+          </p>
+        </div>
+      </div>
 
       {/* BLOCO: TIPO DE LUGAR / SERVIÇO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
@@ -505,9 +629,7 @@ export default function FormularioTurismo() {
 
       {/* BLOCO: PRINCIPAIS */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações principais
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Informações principais</h2>
 
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
@@ -568,9 +690,7 @@ export default function FormularioTurismo() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Cidade *
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Cidade *</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={cidade}
@@ -587,9 +707,7 @@ export default function FormularioTurismo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Bairro / região
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Bairro / região</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -601,9 +719,7 @@ export default function FormularioTurismo() {
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Endereço (opcional)
-          </label>
+          <label className="block text-[11px] font-medium text-slate-700">Endereço (opcional)</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -696,9 +812,7 @@ export default function FormularioTurismo() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Tipo de cozinha
-              </label>
+              <label className="block text-[11px] font-medium text-slate-700">Tipo de cozinha</label>
               <select
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={tipoCozinha}
@@ -716,9 +830,7 @@ export default function FormularioTurismo() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Público-alvo (opcional)
-              </label>
+              <label className="block text-[11px] font-medium text-slate-700">Público-alvo (opcional)</label>
               <select
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={publicoAlvo}
@@ -737,9 +849,7 @@ export default function FormularioTurismo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Facilidades
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Facilidades</label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
               {FACILIDADES_GASTRONOMIA.map((item) => (
                 <label key={item} className="flex items-center gap-2 text-[11px] text-slate-700">
@@ -764,9 +874,7 @@ export default function FormularioTurismo() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-medium text-slate-700">
-                Tipo de passeio
-              </label>
+              <label className="block text-[11px] font-medium text-slate-700">Tipo de passeio</label>
               <select
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={tipoPasseio}
@@ -830,9 +938,7 @@ export default function FormularioTurismo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Instagram
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Instagram</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -844,41 +950,11 @@ export default function FormularioTurismo() {
         </div>
       </div>
 
-      {/* BLOCO: FOTOS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos</h2>
-        <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Enviar fotos (upload) – até 8 imagens
-            <span
-              className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-              title="Coloque fotos que representem bem o local ou o passeio. A primeira será usada como capa do anúncio."
-            >
-              i
-            </span>
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-1 w-full text-xs"
-          />
-          {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              {arquivos.length} arquivo(s) selecionado(s).
-            </p>
-          )}
-        </div>
-      </div>
-
       {/* BLOCO: VÍDEO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            URL do vídeo (YouTube)
-          </label>
+          <label className="block text-[11px] font-medium text-slate-700">URL do vídeo (YouTube)</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -894,9 +970,7 @@ export default function FormularioTurismo() {
         <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            Nome do responsável
-          </label>
+          <label className="block text-[11px] font-medium text-slate-700">Nome do responsável</label>
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -908,9 +982,7 @@ export default function FormularioTurismo() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Telefone</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -921,9 +993,7 @@ export default function FormularioTurismo() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">WhatsApp</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -935,9 +1005,7 @@ export default function FormularioTurismo() {
         </div>
 
         <div>
-          <label className="block text-[11px] font-medium text-slate-700">
-            E-mail
-          </label>
+          <label className="block text-[11px] font-medium text-slate-700">E-mail</label>
           <input
             type="email"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
