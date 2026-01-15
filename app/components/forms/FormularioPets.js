@@ -21,8 +21,12 @@ function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
       <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>
+        )}
       </div>
       {children}
     </div>
@@ -44,8 +48,12 @@ export default function FormularioPets() {
   // Valor
   const [preco, setPreco] = useState("");
 
-  // Upload de fotos (acumulativo até 8)
-  const [arquivos, setArquivos] = useState([]);
+  // ✅ UPLOAD PREMIUM: logo (opcional p/ serviços) + capa (obrigatória) + galeria
+  const [souServicoPet, setSouServicoPet] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [capaFile, setCapaFile] = useState(null);
+  const [galeriaFiles, setGaleriaFiles] = useState([]);
+
   const [uploading, setUploading] = useState(false);
 
   // Vídeo (opcional)
@@ -88,36 +96,70 @@ export default function FormularioPets() {
     });
   }, [router]);
 
-  // ✅ ACUMULA ARQUIVOS ATÉ 8 (não apaga os anteriores)
-  const handleArquivosChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  // ✅ Se escolheu "Serviços pet & acessórios", habilita opção de logo
+  useEffect(() => {
+    const isServicos = subcategoria === "Serviços pet & acessórios";
+    setSouServicoPet(isServicos);
 
-    setArquivos((prev) => {
-      const combinado = [...prev, ...files];
-      return combinado.slice(0, 8);
-    });
+    // se saiu de serviços, zera logo pra não “carregar sem querer”
+    if (!isServicos) setLogoFile(null);
+  }, [subcategoria]);
 
-    // permite selecionar o mesmo arquivo de novo se quiser
+  // ✅ limite dinâmico: total em imagens <= 8
+  const maxGaleria = logoFile ? 6 : 7; // (logo + capa + 6) = 8 | (capa + 7) = 8
+
+  const handleLogoChange = (e) => {
+    const f = e.target.files?.[0] || null;
+    setLogoFile(f);
     e.target.value = "";
   };
 
-  const removerArquivo = (index) => {
-    setArquivos((prev) => prev.filter((_, i) => i !== index));
+  const handleCapaChange = (e) => {
+    const f = e.target.files?.[0] || null;
+    setCapaFile(f);
+    e.target.value = "";
   };
 
-  // Preview das imagens selecionadas
-  const previews = useMemo(() => {
-    if (!arquivos?.length) return [];
-    return arquivos.map((f) => URL.createObjectURL(f));
-  }, [arquivos]);
+  const handleGaleriaChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setGaleriaFiles((prev) => {
+      const combinado = [...prev, ...files];
+      return combinado.slice(0, maxGaleria);
+    });
+
+    e.target.value = "";
+  };
+
+  const removerGaleria = (index) => {
+    setGaleriaFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Preview
+  const previewLogo = useMemo(() => {
+    if (!logoFile) return null;
+    return URL.createObjectURL(logoFile);
+  }, [logoFile]);
+
+  const previewCapa = useMemo(() => {
+    if (!capaFile) return null;
+    return URL.createObjectURL(capaFile);
+  }, [capaFile]);
+
+  const previewsGaleria = useMemo(() => {
+    if (!galeriaFiles?.length) return [];
+    return galeriaFiles.map((f) => URL.createObjectURL(f));
+  }, [galeriaFiles]);
 
   useEffect(() => {
     return () => {
-      previews.forEach((p) => URL.revokeObjectURL(p));
+      if (previewLogo) URL.revokeObjectURL(previewLogo);
+      if (previewCapa) URL.revokeObjectURL(previewCapa);
+      previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previews]);
+  }, [previewLogo, previewCapa, previewsGaleria]);
 
   const limparFormulario = () => {
     setTitulo("");
@@ -126,7 +168,11 @@ export default function FormularioPets() {
     setBairro("");
     setSubcategoria("");
     setPreco("");
-    setArquivos([]);
+
+    setLogoFile(null);
+    setCapaFile(null);
+    setGaleriaFiles([]);
+
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
@@ -155,6 +201,12 @@ export default function FormularioPets() {
       return;
     }
 
+    // ✅ capa obrigatória (Padrão Premium)
+    if (!capaFile) {
+      setErro("Envie uma foto de capa (obrigatória). Ela será a foto principal do anúncio.");
+      return;
+    }
+
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
       setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
@@ -171,33 +223,65 @@ export default function FormularioPets() {
       return;
     }
 
-    // Upload das fotos
-    let urlsUpload = [];
+    // Upload (logo opcional p/ serviços) + capa + galeria
+    let logoUrl = null;
+    let capaUrl = null;
+    const galeriaUrls = [];
 
     try {
-      if (arquivos.length > 0) {
-        setUploading(true);
+      setUploading(true);
 
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-pets-${index}.${ext}`;
+      const bucket = "anuncios";
+      const baseTime = Date.now();
 
-            const { error: uploadError } = await supabase.storage
-              .from("anuncios")
-              .upload(filePath, file);
+      // ✅ LOGO (opcional) — só se for serviços
+      if (souServicoPet && logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `pets/${user.id}/pets-logo-${baseTime}.${ext}`;
 
-            if (uploadError) throw uploadError;
+        const { error: uploadLogoError } = await supabase.storage
+          .from(bucket)
+          .upload(path, logoFile);
 
-            const { data: publicData } = supabase.storage
-              .from("anuncios")
-              .getPublicUrl(filePath);
+        if (uploadLogoError) throw uploadLogoError;
 
-            return publicData.publicUrl;
-          })
-        );
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        logoUrl = data.publicUrl;
+      }
 
-        urlsUpload = uploads;
+      // ✅ CAPA (obrigatória)
+      {
+        const ext = capaFile.name.split(".").pop();
+        const path = `pets/${user.id}/pets-capa-${baseTime}.${ext}`;
+
+        const { error: uploadCapaError } = await supabase.storage
+          .from(bucket)
+          .upload(path, capaFile);
+
+        if (uploadCapaError) throw uploadCapaError;
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        capaUrl = data.publicUrl;
+      }
+
+      // ✅ GALERIA (opcional)
+      if (galeriaFiles && galeriaFiles.length > 0) {
+        const arquivos = Array.from(galeriaFiles).slice(0, maxGaleria);
+
+        for (let i = 0; i < arquivos.length; i++) {
+          const file = arquivos[i];
+          const ext = file.name.split(".").pop();
+          const path = `pets/${user.id}/pets-galeria-${baseTime}-${i}.${ext}`;
+
+          const { error: uploadGalError } = await supabase.storage
+            .from(bucket)
+            .upload(path, file);
+
+          if (uploadGalError) throw uploadGalError;
+
+          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+          galeriaUrls.push(data.publicUrl);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -208,7 +292,11 @@ export default function FormularioPets() {
       setUploading(false);
     }
 
-    const imagens = urlsUpload;
+    // ✅ Monta imagens no padrão:
+    // - capa SEMPRE é a foto principal do card
+    // - se tiver logo, ela entra antes (pra UI usar como selo, se você quiser)
+    // - total <= 8 garantido pelo maxGaleria
+    const imagens = logoUrl ? [logoUrl, capaUrl, ...galeriaUrls] : [capaUrl, ...galeriaUrls];
 
     // INSERT no Supabase
     const { data, error } = await supabase
@@ -307,10 +395,18 @@ export default function FormularioPets() {
             Dica: informe data/local onde foi visto e um ponto de referência.
           </p>
         )}
+        {souServicoPet && (
+          <p className="mt-2 text-[11px] text-slate-500">
+            Se for clínica, banho e tosa, pet shop etc., você pode enviar a logomarca (opcional).
+          </p>
+        )}
       </Card>
 
       {/* PRINCIPAL */}
-      <Card title="Informações do anúncio" subtitle="Título bom + descrição clara = mais contatos no WhatsApp.">
+      <Card
+        title="Informações do anúncio"
+        subtitle="Título bom + descrição clara = mais contatos no WhatsApp."
+      >
         <div className="space-y-3">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700">
@@ -364,7 +460,9 @@ export default function FormularioPets() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Bairro / Região
+            </label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -388,59 +486,138 @@ export default function FormularioPets() {
         />
       </Card>
 
-      {/* FOTOS */}
-      <Card title="Fotos" subtitle="Até 8 imagens. A primeira vira a capa do anúncio.">
-        <label className="block text-[11px] font-semibold text-slate-700">
-          Enviar fotos (upload) – até 8 imagens
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleArquivosChange}
-          className="mt-2 w-full text-xs"
-        />
+      {/* ✅ UPLOAD PREMIUM (NO TOPO): Logo (serviços) + Capa + Galeria */}
+      <Card
+        title="Fotos (capa + galeria) — no topo"
+        subtitle={`Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. ${
+          souServicoPet ? "A logomarca (opcional) não vira capa." : ""
+        }`}
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* LOGO (só para serviços) */}
+          {souServicoPet ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional)</p>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Para clínica, pet shop, banho e tosa etc. (não vira capa).
+              </p>
 
-        {arquivos.length > 0 && (
-          <>
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
-              <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
-            </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-3 w-full text-xs"
+                onChange={handleLogoChange}
+              />
 
-            <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
-              {previews.map((src, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
-                >
+              {previewLogo && (
+                <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
-
-                  <button
-                    type="button"
-                    onClick={() => removerArquivo(idx)}
-                    className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[10px] px-2 py-1 hover:bg-black/75"
-                    aria-label="Remover imagem"
-                  >
-                    ✕
-                  </button>
-
-                  {idx === 0 && (
-                    <div className="absolute bottom-1 left-1 rounded-full bg-sky-600 text-white text-[10px] px-2 py-0.5">
-                      Capa
-                    </div>
-                  )}
+                  <img src={previewLogo} alt="Preview logo" className="h-full w-full object-contain p-2" />
                 </div>
-              ))}
+              )}
+
+              {logoFile && (
+                <p className="mt-2 text-[11px] text-slate-500">
+                  Logo selecionada: <span className="font-medium">{logoFile.name}</span>
+                </p>
+              )}
             </div>
-          </>
-        )}
+          ) : (
+            <div className="hidden md:block" />
+          )}
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">
+              Foto de capa (obrigatória) <span className="text-red-500">*</span>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              A foto mais bonita (pet / produto / fachada do serviço).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={handleCapaChange}
+              required
+            />
+
+            {previewCapa && (
+              <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
+              </div>
+            )}
+
+            {capaFile && (
+              <p className="mt-2 text-[11px] text-slate-500">
+                Capa selecionada: <span className="font-medium">{capaFile.name}</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold text-slate-700">
+            Galeria (opcional) — até {maxGaleria} foto(s)
+          </p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Fotos extras: outros ângulos, detalhes, ambiente, equipe, produtos…
+          </p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="mt-3 w-full text-xs"
+            onChange={handleGaleriaChange}
+          />
+
+          {galeriaFiles.length > 0 && (
+            <>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[11px] text-slate-500">
+                  {galeriaFiles.length} arquivo(s) na galeria.
+                </p>
+                <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+                {previewsGaleria.map((src, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
+
+                    <button
+                      type="button"
+                      onClick={() => removerGaleria(idx)}
+                      className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[10px] px-2 py-1 hover:bg-black/75"
+                      aria-label="Remover imagem"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-2 text-[11px] text-slate-500">
+                Dica: se der erro no upload, use fotos menores (até ~2MB) em JPG/PNG.
+              </p>
+            </>
+          )}
+        </div>
       </Card>
 
       {/* VÍDEO */}
       <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
-        <label className="block text-[11px] font-semibold text-slate-700">URL do vídeo (YouTube)</label>
+        <label className="block text-[11px] font-semibold text-slate-700">
+          URL do vídeo (YouTube)
+        </label>
         <input
           type="text"
           className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
@@ -454,7 +631,9 @@ export default function FormularioPets() {
       <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
         <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">Nome para contato</label>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Nome para contato
+            </label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
