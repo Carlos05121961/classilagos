@@ -34,15 +34,17 @@ export default function FormularioImoveis() {
   const [mobiliado, setMobiliado] = useState("nao"); // sim / nao
   const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao"); // sim / nao
 
-  // ✅ NOVO: corretor / imobiliária + logo
+  // ✅ Corretor / imobiliária + logo
   const [isImobiliaria, setIsImobiliaria] = useState(false);
   const [logoArquivo, setLogoArquivo] = useState(null);
 
-  // Upload de arquivos (fotos)
-  const [arquivos, setArquivos] = useState([]);
+  // ✅ NOVO PADRÃO: CAPA + GALERIA (separados)
+  const [capaArquivo, setCapaArquivo] = useState(null); // obrigatória
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 8
+
   const [uploading, setUploading] = useState(false);
 
-  // Vídeo (URL – apenas YouTube)
+  // Vídeo
   const [videoUrl, setVideoUrl] = useState("");
 
   // Contatos
@@ -82,8 +84,6 @@ export default function FormularioImoveis() {
     "Outros",
   ];
 
-  // ✅ AQUI: “Temporada” virou “Aluguel por temporada”
-  // ✅ E o value salvo no banco será: "aluguel temporada"
   const finalidades = [
     { label: "Venda", value: "venda" },
     { label: "Aluguel", value: "aluguel" },
@@ -93,16 +93,19 @@ export default function FormularioImoveis() {
   // Garante login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
+      if (!data.user) router.push("/login");
     });
   }, [router]);
 
-  const handleArquivosChange = (e) => {
+  // ✅ handlers novos
+  const handleCapaChange = (e) => {
+    const file = (e.target.files || [])[0] || null;
+    setCapaArquivo(file);
+  };
+
+  const handleGaleriaChange = (e) => {
     const files = Array.from(e.target.files || []);
-    // máximo 8 fotos
-    setArquivos(files.slice(0, 8));
+    setGaleriaArquivos(files.slice(0, 8));
   };
 
   const handleLogoChange = (e) => {
@@ -138,62 +141,64 @@ export default function FormularioImoveis() {
       return;
     }
 
+    // ✅ CAPA obrigatória (padrão único)
+    if (!capaArquivo) {
+      setErro("Envie 1 foto de capa do imóvel (obrigatória).");
+      return;
+    }
+
     // ✅ Se marcou corretor/imobiliária, exige logo
     if (isImobiliaria && !logoArquivo) {
       setErro("Você marcou corretor/imobiliária. Envie a logomarca (1 imagem).");
       return;
     }
 
-    // Termos de responsabilidade
+    // Termos
     if (!aceitoTermos) {
       setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
       return;
     }
 
-    let urlsUpload = [];
+    const bucketName = "anuncios";
+
+    // helper upload (com pastas)
+    const uploadUmArquivo = async (file, pasta) => {
+      const ext = file.name.split(".").pop();
+      const safeExt = ext ? ext.toLowerCase() : "jpg";
+      const random = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2);
+      const filePath = `${user.id}/${pasta}/${Date.now()}-${random}.${safeExt}`;
+
+      const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
+
+      if (uploadError) {
+        console.error("Erro upload:", uploadError);
+        throw uploadError;
+      }
+
+      const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      return publicData.publicUrl;
+    };
+
+    let capaUrl = null;
     let logoUrl = null;
+    let galeriaUrls = [];
 
     try {
       setUploading(true);
 
-      const bucketName = "anuncios";
+      // 1) CAPA
+      capaUrl = await uploadUmArquivo(capaArquivo, "capas");
 
-      // ✅ 1) upload das fotos (até 8)
-      if (arquivos.length > 0) {
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            const fileExt = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-${index}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
-
-            if (uploadError) {
-              console.error("Erro ao subir imagem:", uploadError);
-              throw uploadError;
-            }
-
-            const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-            return publicData.publicUrl;
-          })
-        );
-
-        urlsUpload = uploads;
+      // 2) LOGO (se houver)
+      if (isImobiliaria && logoArquivo) {
+        logoUrl = await uploadUmArquivo(logoArquivo, "logos");
       }
 
-      // ✅ 2) upload da logo (1)
-      if (isImobiliaria && logoArquivo) {
-        const ext = logoArquivo.name.split(".").pop();
-        const filePath = `${user.id}/logos/${Date.now()}-logo.${ext}`;
-
-        const { error: logoErr } = await supabase.storage.from(bucketName).upload(filePath, logoArquivo);
-
-        if (logoErr) {
-          console.error("Erro ao subir logomarca:", logoErr);
-          throw logoErr;
-        }
-
-        const { data: publicDataLogo } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-        logoUrl = publicDataLogo?.publicUrl || null;
+      // 3) GALERIA (até 8)
+      if (galeriaArquivos.length > 0) {
+        galeriaUrls = await Promise.all(
+          galeriaArquivos.slice(0, 8).map((file) => uploadUmArquivo(file, "galeria"))
+        );
       }
     } catch (err) {
       console.error(err);
@@ -204,9 +209,8 @@ export default function FormularioImoveis() {
       setUploading(false);
     }
 
-    const imagens = urlsUpload;
-const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
-
+    // ✅ compatibilidade total: imagens[0] = capa
+    const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
 
     const { error } = await supabase.from("anuncios").insert({
       user_id: user.id,
@@ -217,15 +221,19 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
       bairro,
       endereco,
       preco,
+
+      // ✅ padrão novo
+      capa_url: capaUrl,
+      logo_url: logoUrl,
       imagens,
-      capa_url,
+
       video_url: videoUrl,
       telefone,
       whatsapp,
       email,
       contato: contatoPrincipal,
       tipo_imovel: tipoImovel,
-      finalidade: finalidade, // ✅ agora salva: venda / aluguel / aluguel temporada
+      finalidade,
       area: areaConstruida || areaTerreno,
       quartos,
       banheiros,
@@ -241,9 +249,6 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
       area_construida: areaConstruida,
       area_terreno: areaTerreno,
       nome_contato: nomeContato,
-
-      // ✅ NOVO: logo opcional
-      logo_url: logoUrl,
     });
 
     if (error) {
@@ -252,7 +257,6 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
       return;
     }
 
-    // Sucesso
     setSucesso("Anúncio enviado com sucesso! Seu imóvel aparecerá em breve.");
 
     // Limpa formulário
@@ -275,7 +279,11 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
     setIptu("");
     setMobiliado("nao");
     setAceitaFinanciamento("nao");
-    setArquivos([]);
+
+    // ✅ limpa capa/galeria
+    setCapaArquivo(null);
+    setGaleriaArquivos([]);
+
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
@@ -287,7 +295,6 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
     setIsImobiliaria(false);
     setLogoArquivo(null);
 
-    // Depois de 2 segundos, vai para Meus anúncios
     setTimeout(() => {
       router.push("/painel/meus-anuncios");
     }, 2000);
@@ -347,7 +354,71 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
         </div>
       </div>
 
-      {/* ✅ NOVO BLOCO: LOGOMARCA (corretor / imobiliária) */}
+      {/* BLOCO: CAPA + GALERIA (PADRÃO ÚNICO) */}
+      <div className="space-y-4 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Fotos do imóvel</h2>
+
+        {/* CAPA */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Foto de capa (obrigatória) *
+            <span className="block text-[11px] text-slate-500">
+              Esta será a foto principal do card e do anúncio.
+            </span>
+          </label>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleCapaChange}
+            className="mt-1 w-full text-xs"
+            required
+          />
+
+          {capaArquivo?.name && (
+            <p className="mt-1 text-[11px] text-slate-500">
+              Capa selecionada: <b>{capaArquivo.name}</b>{" "}
+              <button
+                type="button"
+                onClick={() => setCapaArquivo(null)}
+                className="ml-2 underline text-slate-700"
+              >
+                remover
+              </button>
+            </p>
+          )}
+        </div>
+
+        {/* GALERIA */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700">
+            Galeria (opcional) – até 8 imagens
+            <span className="block text-[11px] text-slate-500">
+              Fotos extras do imóvel (quartos, área externa, vista, etc.).
+            </span>
+          </label>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleGaleriaChange}
+            className="mt-1 w-full text-xs"
+          />
+
+          {galeriaArquivos.length > 0 && (
+            <p className="mt-1 text-[11px] text-slate-500">
+              {galeriaArquivos.length} arquivo(s) selecionado(s).
+            </p>
+          )}
+
+          <p className="mt-1 text-[11px] text-slate-500">
+            Formatos recomendados: JPG ou PNG, até 2MB cada.
+          </p>
+        </div>
+      </div>
+
+      {/* LOGOMARCA */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Corretor / Imobiliária</h2>
 
@@ -361,7 +432,7 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
           <span>
             Sou corretor/imobiliária e quero exibir minha <b>logomarca</b> no anúncio.
             <span className="block text-[11px] text-slate-500">
-              (A capa do imóvel continua sendo a foto do imóvel — a logo é só um “selo”.)
+              (A capa é sempre a foto do imóvel. A logomarca é um selo separado.)
             </span>
           </span>
         </label>
@@ -622,30 +693,6 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
         </div>
       </div>
 
-      {/* BLOCO: FOTOS */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Fotos do imóvel</h2>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Enviar fotos (upload) – até 8 imagens
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-1 w-full text-xs"
-          />
-          {arquivos.length > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
-          )}
-          <p className="mt-1 text-[11px] text-slate-500">
-            Formatos recomendados: JPG ou PNG, até 2MB cada.
-          </p>
-        </div>
-      </div>
-
       {/* BLOCO: VÍDEO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Vídeo do imóvel (opcional)</h2>
@@ -752,4 +799,3 @@ const capa_url = (urlsUpload && urlsUpload[0]) ? urlsUpload[0] : null;
     </form>
   );
 }
-
