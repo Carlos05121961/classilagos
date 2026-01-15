@@ -1,8 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+
+/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
 
 export default function FormularioEventos() {
   const router = useRouter();
@@ -26,8 +39,10 @@ export default function FormularioEventos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // >>> AGORA: VÁRIAS IMAGENS
-  const [imagensFiles, setImagensFiles] = useState([]);
+  // ✅ UPLOAD PREMIUM (logo + capa + galeria)
+  const [logoFile, setLogoFile] = useState(null);
+  const [capaFile, setCapaFile] = useState(null);
+  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
 
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -74,6 +89,45 @@ export default function FormularioEventos() {
     "Outros serviços para eventos",
   ];
 
+  // ✅ Galeria: acumula até 7 e permite escolher o mesmo arquivo de novo
+  const handleGaleriaChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    setGaleriaFiles((prev) => {
+      const combinado = [...prev, ...files];
+      return combinado.slice(0, 7);
+    });
+
+    e.target.value = "";
+  };
+
+  const removerGaleria = (index) => {
+    setGaleriaFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ✅ Previews (para UX Premium)
+  const previewLogo = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : ""), [logoFile]);
+  const previewCapa = useMemo(() => (capaFile ? URL.createObjectURL(capaFile) : ""), [capaFile]);
+  const previewsGaleria = useMemo(() => galeriaFiles.map((f) => URL.createObjectURL(f)), [galeriaFiles]);
+
+  useEffect(() => {
+    return () => {
+      if (previewLogo) URL.revokeObjectURL(previewLogo);
+      if (previewCapa) URL.revokeObjectURL(previewCapa);
+      previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewLogo, previewCapa, previewsGaleria]);
+
+  async function uploadUmaImagem({ bucket, path, file }) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || "";
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -94,18 +148,20 @@ export default function FormularioEventos() {
       return;
     }
 
+    // ✅ CAPA obrigatória (padrão Premium)
+    if (!capaFile) {
+      setErro("Envie a foto de capa (obrigatória).");
+      return;
+    }
+
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoResponsabilidade) {
-      setErro(
-        "Para publicar o anúncio, marque a declaração de responsabilidade pelas informações."
-      );
+      setErro("Para publicar o anúncio, marque a declaração de responsabilidade pelas informações.");
       return;
     }
 
@@ -113,34 +169,39 @@ export default function FormularioEventos() {
 
     try {
       const bucket = "anuncios";
+      const base = `servicos/${user.id}/eventos-${Date.now()}`;
 
-      // =====================
-      // UPLOAD DE VÁRIAS FOTOS
-      // =====================
-      let imagensUrls = [];
+      // 1) Logo (opcional)
+      let logoUrl = "";
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `${base}-logo.${ext}`;
+        logoUrl = await uploadUmaImagem({ bucket, path, file: logoFile });
+      }
 
-      if (imagensFiles.length > 0) {
-        let index = 0;
-        for (const file of imagensFiles) {
+      // 2) Capa (obrigatória)
+      let capaUrl = "";
+      {
+        const ext = capaFile.name.split(".").pop();
+        const path = `${base}-capa.${ext}`;
+        capaUrl = await uploadUmaImagem({ bucket, path, file: capaFile });
+      }
+
+      // 3) Galeria (opcional até 7)
+      const galeriaUrls = [];
+      if (galeriaFiles.length) {
+        let idx = 0;
+        for (const file of galeriaFiles) {
           const ext = file.name.split(".").pop();
-          const path = `servicos/${user.id}/eventos-${Date.now()}-${index}.${ext}`;
-          index++;
-
-          const { error: uploadErro } = await supabase.storage
-            .from(bucket)
-            .upload(path, file);
-
-          if (uploadErro) {
-            console.error("Erro upload imagem serviço:", uploadErro);
-            throw uploadErro;
-          }
-
-          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-          if (data?.publicUrl) {
-            imagensUrls.push(data.publicUrl);
-          }
+          const path = `${base}-galeria-${idx}.${ext}`;
+          idx++;
+          const url = await uploadUmaImagem({ bucket, path, file });
+          if (url) galeriaUrls.push(url);
         }
       }
+
+      // ✅ Ordem Premium: capa primeiro (vira foto principal do card)
+      const imagens = [capaUrl, ...galeriaUrls, ...(logoUrl ? [logoUrl] : [])];
 
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
@@ -167,21 +228,19 @@ export default function FormularioEventos() {
         site_url: siteUrl,
         instagram,
 
-        // array de imagens
-        imagens: imagensUrls.length > 0 ? imagensUrls : null,
-
+        imagens,
         status: "ativo",
       });
 
       if (insertError) {
         console.error("Erro ao salvar serviço:", insertError);
         setErro("Erro ao salvar o anúncio. Tente novamente em alguns instantes.");
-        setUploading(false);
         return;
       }
 
       setSucesso("Serviço para festas e eventos cadastrado com sucesso!");
 
+      // limpar
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -197,7 +256,11 @@ export default function FormularioEventos() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-      setImagensFiles([]);
+
+      setLogoFile(null);
+      setCapaFile(null);
+      setGaleriaFiles([]);
+
       setAceitoResponsabilidade(false);
 
       setTimeout(() => {
@@ -205,197 +268,150 @@ export default function FormularioEventos() {
       }, 1800);
     } catch (err) {
       console.error(err);
-      setErro(
-        `Erro ao salvar seu anúncio de serviço: ${
-          err.message || "tente novamente."
-        }`
-      );
+      setErro(`Erro ao salvar seu anúncio de serviço: ${err?.message || "tente novamente."}`);
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {erro && (
-        <p className="text-red-700 text-sm border border-red-200 p-3 rounded-2xl bg-red-50">
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-700">
           {erro}
-        </p>
+        </div>
       )}
       {sucesso && (
-        <p className="text-emerald-700 text-sm border border-emerald-200 p-3 rounded-2xl bg-emerald-50">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs md:text-sm text-emerald-700">
           {sucesso}
-        </p>
+        </div>
       )}
 
-      {/* DADOS DO SERVIÇO */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Informações do serviço para festas e eventos
-        </h2>
-
-        {/* TÍTULO DO ANÚNCIO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Título do anúncio *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Esse será o título em destaque no card do seu serviço de eventos."
-            >
-              i
-            </span>
-          </div>
-          <input
-            type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-            placeholder="Ex.: Buffet infantil em Maricá, DJ para casamentos, Decoração de festas..."
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* CIDADE / BAIRRO */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card
+        title="Informações do serviço para festas e eventos"
+        subtitle="Título claro + fotos bonitas = mais pedidos de orçamento."
+      >
+        <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Cidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Título do anúncio <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Ex.: Buffet infantil em Maricá, DJ para casamentos, Decoração de festas..."
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Cidade <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-400"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                required
+              >
+                <option value="">Selecione...</option>
+                {cidades.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+                placeholder="Ex.: Centro, Itaipuaçu, Bacaxá..."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Tipo de serviço para eventos <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sky-400"
+              value={areaProfissional}
+              onChange={(e) => setAreaProfissional(e.target.value)}
               required
             >
               <option value="">Selecione...</option>
-              {cidades.map((c) => (
-                <option key={c}>{c}</option>
+              {servicosEventos.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
               ))}
             </select>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Escolha o tipo principal. Isso ajuda as pessoas a encontrarem seu anúncio mais rápido.
+            </p>
           </div>
+
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Bairro / Região
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Descrição do serviço <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
+            <textarea
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 resize-none focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Explique como funciona seu serviço, tipos de eventos que atende, pacotes, diferenciais, cidades atendidas etc."
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              required
             />
           </div>
         </div>
+      </Card>
 
-        {/* TIPO DE SERVIÇO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Tipo de serviço para eventos *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Escolha o tipo principal de serviço. Isso ajuda as pessoas a encontrarem seu anúncio com mais facilidade."
-            >
-              i
-            </span>
-          </div>
-          <select
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white"
-            value={areaProfissional}
-            onChange={(e) => setAreaProfissional(e.target.value)}
-            required
-          >
-            <option value="">Selecione...</option>
-            {servicosEventos.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Escolha o tipo principal. Isso ajuda as pessoas a encontrarem seu
-            anúncio com mais facilidade.
-          </p>
-        </div>
-
-        {/* DESCRIÇÃO DO SERVIÇO */}
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Descrição do serviço *
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Descreva seu serviço com detalhes: tipo de evento, tamanho das festas, pacotes, diferenciais e cidades atendidas."
-            >
-              i
-            </span>
-          </div>
-          <textarea
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm h-28 resize-none"
-            placeholder="Explique como funciona seu serviço, tipos de eventos que atende, tamanhos de festa, pacotes, diferenciais, cidades atendidas etc."
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      {/* PROFISSIONAL / NEGÓCIO */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Profissional / empresa
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card title="Profissional / empresa" subtitle="Se tiver nome do negócio, ajuda na credibilidade.">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nome do responsável
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Nome do responsável</label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={nomeProfissional}
               onChange={(e) => setNomeProfissional(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Nome da empresa / buffet / espaço (opcional)
             </label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={nomeNegocio}
               onChange={(e) => setNomeNegocio(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <div className="mt-4 grid gap-4 md:grid-cols-3 items-center">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-1 mb-1">
-              <label className="block text-xs font-semibold text-slate-700">
-                Horário de atendimento
-              </label>
-              <span
-                className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-                title="Informe os dias e horários em que você responde clientes ou realiza atendimentos."
-              >
-                i
-              </span>
-            </div>
+            <label className="block text-[11px] font-semibold text-slate-700">Horário de atendimento</label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: Segunda a sábado, 9h às 20h / Atendemos também domingos para eventos"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="Ex.: Segunda a sábado, 9h às 20h / Domingo para eventos"
               value={horarioAtendimento}
               onChange={(e) => setHorarioAtendimento(e.target.value)}
             />
           </div>
-          <label className="flex items-center gap-2 text-[11px] text-slate-700">
+
+          <label className="mt-5 flex items-center gap-2 text-[11px] text-slate-700">
             <input
               type="checkbox"
               className="h-4 w-4"
@@ -406,88 +422,172 @@ export default function FormularioEventos() {
           </label>
         </div>
 
-        <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-xs font-semibold text-slate-700">
-              Faixa de preço (opcional)
-            </label>
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-              title="Você pode indicar um valor inicial ou faixa, sem precisar fechar um preço exato."
-            >
-              i
-            </span>
-          </div>
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">Faixa de preço (opcional)</label>
           <input
             type="text"
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
             placeholder="Ex.: A partir de R$ 800, Pacotes a combinar"
             value={faixaPreco}
             onChange={(e) => setFaixaPreco(e.target.value)}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* CONTATOS */}
-      <div className="space-y-4 border-t border-slate-200 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
+      {/* ✅ UPLOADS NO TOPO (PREMIUM PADRÃO) */}
+      <Card
+        title="Fotos e logomarca (no topo)"
+        subtitle="Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* LOGO */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional, mas recomendado)</p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Sua logo aparece junto com as fotos (não vira capa).
+            </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+            />
+
+            {previewLogo && (
+              <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewLogo} alt="Preview logo" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">
+              Foto de capa (obrigatória) <span className="text-red-500">*</span>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Essa deve ser a foto mais bonita (serviço / evento / ambiente).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={(e) => setCapaFile(e.target.files?.[0] || null)}
+              required
+            />
+
+            {previewCapa && (
+              <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Fotos extras: outros ângulos, montagem, equipe, detalhes, eventos anteriores…
+          </p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="mt-3 w-full text-xs"
+            onChange={handleGaleriaChange}
+          />
+
+          {galeriaFiles.length > 0 && (
+            <>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[11px] text-slate-500">{galeriaFiles.length} foto(s) selecionada(s).</p>
+                <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+                {previewsGaleria.map((src, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
+
+                    <button
+                      type="button"
+                      onClick={() => removerGaleria(idx)}
+                      className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[10px] px-2 py-1 hover:bg-black/75"
+                      aria-label="Remover imagem"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <p className="mt-3 text-[11px] text-slate-500">
+          Se der erro no upload: tente fotos menores (até ~2MB) e em JPG/PNG.
+        </p>
+      </Card>
+
+      <Card title="Contatos" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Telefone
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              WhatsApp
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              E-mail
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
             <input
               type="email"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Site / página (opcional)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Site / página (opcional)</label>
             <input
               type="url"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
-              placeholder="Ex.: https://meuevento.com.br"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+              placeholder="https://..."
               value={siteUrl}
               onChange={(e) => setSiteUrl(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Instagram ou rede social (opcional)
             </label>
             <input
               type="text"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               placeholder="@meuevento"
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
@@ -495,64 +595,33 @@ export default function FormularioEventos() {
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para contato.
+        <p className="mt-2 text-[11px] text-slate-500">
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para contato.
         </p>
-      </div>
+      </Card>
 
-      {/* IMAGENS */}
-      <div className="space-y-2 border-t border-slate-200 pt-4">
-        <div className="flex items-center gap-1 mb-1">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Fotos do serviço / logo (opcional)
-          </h2>
-          <span
-            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white cursor-help"
-            title="Envie imagens que representem bem seu serviço. A primeira será usada como destaque."
-          >
-            i
-          </span>
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          className="text-sm"
-          onChange={(e) =>
-            setImagensFiles(Array.from(e.target.files || []))
-          }
-        />
-        <p className="text-[11px] text-slate-500">
-          Você pode enviar várias imagens em JPG ou PNG, até 1 MB cada. A
-          primeira será o destaque do anúncio.
-        </p>
-      </div>
-
-      {/* RESPONSABILIDADE */}
-      <div className="border-t border-slate-200 pt-4">
-        <label className="flex items-start gap-2 text-[11px] text-slate-700">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
             checked={aceitoResponsabilidade}
             onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que sou
-            responsável por qualquer negociação realizada a partir deste
-            serviço. Estou de acordo com os termos de uso do Classilagos.
+            Declaro que as informações deste anúncio são verdadeiras e que sou responsável por qualquer
+            negociação realizada a partir deste serviço. Estou de acordo com os termos de uso do Classilagos.
           </span>
         </label>
-      </div>
 
-      <button
-        type="submit"
-        disabled={uploading}
-        className="w-full bg-blue-600 text-white rounded-full py-3 font-semibold text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-      >
-        {uploading ? "Publicando serviço..." : "Publicar serviço para eventos"}
-      </button>
+        <button
+          type="submit"
+          disabled={uploading}
+          className="mt-4 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {uploading ? "Publicando serviço..." : "Publicar serviço para eventos"}
+        </button>
+      </div>
     </form>
   );
 }
