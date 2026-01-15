@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
@@ -35,9 +35,10 @@ export default function FormularioLagolistas() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Imagens
-  const [logoFile, setLogoFile] = useState(null);
-  const [fotosFiles, setFotosFiles] = useState([]);
+  // Imagens (Padrão Premium: logo + capa + galeria)
+  const [logoFile, setLogoFile] = useState(null); // opcional
+  const [capaFile, setCapaFile] = useState(null); // recomendado
+  const [fotosFiles, setFotosFiles] = useState([]); // galeria (até 4) -> total fotos = capa + 4 = 5
 
   // Estados gerais
   const [aceitoTermos, setAceitoTermos] = useState(false);
@@ -48,9 +49,7 @@ export default function FormularioLagolistas() {
   // Verificar login
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
+      if (!data.user) router.push("/login");
     });
   }, [router]);
 
@@ -66,7 +65,7 @@ export default function FormularioLagolistas() {
     "Rio das Ostras",
   ];
 
-    // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
+  // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
   const segmentosLagolistas = [
     "Academias, pilates & estúdios de treino",
     "Advogados & serviços jurídicos",
@@ -131,11 +130,93 @@ export default function FormularioLagolistas() {
     "Óticas & relojoarias",
   ];
 
+  // ===== Previews =====
+  const logoPreview = useMemo(() => {
+    if (!logoFile) return null;
+    return { name: logoFile.name, url: URL.createObjectURL(logoFile) };
+  }, [logoFile]);
+
+  const capaPreview = useMemo(() => {
+    if (!capaFile) return null;
+    return { name: capaFile.name, url: URL.createObjectURL(capaFile) };
+  }, [capaFile]);
+
+  const fotosPreviews = useMemo(() => {
+    if (!fotosFiles?.length) return [];
+    return fotosFiles.map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+  }, [fotosFiles]);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview?.url) {
+        try {
+          URL.revokeObjectURL(logoPreview.url);
+        } catch {}
+      }
+      if (capaPreview?.url) {
+        try {
+          URL.revokeObjectURL(capaPreview.url);
+        } catch {}
+      }
+      fotosPreviews.forEach((p) => {
+        try {
+          URL.revokeObjectURL(p.url);
+        } catch {}
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logoFile, capaFile, fotosFiles]);
+
+  // ===== Helpers de upload =====
+  async function uploadToPublicUrl(bucket, userId, file, prefix) {
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `lagolistas/${userId}/${prefix}-${Date.now()}-${Math.random()
+      .toString(16)
+      .slice(2)}.${ext}`;
+
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
+    if (upErr) throw upErr;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  function validarAntesDeEnviar() {
+    if (!titulo || !cidade || !descricao) {
+      return "Preencha pelo menos o título, a cidade e a descrição do seu comércio/serviço.";
+    }
+    if (!segmento) return "Selecione a categoria/segmento do seu negócio.";
+
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!aceitoTermos) {
+      return "Para publicar no Lagolistas, marque a opção confirmando que as informações são verdadeiras.";
+    }
+
+    return "";
+  }
+
+  const handleFotosChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setFotosFiles(files.slice(0, 4)); // galeria até 4 (total fotos = capa + 4 = 5)
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
+
+    const valid = validarAntesDeEnviar();
+    if (valid) {
+      setErro(valid);
+      return;
+    }
 
     const {
       data: { user },
@@ -147,97 +228,47 @@ export default function FormularioLagolistas() {
       return;
     }
 
-    // Validações principais
-    if (!titulo || !cidade || !descricao) {
-      setErro(
-        "Preencha pelo menos o título, a cidade e a descrição do seu comércio/serviço."
-      );
-      return;
-    }
-
-    if (!segmento) {
-      setErro("Selecione a categoria/segmento do seu negócio.");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
-      return;
-    }
-
-    if (!aceitoTermos) {
-      setErro(
-        "Para publicar no Lagolistas, marque a opção confirmando que as informações são verdadeiras."
-      );
-      return;
-    }
-
     setUploading(true);
 
     let logoUrl = null;
-    const fotosUrls = [];
+    let capaUrl = null;
+    let galeriaUrls = [];
 
     try {
       const bucket = "anuncios";
 
-      // Upload da LOGO (opcional)
+      // 1) Logo (opcional)
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `lagolistas/${user.id}/lagolistas-logo-${Date.now()}.${ext}`;
-
-        const { error: uploadErroLogo } = await supabase.storage
-          .from(bucket)
-          .upload(path, logoFile);
-
-        if (uploadErroLogo) {
-          console.error("Erro upload logo Lagolistas:", uploadErroLogo);
-          throw uploadErroLogo;
-        }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        logoUrl = data.publicUrl;
+        logoUrl = await uploadToPublicUrl(bucket, user.id, logoFile, "lagolistas-logo");
       }
 
-      // Upload de FOTOS (até 5)
+      // 2) Capa (recomendada)
+      if (capaFile) {
+        capaUrl = await uploadToPublicUrl(bucket, user.id, capaFile, "lagolistas-capa");
+      }
+
+      // 3) Galeria (até 4) - ordem garantida
       if (fotosFiles && fotosFiles.length > 0) {
-        const arquivos = Array.from(fotosFiles).slice(0, 5);
-
-        for (let i = 0; i < arquivos.length; i++) {
-          const file = arquivos[i];
-          const ext = file.name.split(".").pop();
-          const path = `lagolistas/${user.id}/lagolistas-foto-${Date.now()}-${i}.${ext}`;
-
-          const { error: uploadErroFoto } = await supabase.storage
-            .from(bucket)
-            .upload(path, file);
-
-          if (uploadErroFoto) {
-            console.error("Erro upload foto Lagolistas:", uploadErroFoto);
-            throw uploadErroFoto;
-          }
-
-          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-          fotosUrls.push(data.publicUrl);
-        }
+        const uploads = await Promise.all(
+          fotosFiles.map(async (file, index) => {
+            const url = await uploadToPublicUrl(bucket, user.id, file, `lagolistas-foto-${index}`);
+            return { index, url };
+          })
+        );
+        uploads.sort((a, b) => a.index - b.index);
+        galeriaUrls = uploads.map((u) => u.url);
       }
 
-      // Montar array final de imagens:
-      // se tiver logo, ela entra primeiro; depois as fotos
-      let imagens = null;
-      if (logoUrl && fotosUrls.length > 0) {
-        imagens = [logoUrl, ...fotosUrls];
-      } else if (logoUrl && fotosUrls.length === 0) {
-        imagens = [logoUrl];
-      } else if (!logoUrl && fotosUrls.length > 0) {
-        imagens = fotosUrls;
-      } else {
-        imagens = null;
-      }
+      // Montar imagens (compatível com seu banco):
+      // logo primeiro, depois capa, depois galeria (máximo 6 itens)
+      const imagens = [
+        ...(logoUrl ? [logoUrl] : []),
+        ...(capaUrl ? [capaUrl] : []),
+        ...(galeriaUrls || []),
+      ].slice(0, 6);
 
-      // INSERT no Supabase
+      const contatoPrincipal = whatsapp || telefone || email;
+
       const { error: insertError } = await supabase.from("anuncios").insert({
         user_id: user.id,
 
@@ -270,19 +301,15 @@ export default function FormularioLagolistas() {
         email: email || null,
         contato: contatoPrincipal,
 
-        // imagens
-        imagens,
+        // imagens (logo + capa + galeria)
+        imagens: imagens.length ? imagens : null,
 
         status: "ativo",
       });
 
       if (insertError) {
         console.error("Erro ao salvar anúncio Lagolistas:", insertError);
-        setErro(
-          `Erro ao salvar seu anúncio. Tente novamente: ${
-            insertError.message || ""
-          }`
-        );
+        setErro(`Erro ao salvar seu anúncio. Tente novamente: ${insertError.message || ""}`);
         setUploading(false);
         return;
       }
@@ -307,6 +334,7 @@ export default function FormularioLagolistas() {
       setWhatsapp("");
       setEmail("");
       setLogoFile(null);
+      setCapaFile(null);
       setFotosFiles([]);
       setAceitoTermos(false);
 
@@ -318,55 +346,219 @@ export default function FormularioLagolistas() {
     } catch (err) {
       console.error(err);
       setErro(
-        `Erro ao salvar seu anúncio. Tente novamente: ${
-          err.message || "Erro inesperado."
-        }`
+        `Erro ao salvar seu anúncio. Tente novamente: ${err?.message || "Erro inesperado."}`
       );
       setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* ALERTAS */}
       {erro && (
-        <p className="text-red-600 text-xs md:text-sm border border-red-100 rounded-md px-3 py-2 bg-red-50">
-          {erro}
-        </p>
-      )}
-      {sucesso && (
-        <p className="text-green-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
-          {sucesso}
-        </p>
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-xs md:text-sm font-semibold text-red-700">⚠️ Atenção</p>
+          <p className="text-xs md:text-sm text-red-700 mt-1">{erro}</p>
+        </div>
       )}
 
-      {/* TÍTULO DO ANÚNCIO */}
-      <div className="space-y-1">
+      {sucesso && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <p className="text-xs md:text-sm font-semibold text-emerald-700">✅ Tudo certo</p>
+          <p className="text-xs md:text-sm text-emerald-700 mt-1">{sucesso}</p>
+        </div>
+      )}
+
+      {/* CABEÇALHO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-700 border border-sky-200">
+              LagoListas • anúncio grátis
+            </span>
+            <h2 className="mt-2 text-xl md:text-2xl font-extrabold text-slate-900">
+              Cadastro do seu comércio / serviço
+            </h2>
+            <p className="mt-1 text-xs md:text-sm text-slate-600 max-w-2xl">
+              Coloque uma boa logo e uma foto bonita de capa. Isso valoriza seu anúncio e deixa o
+              Classilagos mais elegante automaticamente.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
+            <p className="font-semibold text-slate-900">Dicas rápidas</p>
+            <ul className="mt-1 list-disc ml-4 space-y-1">
+              <li>Use uma foto de capa bem bonita (fachada, vitrine ou ambiente).</li>
+              <li>Depois coloque 2–4 fotos extras (produtos, interior, equipe).</li>
+              <li>Preencha a descrição com horário e formas de atendimento.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ UPLOADS NO TOPO (PADRÃO PREMIUM) */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Fotos e logomarca (no topo)</h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Recomendado: JPG/PNG até ~2MB. Você já tem esquema de reduzir/WEBP também 🔥
+        </p>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {/* LOGO */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">
+              Logomarca (opcional, mas recomendado)
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              Sua logo entra primeiro no anúncio e ajuda a valorizar a marca.
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setLogoFile((e.target.files && e.target.files[0]) || null)}
+              className="mt-3 w-full text-xs"
+            />
+
+            {logoPreview && (
+              <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoPreview.url}
+                  alt={logoPreview.name}
+                  className="w-full h-40 object-contain bg-white"
+                />
+                <div className="px-2 py-2">
+                  <p className="text-[10px] text-slate-600 line-clamp-1">{logoPreview.name}</p>
+                </div>
+              </div>
+            )}
+
+            {logoFile && (
+              <button
+                type="button"
+                onClick={() => setLogoFile(null)}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover logomarca
+              </button>
+            )}
+          </div>
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">
+              Foto de capa (recomendada)
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              Essa deve ser a foto mais bonita (fachada / vitrine / ambiente).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setCapaFile((e.target.files && e.target.files[0]) || null)}
+              className="mt-3 w-full text-xs"
+            />
+
+            {capaPreview && (
+              <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={capaPreview.url}
+                  alt={capaPreview.name}
+                  className="w-full h-40 object-cover bg-white"
+                />
+                <div className="px-2 py-2">
+                  <p className="text-[10px] text-slate-600 line-clamp-1">{capaPreview.name}</p>
+                </div>
+              </div>
+            )}
+
+            {capaFile && (
+              <button
+                type="button"
+                onClick={() => setCapaFile(null)}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover capa
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold text-slate-700">
+            Galeria (opcional) — até 4 fotos
+          </p>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Fotos extras (interior, produtos, equipe, detalhes).
+          </p>
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFotosChange}
+            className="mt-3 w-full text-xs"
+          />
+
+          {fotosFiles.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] text-slate-600">
+                {fotosFiles.length} arquivo(s) selecionado(s).
+              </p>
+
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {fotosPreviews.map((p) => (
+                  <div
+                    key={p.url}
+                    className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
+                    <div className="px-2 py-2">
+                      <p className="text-[10px] text-slate-600 line-clamp-1">{p.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setFotosFiles([])}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover todas as fotos da galeria
+              </button>
+            </div>
+          )}
+
+          <p className="mt-2 text-[11px] text-slate-500">
+            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG.
+          </p>
+        </div>
+      </div>
+
+      {/* TÍTULO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs font-medium text-slate-800">
-            Título do anúncio *
+          <label className="text-[11px] font-semibold text-slate-700">
+            Título do anúncio <span className="text-red-600">*</span>
           </label>
 
-          {/* nuvenzinha */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
-            <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Ex.:{" "}
-              <strong>
-                “Clínica Veterinária São Tomé – Atendimento 24h em Saquarema”
-              </strong>{" "}
-              ou{" "}
-              <strong>
-                “Loja de Materiais de Construção Central – Entrega em toda a
-                região”
-              </strong>
-              .
+            <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              Ex.: <strong>“Clínica Veterinária São Tomé – Atendimento 24h em Saquarema”</strong>
             </div>
           </div>
         </div>
 
         <input
           type="text"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
+          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Ex.: Supermercado Lagoa Viva – Ofertas todos os dias"
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
@@ -374,24 +566,22 @@ export default function FormularioLagolistas() {
         />
       </div>
 
-      {/* CIDADE + BAIRRO + SEGMENTO */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Localização e segmento
-        </h2>
+      {/* LOCALIZAÇÃO + SEGMENTO */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Localização e segmento</h3>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Cidade *
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Cidade <span className="text-red-600">*</span>
             </label>
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               required
             >
-              <option value="">Selecione...</option>
+              <option value="">Selecione…</option>
               {cidades.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -401,41 +591,38 @@ export default function FormularioLagolistas() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Bairro / Região (opcional)
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
               placeholder="Ex.: Centro, Itaipuaçu, Braga..."
             />
           </div>
 
-          {/* SEGMENTO */}
           <div>
             <div className="flex items-center justify-between gap-1">
-              <label className="block text-xs font-medium text-slate-700">
-                Categoria / segmento *
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Categoria / segmento <span className="text-red-600">*</span>
               </label>
-              {/* nuvenzinha */}
               <div className="relative group text-[11px] text-slate-500 cursor-help">
                 <span>ℹ</span>
-                <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-                  Escolha o tipo de negócio mais próximo do seu. Isso ajuda
-                  muito na busca do LagoListas.
+                <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+                  Escolha o tipo de negócio mais próximo do seu. Isso ajuda muito na busca do LagoListas.
                 </div>
               </div>
             </div>
 
             <select
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={segmento}
               onChange={(e) => setSegmento(e.target.value)}
               required
             >
-              <option value="">Selecione...</option>
+              <option value="">Selecione…</option>
               {segmentosLagolistas.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -445,13 +632,13 @@ export default function FormularioLagolistas() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-slate-700">
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold text-slate-700">
             Endereço completo (opcional, mas recomendado)
           </label>
           <input
             type="text"
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={endereco}
             onChange={(e) => setEndereco(e.target.value)}
             placeholder="Rua, número, sala, ponto de referência..."
@@ -460,31 +647,30 @@ export default function FormularioLagolistas() {
       </div>
 
       {/* DADOS DA EMPRESA */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Dados da empresa / comércio
-        </h2>
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Dados da empresa / comércio</h3>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Nome fantasia / nome do comércio
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={nomeNegocio}
               onChange={(e) => setNomeNegocio(e.target.value)}
               placeholder="Ex.: Clínica Veterinária São Tomé"
             />
           </div>
+
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Razão social (opcional)
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={razaoSocial}
               onChange={(e) => setRazaoSocial(e.target.value)}
               placeholder="Ex.: São Tomé Serviços Veterinários LTDA"
@@ -492,38 +678,38 @@ export default function FormularioLagolistas() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               CNPJ (opcional)
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               placeholder="00.000.000/0001-00"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Inscrição municipal (opcional)
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={inscricaoMunicipal}
               onChange={(e) => setInscricaoMunicipal(e.target.value)}
               placeholder="Ex.: 123456-7"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
+            <label className="block text-[11px] font-semibold text-slate-700">
               Registro profissional (CRECI, CRM, OAB etc.) – opcional
             </label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={registroProfissional}
               onChange={(e) => setRegistroProfissional(e.target.value)}
               placeholder="Ex.: CRECI 12345-RJ"
@@ -533,55 +719,50 @@ export default function FormularioLagolistas() {
       </div>
 
       {/* DESCRIÇÃO */}
-      <div className="space-y-1 border-t border-slate-100 pt-4">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs font-medium text-slate-800">
-            Descrição do seu comércio / serviços *
+          <label className="text-[11px] font-semibold text-slate-700">
+            Descrição do seu comércio / serviços <span className="text-red-600">*</span>
           </label>
 
-          {/* nuvenzinha */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
-            <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Fale o que você oferece, diferenciais, horário de funcionamento,
-              formas de pagamento, delivery, estacionamento, convênios etc.
+            <div className="absolute right-0 top-5 hidden w-80 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
+              Fale o que você oferece, diferenciais, horário de funcionamento, formas de pagamento,
+              delivery, estacionamento, convênios etc.
             </div>
           </div>
         </div>
 
         <textarea
-          className="w-full border rounded-lg px-3 py-2 text-sm h-32"
+          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[130px]"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
-          placeholder="Ex.: Clínica veterinária com atendimento 24h, exames, cirurgias, vacinas, pet shop e banho & tosa..."
+          placeholder="Ex.: Atendimento 24h, consultas, exames, vacinas, banho & tosa..."
           required
         />
       </div>
 
       {/* LINKS */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Links (opcional)</h2>
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Links (opcional)</h3>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Site / página
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Site / página</label>
             <input
               type="url"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={siteUrl}
               onChange={(e) => setSiteUrl(e.target.value)}
               placeholder="https://..."
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Instagram
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Instagram</label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
               placeholder="@seu_perfil"
@@ -590,140 +771,75 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* LOGO + FOTOS */}
-      <div className="space-y-3 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Logo e fotos do comércio
-        </h2>
-
-        {/* LOGO */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-medium text-slate-800">
-              Logo da empresa (opcional, mas recomendado)
-            </label>
-            {/* nuvenzinha */}
-            <div className="relative group text-[11px] text-slate-500 cursor-help">
-              <span>ℹ</span>
-              <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-                Se tiver logomarca, envie aqui. Ela aparece em destaque no
-                LagoListas junto com as fotos.
-              </div>
-            </div>
-          </div>
-
-          <input
-            type="file"
-            accept="image/*"
-            className="w-full text-xs"
-            onChange={(e) => setLogoFile(e.target.files[0] || null)}
-          />
-        </div>
-
-        {/* FOTOS */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-medium text-slate-800">
-              Fotos do seu comércio (até 5)
-            </label>
-            {/* nuvenzinha */}
-            <div className="relative group text-[11px] text-slate-500 cursor-help">
-              <span>ℹ</span>
-              <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-                Priorize fachada, interior, produtos, vitrines ou equipe. Isso
-                deixa seu anúncio muito mais atrativo.
-              </div>
-            </div>
-          </div>
-
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="w-full text-xs"
-            onChange={(e) => setFotosFiles(e.target.files || [])}
-          />
-
-          <p className="text-[11px] text-slate-500">
-            Você pode selecionar várias imagens de uma vez (máximo de 5).
-          </p>
-        </div>
-      </div>
-
       {/* CONTATOS */}
-      <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Contatos</h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Pelo menos um canal (telefone, WhatsApp ou e-mail) precisa estar preenchido.
+        </p>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
             <input
               type="text"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              E-mail
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
             <input
               type="email"
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
-
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido
-          para contato dos clientes.
-        </p>
       </div>
 
-      {/* CONFIRMAÇÃO */}
-      <div className="border-t border-slate-100 pt-4">
-        <label className="flex items-start gap-2 text-[11px] text-slate-700">
-          <input
-            type="checkbox"
-            className="mt-0.5"
-            checked={aceitoTermos}
-            onChange={(e) => setAceitoTermos(e.target.checked)}
-          />
-          <span>
-            Declaro que as informações preenchidas são verdadeiras e autorizo que
-            este anúncio seja exibido no Lagolistas / Classilagos para os
-            consumidores da Região dos Lagos.
-          </span>
-        </label>
+      {/* TERMOS */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Termos e responsabilidade</h3>
+
+        <div className="mt-3 text-xs text-slate-700">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={aceitoTermos}
+              onChange={(e) => setAceitoTermos(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Declaro que as informações preenchidas são verdadeiras e autorizo que este anúncio
+              seja exibido no Lagolistas / Classilagos para os consumidores da Região dos Lagos.
+            </span>
+          </label>
+        </div>
       </div>
 
+      {/* BOTÃO */}
       <button
         type="submit"
         disabled={uploading}
-        className="mt-2 w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+        className="w-full bg-blue-600 text-white rounded-full py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
       >
-        {uploading
-          ? "Publicando anúncio..."
-          : "Publicar meu comércio no Lagolistas"}
+        {uploading ? "Publicando anúncio..." : "Publicar meu comércio no Lagolistas"}
       </button>
     </form>
   );
 }
+
