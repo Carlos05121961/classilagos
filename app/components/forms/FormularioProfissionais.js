@@ -14,12 +14,24 @@ function isValidUrl(v) {
   const s = String(v || "").trim();
   if (!s) return true;
   try {
-    // aceita com ou sem https:// (vamos normalizar depois se quiser)
     new URL(s.startsWith("http") ? s : `https://${s}`);
     return true;
   } catch {
     return false;
   }
+}
+
+/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
+function Card({ title, subtitle, children }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4">
+        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export default function FormularioProfissionais() {
@@ -44,10 +56,12 @@ export default function FormularioProfissionais() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // várias imagens (até 8)
-  const [imagensFiles, setImagensFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  // ✅ UPLOAD PREMIUM (logo + capa + galeria)
+  const [logoFile, setLogoFile] = useState(null);
+  const [capaFile, setCapaFile] = useState(null);
+  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
 
+  const [uploading, setUploading] = useState(false);
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -113,19 +127,8 @@ export default function FormularioProfissionais() {
     "Outros serviços profissionais",
   ];
 
-  // preview das imagens
-  const previews = useMemo(() => {
-    return (imagensFiles || []).map((f) => URL.createObjectURL(f));
-  }, [imagensFiles]);
-
-  useEffect(() => {
-    return () => {
-      previews.forEach((p) => URL.revokeObjectURL(p));
-    };
-  }, [previews]);
-
-  // ✅ acumula até 8, valida imagem e tamanho
-  const handleImagensChange = (e) => {
+  // ✅ Galeria: acumula até 7, valida imagem e tamanho
+  const handleGaleriaChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
@@ -146,28 +149,42 @@ export default function FormularioProfissionais() {
       setErro("");
     }
 
-    setImagensFiles((prev) => {
+    setGaleriaFiles((prev) => {
       const combinado = [...prev, ...valid];
-      return combinado.slice(0, 8);
+      return combinado.slice(0, 7);
     });
 
-    // permite escolher o mesmo arquivo novamente se quiser
     e.target.value = "";
   };
 
-  const removerImagem = (idx) => {
-    setImagensFiles((prev) => prev.filter((_, i) => i !== idx));
+  const removerGaleria = (idx) => {
+    setGaleriaFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const Card = ({ title, subtitle, children }) => (
-    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
+  // ✅ previews
+  const previewLogo = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : ""), [logoFile]);
+  const previewCapa = useMemo(() => (capaFile ? URL.createObjectURL(capaFile) : ""), [capaFile]);
+  const previewsGaleria = useMemo(
+    () => galeriaFiles.map((f) => URL.createObjectURL(f)),
+    [galeriaFiles]
   );
+
+  useEffect(() => {
+    return () => {
+      if (previewLogo) URL.revokeObjectURL(previewLogo);
+      if (previewCapa) URL.revokeObjectURL(previewCapa);
+      previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewLogo, previewCapa, previewsGaleria]);
+
+  async function uploadUmaImagem({ bucket, path, file }) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || "";
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,6 +202,12 @@ export default function FormularioProfissionais() {
 
     if (!titulo || !cidade || !areaProfissional) {
       setErro("Preencha Título, Cidade e o Tipo de serviço profissional.");
+      return;
+    }
+
+    // ✅ CAPA obrigatória (padrão Premium)
+    if (!capaFile) {
+      setErro("Envie a foto de capa (obrigatória).");
       return;
     }
 
@@ -213,29 +236,39 @@ export default function FormularioProfissionais() {
 
     try {
       const bucket = "anuncios";
+      const base = `servicos/${user.id}/profissionais-${Date.now()}`;
 
-      // upload (até 8)
-      let imagensUrls = [];
-
-      if (imagensFiles?.length) {
-        const uploads = await Promise.all(
-          imagensFiles.slice(0, 8).map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const path = `servicos/${user.id}/profissionais-${Date.now()}-${index}.${ext}`;
-
-            const { error: uploadErro } = await supabase.storage
-              .from(bucket)
-              .upload(path, file);
-
-            if (uploadErro) throw uploadErro;
-
-            const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-            return data?.publicUrl || null;
-          })
-        );
-
-        imagensUrls = uploads.filter(Boolean);
+      // 1) Logo (opcional)
+      let logoUrl = "";
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `${base}-logo.${ext}`;
+        logoUrl = await uploadUmaImagem({ bucket, path, file: logoFile });
       }
+
+      // 2) Capa (obrigatória)
+      let capaUrl = "";
+      {
+        const ext = capaFile.name.split(".").pop();
+        const path = `${base}-capa.${ext}`;
+        capaUrl = await uploadUmaImagem({ bucket, path, file: capaFile });
+      }
+
+      // 3) Galeria (opcional até 7)
+      const galeriaUrls = [];
+      if (galeriaFiles.length) {
+        let idx = 0;
+        for (const file of galeriaFiles.slice(0, 7)) {
+          const ext = file.name.split(".").pop();
+          const path = `${base}-galeria-${idx}.${ext}`;
+          idx++;
+          const url = await uploadUmaImagem({ bucket, path, file });
+          if (url) galeriaUrls.push(url);
+        }
+      }
+
+      // ✅ Ordem Premium: capa primeiro (vira a foto principal do card)
+      const imagens = [capaUrl, ...galeriaUrls, ...(logoUrl ? [logoUrl] : [])];
 
       // normaliza siteUrl (se veio sem http)
       const siteUrlFinal = siteUrl?.trim()
@@ -272,8 +305,7 @@ export default function FormularioProfissionais() {
           site_url: siteUrlFinal,
           instagram: instagram || null,
 
-          imagens: imagensUrls.length ? imagensUrls : null,
-
+          imagens,
           status: "ativo",
           destaque: false,
         })
@@ -283,7 +315,6 @@ export default function FormularioProfissionais() {
       if (insertError) {
         console.error("Erro ao salvar serviço:", insertError);
         setErro(`Erro ao salvar o anúncio: ${insertError.message || "tente novamente."}`);
-        setUploading(false);
         return;
       }
 
@@ -305,7 +336,11 @@ export default function FormularioProfissionais() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-      setImagensFiles([]);
+
+      setLogoFile(null);
+      setCapaFile(null);
+      setGaleriaFiles([]);
+
       setAceitoResponsabilidade(false);
 
       setTimeout(() => {
@@ -332,10 +367,7 @@ export default function FormularioProfissionais() {
         </div>
       )}
 
-      <Card
-        title="Informações do serviço"
-        subtitle="Capriche no título e na descrição: isso é o que mais traz contatos."
-      >
+      <Card title="Informações do serviço" subtitle="Capriche no título e na descrição: isso é o que mais traz contatos.">
         <div className="space-y-3">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700">
@@ -372,9 +404,7 @@ export default function FormularioProfissionais() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Bairro / Região
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -401,9 +431,7 @@ export default function FormularioProfissionais() {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] text-slate-500">
-              Isso melhora a busca e organiza o Classilagos.
-            </p>
+            <p className="mt-1 text-[11px] text-slate-500">Isso melhora a busca e organiza o Classilagos.</p>
           </div>
 
           <div>
@@ -421,10 +449,7 @@ export default function FormularioProfissionais() {
         </div>
       </Card>
 
-      <Card
-        title="Profissional / empresa"
-        subtitle="Opcional, mas dá mais confiança e melhora a conversão."
-      >
+      <Card title="Profissional / empresa" subtitle="Opcional, mas dá mais confiança e melhora a conversão.">
         <div className="space-y-3">
           <div className="grid gap-3 md:grid-cols-2">
             <div>
@@ -440,9 +465,7 @@ export default function FormularioProfissionais() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Nome da empresa (se tiver)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Nome da empresa (se tiver)</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -454,9 +477,7 @@ export default function FormularioProfissionais() {
 
           <div className="grid gap-3 md:grid-cols-[2fr,1fr] items-center">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Horário de atendimento
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Horário de atendimento</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -478,9 +499,7 @@ export default function FormularioProfissionais() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Faixa de preço (opcional)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Faixa de preço (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -496,9 +515,7 @@ export default function FormularioProfissionais() {
         <div className="space-y-3">
           <div className="grid gap-3 md:grid-cols-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Telefone
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -506,10 +523,9 @@ export default function FormularioProfissionais() {
                 onChange={(e) => setTelefone(e.target.value)}
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                WhatsApp
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -517,10 +533,9 @@ export default function FormularioProfissionais() {
                 onChange={(e) => setWhatsapp(e.target.value)}
               />
             </div>
+
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                E-mail
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
               <input
                 type="email"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -532,9 +547,7 @@ export default function FormularioProfissionais() {
 
           <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Site (opcional)
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Site (opcional)</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -543,6 +556,7 @@ export default function FormularioProfissionais() {
                 onChange={(e) => setSiteUrl(e.target.value)}
               />
             </div>
+
             <div>
               <label className="block text-[11px] font-semibold text-slate-700">
                 Instagram / rede social (opcional)
@@ -563,42 +577,109 @@ export default function FormularioProfissionais() {
         </div>
       </Card>
 
+      {/* ✅ UPLOADS PREMIUM */}
       <Card
-        title="Fotos do serviço / logo"
-        subtitle="Até 8 imagens. A primeira vira destaque no card."
+        title="Fotos e logomarca (no topo)"
+        subtitle="Recomendado: JPG/PNG até 2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa."
       >
-        <div className="space-y-3">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* LOGO */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional)</p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Sua logo aparece junto com as fotos (não vira capa).
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+            />
+
+            {previewLogo && (
+              <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewLogo} alt="Preview logo" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">
+              Foto de capa (obrigatória) <span className="text-red-500">*</span>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Essa deve ser a foto mais bonita do seu serviço.
+            </p>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={(e) => setCapaFile(e.target.files?.[0] || null)}
+              required
+            />
+
+            {previewCapa && (
+              <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Fotos extras: outros ângulos, detalhes, antes/depois, equipe, ferramentas…
+          </p>
+
           <input
             type="file"
             accept="image/*"
             multiple
-            className="text-sm"
-            onChange={handleImagensChange}
+            className="mt-3 w-full text-xs"
+            onChange={handleGaleriaChange}
           />
 
-          {previews?.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-              {previews.map((src, idx) => (
-                <div key={src} className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Imagem ${idx + 1}`} className="h-24 w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removerImagem(idx)}
-                    className="absolute top-1 right-1 rounded-full bg-white/90 border border-slate-200 px-2 py-1 text-[10px] text-slate-700 hover:bg-white"
-                    title="Remover"
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          {galeriaFiles.length > 0 && (
+            <>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[11px] text-slate-500">{galeriaFiles.length} foto(s) selecionada(s).</p>
+                <p className="text-[11px] text-slate-500">Clique no ✕ para remover</p>
+              </div>
 
-          <p className="text-[11px] text-slate-500">
-            JPG/PNG até 2MB cada. Total máximo: 8 imagens.
-          </p>
+              <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
+                {previewsGaleria.map((src, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
+
+                    <button
+                      type="button"
+                      onClick={() => removerGaleria(idx)}
+                      className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-[10px] px-2 py-1 hover:bg-black/75"
+                      aria-label="Remover imagem"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
+
+        <p className="mt-3 text-[11px] text-slate-500">
+          Se der erro no upload: tente fotos menores (até 2MB) e em JPG/PNG.
+        </p>
       </Card>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
