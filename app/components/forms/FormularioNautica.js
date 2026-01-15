@@ -31,7 +31,9 @@ function Card({ title, subtitle, children }) {
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
       <div className="mb-4">
         <h2 className="text-sm md:text-base font-semibold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>}
+        {subtitle && (
+          <p className="mt-1 text-[11px] md:text-xs text-slate-600">{subtitle}</p>
+        )}
       </div>
       {children}
     </div>
@@ -87,8 +89,9 @@ export default function FormularioNautica() {
   // Valor geral
   const [preco, setPreco] = useState("");
 
-  // Upload
-  const [arquivos, setArquivos] = useState([]);
+  // ✅ UPLOAD PREMIUM (CAPA + GALERIA)
+  const [capaArquivo, setCapaArquivo] = useState(null); // 1 arquivo
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 7
   const [uploading, setUploading] = useState(false);
 
   // Vídeo
@@ -147,23 +150,34 @@ export default function FormularioNautica() {
     });
   }, [router]);
 
-  const handleArquivosChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setArquivos(files.slice(0, 8));
+  const handleCapaChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setCapaArquivo(file);
   };
 
-  // Preview das imagens selecionadas
-  const previews = useMemo(() => {
-    if (!arquivos?.length) return [];
-    return arquivos.map((f) => URL.createObjectURL(f));
-  }, [arquivos]);
+  const handleGaleriaChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setGaleriaArquivos(files.slice(0, 7));
+  };
+
+  // Previews (capa + galeria)
+  const capaPreview = useMemo(() => {
+    if (!capaArquivo) return null;
+    return URL.createObjectURL(capaArquivo);
+  }, [capaArquivo]);
+
+  const galeriaPreviews = useMemo(() => {
+    if (!galeriaArquivos?.length) return [];
+    return galeriaArquivos.map((f) => URL.createObjectURL(f));
+  }, [galeriaArquivos]);
 
   useEffect(() => {
     return () => {
-      previews.forEach((p) => URL.revokeObjectURL(p));
+      if (capaPreview) URL.revokeObjectURL(capaPreview);
+      galeriaPreviews.forEach((p) => URL.revokeObjectURL(p));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previews]);
+  }, [capaPreview, galeriaPreviews]);
 
   const enviarAnuncio = async (e) => {
     e.preventDefault();
@@ -206,43 +220,55 @@ export default function FormularioNautica() {
     const qtdCabinesNumber = parseNumberOrNull(qtdCabines);
     const qtdBanheirosNumber = parseNumberOrNull(qtdBanheiros);
 
-    // Upload de imagens
-    let urlsUpload = [];
+    // ✅ UPLOAD PREMIUM: capa + galeria (total até 8)
+    let capaUrl = null;
+    const galeriaUrls = [];
+
     try {
-      if (arquivos.length > 0) {
-        setUploading(true);
+      const bucket = "anuncios";
+      setUploading(true);
 
-        const uploads = await Promise.all(
-          arquivos.map(async (file, index) => {
-            const ext = file.name.split(".").pop();
-            const filePath = `${user.id}/${Date.now()}-nautica-${index}.${ext}`;
+      // 1) CAPA (opcional/recomendada)
+      if (capaArquivo) {
+        const ext = capaArquivo.name.split(".").pop();
+        const path = `nautica/${user.id}/nautica-capa-${Date.now()}.${ext}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from("anuncios")
-              .upload(filePath, file);
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, capaArquivo);
+        if (upErr) throw upErr;
 
-            if (uploadError) throw uploadError;
+        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+        capaUrl = pub.publicUrl;
+      }
 
-            const { data: publicData } = supabase.storage
-              .from("anuncios")
-              .getPublicUrl(filePath);
+      // 2) GALERIA (até 7)
+      if (galeriaArquivos?.length) {
+        for (let i = 0; i < galeriaArquivos.length; i++) {
+          const file = galeriaArquivos[i];
+          const ext = file.name.split(".").pop();
+          const path = `nautica/${user.id}/nautica-galeria-${Date.now()}-${i}.${ext}`;
 
-            return publicData.publicUrl;
-          })
-        );
+          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
+          if (upErr) throw upErr;
 
-        urlsUpload = uploads;
+          const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+          galeriaUrls.push(pub.publicUrl);
+        }
       }
     } catch (err) {
       console.error("Erro ao enviar imagens de náutica:", err);
-      setErro("Erro ao enviar as imagens. Tente novamente.");
+      setErro("Erro ao enviar as imagens. Tente fotos menores (até ~2MB) em JPG/PNG.");
       setUploading(false);
       return;
     } finally {
       setUploading(false);
     }
 
-    const imagens = urlsUpload;
+    // Monta imagens: capa primeiro, depois galeria
+    let imagens = null;
+    if (capaUrl && galeriaUrls.length) imagens = [capaUrl, ...galeriaUrls];
+    else if (capaUrl && !galeriaUrls.length) imagens = [capaUrl];
+    else if (!capaUrl && galeriaUrls.length) imagens = galeriaUrls;
+    else imagens = [];
 
     // INSERT no Supabase
     const { data, error } = await supabase
@@ -329,6 +355,107 @@ export default function FormularioNautica() {
           {sucesso}
         </div>
       )}
+
+      {/* ✅ UPLOAD PREMIUM NO TOPO (CAPA + GALERIA) */}
+      <Card
+        title="Fotos (capa + galeria) — no topo"
+        subtitle="A capa vira a foto principal do card. A galeria são fotos extras (interior, motor, detalhes, passeio...)."
+      >
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* CAPA */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-[11px] font-semibold text-slate-900">
+                Foto de capa (recomendada)
+              </p>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Escolha a foto mais bonita (lateral / cockpit / marina / passeio).
+              </p>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCapaChange}
+                className="mt-3 w-full text-xs"
+              />
+
+              {capaPreview && (
+                <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={capaPreview}
+                    alt="Preview capa"
+                    className="h-40 w-full object-cover"
+                  />
+                </div>
+              )}
+
+              {capaArquivo && (
+                <button
+                  type="button"
+                  onClick={() => setCapaArquivo(null)}
+                  className="mt-2 text-xs font-semibold text-slate-700 underline"
+                >
+                  Remover capa
+                </button>
+              )}
+            </div>
+
+            {/* GALERIA */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-[11px] font-semibold text-slate-900">
+                Galeria (opcional) — até 7 fotos
+              </p>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Fotos extras: interior, painel, motor, documentos, detalhes...
+              </p>
+
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGaleriaChange}
+                className="mt-3 w-full text-xs"
+              />
+
+              <p className="mt-2 text-[11px] text-slate-500">
+                Se der erro no upload: tente fotos menores (até ~2MB) e em JPG/PNG.
+              </p>
+
+              {galeriaPreviews.length > 0 && (
+                <>
+                  <p className="mt-3 text-[11px] text-slate-600">
+                    {galeriaPreviews.length} foto(s) selecionada(s)
+                  </p>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {galeriaPreviews.map((src, idx) => (
+                      <div
+                        key={idx}
+                        className="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={src}
+                          alt={`Preview galeria ${idx + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setGaleriaArquivos([])}
+                    className="mt-2 text-xs font-semibold text-slate-700 underline"
+                  >
+                    Limpar galeria
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* TIPO */}
       <Card
@@ -706,34 +833,6 @@ export default function FormularioNautica() {
             onChange={(e) => setPreco(e.target.value)}
           />
         </div>
-      </Card>
-
-      {/* FOTOS */}
-      <Card title="Fotos" subtitle="Até 8 imagens. Capricha na primeira, ela vira a capa do anúncio.">
-        <label className="block text-[11px] font-semibold text-slate-700">
-          Enviar fotos (upload) – até 8 imagens
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleArquivosChange}
-          className="mt-2 w-full text-xs"
-        />
-
-        {arquivos.length > 0 && (
-          <>
-            <p className="mt-2 text-[11px] text-slate-500">{arquivos.length} arquivo(s) selecionado(s).</p>
-            <div className="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2">
-              {previews.map((src, idx) => (
-                <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </Card>
 
       {/* VÍDEO */}
