@@ -34,8 +34,10 @@ export default function FormularioClassimed() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // AGORA: várias imagens (logo / fotos)
-  const [imagensFiles, setImagensFiles] = useState([]);
+  // ✅ PREMIUM UPLOADS (logo opcional, capa obrigatória, galeria opcional)
+  const [logoFile, setLogoFile] = useState(null);
+  const [capaFile, setCapaFile] = useState(null);
+  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
 
   // Estados gerais
   const [aceitoTermos, setAceitoTermos] = useState(false);
@@ -81,6 +83,32 @@ export default function FormularioClassimed() {
     "Outras especialidades",
   ];
 
+  // =========================
+  // Helpers upload (Premium)
+  // =========================
+  async function uploadOne({ bucket, file, path }) {
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
+    if (upErr) throw upErr;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
+  const handleLogoChange = (e) => {
+    const f = e.target.files?.[0] || null;
+    setLogoFile(f);
+  };
+
+  const handleCapaChange = (e) => {
+    const f = e.target.files?.[0] || null;
+    setCapaFile(f);
+  };
+
+  const handleGaleriaChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setGaleriaFiles(files.slice(0, 7));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -98,24 +126,24 @@ export default function FormularioClassimed() {
 
     // Validações principais
     if (!titulo || !cidade || !especialidade || !descricao) {
-      setErro(
-        "Preencha pelo menos o título, cidade, especialidade e a descrição do serviço."
-      );
+      setErro("Preencha pelo menos o título, cidade, especialidade e a descrição do serviço.");
       return;
     }
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
-      setErro(
-        "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail)."
-      );
+      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
       return;
     }
 
     if (!aceitoTermos) {
-      setErro(
-        "Para publicar no Classimed, marque a opção confirmando que as informações são verdadeiras."
-      );
+      setErro("Para publicar no Classimed, marque a opção confirmando que as informações são verdadeiras.");
+      return;
+    }
+
+    // ✅ Premium: capa obrigatória (vitrine)
+    if (!capaFile) {
+      setErro("Envie a FOTO DE CAPA (obrigatória). Ela será a imagem principal do seu anúncio.");
       return;
     }
 
@@ -123,37 +151,48 @@ export default function FormularioClassimed() {
 
     try {
       const bucket = "anuncios";
+      const now = Date.now();
 
-      // =========================
-      // UPLOAD DE VÁRIAS IMAGENS
-      // =========================
-      let imagensUrls = [];
-
-      if (imagensFiles.length > 0) {
-        let index = 0;
-        for (const file of imagensFiles) {
-          const ext = file.name.split(".").pop();
-          const path = `servicos/${user.id}/classimed-${Date.now()}-${index}.${ext}`;
-          index++;
-
-          const { error: uploadErroLogo } = await supabase.storage
-            .from(bucket)
-            .upload(path, file);
-
-          if (uploadErroLogo) {
-            console.error("Erro upload imagem Classimed:", uploadErroLogo);
-            throw uploadErroLogo;
-          }
-
-          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-          if (data?.publicUrl) {
-            imagensUrls.push(data.publicUrl);
-          }
-        }
+      // 1) Logo (opcional)
+      let logoUrl = null;
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `servicos/${user.id}/classimed/logo-${now}.${ext}`;
+        logoUrl = await uploadOne({ bucket, file: logoFile, path });
       }
 
+      // 2) Capa (obrigatória) -> vai primeiro em imagens[]
+      let capaUrl = null;
+      {
+        const ext = capaFile.name.split(".").pop();
+        const path = `servicos/${user.id}/classimed/capa-${now}.${ext}`;
+        capaUrl = await uploadOne({ bucket, file: capaFile, path });
+      }
+
+      if (!capaUrl) {
+        setErro("Não foi possível gerar a URL pública da capa. Tente novamente.");
+        setUploading(false);
+        return;
+      }
+
+      // 3) Galeria (opcional) -> até 7
+      let galeriaUrls = [];
+      if (galeriaFiles.length > 0) {
+        const uploads = await Promise.all(
+          galeriaFiles.map(async (file, i) => {
+            const ext = file.name.split(".").pop();
+            const path = `servicos/${user.id}/classimed/galeria-${now}-${i}.${ext}`;
+            return await uploadOne({ bucket, file, path });
+          })
+        );
+        galeriaUrls = uploads.filter(Boolean);
+      }
+
+      // ✅ imagens: [capa, ...galeria] (logo fica separado)
+      const imagens = [capaUrl, ...galeriaUrls];
+
       // INSERT no Supabase
-      const { error: insertError } = await supabase.from("anuncios").insert({
+      const payload = {
         user_id: user.id,
         categoria: "servico",
         subcategoria_servico: "classimed",
@@ -161,6 +200,7 @@ export default function FormularioClassimed() {
         descricao,
         cidade,
         bairro,
+
         // profissional / clínica
         nome_contato: nomeProfissional,
         nome_negocio: nomeClinica,
@@ -170,23 +210,29 @@ export default function FormularioClassimed() {
         faixa_preco: faixaPreco,
         site_url: siteUrl,
         instagram,
+
         // contatos
         telefone,
         whatsapp,
         email,
         contato: contatoPrincipal,
-        // imagens (logo + fotos)
-        imagens: imagensUrls.length > 0 ? imagensUrls : null,
+
+        // imagens
+        imagens,
+
+        // ✅ logo separado (se sua tabela tiver esse campo, ótimo.
+        // Se não tiver, comente esta linha OU me diga qual campo você quer usar.)
+        logo_url: logoUrl || null,
+
         status: "ativo",
-      });
+        destaque: false,
+      };
+
+      const { error: insertError } = await supabase.from("anuncios").insert(payload);
 
       if (insertError) {
         console.error("Erro ao salvar anúncio Classimed:", insertError);
-        setErro(
-          `Erro ao salvar seu anúncio. Tente novamente: ${
-            insertError.message || ""
-          }`
-        );
+        setErro(`Erro ao salvar seu anúncio. Tente novamente: ${insertError.message || ""}`);
         setUploading(false);
         return;
       }
@@ -209,7 +255,11 @@ export default function FormularioClassimed() {
       setTelefone("");
       setWhatsapp("");
       setEmail("");
-      setImagensFiles([]);
+
+      setLogoFile(null);
+      setCapaFile(null);
+      setGaleriaFiles([]);
+
       setAceitoTermos(false);
 
       setUploading(false);
@@ -219,11 +269,7 @@ export default function FormularioClassimed() {
       }, 1800);
     } catch (err) {
       console.error(err);
-      setErro(
-        `Erro ao salvar seu anúncio. Tente novamente: ${
-          err.message || "Erro inesperado."
-        }`
-      );
+      setErro(`Erro ao salvar seu anúncio. Tente novamente: ${err.message || "Erro inesperado."}`);
       setUploading(false);
     }
   };
@@ -244,9 +290,7 @@ export default function FormularioClassimed() {
       {/* TÍTULO DO ANÚNCIO */}
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs font-medium text-slate-800">
-            Título do anúncio *
-          </label>
+          <label className="text-xs font-medium text-slate-800">Título do anúncio *</label>
 
           {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
@@ -254,10 +298,7 @@ export default function FormularioClassimed() {
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
               Escreva um título claro, por exemplo:
               <br />
-              <strong>
-                “Psicóloga clínica – Terapia cognitivo-comportamental em Maricá”
-              </strong>
-              .
+              <strong>“Psicóloga clínica – Terapia cognitivo-comportamental em Maricá”</strong>.
             </div>
           </div>
         </div>
@@ -278,9 +319,7 @@ export default function FormularioClassimed() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Cidade *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Cidade *</label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
               value={cidade}
@@ -296,9 +335,7 @@ export default function FormularioClassimed() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Bairro / Região
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Bairro / Região</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -313,16 +350,13 @@ export default function FormularioClassimed() {
       {/* ESPECIALIDADE */}
       <div className="space-y-1 border-t border-slate-100 pt-4">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs font-medium text-slate-800">
-            Especialidade / área de atuação *
-          </label>
+          <label className="text-xs font-medium text-slate-800">Especialidade / área de atuação *</label>
 
           {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Escolha a área principal do seu atendimento. Isso organiza o
-              Classimed e facilita a busca dos usuários.
+              Escolha a área principal do seu atendimento. Isso organiza o Classimed e facilita a busca dos usuários.
             </div>
           </div>
         </div>
@@ -345,17 +379,14 @@ export default function FormularioClassimed() {
       {/* DESCRIÇÃO DO SERVIÇO */}
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs font-medium text-slate-800">
-            Descrição do serviço *
-          </label>
+          <label className="text-xs font-medium text-slate-800">Descrição do serviço *</label>
 
           {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
-              Explique sua forma de atendimento, público-alvo, convênios (se
-              houver), cidades atendidas e diferenciais. Quanto mais claro,
-              mais fácil para o paciente escolher.
+              Explique sua forma de atendimento, público-alvo, convênios (se houver), cidades atendidas e diferenciais.
+              Quanto mais claro, mais fácil para o paciente escolher.
             </div>
           </div>
         </div>
@@ -364,22 +395,18 @@ export default function FormularioClassimed() {
           className="w-full border rounded-lg px-3 py-2 text-sm h-32"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
-          placeholder="Ex.: Atendo adultos e adolescentes, presencial em Maricá e online para todo o Brasil. Trabalho com abordagem X, convênios Y..."
+          placeholder="Ex.: Atendo adultos e adolescentes, presencial em Maricá e online para todo o Brasil..."
           required
         />
       </div>
 
       {/* PROFISSIONAL / CLÍNICA */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Profissional / clínica
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Profissional / clínica</h2>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Nome do profissional / responsável
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Nome do profissional / responsável</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -389,9 +416,7 @@ export default function FormularioClassimed() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Clínica / consultório (opcional)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Clínica / consultório (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -405,9 +430,7 @@ export default function FormularioClassimed() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-700">
-                Horário de atendimento
-              </label>
+              <label className="block text-xs font-medium text-slate-700">Horário de atendimento</label>
               <input
                 type="text"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -429,9 +452,7 @@ export default function FormularioClassimed() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Faixa de preço (opcional)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Faixa de preço (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -443,9 +464,7 @@ export default function FormularioClassimed() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-700">
-                Site / página (opcional)
-              </label>
+              <label className="block text-xs font-medium text-slate-700">Site / página (opcional)</label>
               <input
                 type="url"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -455,9 +474,7 @@ export default function FormularioClassimed() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700">
-                Instagram (opcional)
-              </label>
+              <label className="block text-xs font-medium text-slate-700">Instagram (opcional)</label>
               <input
                 type="text"
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -470,24 +487,63 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
-      {/* LOGO / FOTOS */}
-      <div className="space-y-2 border-t border-slate-100 pt-4">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Logo / fotos do espaço (opcional)
-        </h2>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          className="w-full text-xs"
-          onChange={(e) =>
-            setImagensFiles(Array.from(e.target.files || []))
-          }
-        />
+      {/* ✅ FOTOS PREMIUM (logo + capa + galeria) */}
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <h2 className="text-sm font-semibold text-slate-900">Fotos e logomarca (no topo)</h2>
         <p className="text-[11px] text-slate-500">
-          Você pode enviar várias imagens em JPG ou PNG. A primeira será usada
-          como destaque na vitrine.
+          Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa.
         </p>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* LOGO */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional, mas recomendado)</p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Sua logo aparece junto com as fotos (não vira capa).
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={handleLogoChange}
+            />
+          </div>
+
+          {/* CAPA */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold text-slate-700">Foto de capa (obrigatória) *</p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Essa deve ser a foto mais bonita (fachada / consultório / ambiente).
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-3 w-full text-xs"
+              onChange={handleCapaChange}
+              required
+            />
+          </div>
+        </div>
+
+        {/* GALERIA */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Fotos extras: ambiente, equipe, equipamentos, sala, detalhes…
+          </p>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="mt-3 w-full text-xs"
+            onChange={handleGaleriaChange}
+          />
+          {galeriaFiles.length > 0 && (
+            <p className="mt-2 text-[11px] text-slate-500">
+              {galeriaFiles.length} arquivo(s) selecionado(s).
+            </p>
+          )}
+        </div>
       </div>
 
       {/* CONTATOS */}
@@ -496,9 +552,7 @@ export default function FormularioClassimed() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Telefone
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Telefone</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -508,9 +562,7 @@ export default function FormularioClassimed() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              WhatsApp
-            </label>
+            <label className="block text-xs font-medium text-slate-700">WhatsApp</label>
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -520,9 +572,7 @@ export default function FormularioClassimed() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              E-mail
-            </label>
+            <label className="block text-xs font-medium text-slate-700">E-mail</label>
             <input
               type="email"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -533,8 +583,7 @@ export default function FormularioClassimed() {
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será
-          exibido para contato dos pacientes.
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para contato dos pacientes.
         </p>
       </div>
 
@@ -548,9 +597,8 @@ export default function FormularioClassimed() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações preenchidas são verdadeiras e autorizo
-            que este anúncio seja exibido no Classimed / Classilagos para
-            pacientes da Região dos Lagos.
+            Declaro que as informações preenchidas são verdadeiras e autorizo que este anúncio seja exibido no Classimed
+            / Classilagos para pacientes da Região dos Lagos.
           </span>
         </label>
       </div>
