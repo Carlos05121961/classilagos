@@ -72,9 +72,11 @@ export default function FormularioVeiculos() {
   // Valores
   const [preco, setPreco] = useState("");
 
-  // Upload de arquivos
-  const [arquivos, setArquivos] = useState([]); // fotos do veículo (até 8)
-  const [logoArquivo, setLogoArquivo] = useState(null); // logo separada
+  // ✅ PADRÃO PREMIUM: CAPA + GALERIA + LOGO SEPARADOS
+  const [capaArquivo, setCapaArquivo] = useState(null); // capa obrigatória
+  const [arquivos, setArquivos] = useState([]); // galeria (até 8)
+  const [logoArquivo, setLogoArquivo] = useState(null); // logo separada (loja/revenda)
+
   const [uploading, setUploading] = useState(false);
 
   // Vídeo
@@ -121,26 +123,33 @@ export default function FormularioVeiculos() {
   const combustiveis = ["Gasolina", "Etanol", "Flex", "Diesel", "GNV", "Elétrico"];
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
 
-  // ====== previews das fotos ======
+  // ✅ previews CAPA / GALERIA / LOGO
+  const capaPreview = useMemo(() => {
+    if (!capaArquivo) return null;
+    return { name: capaArquivo.name, url: URL.createObjectURL(capaArquivo) };
+  }, [capaArquivo]);
+
   const previews = useMemo(() => {
     if (!arquivos?.length) return [];
-    return arquivos.map((file) => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
+    return arquivos.map((file) => ({ name: file.name, url: URL.createObjectURL(file) }));
   }, [arquivos]);
 
-  // ✅ preview da logo
   const logoPreview = useMemo(() => {
     if (!logoArquivo) return null;
-    return {
-      name: logoArquivo.name,
-      url: URL.createObjectURL(logoArquivo),
-    };
+    return { name: logoArquivo.name, url: URL.createObjectURL(logoArquivo) };
   }, [logoArquivo]);
 
   useEffect(() => {
-    // cleanup blob urls (fotos)
+    return () => {
+      if (capaPreview?.url) {
+        try {
+          URL.revokeObjectURL(capaPreview.url);
+        } catch {}
+      }
+    };
+  }, [capaPreview]);
+
+  useEffect(() => {
     return () => {
       previews.forEach((p) => {
         try {
@@ -152,7 +161,6 @@ export default function FormularioVeiculos() {
   }, [arquivos]);
 
   useEffect(() => {
-    // cleanup blob url (logo)
     return () => {
       if (logoPreview?.url) {
         try {
@@ -169,6 +177,12 @@ export default function FormularioVeiculos() {
     });
   }, [router]);
 
+  // Handlers
+  const handleCapaChange = (e) => {
+    const f = (e.target.files && e.target.files[0]) || null;
+    setCapaArquivo(f || null);
+  };
+
   const handleArquivosChange = (e) => {
     const files = Array.from(e.target.files || []);
     setArquivos(files.slice(0, 8));
@@ -182,30 +196,15 @@ export default function FormularioVeiculos() {
   function validarAntesDeEnviar() {
     const contatoPrincipal = whatsapp || telefone || email;
 
-    if (!contatoPrincipal) {
-      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
-    }
-    if (!finalidade || !tipoVeiculo) {
-      return "Selecione a finalidade e o tipo de veículo.";
-    }
-    if (!condicaoVeiculo) {
-      return "Informe a condição do veículo (usado, seminovo ou 0 km).";
-    }
-    if (!titulo.trim() || !descricao.trim()) {
-      return "Preencha o título e a descrição do anúncio.";
-    }
-    if (!cidade) {
-      return "Selecione a cidade do anúncio.";
-    }
-    if (!preco.trim()) {
-      return "Informe o preço do veículo.";
-    }
-    if (!isYoutubeUrl(videoUrl.trim())) {
-      return "A URL do vídeo deve ser do YouTube (youtube.com ou youtu.be).";
-    }
-    if (!aceitoTermos) {
-      return "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio.";
-    }
+    if (!contatoPrincipal) return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    if (!finalidade || !tipoVeiculo) return "Selecione a finalidade e o tipo de veículo.";
+    if (!condicaoVeiculo) return "Informe a condição do veículo (usado, seminovo ou 0 km).";
+    if (!titulo.trim() || !descricao.trim()) return "Preencha o título e a descrição do anúncio.";
+    if (!cidade) return "Selecione a cidade do anúncio.";
+    if (!preco.trim()) return "Informe o preço do veículo.";
+    if (!capaArquivo) return "Envie a FOTO DE CAPA do anúncio (obrigatória).";
+    if (!isYoutubeUrl(videoUrl.trim())) return "A URL do vídeo deve ser do YouTube (youtube.com ou youtu.be).";
+    if (!aceitoTermos) return "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio.";
     return "";
   }
 
@@ -244,6 +243,7 @@ export default function FormularioVeiculos() {
 
     const contatoPrincipal = whatsapp || telefone || email;
 
+    let capaUrl = null;
     let urlsUploadFotos = [];
     let urlUploadLogo = null;
 
@@ -251,31 +251,28 @@ export default function FormularioVeiculos() {
       setUploading(true);
       const bucketName = "anuncios";
 
-      // ✅ 1) LOGO (se houver) -> logo_url (SEPARADO)
-      if (logoArquivo) {
+      // ✅ 1) CAPA (obrigatória) -> capa_url
+      if (capaArquivo) {
+        capaUrl = await uploadToPublicUrl(bucketName, user.id, capaArquivo, "capa");
+      }
+
+      // ✅ 2) LOGO (opcional e separada) -> logo_url (apenas se Loja/Revenda)
+      if (isLojaRevenda && logoArquivo) {
         urlUploadLogo = await uploadToPublicUrl(bucketName, user.id, logoArquivo, "logo");
       }
 
-// ✅ 2) FOTOS (até 8) -> imagens[] (SOMENTE fotos, ORDEM GARANTIDA)
-if (arquivos.length > 0) {
-  const uploads = await Promise.all(
-    arquivos.map(async (file, index) => {
-      const url = await uploadToPublicUrl(
-        bucketName,
-        user.id,
-        file,
-        `foto-${index}`
-      );
-      return { index, url };
-    })
-  );
+      // ✅ 3) GALERIA (opcional até 8) -> imagens[] (SOMENTE fotos, ordem garantida)
+      if (arquivos.length > 0) {
+        const uploads = await Promise.all(
+          arquivos.map(async (file, index) => {
+            const url = await uploadToPublicUrl(bucketName, user.id, file, `foto-${index}`);
+            return { index, url };
+          })
+        );
 
-  // 🔒 garante a mesma ordem escolhida no formulário
-  uploads.sort((a, b) => a.index - b.index);
-
-  urlsUploadFotos = uploads.map((u) => u.url);
-}
-
+        uploads.sort((a, b) => a.index - b.index);
+        urlsUploadFotos = uploads.map((u) => u.url);
+      }
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
@@ -285,7 +282,6 @@ if (arquivos.length > 0) {
       setUploading(false);
     }
 
-    // ✅ imagens: SOMENTE fotos do veículo (logo NÃO entra no array)
     const imagens = [...(urlsUploadFotos || [])];
 
     const detalhesVeiculoTexto = `
@@ -322,26 +318,28 @@ ${detalhesVeiculoTexto}
         titulo: titulo.trim(),
         descricao: descricaoFinal,
         cidade,
-        bairro: bairro.trim(),
-        endereco: endereco.trim(),
-        cep: cep.trim(),
+        bairro: (bairro || "").trim(),
+        endereco: (endereco || "").trim(),
+        cep: (cep || "").trim(),
         preco: preco.trim(),
 
-        imagens, // ✅ só fotos
-        logo_url: urlUploadLogo, // ✅ logo separada
+        // ✅ PADRÃO PREMIUM
+        capa_url: capaUrl, // foto principal do card
+        imagens, // galeria extra
+        logo_url: urlUploadLogo, // logo separada (se Loja/Revenda)
 
-        video_url: videoUrl.trim(),
-        telefone: telefone.trim(),
-        whatsapp: whatsapp.trim(),
-        email: email.trim(),
+        video_url: (videoUrl || "").trim(),
+        telefone: (telefone || "").trim(),
+        whatsapp: (whatsapp || "").trim(),
+        email: (email || "").trim(),
         contato: contatoPrincipal,
 
         // reutilizados
         tipo_imovel: tipoVeiculo,
         finalidade: finalidade.toLowerCase(),
-        nome_contato: nomeContato.trim(),
+        nome_contato: (nomeContato || "").trim(),
 
-        // usados nos cards
+        // cards
         condicao_veiculo: condicaoVeiculo,
         zero_km: condicaoVeiculo === "0km",
         financiado: isFinanciado,
@@ -392,8 +390,11 @@ ${detalhesVeiculoTexto}
     setLicenciado("nao");
     setAceitaTroca("nao");
     setPreco("");
+
+    setCapaArquivo(null);
     setArquivos([]);
     setLogoArquivo(null);
+
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
@@ -430,18 +431,100 @@ ${detalhesVeiculoTexto}
               Formulário de veículo
             </h2>
             <p className="mt-1 text-xs md:text-sm text-slate-600 max-w-2xl">
-              Preencha com calma. Quanto mais completo, maior a chance de aparecer bem nos cards e receber contatos.
+              Comece pela foto de capa: isso já deixa seu anúncio com cara profissional e incentiva a concluir o resto.
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
             <p className="font-semibold text-slate-900">Dicas rápidas</p>
             <ul className="mt-1 list-disc ml-4 space-y-1">
-              <li>Use um título bem claro (ano, modelo, versão).</li>
-              <li>Suba 6–8 fotos (frente, traseira, interior, painel).</li>
+              <li>Suba uma capa bem clara (frente 3/4 do veículo).</li>
+              <li>Use 6–8 fotos na galeria (interior, painel, traseira).</li>
               <li>Informe “0 km”, “seminovo” ou “usado” corretamente.</li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* ✅ BLOCO PREMIUM: CAPA + GALERIA (NO TOPO) */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+        <h3 className="text-sm font-bold text-slate-900">Fotos (capa + galeria)</h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          A <b>capa</b> é a foto principal do card. A <b>galeria</b> são fotos extras do veículo.
+        </p>
+
+        {/* CAPA */}
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-[11px] font-semibold text-slate-900">
+            Foto de capa (obrigatória) <span className="text-red-600">*</span>
+          </p>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Esta será a <b>foto principal</b> do seu anúncio.
+          </p>
+
+          <input type="file" accept="image/*" onChange={handleCapaChange} className="mt-3 w-full text-xs" />
+
+          {capaPreview && (
+            <div className="mt-3 max-w-sm rounded-2xl border border-slate-200 overflow-hidden bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={capaPreview.url} alt={capaPreview.name} className="w-full h-44 object-cover" />
+              <div className="px-2 py-2 bg-slate-50">
+                <p className="text-[10px] text-slate-600 line-clamp-1">{capaPreview.name}</p>
+              </div>
+            </div>
+          )}
+
+          {capaArquivo && (
+            <button
+              type="button"
+              onClick={() => setCapaArquivo(null)}
+              className="mt-3 text-xs font-semibold text-slate-700 underline"
+            >
+              Remover foto de capa
+            </button>
+          )}
+        </div>
+
+        {/* GALERIA */}
+        <div className="mt-4">
+          <p className="text-[11px] font-semibold text-slate-900">
+            Galeria (opcional) — até 8 fotos
+          </p>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Fotos extras: traseira, interior, painel, motor, detalhes…
+          </p>
+
+          <input type="file" accept="image/*" multiple onChange={handleArquivosChange} className="mt-3 w-full text-xs" />
+
+          {arquivos.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] text-slate-600">{arquivos.length} arquivo(s) selecionado(s).</p>
+
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {previews.map((p) => (
+                  <div key={p.url} className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
+                    <div className="px-2 py-2">
+                      <p className="text-[10px] text-slate-600 line-clamp-1">{p.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setArquivos([])}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover todas as fotos da galeria
+              </button>
+            </div>
+          )}
+
+          <p className="mt-2 text-[11px] text-slate-500">
+            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG. (Você já tem o esquema de reduzir/WEBP também 👍)
+          </p>
         </div>
       </div>
 
@@ -475,35 +558,58 @@ ${detalhesVeiculoTexto}
 
             <div className="grid gap-2 text-xs text-slate-700">
               <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={isFinanciado}
-                  onChange={(e) => setIsFinanciado(e.target.checked)}
-                />
+                <input type="checkbox" checked={isFinanciado} onChange={(e) => setIsFinanciado(e.target.checked)} />
                 <span>Financiado</span>
               </label>
 
               <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={isConsignado}
-                  onChange={(e) => setIsConsignado(e.target.checked)}
-                />
+                <input type="checkbox" checked={isConsignado} onChange={(e) => setIsConsignado(e.target.checked)} />
                 <span>Consignado</span>
               </label>
 
               <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={isLojaRevenda}
-                  onChange={(e) => setIsLojaRevenda(e.target.checked)}
-                />
+                <input type="checkbox" checked={isLojaRevenda} onChange={(e) => setIsLojaRevenda(e.target.checked)} />
                 <span>Loja / Revenda</span>
               </label>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ✅ LOGOMARCA DA LOJA (se Loja/Revenda) */}
+      {isLojaRevenda && (
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (opcional)</h3>
+          <p className="mt-1 text-[11px] text-slate-500">
+            A logomarca fica <b>separada</b> e não vira capa nem entra na galeria.
+          </p>
+
+          <div className="mt-4">
+            <label className="block text-[11px] font-semibold text-slate-700">Enviar logomarca (1 arquivo)</label>
+            <input type="file" accept="image/*" onChange={handleLogoChange} className="mt-2 w-full text-xs" />
+
+            {logoPreview && (
+              <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoPreview.url} alt={logoPreview.name} className="w-full h-40 object-contain bg-white" />
+                <div className="px-2 py-2">
+                  <p className="text-[10px] text-slate-600 line-clamp-1">{logoPreview.name}</p>
+                </div>
+              </div>
+            )}
+
+            {logoArquivo && (
+              <button
+                type="button"
+                onClick={() => setLogoArquivo(null)}
+                className="mt-3 text-xs font-semibold text-slate-700 underline"
+              >
+                Remover logomarca
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 2) TIPO DO ANÚNCIO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -577,9 +683,6 @@ ${detalhesVeiculoTexto}
             onChange={(e) => setTitulo(e.target.value)}
             required
           />
-          <p className="mt-1 text-[11px] text-slate-500">
-            Capricha aqui. Esse título aparece nos cards.
-          </p>
         </div>
 
         <div className="mt-4">
@@ -593,9 +696,6 @@ ${detalhesVeiculoTexto}
             onChange={(e) => setDescricao(e.target.value)}
             required
           />
-          <p className="mt-1 text-[11px] text-slate-500">
-            Dica: informações claras e honestas geram mais confiança e contatos.
-          </p>
         </div>
       </div>
 
@@ -830,108 +930,7 @@ ${detalhesVeiculoTexto}
                 required
               />
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">
-              Digite números. Ex: 75000 → vira 75.000.
-            </p>
           </div>
-        </div>
-      </div>
-
-      {/* ✅ 6.1) LOGOMARCA DA LOJA (se Loja/Revenda) */}
-      {isLojaRevenda && (
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-          <h3 className="text-sm font-bold text-slate-900">Logomarca da loja (recomendado)</h3>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Essa imagem fica <b>separada</b> e aparece no “Resumo do anúncio”. Ela <b>NÃO</b> vira foto principal do card.
-          </p>
-
-          <div className="mt-4">
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Enviar logomarca (1 arquivo)
-            </label>
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              className="mt-2 w-full text-xs"
-            />
-
-            {logoPreview && (
-              <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoPreview.url} alt={logoPreview.name} className="w-full h-40 object-contain bg-white" />
-                <div className="px-2 py-2">
-                  <p className="text-[10px] text-slate-600 line-clamp-1">{logoPreview.name}</p>
-                </div>
-              </div>
-            )}
-
-            {logoArquivo && (
-              <button
-                type="button"
-                onClick={() => setLogoArquivo(null)}
-                className="mt-3 text-xs font-semibold text-slate-700 underline"
-              >
-                Remover logomarca
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 7) FOTOS */}
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-        <h3 className="text-sm font-bold text-slate-900">Fotos do veículo</h3>
-        <p className="mt-1 text-[11px] text-slate-500">Até 8 imagens. Recomendado: JPG/PNG.</p>
-
-        <div className="mt-4">
-          <label className="block text-[11px] font-semibold text-slate-700">
-            Enviar fotos (upload)
-          </label>
-
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleArquivosChange}
-            className="mt-2 w-full text-xs"
-          />
-
-          {arquivos.length > 0 && (
-            <div className="mt-3">
-              <p className="text-[11px] text-slate-600">
-                {arquivos.length} arquivo(s) selecionado(s).
-              </p>
-
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {previews.map((p) => (
-                  <div
-                    key={p.url}
-                    className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
-                    <div className="px-2 py-2">
-                      <p className="text-[10px] text-slate-600 line-clamp-1">{p.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setArquivos([])}
-                className="mt-3 text-xs font-semibold text-slate-700 underline"
-              >
-                Remover todas as fotos
-              </button>
-            </div>
-          )}
-
-          <p className="mt-2 text-[11px] text-slate-500">
-            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG.
-          </p>
         </div>
       </div>
 
@@ -949,9 +948,7 @@ ${detalhesVeiculoTexto}
             onChange={(e) => setVideoUrl(e.target.value)}
           />
           {!isYoutubeUrl(videoUrl.trim()) && (
-            <p className="mt-2 text-[11px] text-red-600">
-              A URL parece não ser do YouTube.
-            </p>
+            <p className="mt-2 text-[11px] text-red-600">A URL parece não ser do YouTube.</p>
           )}
         </div>
       </div>
@@ -959,9 +956,6 @@ ${detalhesVeiculoTexto}
       {/* 9) CONTATO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Dados de contato</h3>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Pelo menos um canal (telefone, WhatsApp ou e-mail) precisa estar preenchido.
-        </p>
 
         <div className="mt-4">
           <label className="block text-[11px] font-semibold text-slate-700">Nome de contato</label>
@@ -1008,6 +1002,10 @@ ${detalhesVeiculoTexto}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+
+        <p className="mt-2 text-[11px] text-slate-500">
+          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para as pessoas entrarem em contato com você.
+        </p>
       </div>
 
       {/* 10) TERMOS */}
@@ -1024,12 +1022,7 @@ ${detalhesVeiculoTexto}
             />
             <span>
               Declaro que todas as informações deste anúncio são verdadeiras e estou de acordo com os{" "}
-              <a
-                href="/termos-de-uso"
-                target="_blank"
-                rel="noreferrer"
-                className="underline font-semibold"
-              >
+              <a href="/termos-de-uso" target="_blank" rel="noreferrer" className="underline font-semibold">
                 Termos de Uso do Classilagos
               </a>
               .
