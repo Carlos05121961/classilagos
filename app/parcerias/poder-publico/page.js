@@ -135,7 +135,7 @@ export default function PoderPublicoPage() {
 
           {/* PRINT DA HOME */}
           <div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/40 shadow-sm">
-            <div className="relative aspect-[21/9] bg-white">
+           <div className="relative aspect-[16/9] bg-white">
               <Image
                 src="/parcerias/poder-publico/home.webp"
                 alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
