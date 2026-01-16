@@ -147,16 +147,16 @@ export default function PoderPublicoPage() {
       />
     </div>
 
-    <div className="mt-5">
-      <h2 className="text-base font-semibold text-slate-900">
-        Classilagos.shop
-      </h2>
-      <p className="mt-1 text-sm text-slate-700">
-        Um canal digital regional de utilidade pública, conectando a população da Região dos Lagos a informações, serviços e oportunidades.
-      </p>
-    </div>
+   <section className="mt-12">
+  <div className="max-w-5xl mx-auto text-slate-400 text-sm leading-relaxed px-4">
+    <p>
+      Observação: o Classilagos.shop não substitui canais oficiais
+      (site, diário oficial ou redes sociais). Atua como canal
+      complementar de utilidade pública.
+    </p>
   </div>
-</div>
+</section>
+
 
 
 
