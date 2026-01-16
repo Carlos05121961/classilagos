@@ -158,27 +158,31 @@ export default function PoderPublicoPage() {
             Lagos a informações, serviços e oportunidades.
           </p>
 
-          {/* CARD HOME (quase todo o card, sem corte) */}
+          {/* CARD HOME (imagem grande + texto institucional na tarja) */}
           <div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-white shadow-sm">
             <div className="px-4 sm:px-6 py-6">
-              <div className="relative mx-auto w-full max-w-screen-xl aspect-[22/9] bg-white">
+              <div className="relative mx-auto w-full max-w-5xl aspect-[21/9] bg-white">
                 <Image
                   src="/parcerias/poder-publico/home.webp"
                   alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
                   fill
                   className="object-contain"
-                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  sizes="(max-width: 1024px) 100vw, 1024px"
                   priority
                 />
               </div>
 
-              <div className="mt-5">
-                <h2 className="text-base font-semibold text-slate-900">
-                  Classilagos.shop
+              {/* TEXTO INSTITUCIONAL (centralizado) */}
+              <div className="mt-6 text-center">
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
+                  Classilagos.shop — um canal digital regional de utilidade pública
                 </h2>
-                <p className="mt-1 text-sm text-slate-700">
-                  Um canal digital regional de utilidade pública, conectando a população da Região
-                  dos Lagos a informações, serviços e oportunidades.
+
+                <p className="mt-3 text-sm sm:text-base text-slate-700 leading-relaxed max-w-3xl mx-auto">
+                  A internet existe para aproximar pessoas e fortalecer comunidades. O{" "}
+                  <strong>Classilagos nasce com esse propósito</strong>: integrar a Região dos
+                  Lagos em um único ambiente digital, reunindo informação, oportunidades, serviços,
+                  turismo e ações de interesse público.
                 </p>
               </div>
             </div>
@@ -276,4 +280,3 @@ export default function PoderPublicoPage() {
     </main>
   );
 }
-
