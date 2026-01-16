@@ -160,7 +160,7 @@ export default function PoderPublicoPage() {
 
           {/* CARD HOME (imagem grande + texto institucional na tarja) */}
           <div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-white shadow-sm">
-            <div className="px-4 sm:px-6 py-6">
+           <div className="px-4 sm:px-6 py-3">
               <div className="relative mx-auto w-full max-w-5xl aspect-[21/9] bg-white">
                 <Image
                   src="/parcerias/poder-publico/home.webp"
