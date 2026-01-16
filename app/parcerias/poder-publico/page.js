@@ -173,7 +173,7 @@ export default function PoderPublicoPage() {
               </div>
 
               {/* TEXTO INSTITUCIONAL (centralizado) */}
-             <div className="mt-3 text-center">
+            <div className="-mt-1 text-center">
                 <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
                   Classilagos.shop — um canal digital regional de utilidade pública
                 </h2>
