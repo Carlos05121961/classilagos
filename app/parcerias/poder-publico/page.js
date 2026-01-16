@@ -133,18 +133,20 @@ export default function PoderPublicoPage() {
             </p>
           </div>
 
-          {/* PRINT DA HOME */}
-          <div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/40 shadow-sm">
-           <div className="relative aspect-[16/9] bg-white">
-              <Image
-                src="/parcerias/poder-publico/home.webp"
-                alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority
-              />
-            </div>
+         {/* PRINT DA HOME */}
+<div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-white shadow-sm px-6">
+  <div className="relative aspect-[26/9] max-w-6xl mx-auto bg-white">
+    <Image
+      src="/parcerias/poder-publico/home.webp"
+      alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
+      fill
+      className="object-contain"
+      sizes="100vw"
+      priority
+    />
+  </div>
+</div>
+
 
             {/* TARJA BRANCA (TEXTO OFICIAL) */}
             <div className="bg-white text-slate-900">
