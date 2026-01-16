@@ -9,10 +9,10 @@ const pilares = [
     img: "/parcerias/poder-publico/noticias.webp",
     badge: "Prioridade",
     desc:
-      "Além de informar a população, o Classilagos pode funcionar como canal complementar para notícias institucionais da Secom e para divulgação da agenda cultural da cidade (eventos, ações, comunicados, utilidade pública).",
+      "Além de informar a população, o Classilagos pode funcionar como canal complementar para notícias institucionais da Secom e para divulgação da agenda cultural da cidade (eventos, ações, comunicados e utilidade pública).",
     comoParticipar: [
       "Secom envia comunicados oficiais (texto + links + imagem quando houver).",
-      "Secretarias e Cultura enviam agenda (datas, locais, horários, ingressos/inscrições, contatos).",
+      "Cultura/Secretarias enviam agenda (datas, locais, horários, ingressos/inscrições, contatos).",
       "Conteúdo publicado com identificação clara da origem e da cidade.",
     ],
   },
@@ -22,7 +22,7 @@ const pilares = [
     href: "/empregos",
     img: "/parcerias/poder-publico/empregos.webp",
     desc:
-      "Banco de vagas e currículos para apoiar o trabalhador e organizar oportunidades da cidade. Também serve para divulgar cursos e capacitações oferecidos pela Prefeitura e suas secretarias, além de programas e iniciativas locais.",
+      "Banco de vagas e currículos para apoiar o trabalhador e organizar oportunidades da cidade. Também divulga cursos, capacitações e programas oferecidos pela Prefeitura e suas secretarias.",
     comoParticipar: [
       "Casa do Trabalhador / SINE envia vagas e critérios (cargo, local, requisitos, contato).",
       "Prefeitura divulga cursos, oficinas e capacitações (datas, inscrições, links oficiais).",
@@ -35,10 +35,10 @@ const pilares = [
     href: "/pets",
     img: "/parcerias/poder-publico/pets.webp",
     desc:
-      "Vitrine regional para adoção e ações de bem-estar animal: campanhas de castração, vacinação, feiras, orientações e avisos. Ajuda a dar visibilidade e ampliar o alcance de iniciativas públicas e comunitárias.",
+      "Vitrine regional para adoção e ações de bem-estar animal: campanhas de castração, vacinação, feiras, orientações e avisos. Amplia o alcance de iniciativas públicas e comunitárias.",
     comoParticipar: [
       "Secretaria/Coordenação envia campanhas e comunicados (datas, locais, documentos, contatos).",
-      "Centro de zoonoses e protetores/ONGs divulgam animais para adoção com fotos e dados básicos.",
+      "Zoonoses, protetores e ONGs divulgam animais para adoção com fotos e dados básicos.",
       "Canal de utilidade pública para avisos e orientações ao cidadão.",
     ],
   },
@@ -48,11 +48,11 @@ const pilares = [
     href: "/turismo",
     img: "/parcerias/poder-publico/turismo.webp",
     desc:
-      "Divulgação de atrativos e equipamentos públicos (parques, museus, casa de cultura, roteiros, cartões postais) e integração com serviços turísticos. Isso fortalece o destino, movimenta a economia e incentiva empresas privadas (pousadas, bares, restaurantes, passeios) a participarem junto.",
+      "Divulgação de atrativos e equipamentos públicos (parques, museus, casas de cultura, roteiros, cartões postais) e integração com serviços turísticos. Fortalece o destino e incentiva empresas privadas a participarem junto.",
     comoParticipar: [
       "Turismo/Cultura envia lista de atrativos e equipamentos (horários, endereço, regras, contatos).",
       "Divulgação de eventos e programações, com links oficiais quando existirem.",
-      "Onde houver, orientar o cidadão para agendamento/ingressos/inscrições via canais oficiais.",
+      "Quando houver, orientar o cidadão para agendamento/ingressos/inscrições via canais oficiais.",
     ],
   },
 ];
@@ -158,9 +158,10 @@ export default function PoderPublicoPage() {
             Lagos a informações, serviços e oportunidades.
           </p>
 
-          {/* CARD HOME (imagem grande + texto institucional na tarja) */}
-          <div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-white shadow-sm">
-           <div className="px-4 sm:px-6 py-3">
+          {/* CARD HOME (mobile-first, sem cortar e sem sobrepor texto) */}
+          <div className="mt-8 rounded-3xl border border-slate-800 bg-white shadow-sm overflow-hidden">
+            <div className="p-4 sm:p-6">
+              {/* IMAGEM (fica sozinha aqui dentro — importante!) */}
               <div className="relative mx-auto w-full max-w-5xl aspect-[21/9] bg-white">
                 <Image
                   src="/parcerias/poder-publico/home.webp"
@@ -172,15 +173,14 @@ export default function PoderPublicoPage() {
                 />
               </div>
 
-              {/* TEXTO INSTITUCIONAL (centralizado) */}
-            <div className="-mt-6 text-center">
+              {/* TEXTO (fora do div relative da imagem) */}
+              <div className="mt-4 sm:mt-5 text-center px-2 sm:px-6">
                 <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
                   Classilagos.shop — um canal digital regional de utilidade pública
                 </h2>
-
-                <p className="mt-3 text-sm sm:text-base text-slate-700 leading-relaxed max-w-3xl mx-auto">
-                  A internet existe para aproximar pessoas e fortalecer comunidades. O{" "}
-                  <strong>Classilagos nasce com esse propósito</strong>: integrar a Região dos
+                <p className="mt-2 text-sm sm:text-base text-slate-700 leading-relaxed max-w-3xl mx-auto">
+                  A internet existe para aproximar pessoas e fortalecer comunidades.{" "}
+                  <strong>O Classilagos nasce com esse propósito</strong>: integrar a Região dos
                   Lagos em um único ambiente digital, reunindo informação, oportunidades, serviços,
                   turismo e ações de interesse público.
                 </p>
@@ -196,7 +196,7 @@ export default function PoderPublicoPage() {
       </section>
 
       {/* PILARES */}
-      <section id="pilares" className="max-w-6xl mx-auto px-4 py-12">
+      <section id="pilares" className="max-w-6xl mx-auto px-4 py-12 scroll-mt-24">
         <SectionTitle
           kicker="Pilares"
           title="Pilares prontos para parceria"
@@ -272,9 +272,7 @@ export default function PoderPublicoPage() {
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 mt-8">
-            classilagos.shop • Parcerias institucionais
-          </p>
+          <p className="text-xs text-slate-500 mt-8">classilagos.shop • Parcerias institucionais</p>
         </div>
       </section>
     </main>
