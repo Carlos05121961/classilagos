@@ -145,7 +145,7 @@ export default function PoderPublicoPage() {
       priority
     />
   </div>
-</div>
+
 
 
             {/* TARJA BRANCA (TEXTO OFICIAL) */}
