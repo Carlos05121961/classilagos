@@ -133,18 +133,31 @@ export default function PoderPublicoPage() {
             </p>
           </div>
 
-         {/* PRINT DA HOME */}
-<div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-white shadow-sm px-6">
-  <div className="relative aspect-[26/9] max-w-6xl mx-auto bg-white">
-    <Image
-      src="/parcerias/poder-publico/home.webp"
-      alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
-      fill
-      className="object-contain"
-      sizes="100vw"
-      priority
-    />
+ {/* PRINT DA HOME */}
+<div className="mt-8 rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/40 shadow-sm">
+  <div className="bg-white px-4 py-6">
+    <div className="relative mx-auto w-full max-w-7xl aspect-[22/9]">
+      <Image
+        src="/parcerias/poder-publico/home.webp"
+        alt="Classilagos.shop - 30 anos conectando a Região dos Lagos"
+        fill
+        className="object-contain"
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        priority
+      />
+    </div>
+
+    <div className="mt-5">
+      <h2 className="text-base font-semibold text-slate-900">
+        Classilagos.shop
+      </h2>
+      <p className="mt-1 text-sm text-slate-700">
+        Um canal digital regional de utilidade pública, conectando a população da Região dos Lagos a informações, serviços e oportunidades.
+      </p>
+    </div>
   </div>
+</div>
+
 
 
 
