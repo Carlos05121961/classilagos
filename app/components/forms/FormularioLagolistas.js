@@ -82,6 +82,7 @@ export default function FormularioLagolistas() {
   // ✅ Opções do novo seletor (Tipo de associação)
   const subTiposAssociacao = [
     { label: "Associação Comercial", value: "associacao_comercial" },
+    { label: "Associação de Moradores", value: "associacao_de_moradores" },
     { label: "Associação Médica / Saúde", value: "associacao_medica" },
     { label: "Engenharia / Arquitetura", value: "engenharia_arquitetura" },
     { label: "OAB (Subseção)", value: "oab_subsecao" },
