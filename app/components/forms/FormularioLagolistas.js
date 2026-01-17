@@ -16,6 +16,12 @@ export default function FormularioLagolistas() {
   // Segmento / categoria do negócio (vai para area_profissional)
   const [segmento, setSegmento] = useState("");
 
+  // ✅ Tipo de organização (novo - opcional)
+  // empresa | profissional | associacao | institucional
+  const [tipoOrganizacao, setTipoOrganizacao] = useState("");
+  // subtipo (novo - opcional, aparece se tipoOrganizacao === "associacao")
+  const [subTipoOrganizacao, setSubTipoOrganizacao] = useState("");
+
   // Dados da empresa / comércio
   const [nomeNegocio, setNomeNegocio] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
@@ -63,6 +69,27 @@ export default function FormularioLagolistas() {
     "Cabo Frio",
     "Búzios",
     "Rio das Ostras",
+  ];
+
+  // ✅ Opções do novo seletor (Tipo de anunciante)
+  const tiposOrganizacao = [
+    { label: "Empresa / Comércio", value: "empresa" },
+    { label: "Profissional Liberal", value: "profissional" },
+    { label: "Associação / Entidade", value: "associacao" },
+    { label: "Institucional / Órgão / Projeto", value: "institucional" },
+  ];
+
+  // ✅ Opções do novo seletor (Tipo de associação)
+  const subTiposAssociacao = [
+    { label: "Associação Comercial", value: "associacao_comercial" },
+    { label: "Associação Médica / Saúde", value: "associacao_medica" },
+    { label: "Engenharia / Arquitetura", value: "engenharia_arquitetura" },
+    { label: "OAB (Subseção)", value: "oab_subsecao" },
+    { label: "CDL", value: "cdl" },
+    { label: "Sindicato", value: "sindicato" },
+    { label: "Cooperativa", value: "cooperativa" },
+    { label: "ONG / Projeto Social", value: "ong" },
+    { label: "Outros", value: "outros" },
   ];
 
   // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
@@ -284,6 +311,10 @@ export default function FormularioLagolistas() {
         // segmento do negócio → area_profissional
         area_profissional: segmento,
 
+        // ✅ novos campos (opcionais)
+        tipo_organizacao: tipoOrganizacao || null,
+        sub_tipo_organizacao: subTipoOrganizacao || null,
+
         // dados da empresa
         nome_negocio: nomeNegocio || null,
         razao_social: razaoSocial || null,
@@ -322,6 +353,10 @@ export default function FormularioLagolistas() {
       setBairro("");
       setEndereco("");
       setSegmento("");
+
+      setTipoOrganizacao("");
+      setSubTipoOrganizacao("");
+
       setNomeNegocio("");
       setRazaoSocial("");
       setCnpj("");
@@ -345,9 +380,7 @@ export default function FormularioLagolistas() {
       }, 1800);
     } catch (err) {
       console.error(err);
-      setErro(
-        `Erro ao salvar seu anúncio. Tente novamente: ${err?.message || "Erro inesperado."}`
-      );
+      setErro(`Erro ao salvar seu anúncio. Tente novamente: ${err?.message || "Erro inesperado."}`);
       setUploading(false);
     }
   };
@@ -447,9 +480,7 @@ export default function FormularioLagolistas() {
 
           {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-[11px] font-semibold text-slate-700">
-              Foto de capa (recomendada)
-            </p>
+            <p className="text-[11px] font-semibold text-slate-700">Foto de capa (recomendada)</p>
             <p className="mt-1 text-[11px] text-slate-600">
               Essa deve ser a foto mais bonita (fachada / vitrine / ambiente).
             </p>
@@ -489,12 +520,8 @@ export default function FormularioLagolistas() {
 
         {/* GALERIA */}
         <div className="mt-4">
-          <p className="text-[11px] font-semibold text-slate-700">
-            Galeria (opcional) — até 4 fotos
-          </p>
-          <p className="mt-1 text-[11px] text-slate-600">
-            Fotos extras (interior, produtos, equipe, detalhes).
-          </p>
+          <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 4 fotos</p>
+          <p className="mt-1 text-[11px] text-slate-600">Fotos extras (interior, produtos, equipe, detalhes).</p>
 
           <input
             type="file"
@@ -506,16 +533,11 @@ export default function FormularioLagolistas() {
 
           {fotosFiles.length > 0 && (
             <div className="mt-3">
-              <p className="text-[11px] text-slate-600">
-                {fotosFiles.length} arquivo(s) selecionado(s).
-              </p>
+              <p className="text-[11px] text-slate-600">{fotosFiles.length} arquivo(s) selecionado(s).</p>
 
               <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {fotosPreviews.map((p) => (
-                  <div
-                    key={p.url}
-                    className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50"
-                  >
+                  <div key={p.url} className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
                     <div className="px-2 py-2">
@@ -591,9 +613,7 @@ export default function FormularioLagolistas() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Bairro / Região (opcional)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -632,6 +652,51 @@ export default function FormularioLagolistas() {
           </div>
         </div>
 
+        {/* ✅ NOVO BLOCO: Tipo de anunciante / associação */}
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Tipo de anunciante (opcional)
+            </label>
+            <select
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={tipoOrganizacao}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTipoOrganizacao(v);
+                if (v !== "associacao") setSubTipoOrganizacao("");
+              }}
+            >
+              <option value="">Selecione…</option>
+              {tiposOrganizacao.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {tipoOrganizacao === "associacao" && (
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">
+                Tipo de associação (opcional)
+              </label>
+              <select
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={subTipoOrganizacao}
+                onChange={(e) => setSubTipoOrganizacao(e.target.value)}
+              >
+                <option value="">Selecione…</option>
+                {subTiposAssociacao.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
         <div className="mt-4">
           <label className="block text-[11px] font-semibold text-slate-700">
             Endereço completo (opcional, mas recomendado)
@@ -665,9 +730,7 @@ export default function FormularioLagolistas() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              Razão social (opcional)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">Razão social (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -680,9 +743,7 @@ export default function FormularioLagolistas() {
 
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-700">
-              CNPJ (opcional)
-            </label>
+            <label className="block text-[11px] font-semibold text-slate-700">CNPJ (opcional)</label>
             <input
               type="text"
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
