@@ -4,125 +4,131 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
-const CIDADES = [
-  "Maricá",
-  "Saquarema",
-  "Araruama",
-  "Iguaba Grande",
-  "São Pedro da Aldeia",
-  "Arraial do Cabo",
-  "Cabo Frio",
-  "Búzios",
-  "Rio das Ostras",
-];
-
-const TIPOS = [
-  { id: "pizza_lanches", label: "Pizza / Lanches" },
-  { id: "marmita", label: "Marmita" },
-  { id: "restaurante", label: "Restaurante" },
-  { id: "farmacia", label: "Farmácia" },
-  { id: "agua_gas", label: "Água / Gás" },
-  { id: "bebidas", label: "Bebidas" },
-  { id: "padaria", label: "Padaria" },
-  { id: "pet_delivery", label: "Pet delivery" },
-  { id: "frango_assado", label: "Frango assado" },
-  { id: "outros", label: "Outros" },
-];
-
 function onlyDigits(v) {
   return String(v || "").replace(/\D/g, "");
 }
 
-function normalizeWhatsAppBR(raw) {
-  let d = onlyDigits(raw);
-  if (!d) return "";
+function normalizeWhatsAppBR(numberRaw) {
+  let n = onlyDigits(numberRaw);
 
-  if (!d.startsWith("55")) d = "55" + d;
+  // Se veio com 0 no início, remove
+  while (n.startsWith("0")) n = n.slice(1);
 
-  // 55 + DDD + número (mínimo 12 dígitos)
-  if (d.length < 12) return "";
+  // Se já tem 55 no início, ok
+  if (n.startsWith("55")) return n;
 
-  return d;
+  // Se parece número BR (10/11 dígitos), prefixa 55
+  if (n.length === 10 || n.length === 11) return `55${n}`;
+
+  // Caso diferente, retorna como está (melhor do que quebrar)
+  return n;
 }
 
-function buildWhatsAppLink(rawNumber, message) {
-  const n = normalizeWhatsAppBR(rawNumber);
+function buildWhatsAppLink(numberRaw, message) {
+  const n = normalizeWhatsAppBR(numberRaw);
   if (!n) return "";
   const text = encodeURIComponent(message || "");
   return `https://wa.me/${n}${text ? `?text=${text}` : ""}`;
 }
 
-function pickCardImage(row) {
-  if (row?.logo_url) return row.logo_url;
-  if (row?.capa_url) return row.capa_url;
-  if (Array.isArray(row?.imagens) && row.imagens.length) return row.imagens[0];
-  return "";
-}
-
-function labelTipo(tipoId) {
-  return TIPOS.find((t) => t.id === tipoId)?.label || tipoId;
+function labelTipo(tipo) {
+  const map = {
+    pizza_lanches: "Pizza / Lanches",
+    marmita: "Marmita",
+    restaurante: "Restaurante",
+    farmacia: "Farmácia",
+    agua_gas: "Água / Gás",
+    bebidas: "Bebidas",
+    padaria: "Padaria",
+    pet_delivery: "Pet delivery",
+    frango_assado: "Frango assado",
+    outros: "Outros",
+  };
+  return map[tipo] || tipo;
 }
 
 export default function ClickEntregasPage() {
-  const [cidade, setCidade] = useState("");
-  const [tipo, setTipo] = useState("");
-  const [q, setQ] = useState("");
-
-  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
+  const [items, setItems] = useState([]);
 
-  async function fetchData() {
-    setLoading(true);
-    setErro("");
+  // filtros
+  const [cidade, setCidade] = useState("");
+  const [tipo, setTipo] = useState("");
 
-    try {
-      let query = supabase
+  const cidades = [
+    "",
+    "Maricá",
+    "Saquarema",
+    "Araruama",
+    "Iguaba Grande",
+    "São Pedro da Aldeia",
+    "Arraial do Cabo",
+    "Cabo Frio",
+    "Búzios",
+    "Rio das Ostras",
+  ];
+
+  const tipos = [
+    { value: "", label: "Todos" },
+    { value: "pizza_lanches", label: "Pizza / Lanches" },
+    { value: "marmita", label: "Marmita" },
+    { value: "restaurante", label: "Restaurante" },
+    { value: "farmacia", label: "Farmácia" },
+    { value: "agua_gas", label: "Água / Gás" },
+    { value: "bebidas", label: "Bebidas" },
+    { value: "padaria", label: "Padaria" },
+    { value: "pet_delivery", label: "Pet delivery" },
+    { value: "frango_assado", label: "Frango assado" },
+    { value: "outros", label: "Outros" },
+  ];
+
+  useEffect(() => {
+    let alive = true;
+
+    async function fetchData() {
+      setLoading(true);
+      setErro("");
+
+      const { data, error } = await supabase
         .from("anuncios")
         .select(
-          [
-            "id",
-            "created_at",
-            "categoria",
-            "cidade",
-            "bairro",
-            "titulo",
-            "nome_negocio",
-            "whatsapp",
-            "whatsapp_delivery",
-            "horario_atendimento",
-            "horario_delivery",
-            "tipos_delivery",
-            "logo_url",
-            "capa_url",
-            "imagens",
-            "destaque",
-            "prioridade",
-          ].join(",")
+          `
+          id,
+          created_at,
+          categoria,
+          status,
+          titulo,
+          descricao,
+          cidade,
+          bairro,
+          endereco,
+          nome_negocio,
+          contato,
+          telefone,
+          whatsapp,
+          whatsapp_delivery,
+          horario_atendimento,
+          horario_delivery,
+          tipos_delivery,
+          tem_delivery,
+          imagens,
+          logo_url,
+          capa_url,
+          destaque,
+          vitrine,
+          prioridade
+        `
         )
         .eq("categoria", "lagolistas")
         .eq("tem_delivery", true)
+        .eq("status", "ativo")
         .order("destaque", { ascending: false })
+        .order("vitrine", { ascending: false })
         .order("prioridade", { ascending: false })
         .order("created_at", { ascending: false });
 
-      if (cidade) query = query.eq("cidade", cidade);
-
-      if (tipo) {
-        // tipos_delivery é text[] -> contains
-        query = query.contains("tipos_delivery", [tipo]);
-      }
-
-      const qq = String(q || "").trim();
-      if (qq) {
-        // busca simples (sem mexer no search_tsv)
-        // OR: nome_negocio, titulo, bairro
-        query = query.or(
-          `nome_negocio.ilike.%${qq}%,titulo.ilike.%${qq}%,bairro.ilike.%${qq}%`
-        );
-      }
-
-      const { data, error } = await query;
+      if (!alive) return;
 
       if (error) {
         console.error(error);
@@ -132,235 +138,229 @@ export default function ClickEntregasPage() {
         return;
       }
 
-      setItems(Array.isArray(data) ? data : []);
-      setLoading(false);
-    } catch (e) {
-      console.error(e);
-      setErro("Erro inesperado ao carregar. Tente novamente.");
-      setItems([]);
+      setItems(data || []);
       setLoading(false);
     }
-  }
 
-  useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cidade, tipo]);
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-  const total = items.length;
+  const filtered = useMemo(() => {
+    return (items || []).filter((x) => {
+      if (cidade && x.cidade !== cidade) return false;
 
-  const cards = useMemo(() => {
-    const baseMsg = "Olá! Vi vocês no Click-Entregas Classilagos e quero fazer um pedido.";
-    return items.map((row) => {
-      const whats = row.whatsapp_delivery || row.whatsapp || "";
-      const waLink = buildWhatsAppLink(whats, baseMsg);
-      const img = pickCardImage(row);
+      if (tipo) {
+        const arr = Array.isArray(x.tipos_delivery) ? x.tipos_delivery : [];
+        if (!arr.includes(tipo)) return false;
+      }
 
-      const tipos = Array.isArray(row.tipos_delivery) ? row.tipos_delivery : [];
-      const tiposLabel = tipos.slice(0, 3).map(labelTipo);
-      const horario = row.horario_delivery || row.horario_atendimento || "";
+      // precisa ter whatsapp válido (delivery ou geral)
+      const w = x.whatsapp_delivery || x.whatsapp || "";
+      if (!onlyDigits(w)) return false;
 
-      return { row, waLink, img, tiposLabel, horario };
+      return true;
     });
-  }, [items]);
+  }, [items, cidade, tipo]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50">
-      {/* TOPO */}
-      <section className="border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+    <main className="min-h-screen bg-slate-50">
+      {/* HERO */}
+      <section className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200 border border-emerald-500/20">
-                Click-Entregas • peça pelo WhatsApp
-              </span>
-              <h1 className="mt-2 text-2xl md:text-3xl font-extrabold">
-                Click-Entregas Classilagos
-              </h1>
-              <p className="mt-2 text-sm text-slate-300 max-w-2xl">
-                Encontre delivery e disk-entregas na sua cidade e peça direto pelo WhatsApp.
-              </p>
-            </div>
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
+            Click-Entregas • peça pelo WhatsApp
+          </span>
 
-            <div className="text-xs text-slate-300">
-              <Link href="/lagolistas" className="underline hover:text-white">
-                Ver LagoListas
-              </Link>
-            </div>
+          <h1 className="mt-3 text-2xl md:text-3xl font-extrabold text-slate-900">
+            Click-Entregas Classilagos
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-600 max-w-3xl">
+            Peça direto pelo WhatsApp nos comércios da sua cidade. Rápido, simples e local.
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/lagolistas"
+              className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              Ver LagoListas
+            </Link>
           </div>
+        </div>
+      </section>
 
-          {/* FILTROS */}
-          <div className="mt-6 grid gap-3 md:grid-cols-3">
+      {/* FILTROS */}
+      <section className="max-w-6xl mx-auto px-4 py-6">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
+          <h2 className="text-sm font-bold text-slate-900">Filtrar entregas</h2>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                Cidade
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Cidade</label>
               <select
-                className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
               >
-                <option value="">Todas</option>
-                {CIDADES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {cidades.map((c) => (
+                  <option key={c || "todas"} value={c}>
+                    {c ? c : "Todas as cidades"}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                Tipo de entrega
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-700">Tipo de entrega</label>
               <select
-                className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
               >
-                <option value="">Todos</option>
-                {TIPOS.map((t) => (
-                  <option key={t.id} value={t.id}>
+                {tipos.map((t) => (
+                  <option key={t.value || "todos"} value={t.value}>
                     {t.label}
                   </option>
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                Buscar (nome, título, bairro)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Ex: pizzaria, centro, farmácia..."
-                  className="flex-1 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <button
-                  type="button"
-                  onClick={fetchData}
-                  className="rounded-2xl px-4 py-3 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 transition"
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
           </div>
 
-          <div className="mt-4 text-xs text-slate-400">
-            {loading ? "Carregando..." : `${total} resultado(s) encontrado(s).`}
-          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+            <span className="rounded-full bg-slate-100 border border-slate-200 px-3 py-1">
+              Resultados: <strong className="text-slate-900">{filtered.length}</strong>
+            </span>
 
-          {erro && (
-            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-200">{erro}</p>
-            </div>
-          )}
+            {(cidade || tipo) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCidade("");
+                  setTipo("");
+                }}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Limpar filtros
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
       {/* LISTA */}
-      <section className="max-w-6xl mx-auto px-4 py-8">
-        {loading ? (
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-300">
-            Carregando Click-Entregas…
-          </div>
-        ) : total === 0 ? (
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-300">
-            Nenhum delivery encontrado com esses filtros.
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {cards.map(({ row, waLink, img, tiposLabel, horario }) => (
-              <div
-                key={row.id}
-                className="rounded-3xl border border-slate-800 bg-slate-900/60 shadow-sm overflow-hidden"
-              >
-                {/* IMAGEM */}
-                <div className="h-40 bg-slate-900">
-                  {img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt={row.titulo} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
-                      Sem imagem
-                    </div>
-                  )}
-                </div>
-
-                {/* CONTEÚDO */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-extrabold text-white line-clamp-2">
-                        {row.nome_negocio || row.titulo}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        {row.cidade}
-                        {row.bairro ? ` • ${row.bairro}` : ""}
-                      </p>
-                    </div>
-
-                    {row.destaque && (
-                      <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-200 border border-amber-500/20">
-                        Destaque
-                      </span>
-                    )}
-                  </div>
-
-                  {tiposLabel.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {tiposLabel.map((t) => (
-                        <span
-                          key={t}
-                          className="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-1 text-[10px] font-semibold text-slate-200 border border-slate-700"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {horario && (
-                    <p className="mt-3 text-xs text-slate-300">
-                      <span className="text-slate-400">Horário:</span> {horario}
-                    </p>
-                  )}
-
-                  <div className="mt-4">
-                    {waLink ? (
-                      <a
-                        href={waLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block w-full text-center rounded-2xl bg-emerald-600 hover:bg-emerald-700 transition px-4 py-3 text-sm font-semibold"
-                      >
-                        Pedir no WhatsApp
-                      </a>
-                    ) : (
-                      <div className="block w-full text-center rounded-2xl bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-300">
-                        WhatsApp não informado
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+      <section className="max-w-6xl mx-auto px-4 pb-12">
+        {erro && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 mb-4">
+            <p className="text-xs md:text-sm font-semibold text-red-700">⚠️ Atenção</p>
+            <p className="text-xs md:text-sm text-red-700 mt-1">{erro}</p>
           </div>
         )}
 
-        {/* Rodapé informativo */}
-        <div className="mt-10 rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
-          <p className="text-xs text-slate-300">
-            💡 Os pedidos são feitos diretamente com cada estabelecimento via WhatsApp. O Classilagos
-            funciona como vitrine e guia de comércios locais da Região dos Lagos.
-          </p>
-        </div>
+        {loading ? (
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6 text-slate-700">
+            Carregando entregas…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+            <p className="text-sm font-semibold text-slate-900">Nenhum delivery encontrado.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Tente trocar a cidade ou o tipo de entrega.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((x) => {
+              const nome = x.nome_negocio || x.titulo || "Entrega";
+              const tiposArr = Array.isArray(x.tipos_delivery) ? x.tipos_delivery : [];
+              const wpp = x.whatsapp_delivery || x.whatsapp || "";
+
+              const horario = x.horario_delivery || x.horario_atendimento || "";
+              const msg = `Olá! Vi vocês no Click-Entregas Classilagos. Quero fazer um pedido.`;
+              const waLink = buildWhatsAppLink(wpp, msg);
+
+              const img =
+                x.logo_url ||
+                x.capa_url ||
+                (Array.isArray(x.imagens) && x.imagens.length ? x.imagens[0] : null);
+
+              return (
+                <div
+                  key={x.id}
+                  className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+                >
+                  {/* imagem */}
+                  <div className="h-36 bg-slate-100">
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img} alt={nome} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+                        Sem imagem
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-extrabold text-slate-900 leading-tight">
+                        {nome}
+                      </h3>
+
+                      {x.destaque && (
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700 border border-amber-200">
+                          Destaque
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-1 text-xs text-slate-600">
+                      {x.cidade}
+                      {x.bairro ? ` • ${x.bairro}` : ""}
+                    </p>
+
+                    {tiposArr.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {tiposArr.slice(0, 4).map((t) => (
+                          <span
+                            key={t}
+                            className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700 border border-slate-200"
+                          >
+                            {labelTipo(t)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {horario && (
+                      <p className="mt-3 text-xs text-slate-600">
+                        <span className="font-semibold text-slate-900">Horário:</span>{" "}
+                        {horario}
+                      </p>
+                    )}
+
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-emerald-700 transition"
+                    >
+                      Pedir no WhatsApp
+                    </a>
+
+                    <p className="mt-3 text-[11px] text-slate-500">
+                      Pedido feito direto com o estabelecimento.
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
     </main>
   );
 }
-
