@@ -565,33 +565,116 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* ✅ VITRINE GERAL (8) */}
-      <section className="max-w-6xl mx-auto px-4 pt-8">
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-sm md:text-base font-extrabold text-slate-900">
-            Vitrine LagoListas (destaques)
-          </h2>
-          <p className="text-[11px] text-slate-500">
-            {loading ? "Carregando..." : "8 cards"}
-          </p>
-        </div>
+     {/* ✅ VITRINE GERAL (8) — formato “Click/Disk-Entregas” com foto + WhatsApp direto + Ver anúncio */}
+<section className="max-w-6xl mx-auto px-4 pt-8">
+  <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
+    <div>
+      <h2 className="text-sm md:text-base font-extrabold text-slate-900">
+        Click / Disk-Entregas (vitrine)
+      </h2>
+      <p className="mt-1 text-[11px] text-slate-600">
+        Clique no anúncio para falar direto no WhatsApp — ou abra a página do anúncio.
+      </p>
+    </div>
 
-        {loading && (
-          <p className="text-[11px] text-slate-500">Carregando vitrine…</p>
-        )}
+    <Link
+      href="/anunciar/lagolistas"
+      className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
+    >
+      + Anuncie sua empresa aqui
+    </Link>
+  </div>
 
-        {!loading && vitrineGeral.length === 0 && (
-          <p className="text-[11px] text-slate-500">Ainda não há cadastros no LagoListas.</p>
-        )}
+  {loading && (
+    <p className="text-[11px] text-slate-500">Carregando vitrine…</p>
+  )}
 
-        {!loading && vitrineGeral.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {vitrineGeral.map((item) => (
-              <CardMini key={item.id} item={item} />
-            ))}
+  {!loading && vitrineGeral.length === 0 && (
+    <p className="text-[11px] text-slate-500">
+      Ainda não há anúncios na vitrine. Em breve!
+    </p>
+  )}
+
+  {!loading && vitrineGeral.length > 0 && (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {vitrineGeral.map((item) => {
+        const imagens = Array.isArray(item?.imagens) ? item.imagens : [];
+        const capa =
+          imagens.find((u) => typeof u === "string" && u.trim() !== "") ||
+          "/lagolistas/sem-foto.jpg";
+
+        // WhatsApp direto (normaliza: só dígitos + prefixa 55 se precisar)
+        const raw = String(item?.whatsapp || item?.telefone || "");
+        const digits = raw.replace(/\D/g, "").replace(/^0+/, "");
+        const digitsBR =
+          digits.startsWith("55") ? digits : digits.length >= 10 ? `55${digits}` : digits;
+
+        const msg = `Olá! Vi o anúncio "${item?.titulo || "no Classilagos"}" e gostaria de fazer um pedido.`;
+        const waLink =
+          digitsBR && digitsBR.length >= 12
+            ? `https://wa.me/${digitsBR}?text=${encodeURIComponent(msg)}`
+            : null;
+
+        return (
+          <div
+            key={item.id}
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
+          >
+            {/* IMAGEM */}
+            <div className="relative w-full h-24 sm:h-28 md:h-28 bg-slate-100 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={capa}
+                alt={item?.titulo || "Anúncio"}
+                className="w-full h-full object-cover hover:scale-105 transition-transform"
+              />
+            </div>
+
+            {/* TEXTO */}
+            <div className="px-3 py-2">
+              <p className="text-[11px] font-extrabold text-slate-900 line-clamp-1 uppercase">
+                {item?.titulo || "Anúncio"}
+              </p>
+              <p className="mt-0.5 text-[10px] text-slate-600 line-clamp-1">
+                {item?.cidade || "Região dos Lagos"}
+                {item?.bairro ? ` • ${item.bairro}` : ""}
+              </p>
+            </div>
+
+            {/* AÇÕES */}
+            <div className="px-3 pb-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!waLink) return;
+                  window.open(waLink, "_blank", "noopener,noreferrer");
+                }}
+                disabled={!waLink}
+                className={[
+                  "flex-1 rounded-full px-3 py-2 text-[11px] font-semibold transition",
+                  waLink
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                ].join(" ")}
+                title={waLink ? "Abrir WhatsApp" : "Sem WhatsApp cadastrado"}
+              >
+                WhatsApp
+              </button>
+
+              <Link
+                href={`/anuncios/${item.id}`}
+                className="flex-1 text-center rounded-full bg-slate-900 px-3 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
+              >
+                Ver anúncio
+              </Link>
+            </div>
           </div>
-        )}
-      </section>
+        );
+      })}
+    </div>
+  )}
+</section>
+
 
       {/* ✅ CLICK / DISK-ENTREGAS (busca independente + seletor único de cidade) */}
       <section className="max-w-6xl mx-auto px-4 pt-10">
