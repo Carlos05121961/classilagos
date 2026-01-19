@@ -330,9 +330,11 @@ const galeriaBase =
     ? imagens.slice(1) // remove a 1ª (logo legado)
     : imagens;
 
-const galeriaSafe = galeriaBase.length > 0 ? galeriaBase : imagens;
+const imagens = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
+const galeriaBaseArr = Array.isArray(galeriaBase) ? galeriaBase : [];
+const galeriaSafe = galeriaBaseArr.length > 0 ? galeriaBaseArr : imagens;
+const temImagens = Array.isArray(galeriaSafe) && galeriaSafe.length > 0;
 
-const temImagens = galeriaSafe.length > 0;
 
 // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
 const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
