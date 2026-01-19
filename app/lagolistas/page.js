@@ -80,6 +80,81 @@ export default function LagoListasPage() {
 
   // CLICK / DISK-ENTREGAS (seletor único de cidade)
   const [cidadeEntrega, setCidadeEntrega] = useState("Toda a região");
+    // =========================================================
+  // ✅ CLICK-ENTREGAS (VITRINE PAGA COM FOTO + WHATSAPP DIRETO)
+  // =========================================================
+
+  // 1) Liste aqui os IDs dos anúncios escolhidos (pagos) para aparecer na vitrine:
+  //    (Pode ter 20, 30... a página mostra só alguns)
+  const CLICK_VITRINE_IDS = useMemo(
+    () => [
+      // EXEMPLOS (troque pelos seus IDs reais):
+      // 101,
+      // 205,
+      // 333,
+    ],
+    []
+  );
+
+  const [clickVitrine, setClickVitrine] = useState([]);
+  const [loadingClickVitrine, setLoadingClickVitrine] = useState(false);
+
+  function onlyDigits(v) {
+    return String(v || "").replace(/\D/g, "");
+  }
+
+  // Normaliza BR para wa.me
+  function normalizeWhatsAppBR(numberRaw) {
+    let n = onlyDigits(numberRaw);
+    while (n.startsWith("0")) n = n.slice(1);
+    if (!n) return "";
+    if (n.startsWith("55")) return n;
+    // se veio 10/11 dígitos, assume BR e prefixa 55
+    if (n.length === 10 || n.length === 11) return `55${n}`;
+    // fallback: tenta usar como veio
+    return n;
+  }
+
+  function buildWhatsAppLink({ whatsapp, titulo }) {
+    const n = normalizeWhatsAppBR(whatsapp);
+    if (!n) return "";
+    const msg = `Olá, vi o anúncio "${titulo || "no Classilagos"}" no Click-Entregas e quero fazer um pedido.`;
+    return `https://wa.me/${n}?text=${encodeURIComponent(msg)}`;
+  }
+
+  // Busca no Supabase apenas os anúncios escolhidos da vitrine paga
+  useEffect(() => {
+    const fetchClickVitrine = async () => {
+      if (!CLICK_VITRINE_IDS?.length) {
+        setClickVitrine([]);
+        return;
+      }
+
+      setLoadingClickVitrine(true);
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select(
+          "id, titulo, cidade, bairro, imagens, whatsapp, telefone, email, area_profissional, descricao, status, categoria"
+        )
+        .in("id", CLICK_VITRINE_IDS)
+        .eq("status", "ativo");
+
+      if (error) {
+        console.error("Erro ao carregar vitrine Click-Entregas:", error);
+        setClickVitrine([]);
+      } else {
+        // mantém a ordem dos IDs (importante para vitrine paga)
+        const map = new Map((data || []).map((x) => [String(x.id), x]));
+        const ordered = CLICK_VITRINE_IDS.map((id) => map.get(String(id))).filter(Boolean);
+        setClickVitrine(ordered);
+      }
+
+      setLoadingClickVitrine(false);
+    };
+
+    fetchClickVitrine();
+  }, [CLICK_VITRINE_IDS]);
 
   // HERO – 3 imagens em slide (Premium sem piscar)
   const heroImages = useMemo(
