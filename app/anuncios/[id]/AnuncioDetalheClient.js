@@ -330,7 +330,6 @@ const galeriaBase =
     ? imagens.slice(1) // remove a 1ª (logo legado)
     : imagens;
 
-const imagens = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
 const galeriaBaseArr = Array.isArray(galeriaBase) ? galeriaBase : [];
 const galeriaSafe = galeriaBaseArr.length > 0 ? galeriaBaseArr : imagens;
 const temImagens = Array.isArray(galeriaSafe) && galeriaSafe.length > 0;
