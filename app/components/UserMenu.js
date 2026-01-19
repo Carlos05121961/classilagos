@@ -7,25 +7,44 @@ import { usePathname } from "next/navigation";
 
 export default function UserMenu() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
-
   const pathname = usePathname();
 
+  // ===============================
+  // 🔐 Carrega usuário + perfil
+  // ===============================
   useEffect(() => {
     let ignore = false;
 
-    async function load() {
+    async function loadUser() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!ignore) setUser(user || null);
+
+      if (!user || ignore) {
+        setUser(null);
+        setIsAdmin(false);
+        return;
+      }
+
+      setUser(user);
+
+      // busca perfil (admin)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      setIsAdmin(Boolean(profile?.is_admin));
     }
 
-    load();
+    loadUser();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      loadUser();
     });
 
     return () => {
@@ -34,17 +53,19 @@ export default function UserMenu() {
     };
   }, []);
 
-  // fecha ao clicar fora (melhor em mobile com pointerdown)
+  // ===============================
+  // UX helpers
+  // ===============================
   useEffect(() => {
-    function onDocClick(e) {
+    function onClickOutside(e) {
       if (!menuRef.current) return;
       if (!menuRef.current.contains(e.target)) setOpen(false);
     }
-    document.addEventListener("pointerdown", onDocClick);
-    return () => document.removeEventListener("pointerdown", onDocClick);
+    document.addEventListener("pointerdown", onClickOutside);
+    return () =>
+      document.removeEventListener("pointerdown", onClickOutside);
   }, []);
 
-  // fecha com ESC
   useEffect(() => {
     function onEsc(e) {
       if (e.key === "Escape") setOpen(false);
@@ -53,7 +74,6 @@ export default function UserMenu() {
     return () => document.removeEventListener("keydown", onEsc);
   }, []);
 
-  // fecha ao trocar de página
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
@@ -71,45 +91,28 @@ export default function UserMenu() {
   const itemClass =
     "block rounded-xl px-3 py-2 text-[13px] font-semibold text-slate-800 hover:bg-slate-50";
 
+  // ===============================
+  // RENDER
+  // ===============================
   return (
     <div className="relative flex items-center gap-2" ref={menuRef}>
-      {/* ✅ CTA no topo (MOBILE) - aparece sempre no mobile, sem depender do menu */}
+      {/* CTA MOBILE FIXO */}
       <Link
         href="/anunciar"
-        className="
-          md:hidden
-          inline-flex
-          items-center
-          gap-1.5
-          rounded-full
-          bg-gradient-to-r
-          from-cyan-500
-          to-sky-500
-          text-white
-          text-[12px]
-          px-4
-          py-2
-          font-extrabold
-          shadow-md
-          hover:from-cyan-600
-          hover:to-sky-600
-          whitespace-nowrap
-        "
-        aria-label="Anuncie grátis"
+        className="md:hidden inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-sky-500 text-white px-4 py-2 text-[12px] font-extrabold shadow-md"
       >
-        <span className="text-sm">📣</span>
-        <span>Anuncie grátis</span>
+        📣 Anuncie grátis
       </Link>
 
-      {/* Usuário */}
+      {/* Botão usuário */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"
-        aria-label="Abrir menu do usuário"
-        aria-expanded={open ? "true" : "false"}
+        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50"
       >
-        <span className="hidden sm:inline max-w-[140px] truncate">{nome}</span>
+        <span className="hidden sm:inline max-w-[140px] truncate">
+          {nome}
+        </span>
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 text-xs">
           👤
         </span>
@@ -117,48 +120,47 @@ export default function UserMenu() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-xs font-bold text-slate-900 line-clamp-1">
+            <p className="text-xs font-bold text-slate-900 truncate">
               {user ? nome : "Visitante"}
             </p>
-            <p className="text-[11px] text-slate-500 line-clamp-1">
-              {user ? user.email : "Faça login para acessar seu painel"}
+            <p className="text-[11px] text-slate-500 truncate">
+              {user ? user.email : "Faça login para acessar"}
             </p>
           </div>
 
           <div className="p-2 text-sm">
             {user ? (
               <>
-                <Link
-                  href="/painel"
-                  onClick={() => setOpen(false)}
-                  className={itemClass}
-                >
+                <Link href="/painel" className={itemClass}>
                   Meu painel
                 </Link>
 
-                <Link
-                  href="/painel/meus-anuncios"
-                  onClick={() => setOpen(false)}
-                  className={itemClass}
-                >
+                <Link href="/painel/meus-anuncios" className={itemClass}>
                   Meus anúncios
                 </Link>
 
+                {/* 🔑 ADMIN */}
+                {isAdmin && (
+                  <>
+                    <div className="my-1 h-px bg-slate-100" />
+                    <Link
+                      href="/admin"
+                      className="block rounded-xl px-3 py-2 text-[13px] font-extrabold text-blue-700 hover:bg-blue-50"
+                    >
+                      Painel administrativo
+                    </Link>
+                  </>
+                )}
+
                 <div className="my-1 h-px bg-slate-100" />
 
-                {/* CTA também no menu (bom para desktop) */}
-                <Link
-                  href="/anunciar"
-                  onClick={() => setOpen(false)}
-                  className={itemClass}
-                >
+                <Link href="/anunciar" className={itemClass}>
                   Anunciar grátis
                 </Link>
 
                 <button
-                  type="button"
                   onClick={sair}
                   className="w-full text-left rounded-xl px-3 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50"
                 >
@@ -167,20 +169,10 @@ export default function UserMenu() {
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className={itemClass}
-                >
+                <Link href="/login" className={itemClass}>
                   Entrar
                 </Link>
-
-                {/* ✅ texto mais “portal” */}
-                <Link
-                  href="/cadastro"
-                  onClick={() => setOpen(false)}
-                  className={itemClass}
-                >
+                <Link href="/cadastro" className={itemClass}>
                   Cadastre-se grátis
                 </Link>
               </>
