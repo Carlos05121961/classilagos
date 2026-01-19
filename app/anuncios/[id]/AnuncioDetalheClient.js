@@ -347,14 +347,39 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
   const corretor = anuncio.corretor || "";
   const creci = anuncio.creci || "";
 
-  const whatsappDigits = whatsappRaw.replace(/\D/g, "");
+function onlyDigits(v) {
+  return String(v || "").replace(/\D/g, "");
+}
 
-  const whatsappLink =
-    whatsappDigits && shareUrl
-      ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
-          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos e gostaria de mais informações.`
-        )}`
-      : null;
+function normalizeWhatsAppBR(numberRaw) {
+  let n = onlyDigits(numberRaw);
+
+  // remove zeros à esquerda
+  while (n.startsWith("0")) n = n.slice(1);
+
+  // se já veio com 55, ok
+  if (n.startsWith("55")) return n;
+
+  // se veio só com DDD+numero (10/11), prefixa 55
+  if (n.length === 10 || n.length === 11) return `55${n}`;
+
+  // se veio curto/estranho, devolve como está (evita quebrar)
+  return n;
+}
+
+function buildWhatsAppLink(whatsRaw, message) {
+  const n = normalizeWhatsAppBR(whatsRaw);
+  if (!n) return null;
+
+  const text = encodeURIComponent(message || "");
+  return `https://wa.me/${n}${text ? `?text=${text}` : ""}`;
+}
+
+const whatsappLink = buildWhatsAppLink(
+  whatsappRaw,
+  `Olá! Vi o anúncio "${anuncio?.titulo || "no Classilagos"}" e gostaria de mais informações.`
+);
+
 
   // ✅ WhatsApp do PARCEIRO (financiamento/seguro)
   // Se você quiser, depois a gente troca para um número fixo do parceiro.
