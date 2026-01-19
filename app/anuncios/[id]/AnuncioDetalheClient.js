@@ -343,6 +343,7 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
   const whatsappRaw = anuncio.whatsapp || "";
+  const whatsappDigits = onlyDigits(whatsappRaw);
   const email = anuncio.email || "";
   const imobiliaria = anuncio.imobiliaria || "";
   const corretor = anuncio.corretor || "";
