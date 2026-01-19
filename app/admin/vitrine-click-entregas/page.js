@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../supabaseClient";
+
 
 const TIPOS = [
   { value: "pizza_lanches", label: "Pizza / Lanches" },
