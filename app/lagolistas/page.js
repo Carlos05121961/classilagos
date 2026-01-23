@@ -85,12 +85,6 @@ function textContainsAny(text, terms) {
   return terms.some((t) => s.includes(String(t || "").toLowerCase()));
 }
 
-function arrHasAny(arr, terms) {
-  const base = Array.isArray(arr) ? arr.map((x) => String(x || "").toLowerCase()) : [];
-  const wants = (terms || []).map((x) => String(x || "").toLowerCase());
-  return wants.some((t) => base.includes(t));
-}
-
 export default function LagoListasPage() {
   const router = useRouter();
 
@@ -103,9 +97,22 @@ export default function LagoListasPage() {
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
   const [filtroTipoOrg, setFiltroTipoOrg] = useState("Todos");
 
-  // CLICK / DISK-ENTREGAS: filtros (público)
+  // CLICK / DISK-ENTREGAS: filtros
   const [cidadeEntrega, setCidadeEntrega] = useState("Toda a região");
   const [desejoEntrega, setDesejoEntrega] = useState("Todos");
+
+  // =========================================================
+  // ✅ CLICK-ENTREGAS (VITRINE PAGA) — SOMENTE WHATSAPP DIRETO
+  // =========================================================
+  const CLICK_VITRINE_IDS = useMemo(
+    () => [
+      // COLE AQUI OS IDs PAGOS (exemplo):
+      // 101,
+      // 205,
+      // 333,
+    ],
+    []
+  );
 
   const [clickVitrine, setClickVitrine] = useState([]);
   const [loadingClickVitrine, setLoadingClickVitrine] = useState(false);
@@ -120,6 +127,36 @@ export default function LagoListasPage() {
 
     return `https://wa.me/${n}?text=${encodeURIComponent(msg)}`;
   }
+
+  useEffect(() => {
+    const fetchClickVitrine = async () => {
+      if (!CLICK_VITRINE_IDS?.length) {
+        setClickVitrine([]);
+        return;
+      }
+
+      setLoadingClickVitrine(true);
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, imagens, whatsapp, status, categoria, area_profissional, descricao")
+        .in("id", CLICK_VITRINE_IDS)
+        .eq("status", "ativo");
+
+      if (error) {
+        console.error("Erro ao carregar vitrine Click-Entregas:", error);
+        setClickVitrine([]);
+      } else {
+        const map = new Map((data || []).map((x) => [String(x.id), x]));
+        const ordered = CLICK_VITRINE_IDS.map((id) => map.get(String(id))).filter(Boolean);
+        setClickVitrine(ordered);
+      }
+
+      setLoadingClickVitrine(false);
+    };
+
+    fetchClickVitrine();
+  }, [CLICK_VITRINE_IDS]);
 
   // HERO – 3 imagens em slide (Premium sem piscar)
   const heroImages = useMemo(
@@ -256,21 +293,17 @@ export default function LagoListasPage() {
   ];
 
   // ✅ Click-Entregas: opções do seletor “O que você deseja?”
-  // (alinhado com o admin: tipos_delivery = keys)
   const desejosEntrega = useMemo(
     () => [
-      { titulo: "Todos", key: "", termo: "", icon: "✨", tagsText: [], tagsKeys: [] },
-
-      { titulo: "Pizza / Lanches", key: "pizza_lanches", termo: "pizza lanches delivery", icon: "🍕", tagsText: ["pizza", "pizzaria", "lanche", "lanches", "hamburguer", "hambúrguer", "delivery"], tagsKeys: ["pizza_lanches"] },
-      { titulo: "Marmita", key: "marmita", termo: "marmita refeições delivery", icon: "🍲", tagsText: ["marmita", "refeição", "refeicoes", "almoço", "almoco"], tagsKeys: ["marmita"] },
-      { titulo: "Restaurante", key: "restaurante", termo: "restaurante delivery", icon: "🍽️", tagsText: ["restaurante", "churrasco", "churrascaria"], tagsKeys: ["restaurante"] },
-      { titulo: "Farmácia", key: "farmacia", termo: "farmácia drogaria entrega", icon: "💊", tagsText: ["farmácia", "farmacia", "drogaria", "remédio", "remedio"], tagsKeys: ["farmacia"] },
-      { titulo: "Água / Gás", key: "agua_gas", termo: "água gás depósito entrega", icon: "🔥", tagsText: ["gás", "gas", "água", "agua", "depósito", "deposito"], tagsKeys: ["agua_gas"] },
-      { titulo: "Bebidas", key: "bebidas", termo: "bebidas entrega", icon: "🥤", tagsText: ["bebida", "bebidas", "cerveja", "refrigerante"], tagsKeys: ["bebidas"] },
-      { titulo: "Padaria", key: "padaria", termo: "padaria entrega", icon: "🥖", tagsText: ["padaria", "pão", "pao", "confeitaria"], tagsKeys: ["padaria"] },
-      { titulo: "Pet delivery", key: "pet_delivery", termo: "pet shop entrega", icon: "🐾", tagsText: ["pet", "ração", "racao", "pet shop", "veterin"], tagsKeys: ["pet_delivery"] },
-      { titulo: "Frango assado", key: "frango_assado", termo: "frango assado entrega", icon: "🍗", tagsText: ["frango", "assado", "galeto"], tagsKeys: ["frango_assado"] },
-      { titulo: "Outros", key: "outros", termo: "delivery", icon: "🛵", tagsText: ["delivery", "entrega", "entregas", "motoboy"], tagsKeys: ["outros"] },
+      { titulo: "Todos", termo: "", icon: "✨", tags: [] },
+      { titulo: "Gás & Água", termo: "gás água depósito", icon: "🔥", tags: ["gás", "agua", "água", "depósito"] },
+      { titulo: "Pizzaria", termo: "pizzaria pizza delivery", icon: "🍕", tags: ["pizza", "pizzaria", "delivery"] },
+      { titulo: "Farmácia", termo: "farmácia drogaria", icon: "💊", tags: ["farmácia", "drogaria", "remédio"] },
+      { titulo: "Mercado", termo: "supermercado hortifruti", icon: "🛒", tags: ["mercado", "supermercado", "hortifruti"] },
+      { titulo: "Lanches", termo: "lanchonete hamburguer", icon: "🍔", tags: ["lanche", "hamburguer", "lanchonete"] },
+      { titulo: "Açaí", termo: "açaí sorveteria", icon: "🍧", tags: ["açaí", "acai", "sorvete", "sorveteria"] },
+      { titulo: "Pet Shop", termo: "pet shop veterinária", icon: "🐾", tags: ["pet", "veterin", "pet shop"] },
+      { titulo: "Motoboy", termo: "motoboy entregas rápidas", icon: "🛵", tags: ["motoboy", "entrega", "entregas"] },
     ],
     []
   );
@@ -335,36 +368,6 @@ export default function LagoListasPage() {
     fetchLagolistas();
   }, []);
 
-  // ✅ Vitrine Click-Entregas (patrocinados) — regra oficial (DB)
-  useEffect(() => {
-    const fetchClickVitrine = async () => {
-      setLoadingClickVitrine(true);
-
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select(
-          "id, created_at, titulo, cidade, bairro, imagens, status, whatsapp, whatsapp_delivery, tem_delivery, vitrine_delivery, vitrine_delivery_ordem, tipos_delivery, descricao, area_profissional"
-        )
-        .eq("status", "ativo")
-        .eq("tem_delivery", true)
-        .eq("vitrine_delivery", true)
-        .order("vitrine_delivery_ordem", { ascending: true, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(48);
-
-      if (error) {
-        console.error("Erro ao carregar vitrine Click-Entregas:", error);
-        setClickVitrine([]);
-      } else {
-        setClickVitrine(Array.isArray(data) ? data : []);
-      }
-
-      setLoadingClickVitrine(false);
-    };
-
-    fetchClickVitrine();
-  }, []);
-
   // ✅ VITRINE GERAL (8): prioriza destaque e depois mais recentes
   const vitrineGeral = useMemo(() => {
     const base = Array.isArray(anuncios) ? anuncios : [];
@@ -379,32 +382,23 @@ export default function LagoListasPage() {
     return base.slice(0, 8);
   }, [anuncios]);
 
-  // ✅ Vitrine Click filtrada (cidade + desejo) — front (sem mexer no DB)
+  // ✅ Vitrine Click-Entregas filtrada por cidade + desejo (apenas no front)
   const clickVitrineFiltrada = useMemo(() => {
     const base = Array.isArray(clickVitrine) ? clickVitrine : [];
-
     const cidadeOk =
       cidadeEntrega === "Toda a região"
         ? base
-        : base.filter(
-            (x) =>
-              String(x?.cidade || "").toLowerCase() ===
-              String(cidadeEntrega).toLowerCase()
-          );
+        : base.filter((x) => String(x?.cidade || "").toLowerCase() === String(cidadeEntrega).toLowerCase());
 
     if (!desejoEntrega || desejoEntrega === "Todos") return cidadeOk;
 
     const regra = desejosEntrega.find((d) => d.titulo === desejoEntrega);
-    const tagsKeys = regra?.tagsKeys || [];
-    const tagsText = regra?.tagsText || [];
+    const tags = regra?.tags || [];
 
-    // 1) se tiver tipos_delivery (preferível), filtra por key
-    const byKeys = cidadeOk.filter((x) => arrHasAny(x?.tipos_delivery, tagsKeys));
-    if (byKeys.length > 0) return byKeys;
+    if (!tags.length) return cidadeOk;
 
-    // 2) fallback: tenta texto (título/descrição/área)
     return cidadeOk.filter((x) =>
-      textContainsAny(`${x?.titulo || ""} ${x?.area_profissional || ""} ${x?.descricao || ""}`, tagsText)
+      textContainsAny(`${x?.titulo || ""} ${x?.area_profissional || ""} ${x?.descricao || ""}`, tags)
     );
   }, [clickVitrine, cidadeEntrega, desejoEntrega, desejosEntrega]);
 
@@ -433,9 +427,7 @@ export default function LagoListasPage() {
         </div>
 
         <div className="p-3">
-          <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">
-            {item.titulo}
-          </p>
+          <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">{item.titulo}</p>
           <p className="mt-1 text-[11px] text-slate-600">
             {item.cidade}
             {item.bairro ? ` • ${item.bairro}` : ""}
@@ -467,12 +459,7 @@ export default function LagoListasPage() {
       {/* ✅ BANNER TOPO */}
       <section className="bg-white py-6 border-b">
         <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator
-            images={bannersTopo}
-            interval={6000}
-            height={120}
-            maxWidth={720}
-          />
+          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
@@ -491,12 +478,7 @@ export default function LagoListasPage() {
             }}
           />
 
-          <Image
-            src={heroSrc}
-            alt="Pré-carregamento hero"
-            fill
-            className="opacity-0 pointer-events-none"
-          />
+          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
 
           <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/25 to-black/50" />
 
@@ -508,8 +490,7 @@ export default function LagoListasPage() {
               O maior guia comercial da Região dos Lagos.
             </p>
             <p className="mt-1 text-[11px] md:text-xs text-slate-100/90 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites e muito mais de comércios,
-              serviços e profissionais.
+              Telefones, WhatsApp, endereços, sites e muito mais de comércios, serviços e profissionais.
             </p>
           </div>
 
@@ -523,9 +504,7 @@ export default function LagoListasPage() {
                   setCurrentHero(index);
                 }}
                 className={`h-2.5 w-2.5 rounded-full border border-white/70 ${
-                  currentHero === index
-                    ? "bg-white"
-                    : "bg-white/30 hover:bg-white/60"
+                  currentHero === index ? "bg-white" : "bg-white/30 hover:bg-white/60"
                 }`}
                 aria-label={`Hero ${index + 1}`}
               />
@@ -540,9 +519,7 @@ export default function LagoListasPage() {
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">
-                  O que você procura?
-                </label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">O que você procura?</label>
                 <input
                   type="text"
                   placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
@@ -574,10 +551,7 @@ export default function LagoListasPage() {
 
               <SmartSelect
                 label="Tipo"
-                value={
-                  tiposOrganizacao.find((t) => t.value === filtroTipoOrg)
-                    ?.label || "Todos"
-                }
+                value={tiposOrganizacao.find((t) => t.value === filtroTipoOrg)?.label || "Todos"}
                 options={tiposOrganizacao.map((t) => t.label)}
                 onChange={(label) => {
                   const found = tiposOrganizacao.find((t) => t.label === label);
@@ -605,8 +579,7 @@ export default function LagoListasPage() {
 
             <div className="mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
               <div className="text-[11px] text-slate-500 text-center sm:text-left">
-                ✅ Busca ligada ao motor do Classilagos (abre resultados em outra
-                página).
+                ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
               </div>
 
               <Link
@@ -624,23 +597,15 @@ export default function LagoListasPage() {
       <section className="max-w-6xl mx-auto px-4 pt-8">
         <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
           <div>
-            <h2 className="text-sm md:text-base font-extrabold text-slate-900">
-              Vitrine LagoListas (destaques)
-            </h2>
-            <p className="mt-1 text-[11px] text-slate-600">
-              Destaques e novidades do guia comercial.
-            </p>
+            <h2 className="text-sm md:text-base font-extrabold text-slate-900">Vitrine LagoListas (destaques)</h2>
+            <p className="mt-1 text-[11px] text-slate-600">Destaques e novidades do guia comercial.</p>
           </div>
         </div>
 
-        {loading && (
-          <p className="text-[11px] text-slate-500">Carregando vitrine…</p>
-        )}
+        {loading && <p className="text-[11px] text-slate-500">Carregando vitrine…</p>}
 
         {!loading && vitrineGeral.length === 0 && (
-          <p className="text-[11px] text-slate-500">
-            Ainda não há anúncios na vitrine.
-          </p>
+          <p className="text-[11px] text-slate-500">Ainda não há anúncios na vitrine.</p>
         )}
 
         {!loading && vitrineGeral.length > 0 && (
@@ -652,17 +617,14 @@ export default function LagoListasPage() {
         )}
       </section>
 
-      {/* ✅ CLICK-ENTREGAS — VITRINE PAGA (DB) — SOMENTE WHATSAPP */}
+      {/* ✅ CLICK-ENTREGAS — VITRINE PAGA (SOMENTE WHATSAPP) */}
       <section className="max-w-6xl mx-auto px-4 pt-10">
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
-              <h2 className="text-sm md:text-base font-extrabold text-slate-900">
-                Click / Disk-Entregas (patrocinados)
-              </h2>
+              <h2 className="text-sm md:text-base font-extrabold text-slate-900">Click / Disk-Entregas (vitrine paga)</h2>
               <p className="mt-1 text-[11px] text-slate-600 max-w-2xl">
-                Vitrine patrocinada: só aparece quem está ativo, com delivery
-                ligado e vitrine habilitada no painel.
+                Aqui só entra quem tem delivery ativo com WhatsApp funcionando. Clique e fale direto.
               </p>
             </div>
 
@@ -683,53 +645,39 @@ export default function LagoListasPage() {
           </div>
 
           <div className="mt-5">
-            {loadingClickVitrine && (
-              <p className="text-[11px] text-slate-500">
-                Carregando vitrine Click-Entregas…
-              </p>
-            )}
+            {loadingClickVitrine && <p className="text-[11px] text-slate-500">Carregando vitrine Click-Entregas…</p>}
 
-            {!loadingClickVitrine && clickVitrine.length === 0 && (
+            {!loadingClickVitrine && CLICK_VITRINE_IDS.length === 0 && (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                <p className="text-[12px] font-semibold text-slate-800">
-                  Vitrine ainda vazia
-                </p>
+                <p className="text-[12px] font-semibold text-slate-800">Espaços disponíveis</p>
                 <p className="mt-1 text-[11px] text-slate-600">
-                  Assim que você marcar{" "}
-                  <span className="font-semibold">vitrine_delivery=true</span>{" "}
-                  no painel Admin (Click-Entregas), os cards aparecerão aqui.
+                  A vitrine do Click-Entregas ainda está vazia (fase inicial). Assim que você colocar os IDs pagos em
+                  <span className="font-semibold"> CLICK_VITRINE_IDS</span>, os cards aparecem aqui.
                 </p>
                 <div className="mt-3">
                   <Link
-                    href="/admin/vitrine-click-entregas"
+                    href="/anunciar/lagolistas"
                     className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
                   >
-                    Ir para o painel (Admin)
+                    ➕ Quero anunciar no Click-Entregas
                   </Link>
                 </div>
               </div>
             )}
 
-            {!loadingClickVitrine &&
-              clickVitrine.length > 0 &&
-              clickVitrineFiltrada.length === 0 && (
-                <p className="text-[11px] text-slate-500">
-                  Nenhum patrocinado nessa cidade/categoria.
-                </p>
-              )}
+            {!loadingClickVitrine && CLICK_VITRINE_IDS.length > 0 && clickVitrineFiltrada.length === 0 && (
+              <p className="text-[11px] text-slate-500">Nenhum anúncio pago nessa cidade/categoria.</p>
+            )}
 
             {!loadingClickVitrine && clickVitrineFiltrada.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {clickVitrineFiltrada.map((item) => {
                   const imagens = Array.isArray(item?.imagens) ? item.imagens : [];
                   const capa =
-                    imagens.find((u) => typeof u === "string" && u.trim() !== "") ||
-                    "/lagolistas/sem-foto.jpg";
-
-                  const whatsPreferido = String(item?.whatsapp_delivery || item?.whatsapp || "").trim();
+                    imagens.find((u) => typeof u === "string" && u.trim() !== "") || "/lagolistas/sem-foto.jpg";
 
                   const wa = buildWhatsAppLink({
-                    whatsapp: whatsPreferido,
+                    whatsapp: item?.whatsapp,
                     titulo: item?.titulo,
                     cidade: cidadeEntrega,
                     desejoLabel: desejoEntrega,
@@ -769,9 +717,7 @@ export default function LagoListasPage() {
                           disabled={!wa}
                           className={[
                             "w-full rounded-full px-3 py-2 text-[11px] font-semibold transition",
-                            wa
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                            wa ? "bg-green-600 text-white hover:bg-green-700" : "bg-slate-200 text-slate-500 cursor-not-allowed",
                           ].join(" ")}
                           title={wa ? "Abrir WhatsApp" : "Sem WhatsApp cadastrado"}
                         >
@@ -792,11 +738,9 @@ export default function LagoListasPage() {
         <div className="rounded-3xl border border-slate-200 bg-slate-50 shadow-sm p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
             <div>
-              <h3 className="text-sm md:text-base font-extrabold text-slate-900">
-                Buscar no Click-Entregas
-              </h3>
+              <h3 className="text-sm md:text-base font-extrabold text-slate-900">Buscar no Click-Entregas</h3>
               <p className="mt-1 text-[11px] text-slate-600 max-w-2xl">
-                Use para encontrar opções mesmo quando não estiverem na vitrine patrocinada.
+                Use para encontrar opções mesmo quando não estiverem na vitrine paga.
               </p>
             </div>
 
@@ -831,19 +775,11 @@ export default function LagoListasPage() {
       {/* ✅ ENTRARAM AGORA (8) */}
       <section className="max-w-6xl mx-auto px-4 pt-10 pb-10">
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-sm md:text-base font-extrabold text-slate-900">
-            Entraram agora
-          </h2>
-          <p className="text-[11px] text-slate-500">
-            {loading ? "Carregando..." : "Últimos 8"}
-          </p>
+          <h2 className="text-sm md:text-base font-extrabold text-slate-900">Entraram agora</h2>
+          <p className="text-[11px] text-slate-500">{loading ? "Carregando..." : "Últimos 8"}</p>
         </div>
 
-        {loading && (
-          <p className="text-[11px] text-slate-500">
-            Carregando últimos cadastros…
-          </p>
-        )}
+        {loading && <p className="text-[11px] text-slate-500">Carregando últimos cadastros…</p>}
 
         {!loading && entraramAgora.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -857,15 +793,9 @@ export default function LagoListasPage() {
       {/* ✅ BANNER RODAPÉ */}
       <section className="bg-white py-10 border-t">
         <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator
-            images={bannersRodape}
-            interval={6500}
-            height={170}
-            maxWidth={720}
-          />
+          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
         </div>
       </section>
     </main>
   );
 }
-
