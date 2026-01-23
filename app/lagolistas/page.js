@@ -755,19 +755,6 @@ export default function LagoListasPage() {
               const imagens = Array.isArray(item.imagens) ? item.imagens : [];
               const thumb = imagens.length > 0 ? imagens[0] : null;
 
-              const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
-              const normalizeWhatsAppBR = (numberRaw) => {
-                let n = onlyDigits(numberRaw);
-                while (n.startsWith("0")) n = n.slice(1);
-                if (!n) return "";
-                if (n.startsWith("55")) return n;
-                if (n.length === 10 || n.length === 11) return `55${n}`;
-                return n;
-              };
-
-              const wa = item.whatsapp ? normalizeWhatsAppBR(item.whatsapp) : "";
-              const waLink = wa ? `https://wa.me/${wa}` : "";
-
               return (
                 <Link
                   key={item.id}
