@@ -66,99 +66,18 @@ const bannersRodape = [
   },
 ];
 
-function onlyDigits(v) {
-  return String(v || "").replace(/\D/g, "");
-}
-
-// Normaliza BR para wa.me
-function normalizeWhatsAppBR(numberRaw) {
-  let n = onlyDigits(numberRaw);
-  while (n.startsWith("0")) n = n.slice(1);
-  if (!n) return "";
-  if (n.startsWith("55")) return n;
-  if (n.length === 10 || n.length === 11) return `55${n}`;
-  return n;
-}
-
-function textContainsAny(text, terms) {
-  const s = String(text || "").toLowerCase();
-  return terms.some((t) => s.includes(String(t || "").toLowerCase()));
-}
-
 export default function LagoListasPage() {
   const router = useRouter();
 
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // BUSCA PRINCIPAL (vai para /busca)
+  // Busca (vai para /busca)
   const [buscaTexto, setBuscaTexto] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
-  const [filtroTipoOrg, setFiltroTipoOrg] = useState("Todos");
 
-  // CLICK / DISK-ENTREGAS: filtros
-  const [cidadeEntrega, setCidadeEntrega] = useState("Toda a região");
-  const [desejoEntrega, setDesejoEntrega] = useState("Todos");
-
-  // =========================================================
-  // ✅ CLICK-ENTREGAS (VITRINE PAGA) — SOMENTE WHATSAPP DIRETO
-  // =========================================================
-  const CLICK_VITRINE_IDS = useMemo(
-    () => [
-      // COLE AQUI OS IDs PAGOS (exemplo):
-      // 101,
-      // 205,
-      // 333,
-    ],
-    []
-  );
-
-  const [clickVitrine, setClickVitrine] = useState([]);
-  const [loadingClickVitrine, setLoadingClickVitrine] = useState(false);
-
-  function buildWhatsAppLink({ whatsapp, titulo, cidade, desejoLabel }) {
-    const n = normalizeWhatsAppBR(whatsapp);
-    if (!n) return "";
-
-    const msg = `Olá! Vi no Classilagos – Click-Entregas${
-      desejoLabel && desejoLabel !== "Todos" ? ` (${desejoLabel})` : ""
-    }${cidade && cidade !== "Toda a região" ? ` em ${cidade}` : ""}. Quero fazer um pedido: "${titulo || ""}".`;
-
-    return `https://wa.me/${n}?text=${encodeURIComponent(msg)}`;
-  }
-
-  useEffect(() => {
-    const fetchClickVitrine = async () => {
-      if (!CLICK_VITRINE_IDS?.length) {
-        setClickVitrine([]);
-        return;
-      }
-
-      setLoadingClickVitrine(true);
-
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select("id, titulo, cidade, bairro, imagens, whatsapp, status, categoria, area_profissional, descricao")
-        .in("id", CLICK_VITRINE_IDS)
-        .eq("status", "ativo");
-
-      if (error) {
-        console.error("Erro ao carregar vitrine Click-Entregas:", error);
-        setClickVitrine([]);
-      } else {
-        const map = new Map((data || []).map((x) => [String(x.id), x]));
-        const ordered = CLICK_VITRINE_IDS.map((id) => map.get(String(id))).filter(Boolean);
-        setClickVitrine(ordered);
-      }
-
-      setLoadingClickVitrine(false);
-    };
-
-    fetchClickVitrine();
-  }, [CLICK_VITRINE_IDS]);
-
-  // HERO – 3 imagens em slide (Premium sem piscar)
+  // HERO – 3 imagens em slide
   const heroImages = useMemo(
     () => [
       "/lagolistas/hero-lagolistas-01.webp",
@@ -167,43 +86,15 @@ export default function LagoListasPage() {
     ],
     []
   );
-
   const [currentHero, setCurrentHero] = useState(0);
-  const [loadedSet, setLoadedSet] = useState(() => new Set());
-  const [fadeIn, setFadeIn] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    heroImages.forEach((src) => {
-      const im = new window.Image();
-      im.src = src;
-      im.onload = () =>
-        setLoadedSet((prev) => {
-          const n = new Set(prev);
-          n.add(src);
-          return n;
-        });
-    });
-  }, [heroImages]);
 
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
-      setFadeIn(false);
       setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 5500);
+    }, 5000);
     return () => clearInterval(interval);
   }, [heroImages.length]);
-
-  useEffect(() => {
-    const src = heroImages[currentHero];
-    if (loadedSet.has(src)) {
-      const id = setTimeout(() => setFadeIn(true), 30);
-      return () => clearTimeout(id);
-    }
-  }, [currentHero, loadedSet, heroImages]);
-
-  const heroSrc = heroImages[currentHero];
 
   // cidades no padrão do formulário
   const cidades = [
@@ -216,15 +107,6 @@ export default function LagoListasPage() {
     "Cabo Frio",
     "Búzios",
     "Rio das Ostras",
-  ];
-
-  // ✅ Opções tipo anunciante (mesmo padrão do form)
-  const tiposOrganizacao = [
-    { label: "Todos", value: "Todos" },
-    { label: "Empresa / Comércio", value: "empresa" },
-    { label: "Profissional Liberal", value: "profissional" },
-    { label: "Associação / Entidade", value: "associacao" },
-    { label: "Institucional / Órgão / Projeto", value: "institucional" },
   ];
 
   // Mesma lista de segmentos usada no LagoListas (ordem alfabética)
@@ -292,56 +174,7 @@ export default function LagoListasPage() {
     "Óticas & relojoarias",
   ];
 
-  // ✅ Click-Entregas: opções do seletor “O que você deseja?”
-  const desejosEntrega = useMemo(
-    () => [
-      { titulo: "Todos", termo: "", icon: "✨", tags: [] },
-      { titulo: "Gás & Água", termo: "gás água depósito", icon: "🔥", tags: ["gás", "agua", "água", "depósito"] },
-      { titulo: "Pizzaria", termo: "pizzaria pizza delivery", icon: "🍕", tags: ["pizza", "pizzaria", "delivery"] },
-      { titulo: "Farmácia", termo: "farmácia drogaria", icon: "💊", tags: ["farmácia", "drogaria", "remédio"] },
-      { titulo: "Mercado", termo: "supermercado hortifruti", icon: "🛒", tags: ["mercado", "supermercado", "hortifruti"] },
-      { titulo: "Lanches", termo: "lanchonete hamburguer", icon: "🍔", tags: ["lanche", "hamburguer", "lanchonete"] },
-      { titulo: "Açaí", termo: "açaí sorveteria", icon: "🍧", tags: ["açaí", "acai", "sorvete", "sorveteria"] },
-      { titulo: "Pet Shop", termo: "pet shop veterinária", icon: "🐾", tags: ["pet", "veterin", "pet shop"] },
-      { titulo: "Motoboy", termo: "motoboy entregas rápidas", icon: "🛵", tags: ["motoboy", "entrega", "entregas"] },
-    ],
-    []
-  );
-
-  function pushBusca({ texto, categoria, cidade, tipoOrg }) {
-    const params = new URLSearchParams();
-    const partes = [];
-
-    if (texto?.trim()) partes.push(texto.trim());
-    if (categoria && categoria !== "Todos") partes.push(categoria);
-    if (cidade && cidade !== "Toda a região") partes.push(cidade);
-
-    const q = partes.join(" ").trim();
-
-    params.set("categoria", "lagolistas");
-    if (q) params.set("q", q);
-    if (tipoOrg && tipoOrg !== "Todos") params.set("tipo_organizacao", tipoOrg);
-
-    router.push(`/busca?${params.toString()}`);
-  }
-
-  function handleBuscar() {
-    pushBusca({
-      texto: buscaTexto,
-      categoria: filtroCategoria,
-      cidade: filtroCidade,
-      tipoOrg: filtroTipoOrg,
-    });
-  }
-
-  function handleLimpar() {
-    setBuscaTexto("");
-    setFiltroCategoria("Todos");
-    setFiltroCidade("Toda a região");
-    setFiltroTipoOrg("Todos");
-  }
-
-  // ✅ Buscar cadastros do LagoListas (created_at para “entraram agora”)
+  // Buscar cadastros do LagoListas (lista base da página)
   useEffect(() => {
     const fetchLagolistas = async () => {
       setLoading(true);
@@ -349,11 +182,12 @@ export default function LagoListasPage() {
       const { data, error } = await supabase
         .from("anuncios")
         .select(
-          "id, created_at, titulo, descricao, cidade, bairro, area_profissional, imagens, destaque, status, categoria, tipo_organizacao"
+          "id, titulo, descricao, cidade, bairro, area_profissional, telefone, whatsapp, email, site_url, instagram, imagens, destaque, status, categoria"
         )
         .eq("categoria", "lagolistas")
         .eq("status", "ativo")
-        .order("created_at", { ascending: false });
+        .order("destaque", { ascending: false })
+        .order("titulo", { ascending: true });
 
       if (error) {
         console.error("Erro ao carregar LagoListas:", error);
@@ -368,119 +202,135 @@ export default function LagoListasPage() {
     fetchLagolistas();
   }, []);
 
-  // ✅ VITRINE GERAL (8): prioriza destaque e depois mais recentes
-  const vitrineGeral = useMemo(() => {
-    const base = Array.isArray(anuncios) ? anuncios : [];
-    const destacados = base.filter((x) => x.destaque);
-    const naoDestacados = base.filter((x) => !x.destaque);
-    return [...destacados, ...naoDestacados].slice(0, 8);
-  }, [anuncios]);
+  // ✅ Busca premium: manda para o motorzão (/busca)
+  function handleBuscar() {
+    const partes = [];
+    if (buscaTexto.trim()) partes.push(buscaTexto.trim());
+    if (filtroCategoria && filtroCategoria !== "Todos") partes.push(filtroCategoria);
+    if (filtroCidade && filtroCidade !== "Toda a região") partes.push(filtroCidade);
 
-  // ✅ ENTRARAM AGORA (8 últimos)
-  const entraramAgora = useMemo(() => {
-    const base = Array.isArray(anuncios) ? anuncios : [];
-    return base.slice(0, 8);
-  }, [anuncios]);
+    const q = partes.join(" ").trim();
 
-  // ✅ Vitrine Click-Entregas filtrada por cidade + desejo (apenas no front)
-  const clickVitrineFiltrada = useMemo(() => {
-    const base = Array.isArray(clickVitrine) ? clickVitrine : [];
-    const cidadeOk =
-      cidadeEntrega === "Toda a região"
-        ? base
-        : base.filter((x) => String(x?.cidade || "").toLowerCase() === String(cidadeEntrega).toLowerCase());
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    params.set("categoria", "lagolistas");
 
-    if (!desejoEntrega || desejoEntrega === "Todos") return cidadeOk;
+    router.push(`/busca?${params.toString()}`);
+  }
 
-    const regra = desejosEntrega.find((d) => d.titulo === desejoEntrega);
-    const tags = regra?.tags || [];
+  function handleLimpar() {
+    setBuscaTexto("");
+    setFiltroCategoria("Todos");
+    setFiltroCidade("Toda a região");
+  }
 
-    if (!tags.length) return cidadeOk;
-
-    return cidadeOk.filter((x) =>
-      textContainsAny(`${x?.titulo || ""} ${x?.area_profissional || ""} ${x?.descricao || ""}`, tags)
-    );
-  }, [clickVitrine, cidadeEntrega, desejoEntrega, desejosEntrega]);
-
-  const CardMini = ({ item }) => {
+  // Card de cada cadastro
+  const CardLagoLista = ({ item }) => {
     const imagens = Array.isArray(item.imagens) ? item.imagens : [];
     const thumb = imagens.length > 0 ? imagens[0] : null;
 
     return (
       <Link
         href={`/anuncios/${item.id}`}
-        className="group rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition shadow-sm hover:shadow-md overflow-hidden"
+        className="group flex gap-3 rounded-2xl border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition shadow-sm hover:shadow-md px-4 py-3"
       >
-        <div className="h-28 bg-slate-100">
+        {/* Logo / foto */}
+        <div className="w-14 h-14 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-yellow-200 flex items-center justify-center text-xs font-semibold text-yellow-700">
           {thumb ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumb}
               alt={item.titulo || "LagoListas"}
-              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-slate-500">
-              Sem imagem
-            </div>
+            <span>{item.titulo?.charAt(0) || "L"}</span>
           )}
         </div>
 
-        <div className="p-3">
-          <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">{item.titulo}</p>
-          <p className="mt-1 text-[11px] text-slate-600">
+        {/* Conteúdo */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="font-semibold text-[13px] text-slate-900 truncate">{item.titulo}</p>
+            {item.destaque && (
+              <span className="inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                DESTAQUE
+              </span>
+            )}
+          </div>
+
+          <p className="text-[11px] text-slate-600 mb-0.5">
             {item.cidade}
             {item.bairro ? ` • ${item.bairro}` : ""}
           </p>
 
-          {item.destaque && (
-            <span className="mt-2 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
-              DESTAQUE
-            </span>
+          {item.area_profissional && (
+            <p className="text-[11px] text-slate-800 mb-1 line-clamp-1">{item.area_profissional}</p>
           )}
+
+          {item.descricao && (
+            <p className="text-[11px] text-slate-700 line-clamp-2">{item.descricao}</p>
+          )}
+
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
+            {item.whatsapp && (
+              <span className="inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5">
+                WhatsApp
+              </span>
+            )}
+            {item.telefone && !item.whatsapp && (
+              <span className="inline-flex items-center rounded-full bg-slate-800 text-white px-2 py-0.5">
+                Telefone
+              </span>
+            )}
+            {item.site_url && (
+              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5">
+                Site
+              </span>
+            )}
+          </div>
+
+          <span className="mt-1 inline-block text-[11px] text-blue-700 group-hover:underline">
+            Ver detalhes →
+          </span>
         </div>
       </Link>
     );
   };
 
-  function handleBuscarEntregas() {
-    const regra = desejosEntrega.find((d) => d.titulo === desejoEntrega);
-    const termo = regra?.termo || "";
-    pushBusca({
-      texto: termo,
-      categoria: "Todos",
-      cidade: cidadeEntrega,
-      tipoOrg: "Todos",
-    });
-  }
+  // ✅ Lista da página (não fica “presa” por busca)
+  const listaDaPagina = useMemo(() => {
+    const base = Array.isArray(anuncios) ? anuncios : [];
+    return base.slice(0, 60);
+  }, [anuncios]);
+
+  // ✅ Labels bonitos pro SmartSelect
+  const categoriaLabel = filtroCategoria || "Todos";
+  const cidadeLabel = filtroCidade || "Toda a região";
 
   return (
     <main className="bg-white min-h-screen">
-      {/* ✅ BANNER TOPO */}
+      {/* ✅ BANNER TOPO (Premium, rotativo, clicável) */}
       <section className="bg-white py-6 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* ✅ HERO (Premium sem piscar) */}
+      {/* HERO LAGOLISTAS – SLIDER */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200" />
-
-          <div
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{
-              opacity: loadedSet.has(heroSrc) && fadeIn ? 1 : 0,
-              backgroundImage: `url(${heroSrc})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+          <Image
+            key={currentHero}
+            src={heroImages[currentHero]}
+            alt="Classilagos LagoListas"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover transition-opacity duration-700"
           />
 
-          <Image src={heroSrc} alt="Pré-carregamento hero" fill className="opacity-0 pointer-events-none" />
-
-          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/25 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/25 to-black/45" />
 
           <div className="absolute inset-x-0 top-[18%] flex flex-col items-center px-4 text-center">
             <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.85)]">
@@ -490,19 +340,17 @@ export default function LagoListasPage() {
               O maior guia comercial da Região dos Lagos.
             </p>
             <p className="mt-1 text-[11px] md:text-xs text-slate-100/90 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites e muito mais de comércios, serviços e profissionais.
+              Telefones, WhatsApp, endereços, sites e muito mais de comércios, serviços, saúde, turismo e profissionais liberais.
             </p>
           </div>
 
+          {/* bolinhas do slider */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {heroImages.map((_, index) => (
               <button
                 key={index}
                 type="button"
-                onClick={() => {
-                  setFadeIn(false);
-                  setCurrentHero(index);
-                }}
+                onClick={() => setCurrentHero(index)}
                 className={`h-2.5 w-2.5 rounded-full border border-white/70 ${
                   currentHero === index ? "bg-white" : "bg-white/30 hover:bg-white/60"
                 }`}
@@ -513,17 +361,17 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* ✅ BUSCA PRINCIPAL (fica em cima) */}
+      {/* CAIXA DE BUSCA LAGOLISTAS (✅ PREMIUM -> /busca) */}
       <section className="bg-white">
-        <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-10">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
                 <label className="text-[11px] font-semibold text-slate-600 mb-1">O que você procura?</label>
                 <input
                   type="text"
                   placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
-                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
                   onKeyDown={(e) => {
@@ -537,26 +385,16 @@ export default function LagoListasPage() {
 
               <SmartSelect
                 label="Categoria"
-                value={filtroCategoria}
+                value={categoriaLabel}
                 options={["Todos", ...segmentosLagolistas]}
                 onChange={(v) => setFiltroCategoria(v || "Todos")}
               />
 
               <SmartSelect
                 label="Cidade"
-                value={filtroCidade}
+                value={cidadeLabel}
                 options={["Toda a região", ...cidades]}
                 onChange={(v) => setFiltroCidade(v || "Toda a região")}
-              />
-
-              <SmartSelect
-                label="Tipo"
-                value={tiposOrganizacao.find((t) => t.value === filtroTipoOrg)?.label || "Todos"}
-                options={tiposOrganizacao.map((t) => t.label)}
-                onChange={(label) => {
-                  const found = tiposOrganizacao.find((t) => t.label === label);
-                  setFiltroTipoOrg(found?.value || "Todos");
-                }}
               />
 
               <div className="flex justify-end gap-2">
@@ -576,226 +414,63 @@ export default function LagoListasPage() {
                 </button>
               </div>
             </div>
-
-            <div className="mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div className="text-[11px] text-slate-500 text-center sm:text-left">
-                ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
-              </div>
-
-              <Link
-                href="/anunciar/lagolistas"
-                className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
-              >
-                ➕ Anuncie sua empresa aqui
-              </Link>
-            </div>
           </div>
+
+          <p className="mt-1 text-[11px] text-center text-slate-500">
+            ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
+          </p>
         </div>
       </section>
 
-      {/* ✅ VITRINE GERAL (LagoListas normal) */}
-      <section className="max-w-6xl mx-auto px-4 pt-8">
-        <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
-          <div>
-            <h2 className="text-sm md:text-base font-extrabold text-slate-900">Vitrine LagoListas (destaques)</h2>
-            <p className="mt-1 text-[11px] text-slate-600">Destaques e novidades do guia comercial.</p>
-          </div>
-        </div>
+      {/* CHAMADA PARA ANUNCIAR */}
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4">
+        <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
+          <p className="text-sm font-semibold text-slate-900 mb-1">Quer colocar sua empresa no LagoListas?</p>
+          <p className="text-xs text-slate-700 mb-4">
+            Cadastre gratuitamente seu comércio, serviço ou profissão e seja encontrado por milhares de pessoas em toda a Região dos Lagos.
+          </p>
 
-        {loading && <p className="text-[11px] text-slate-500">Carregando vitrine…</p>}
-
-        {!loading && vitrineGeral.length === 0 && (
-          <p className="text-[11px] text-slate-500">Ainda não há anúncios na vitrine.</p>
-        )}
-
-        {!loading && vitrineGeral.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {vitrineGeral.map((item) => (
-              <CardMini key={item.id} item={item} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ✅ CLICK-ENTREGAS — VITRINE PAGA (SOMENTE WHATSAPP) */}
-      <section className="max-w-6xl mx-auto px-4 pt-10">
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div>
-              <h2 className="text-sm md:text-base font-extrabold text-slate-900">Click / Disk-Entregas (vitrine paga)</h2>
-              <p className="mt-1 text-[11px] text-slate-600 max-w-2xl">
-                Aqui só entra quem tem delivery ativo com WhatsApp funcionando. Clique e fale direto.
-              </p>
-            </div>
-
-            <div className="w-full md:w-[420px] grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <SmartSelect
-                label="O que você deseja?"
-                value={desejoEntrega}
-                options={desejosEntrega.map((d) => d.titulo)}
-                onChange={(v) => setDesejoEntrega(v || "Todos")}
-              />
-              <SmartSelect
-                label="Cidade"
-                value={cidadeEntrega}
-                options={["Toda a região", ...cidades]}
-                onChange={(v) => setCidadeEntrega(v || "Toda a região")}
-              />
-            </div>
-          </div>
-
-          <div className="mt-5">
-            {loadingClickVitrine && <p className="text-[11px] text-slate-500">Carregando vitrine Click-Entregas…</p>}
-
-            {!loadingClickVitrine && CLICK_VITRINE_IDS.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                <p className="text-[12px] font-semibold text-slate-800">Espaços disponíveis</p>
-                <p className="mt-1 text-[11px] text-slate-600">
-                  A vitrine do Click-Entregas ainda está vazia (fase inicial). Assim que você colocar os IDs pagos em
-                  <span className="font-semibold"> CLICK_VITRINE_IDS</span>, os cards aparecem aqui.
-                </p>
-                <div className="mt-3">
-                  <Link
-                    href="/anunciar/lagolistas"
-                    className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-[11px] font-semibold text-white hover:bg-slate-800"
-                  >
-                    ➕ Quero anunciar no Click-Entregas
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {!loadingClickVitrine && CLICK_VITRINE_IDS.length > 0 && clickVitrineFiltrada.length === 0 && (
-              <p className="text-[11px] text-slate-500">Nenhum anúncio pago nessa cidade/categoria.</p>
-            )}
-
-            {!loadingClickVitrine && clickVitrineFiltrada.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {clickVitrineFiltrada.map((item) => {
-                  const imagens = Array.isArray(item?.imagens) ? item.imagens : [];
-                  const capa =
-                    imagens.find((u) => typeof u === "string" && u.trim() !== "") || "/lagolistas/sem-foto.jpg";
-
-                  const wa = buildWhatsAppLink({
-                    whatsapp: item?.whatsapp,
-                    titulo: item?.titulo,
-                    cidade: cidadeEntrega,
-                    desejoLabel: desejoEntrega,
-                  });
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
-                    >
-                      <div className="relative w-full h-24 sm:h-28 bg-slate-100 overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={capa}
-                          alt={item?.titulo || "Click-Entregas"}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform"
-                        />
-                      </div>
-
-                      <div className="px-3 py-2">
-                        <p className="text-[11px] font-extrabold text-slate-900 line-clamp-1 uppercase">
-                          {item?.titulo || "Anúncio"}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-slate-600 line-clamp-1">
-                          {item?.cidade || "Região dos Lagos"}
-                          {item?.bairro ? ` • ${item.bairro}` : ""}
-                        </p>
-                      </div>
-
-                      <div className="px-3 pb-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!wa) return;
-                            window.open(wa, "_blank", "noopener,noreferrer");
-                          }}
-                          disabled={!wa}
-                          className={[
-                            "w-full rounded-full px-3 py-2 text-[11px] font-semibold transition",
-                            wa ? "bg-green-600 text-white hover:bg-green-700" : "bg-slate-200 text-slate-500 cursor-not-allowed",
-                          ].join(" ")}
-                          title={wa ? "Abrir WhatsApp" : "Sem WhatsApp cadastrado"}
-                        >
-                          WhatsApp
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <Link
+            href="/anunciar/lagolistas"
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Anunciar no LagoListas
+          </Link>
         </div>
       </section>
 
-      {/* ✅ CLICK-ENTREGAS — BUSCA (para achar outras opções além da vitrine paga) */}
-      <section className="max-w-6xl mx-auto px-4 pt-10">
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 shadow-sm p-4 md:p-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div>
-              <h3 className="text-sm md:text-base font-extrabold text-slate-900">Buscar no Click-Entregas</h3>
-              <p className="mt-1 text-[11px] text-slate-600 max-w-2xl">
-                Use para encontrar opções mesmo quando não estiverem na vitrine paga.
-              </p>
-            </div>
-
-            <div className="w-full md:w-[420px] grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <SmartSelect
-                label="O que você deseja?"
-                value={desejoEntrega}
-                options={desejosEntrega.map((d) => d.titulo)}
-                onChange={(v) => setDesejoEntrega(v || "Todos")}
-              />
-              <SmartSelect
-                label="Cidade"
-                value={cidadeEntrega}
-                options={["Toda a região", ...cidades]}
-                onChange={(v) => setCidadeEntrega(v || "Toda a região")}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={handleBuscarEntregas}
-              className="rounded-full bg-blue-600 px-5 py-2 text-[11px] font-semibold text-white hover:bg-blue-700"
-            >
-              Buscar opções
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ✅ ENTRARAM AGORA (8) */}
-      <section className="max-w-6xl mx-auto px-4 pt-10 pb-10">
+      {/* LISTÃO BASE */}
+      <section className="max-w-5xl mx-auto px-4 pb-10">
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-sm md:text-base font-extrabold text-slate-900">Entraram agora</h2>
-          <p className="text-[11px] text-slate-500">{loading ? "Carregando..." : "Últimos 8"}</p>
+          <h2 className="text-sm font-semibold text-slate-900">Cadastros do LagoListas</h2>
+          {!loading && <p className="text-[11px] text-slate-500">{anuncios.length} cadastro(s) no total</p>}
         </div>
 
-        {loading && <p className="text-[11px] text-slate-500">Carregando últimos cadastros…</p>}
+        {loading && <p className="text-[11px] text-slate-500">Carregando cadastros do LagoListas…</p>}
 
-        {!loading && entraramAgora.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {entraramAgora.map((item) => (
-              <CardMini key={item.id} item={item} />
-            ))}
-          </div>
+        {!loading && anuncios.length === 0 && <p className="text-[11px] text-slate-500">Ainda não há cadastros no LagoListas.</p>}
+
+        {!loading && anuncios.length > 0 && (
+          <>
+            <p className="text-[11px] text-slate-500 mb-3">Mostrando {listaDaPagina.length} itens (página leve e rápida).</p>
+
+            <div className="space-y-3">
+              {listaDaPagina.map((item) => (
+                <CardLagoLista key={item.id} item={item} />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
-      {/* ✅ BANNER RODAPÉ */}
+      {/* ✅ BANNER RODAPÉ (PRINCIPAL) */}
       <section className="bg-white py-10 border-t">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
         </div>
       </section>
+
+      {/* Footer global do peixinho vem do layout */}
     </main>
   );
 }
