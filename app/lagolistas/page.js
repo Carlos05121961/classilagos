@@ -37,7 +37,7 @@ const bannersTopo = [
   },
 ];
 
-/* ✅ BANNERS AFILIADOS (RODAPÉ) — PRINCIPAL */
+/* ✅ BANNERS AFILIADOS (RODAPÉ) */
 const bannersRodape = [
   {
     src: "/banners/rodape/banner-rodape-01.webp",
@@ -65,6 +65,70 @@ const bannersRodape = [
     alt: "Celulares e Tablets (Mercado Livre)",
   },
 ];
+
+/* ----------------- HELPERS ----------------- */
+
+function onlyDigits(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+
+function normalizeText(v) {
+  return String(v || "")
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function isTruthy(v) {
+  if (v === true) return true;
+  const s = normalizeText(v);
+  return s === "true" || s === "1" || s === "sim" || s === "yes";
+}
+
+function textContainsAny(text, terms = []) {
+  const s = normalizeText(text);
+  return terms.some((t) => s.includes(normalizeText(t)));
+}
+
+function normalizeWhatsAppBR(numberRaw) {
+  let n = onlyDigits(numberRaw);
+  while (n.startsWith("0")) n = n.slice(1);
+  if (!n) return "";
+  if (n.startsWith("55")) return n;
+  if (n.length === 10 || n.length === 11) return `55${n}`;
+  return n; // fallback
+}
+
+function waLink(numberRaw, msg) {
+  const n = normalizeWhatsAppBR(numberRaw);
+  if (!n) return "";
+  const text = encodeURIComponent(msg || "");
+  return `https://wa.me/${n}${text ? `?text=${text}` : ""}`;
+}
+
+/* ✅ ORDEM PREMIUM (local) — destaque desc -> prioridade desc -> created_at desc -> titulo asc */
+function sortPremiumLocal(arr) {
+  return [...(arr || [])].sort((a, b) => {
+    const da = isTruthy(a?.destaque) ? 1 : 0;
+    const db = isTruthy(b?.destaque) ? 1 : 0;
+    if (db !== da) return db - da;
+
+    const pa = Number.isFinite(Number(a?.prioridade)) ? Number(a.prioridade) : 0;
+    const pb = Number.isFinite(Number(b?.prioridade)) ? Number(b.prioridade) : 0;
+    if (pb !== pa) return pb - pa;
+
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    if (tb !== ta) return tb - ta;
+
+    const aa = String(a?.titulo || "");
+    const bb = String(b?.titulo || "");
+    return aa.localeCompare(bb, "pt-BR");
+  });
+}
+
+/* ----------------- PAGE ----------------- */
 
 export default function LagoListasPage() {
   const router = useRouter();
@@ -96,113 +160,132 @@ export default function LagoListasPage() {
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
-  // cidades no padrão do formulário
-  const cidades = [
-    "Maricá",
-    "Saquarema",
-    "Araruama",
-    "Iguaba Grande",
-    "São Pedro da Aldeia",
-    "Arraial do Cabo",
-    "Cabo Frio",
-    "Búzios",
-    "Rio das Ostras",
-  ];
+  // Cidades (padrão do projeto)
+  const cidades = useMemo(
+    () => [
+      "Maricá",
+      "Saquarema",
+      "Araruama",
+      "Iguaba Grande",
+      "São Pedro da Aldeia",
+      "Arraial do Cabo",
+      "Cabo Frio",
+      "Búzios",
+      "Rio das Ostras",
+    ],
+    []
+  );
 
-  // Mesma lista de segmentos usada no LagoListas (ordem alfabética)
-  const segmentosLagolistas = [
-    "Academias, pilates & estúdios de treino",
-    "Advogados & serviços jurídicos",
-    "Agências de publicidade & marketing digital",
-    "Agências de viagens & turismo",
-    "Assistência técnica (celular, informática, eletro)",
-    "Autoescolas",
-    "Autopeças & acessórios",
-    "Bares & pubs",
-    "Barbearias",
-    "Bazar, utilidades & presentes",
-    "Buffets, salgados & bolos",
-    "Chaveiros",
-    "Clínicas de estética & depilação",
-    "Clínicas médicas & consultórios",
-    "Clínicas odontológicas / dentistas",
-    "Clínicas veterinárias & pet shops",
-    "Comércio geral & lojas de rua",
-    "Concessionárias & lojas de veículos",
-    "Consultoria empresarial & administrativa",
-    "Contabilidade & serviços contábeis",
-    "Cursos de idiomas",
-    "Dedetização & controle de pragas",
-    "Delivery de marmita & refeições",
-    "Depósitos de gás e água mineral",
-    "Eletrodomésticos & eletrônicos",
-    "Escolas, cursos & reforço escolar",
-    "Faculdades & ensino superior",
-    "Farmácias & drogarias",
-    "Fisioterapia & terapias integradas",
-    "Fotografia & filmagem de eventos",
-    "Funilaria & pintura automotiva",
-    "Gráficas & comunicação visual",
-    "Hospitais & prontos-socorros",
-    "Hotéis, pousadas & hospedagem",
-    "Imobiliárias & corretores",
-    "Internet, provedores & tecnologia",
-    "Jardinagem, paisagismo & piscinas",
-    "Joalherias & semijoias",
-    "Lava-rápido & estética automotiva",
-    "Lavanderias & tinturarias",
-    "Locação de brinquedos, som & estrutura",
-    "Lojas de roupas & calçados",
-    "Materiais de construção & home center",
-    "Motoboy & entregas rápidas",
-    "Móveis & decoração",
-    "Oficinas mecânicas & auto centers",
-    "Organização de festas & eventos",
-    "Outros serviços & negócios",
-    "Padarias & confeitarias",
-    "Papelarias, livrarias & copiadoras",
-    "Pizzarias, lanchonetes & fast food",
-    "Pneus, rodas & alinhamento",
-    "Psicólogos, terapeutas & coaching",
-    "Restaurantes & churrascarias",
-    "Salões de beleza, manicure & cabeleireiros",
-    "Seguradoras & corretores de seguros",
-    "Serviços de limpeza & diaristas",
-    "Serviços funerários",
-    "Supermercados, hortifrutis & mercearias",
-    "Transportes, fretes & mudanças",
-    "Óticas & relojoarias",
-  ];
+  // Segmentos (usado no select de “Categoria”)
+  const segmentosLagolistas = useMemo(
+    () => [
+      "Academias, pilates & estúdios de treino",
+      "Advogados & serviços jurídicos",
+      "Agências de publicidade & marketing digital",
+      "Agências de viagens & turismo",
+      "Assistência técnica (celular, informática, eletro)",
+      "Autoescolas",
+      "Autopeças & acessórios",
+      "Bares & pubs",
+      "Barbearias",
+      "Bazar, utilidades & presentes",
+      "Buffets, salgados & bolos",
+      "Chaveiros",
+      "Clínicas de estética & depilação",
+      "Clínicas médicas & consultórios",
+      "Clínicas odontológicas / dentistas",
+      "Clínicas veterinárias & pet shops",
+      "Comércio geral & lojas de rua",
+      "Concessionárias & lojas de veículos",
+      "Consultoria empresarial & administrativa",
+      "Contabilidade & serviços contábeis",
+      "Cursos de idiomas",
+      "Dedetização & controle de pragas",
+      "Delivery de marmita & refeições",
+      "Depósitos de gás e água mineral",
+      "Eletrodomésticos & eletrônicos",
+      "Escolas, cursos & reforço escolar",
+      "Faculdades & ensino superior",
+      "Farmácias & drogarias",
+      "Fisioterapia & terapias integradas",
+      "Fotografia & filmagem de eventos",
+      "Funilaria & pintura automotiva",
+      "Gráficas & comunicação visual",
+      "Hospitais & prontos-socorros",
+      "Hotéis, pousadas & hospedagem",
+      "Imobiliárias & corretores",
+      "Internet, provedores & tecnologia",
+      "Jardinagem, paisagismo & piscinas",
+      "Joalherias & semijoias",
+      "Lava-rápido & estética automotiva",
+      "Lavanderias & tinturarias",
+      "Locação de brinquedos, som & estrutura",
+      "Lojas de roupas & calçados",
+      "Materiais de construção & home center",
+      "Motoboy & entregas rápidas",
+      "Móveis & decoração",
+      "Oficinas mecânicas & auto centers",
+      "Organização de festas & eventos",
+      "Outros serviços & negócios",
+      "Padarias & confeitarias",
+      "Papelarias, livrarias & copiadoras",
+      "Pizzarias, lanchonetes & fast food",
+      "Pneus, rodas & alinhamento",
+      "Psicólogos, terapeutas & coaching",
+      "Restaurantes & churrascarias",
+      "Salões de beleza, manicure & cabeleireiros",
+      "Seguradoras & corretores de seguros",
+      "Serviços de limpeza & diaristas",
+      "Serviços funerários",
+      "Supermercados, hortifrutis & mercearias",
+      "Transportes, fretes & mudanças",
+      "Óticas & relojoarias",
+    ],
+    []
+  );
 
-  // Buscar cadastros do LagoListas (lista base da página)
+  // Carregar base do LagoListas
   useEffect(() => {
-    const fetchLagolistas = async () => {
-      setLoading(true);
+    let cancelado = false;
 
-      const { data, error } = await supabase
-        .from("anuncios")
-        .select(
-          "id, titulo, descricao, cidade, bairro, area_profissional, telefone, whatsapp, email, site_url, instagram, imagens, destaque, status, categoria"
-        )
-        .eq("categoria", "lagolistas")
-        .eq("status", "ativo")
-        .order("destaque", { ascending: false })
-        .order("titulo", { ascending: true });
+    async function fetchLagolistas() {
+      try {
+        setLoading(true);
 
-      if (error) {
-        console.error("Erro ao carregar LagoListas:", error);
-        setAnuncios([]);
-      } else {
-        setAnuncios(data || []);
+        const { data, error } = await supabase
+          .from("anuncios")
+          .select(
+            "id, titulo, descricao, cidade, bairro, area_profissional, telefone, whatsapp, email, site_url, instagram, imagens, destaque, prioridade, created_at, status, categoria"
+          )
+          .eq("categoria", "lagolistas")
+          .eq("status", "ativo")
+          .order("destaque", { ascending: false })
+          .order("prioridade", { ascending: false })
+          .order("created_at", { ascending: false });
+
+        if (cancelado) return;
+
+        if (error) {
+          console.error("Erro ao carregar LagoListas:", error);
+          setAnuncios([]);
+        } else {
+          setAnuncios(sortPremiumLocal(data || []));
+        }
+      } catch (e) {
+        console.error("Erro inesperado ao carregar LagoListas:", e);
+        if (!cancelado) setAnuncios([]);
+      } finally {
+        if (!cancelado) setLoading(false);
       }
-
-      setLoading(false);
-    };
+    }
 
     fetchLagolistas();
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
-  // ✅ Busca premium: manda para o motorzão (/busca)
+  // ✅ Busca premium: manda para /busca
   function handleBuscar() {
     const partes = [];
     if (buscaTexto.trim()) partes.push(buscaTexto.trim());
@@ -210,7 +293,6 @@ export default function LagoListasPage() {
     if (filtroCidade && filtroCidade !== "Toda a região") partes.push(filtroCidade);
 
     const q = partes.join(" ").trim();
-
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     params.set("categoria", "lagolistas");
@@ -224,100 +306,169 @@ export default function LagoListasPage() {
     setFiltroCidade("Toda a região");
   }
 
-  // Card de cada cadastro
-  const CardLagoLista = ({ item }) => {
-    const imagens = Array.isArray(item.imagens) ? item.imagens : [];
-    const thumb = imagens.length > 0 ? imagens[0] : null;
-
-    return (
-      <Link
-        href={`/anuncios/${item.id}`}
-        className="group flex gap-3 rounded-2xl border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition shadow-sm hover:shadow-md px-4 py-3"
-      >
-        {/* Logo / foto */}
-        <div className="w-14 h-14 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-yellow-200 flex items-center justify-center text-xs font-semibold text-yellow-700">
-          {thumb ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={thumb}
-              alt={item.titulo || "LagoListas"}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-          ) : (
-            <span>{item.titulo?.charAt(0) || "L"}</span>
-          )}
-        </div>
-
-        {/* Conteúdo */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className="font-semibold text-[13px] text-slate-900 truncate">{item.titulo}</p>
-            {item.destaque && (
-              <span className="inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
-                DESTAQUE
-              </span>
-            )}
-          </div>
-
-          <p className="text-[11px] text-slate-600 mb-0.5">
-            {item.cidade}
-            {item.bairro ? ` • ${item.bairro}` : ""}
-          </p>
-
-          {item.area_profissional && (
-            <p className="text-[11px] text-slate-800 mb-1 line-clamp-1">{item.area_profissional}</p>
-          )}
-
-          {item.descricao && (
-            <p className="text-[11px] text-slate-700 line-clamp-2">{item.descricao}</p>
-          )}
-
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
-            {item.whatsapp && (
-              <span className="inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5">
-                WhatsApp
-              </span>
-            )}
-            {item.telefone && !item.whatsapp && (
-              <span className="inline-flex items-center rounded-full bg-slate-800 text-white px-2 py-0.5">
-                Telefone
-              </span>
-            )}
-            {item.site_url && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5">
-                Site
-              </span>
-            )}
-          </div>
-
-          <span className="mt-1 inline-block text-[11px] text-blue-700 group-hover:underline">
-            Ver detalhes →
-          </span>
-        </div>
-      </Link>
-    );
-  };
-
-  // ✅ Lista da página (não fica “presa” por busca)
-  const listaDaPagina = useMemo(() => {
-    const base = Array.isArray(anuncios) ? anuncios : [];
-    return base.slice(0, 60);
-  }, [anuncios]);
-
-  // ✅ Labels bonitos pro SmartSelect
   const categoriaLabel = filtroCategoria || "Todos";
   const cidadeLabel = filtroCidade || "Toda a região";
 
+  // ✅ Separar vitrines (sem criar tabela nova)
+  const destaques = useMemo(() => {
+    const base = Array.isArray(anuncios) ? anuncios : [];
+    // pega primeiro os que são destaque/prioridade e limita
+    const top = base.filter((a) => isTruthy(a?.destaque) || Number(a?.prioridade) > 0);
+    return sortPremiumLocal(top).slice(0, 8);
+  }, [anuncios]);
+
+  const delivery = useMemo(() => {
+    const base = Array.isArray(anuncios) ? anuncios : [];
+    const terms = [
+      "delivery",
+      "entrega",
+      "disk",
+      "marmita",
+      "gas",
+      "água",
+      "agua",
+      "farmacia",
+      "farmácia",
+      "motoboy",
+      "lanchonete",
+      "pizza",
+      "restaurante",
+      "pizzaria",
+    ];
+
+    const filtered = base.filter((a) => {
+      const t = `${a?.titulo || ""} ${a?.descricao || ""} ${a?.area_profissional || ""}`;
+      return textContainsAny(t, terms) && (a?.whatsapp || a?.telefone);
+    });
+
+    return sortPremiumLocal(filtered).slice(0, 8);
+  }, [anuncios]);
+
+  const listaGeralPreview = useMemo(() => {
+    const base = Array.isArray(anuncios) ? anuncios : [];
+    return base.slice(0, 10);
+  }, [anuncios]);
+
+  // ----------------- COMPONENTS -----------------
+
+  function CardVitrine({ item, variant = "default" }) {
+    const imagens = Array.isArray(item?.imagens) ? item.imagens : [];
+    const img = imagens.length > 0 ? imagens[0] : null;
+
+    const badge =
+      variant === "delivery"
+        ? "ATENDIMENTO RÁPIDO"
+        : isTruthy(item?.destaque)
+        ? "DESTAQUE"
+        : null;
+
+    const ctaText = variant === "delivery" ? "Pedir agora" : "Ver detalhes";
+
+    const msg =
+      variant === "delivery"
+        ? `Olá! Vi seu anúncio no Classilagos (LagoListas) e gostaria de fazer um pedido.`
+        : `Olá! Vi seu anúncio no Classilagos (LagoListas) e gostaria de mais informações.`;
+
+    const wpp = item?.whatsapp || item?.telefone;
+    const wppHref = wpp ? waLink(wpp, msg) : "";
+
+    return (
+      <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
+        <Link href={`/anuncios/${item.id}`} className="block">
+          <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+            {img ? (
+              <Image
+                src={img}
+                alt={item?.titulo || "LagoListas"}
+                fill
+                sizes="320px"
+                className="object-cover group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                Sem foto
+              </div>
+            )}
+
+            {badge && (
+              <div className="absolute left-3 top-3">
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-extrabold tracking-wide ${
+                    variant === "delivery"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-orange-500 text-white"
+                  }`}
+                >
+                  {badge}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="px-3 py-3">
+            <p className="text-[12px] md:text-[13px] font-extrabold text-slate-900 line-clamp-2">
+              {item?.titulo}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              {item?.cidade}
+              {item?.bairro ? ` • ${item.bairro}` : ""}
+            </p>
+            {item?.area_profissional && (
+              <p className="mt-1 text-[11px] text-slate-700 line-clamp-1">
+                {item.area_profissional}
+              </p>
+            )}
+          </div>
+        </Link>
+
+        <div className="px-3 pb-3 flex items-center justify-between gap-2">
+          <Link
+            href={`/anuncios/${item.id}`}
+            className="text-[11px] font-semibold text-blue-700 hover:underline"
+          >
+            Ver detalhes →
+          </Link>
+
+          {wppHref ? (
+            <a
+              href={wppHref}
+              target="_blank"
+              rel="noreferrer"
+              className={`inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-bold text-white ${
+                variant === "delivery" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-slate-900 hover:bg-slate-950"
+              }`}
+            >
+              {ctaText}
+            </a>
+          ) : (
+            <span className="text-[10px] text-slate-400">Sem contato</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function CardTarja({ title, desc }) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p className="text-[12px] font-extrabold text-slate-900">{title}</p>
+        <p className="mt-1 text-[11px] text-slate-600 leading-relaxed">{desc}</p>
+      </div>
+    );
+  }
+
+  // ----------------- RENDER -----------------
+
   return (
     <main className="bg-white min-h-screen">
-      {/* ✅ BANNER TOPO (Premium, rotativo, clicável) */}
+      {/* ✅ BANNER TOPO */}
       <section className="bg-white py-6 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
         </div>
       </section>
 
-      {/* HERO LAGOLISTAS – SLIDER */}
+      {/* HERO */}
       <section className="relative w-full">
         <div className="relative w-full h-[260px] sm:h-[300px] md:h-[380px] lg:h-[420px] overflow-hidden">
           <Image
@@ -361,13 +512,15 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA LAGOLISTAS (✅ PREMIUM -> /busca) */}
+      {/* BUSCA (vai para /busca) */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-3 items-end text-xs md:text-sm">
               <div className="flex flex-col">
-                <label className="text-[11px] font-semibold text-slate-600 mb-1">O que você procura?</label>
+                <label className="text-[11px] font-semibold text-slate-600 mb-1">
+                  O que você procura?
+                </label>
                 <input
                   type="text"
                   placeholder="Ex.: farmácia, pizzaria, encanador, clínica..."
@@ -423,9 +576,11 @@ export default function LagoListasPage() {
       </section>
 
       {/* CHAMADA PARA ANUNCIAR */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-4">
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
         <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
-          <p className="text-sm font-semibold text-slate-900 mb-1">Quer colocar sua empresa no LagoListas?</p>
+          <p className="text-sm font-extrabold text-slate-900 mb-1">
+            Quer colocar sua empresa no LagoListas?
+          </p>
           <p className="text-xs text-slate-700 mb-4">
             Cadastre gratuitamente seu comércio, serviço ou profissão e seja encontrado por milhares de pessoas em toda a Região dos Lagos.
           </p>
@@ -439,25 +594,383 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* LISTÃO BASE */}
-      <section className="max-w-5xl mx-auto px-4 pb-10">
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-sm font-semibold text-slate-900">Cadastros do LagoListas</h2>
-          {!loading && <p className="text-[11px] text-slate-500">{anuncios.length} cadastro(s) no total</p>}
+      {/* ✅ TARJA INSTITUCIONAL (logo após a busca) */}
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <div>
+              <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+                Apoio ao Comércio Local e ao Empreendedor
+              </h2>
+              <p className="mt-1 text-[12px] text-slate-600 max-w-3xl leading-relaxed">
+                O LagoListas é uma iniciativa do Classilagos que conecta comerciantes, prestadores de serviços e profissionais liberais às oportunidades,
+                políticas públicas e iniciativas que fortalecem a economia local e o desenvolvimento da cidade.
+              </p>
+            </div>
+
+            <Link
+              href="/parcerias/poder-publico"
+              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-950"
+            >
+              Ver proposta institucional →
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <CardTarja
+              title="Desenvolvimento Econômico"
+              desc="Programas, ações e iniciativas voltadas ao fortalecimento do pequeno e médio empreendedor."
+            />
+            <CardTarja
+              title="Empreendedorismo & Formalização"
+              desc="Orientações, apoio e caminhos para quem deseja empreender, crescer ou formalizar seu negócio."
+            />
+            <CardTarja
+              title="Economia Local & Solidária"
+              desc="Iniciativas que estimulam o comércio local, a geração de renda e a circulação de oportunidades na cidade."
+            />
+            <CardTarja
+              title="Turismo & Economia Criativa"
+              desc="Negócios, serviços e profissionais que movimentam o turismo, a cultura e a economia criativa."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ✅ BLOCO EMPREGOS */}
+      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
+        <div className="rounded-3xl bg-slate-50 border border-slate-200 p-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+            <div>
+              <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+                Empregos e Oportunidades no Comércio Local
+              </h2>
+              <p className="mt-1 text-[12px] text-slate-600 max-w-3xl leading-relaxed">
+                O comércio e os serviços também geram oportunidades. Aqui você pode anunciar vagas ou cadastrar currículos de forma simples e gratuita.
+              </p>
+            </div>
+
+            <Link href="/empregos" className="text-[12px] font-semibold text-slate-700 hover:underline">
+              Ver área de Empregos →
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/empregos/lista?categoria=emprego"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition"
+            >
+              <p className="text-[12px] font-extrabold text-slate-900">Publicar vaga</p>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Para empresas, comércios e prestadores de serviços anunciarem oportunidades.
+              </p>
+              <span className="mt-3 inline-flex rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white">
+                Abrir vagas →
+              </span>
+            </Link>
+
+            <Link
+              href="/empregos/lista?categoria=curriculo"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition"
+            >
+              <p className="text-[12px] font-extrabold text-slate-900">Cadastrar currículo</p>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Para quem busca emprego ou novas oportunidades profissionais.
+              </p>
+              <span className="mt-3 inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white">
+                Ver currículos →
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ✅ VITRINE DE DESTAQUES */}
+      <section className="max-w-6xl mx-auto px-4 pt-8 pb-2">
+        <div className="flex items-end justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+              Destaques do Comércio Local
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-600">
+              Empresas, serviços e profissionais em evidência na cidade.
+            </p>
+          </div>
+
+          <Link
+            href="/anunciar/lagolistas"
+            className="hidden sm:inline-flex items-center justify-center rounded-full bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700"
+          >
+            Quero aparecer aqui
+          </Link>
         </div>
 
-        {loading && <p className="text-[11px] text-slate-500">Carregando cadastros do LagoListas…</p>}
+        {loading && <p className="text-[12px] text-slate-500">Carregando destaques…</p>}
 
-        {!loading && anuncios.length === 0 && <p className="text-[11px] text-slate-500">Ainda não há cadastros no LagoListas.</p>}
+        {!loading && destaques.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
+            Ainda não há destaques configurados. Assim que existirem anúncios com destaque/prioridade, eles aparecem aqui.
+          </div>
+        )}
+
+        {!loading && destaques.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {destaques.map((item) => (
+              <CardVitrine key={item.id} item={item} variant="default" />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ✅ DELIVERY / ATENDIMENTO RÁPIDO */}
+      <section className="max-w-6xl mx-auto px-4 pt-10 pb-2">
+        <div className="flex items-end justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+              Atendimento Rápido e Entregas na Cidade
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-600">
+              Serviços essenciais com contato direto, WhatsApp ativo e atendimento rápido.
+            </p>
+          </div>
+
+          <Link
+            href="/busca?categoria=lagolistas&q=delivery"
+            className="text-[12px] font-semibold text-blue-700 hover:underline"
+          >
+            Ver mais →
+          </Link>
+        </div>
+
+        {!loading && delivery.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
+            Ainda não há opções de delivery detectadas. Assim que você cadastrar (ou marcar) empresas com “delivery/entrega”, elas aparecem aqui.
+          </div>
+        )}
+
+        {!loading && delivery.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4
+          >
+            {delivery.map((item) => {
+              const imagens = Array.isArray(item.imagens) ? item.imagens : [];
+              const thumb = imagens.length > 0 ? imagens[0] : null;
+
+              const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
+              const normalizeWhatsAppBR = (numberRaw) => {
+                let n = onlyDigits(numberRaw);
+                while (n.startsWith("0")) n = n.slice(1);
+                if (!n) return "";
+                if (n.startsWith("55")) return n;
+                if (n.length === 10 || n.length === 11) return `55${n}`;
+                return n;
+              };
+
+              const wa = item.whatsapp ? normalizeWhatsAppBR(item.whatsapp) : "";
+              const waLink = wa ? `https://wa.me/${wa}` : "";
+
+              return (
+                <Link
+                  key={item.id}
+                  href={`/anuncios/${item.id}`}
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
+                >
+                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+                    {thumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={thumb}
+                        alt={item.titulo || "Delivery"}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                        Sem foto
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="px-3 py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">
+                        {item.titulo}
+                      </p>
+                      {item.destaque && (
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                          DESTAQUE
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-1 text-[11px] text-slate-600">
+                      {item.cidade}
+                      {item.bairro ? ` • ${item.bairro}` : ""}
+                    </p>
+
+                    {item.area_profissional && (
+                      <p className="mt-1 text-[11px] text-slate-800 line-clamp-1">
+                        {item.area_profissional}
+                      </p>
+                    )}
+
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-blue-700 group-hover:underline">
+                        Ver detalhes →
+                      </span>
+
+                      {waLink ? (
+                        <a
+                          href={waLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center justify-center rounded-full bg-green-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-green-700"
+                        >
+                          Pedir agora
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-700">
+                          Contato
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ✅ LISTA GERAL DO LAGOLISTAS (Base democrática) */}
+      <section className="max-w-6xl mx-auto px-4 pt-10 pb-10">
+        <div className="flex items-end justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+              Cadastros do LagoListas
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-600">
+              Confira comércios, serviços e profissionais cadastrados (lista base, transparente e completa).
+            </p>
+          </div>
+
+          <Link
+            href="/busca?categoria=lagolistas"
+            className="text-[12px] font-semibold text-blue-700 hover:underline"
+          >
+            Ver todos → 
+          </Link>
+        </div>
+
+        {loading && (
+          <p className="text-[12px] text-slate-600">Carregando cadastros…</p>
+        )}
+
+        {!loading && anuncios.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
+            Ainda não há cadastros no LagoListas.
+          </div>
+        )}
 
         {!loading && anuncios.length > 0 && (
           <>
-            <p className="text-[11px] text-slate-500 mb-3">Mostrando {listaDaPagina.length} itens (página leve e rápida).</p>
+            <div className="mb-3 text-[11px] text-slate-500">
+              {anuncios.length} cadastro(s) no total • mostrando {listaDaPagina.length} aqui para manter a página leve.
+            </div>
 
-            <div className="space-y-3">
+            {/* ✅ você pode escolher: GRID (recomendado) OU manter "space-y" com o CardLagoLista atual */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {listaDaPagina.map((item) => (
-                <CardLagoLista key={item.id} item={item} />
+                <Link
+                  key={item.id}
+                  href={`/anuncios/${item.id}`}
+                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
+                >
+                  {(() => {
+                    const imagens = Array.isArray(item.imagens) ? item.imagens : [];
+                    const thumb = imagens.length > 0 ? imagens[0] : null;
+
+                    return (
+                      <>
+                        <div className="relative w-full h-36 bg-slate-200 overflow-hidden">
+                          {thumb ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={thumb}
+                              alt={item.titulo || "LagoListas"}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                              Sem foto
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-[13px] font-extrabold text-slate-900 line-clamp-2">
+                              {item.titulo}
+                            </p>
+                            {item.destaque && (
+                              <span className="shrink-0 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                                DESTAQUE
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="mt-1 text-[11px] text-slate-600">
+                            {item.cidade}
+                            {item.bairro ? ` • ${item.bairro}` : ""}
+                          </p>
+
+                          {item.area_profissional && (
+                            <p className="mt-1 text-[11px] text-slate-800 line-clamp-1">
+                              {item.area_profissional}
+                            </p>
+                          )}
+
+                          {item.descricao && (
+                            <p className="mt-2 text-[11px] text-slate-700 line-clamp-2">
+                              {item.descricao}
+                            </p>
+                          )}
+
+                          <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
+                            {item.whatsapp && (
+                              <span className="inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5">
+                                WhatsApp
+                              </span>
+                            )}
+                            {item.telefone && !item.whatsapp && (
+                              <span className="inline-flex items-center rounded-full bg-slate-800 text-white px-2 py-0.5">
+                                Telefone
+                              </span>
+                            )}
+                            {item.site_url && (
+                              <span className="inline-flex items-center rounded-full bg-blue-600 text-white px-2 py-0.5">
+                                Site
+                              </span>
+                            )}
+                          </div>
+
+                          <span className="mt-3 inline-block text-[12px] text-blue-700 group-hover:underline">
+                            Ver detalhes →
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </Link>
               ))}
+            </div>
+
+            <div className="mt-6 text-center">
+              <Link
+                href="/busca?categoria=lagolistas"
+                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Ver todos os cadastros
+              </Link>
             </div>
           </>
         )}
@@ -470,7 +983,8 @@ export default function LagoListasPage() {
         </div>
       </section>
 
-      {/* Footer global do peixinho vem do layout */}
+      {/* Footer global vem do layout */}
     </main>
   );
 }
+
