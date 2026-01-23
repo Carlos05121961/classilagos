@@ -330,10 +330,9 @@ const galeriaBase =
     ? imagens.slice(1) // remove a 1ª (logo legado)
     : imagens;
 
-const galeriaBaseArr = Array.isArray(galeriaBase) ? galeriaBase : [];
-const galeriaSafe = galeriaBaseArr.length > 0 ? galeriaBaseArr : imagens;
-const temImagens = Array.isArray(galeriaSafe) && galeriaSafe.length > 0;
+const galeriaSafe = galeriaBase.length > 0 ? galeriaBase : imagens;
 
+const temImagens = galeriaSafe.length > 0;
 
 // Agora a galeria funciona para imóveis, veículos, serviços, pets e LAGOLISTAS
 const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
@@ -343,45 +342,19 @@ const mostrarGaleria = temImagens && !isCurriculo && !isEmprego;
   // Contatos
   const telefoneRaw = anuncio.telefone || "";
   const whatsappRaw = anuncio.whatsapp || "";
-  const whatsappDigits = onlyDigits(whatsappRaw);
   const email = anuncio.email || "";
   const imobiliaria = anuncio.imobiliaria || "";
   const corretor = anuncio.corretor || "";
   const creci = anuncio.creci || "";
 
-function onlyDigits(v) {
-  return String(v || "").replace(/\D/g, "");
-}
+  const whatsappDigits = whatsappRaw.replace(/\D/g, "");
 
-function normalizeWhatsAppBR(numberRaw) {
-  let n = onlyDigits(numberRaw);
-
-  // remove zeros à esquerda
-  while (n.startsWith("0")) n = n.slice(1);
-
-  // se já veio com 55, ok
-  if (n.startsWith("55")) return n;
-
-  // se veio só com DDD+numero (10/11), prefixa 55
-  if (n.length === 10 || n.length === 11) return `55${n}`;
-
-  // se veio curto/estranho, devolve como está (evita quebrar)
-  return n;
-}
-
-function buildWhatsAppLink(whatsRaw, message) {
-  const n = normalizeWhatsAppBR(whatsRaw);
-  if (!n) return null;
-
-  const text = encodeURIComponent(message || "");
-  return `https://wa.me/${n}${text ? `?text=${text}` : ""}`;
-}
-
-const whatsappLink = buildWhatsAppLink(
-  whatsappRaw,
-  `Olá! Vi o anúncio "${anuncio?.titulo || "no Classilagos"}" e gostaria de mais informações.`
-);
-
+  const whatsappLink =
+    whatsappDigits && shareUrl
+      ? `https://wa.me/55${whatsappDigits}?text=${encodeURIComponent(
+          `Olá, vi o anúncio "${anuncio.titulo}" no Classilagos e gostaria de mais informações.`
+        )}`
+      : null;
 
   // ✅ WhatsApp do PARCEIRO (financiamento/seguro)
   // Se você quiser, depois a gente troca para um número fixo do parceiro.
@@ -1532,4 +1505,3 @@ const whatsappLink = buildWhatsAppLink(
     </main>
   );
 }
-
