@@ -68,9 +68,8 @@ export default function AdminVitrineClickEntregasPage() {
   async function carregar() {
     setLoading(true);
 
-    // ⚠️ Aqui buscamos SOMENTE quem tem_delivery = true
-    // (sua regra: disk-entregas só entra quem tem delivery + whatsapp preparado)
-    let q = supabase
+    // ✅ Regra: Click/Disk-Entregas só entra quem tem_delivery = true e status ativo
+    const { data, error } = await supabase
       .from("anuncios")
       .select(
         "id, created_at, categoria, titulo, cidade, bairro, status, imagens, whatsapp, whatsapp_delivery, tem_delivery, tipos_delivery, vitrine_delivery, vitrine_delivery_ordem"
@@ -80,8 +79,6 @@ export default function AdminVitrineClickEntregasPage() {
       .order("vitrine_delivery", { ascending: false })
       .order("vitrine_delivery_ordem", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
-
-    const { data, error } = await q;
 
     if (error) {
       console.error("Erro ao carregar vitrine:", error);
@@ -119,15 +116,11 @@ export default function AdminVitrineClickEntregasPage() {
   async function salvar(item, patch) {
     const next = { ...item, ...patch };
 
-    // atualização otimista (sem travar a tela)
+    // ✅ atualização otimista
     setItens((prev) => prev.map((x) => (x.id === item.id ? next : x)));
-
     setSavingId(item.id);
 
-    const { error } = await supabase
-      .from("anuncios")
-      .update(patch)
-      .eq("id", item.id);
+    const { error } = await supabase.from("anuncios").update(patch).eq("id", item.id);
 
     setSavingId(null);
 
@@ -147,18 +140,16 @@ export default function AdminVitrineClickEntregasPage() {
 
   return (
     <main className="bg-slate-950 min-h-screen text-slate-50">
-      {/* topo */}
+      {/* TOPO */}
       <section className="border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
         <div className="max-w-6xl mx-auto px-4 py-7">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <p className="text-[11px] text-slate-400">ADMIN • CLASSILAGOS</p>
-              <h1 className="text-xl sm:text-2xl font-extrabold">
-                Vitrine Click-Entregas
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold">Vitrine Click-Entregas</h1>
               <p className="mt-1 text-[12px] text-slate-300 max-w-2xl">
-                Aqui você ativa quem aparece na vitrine paga. Regra do portal:
-                só entra na lista quem tem <b>delivery</b> ligado (tem_delivery=true).
+                Aqui você ativa quem aparece na vitrine paga. Regra do portal: só entra quem tem{" "}
+                <b>delivery ligado</b> (tem_delivery=true).
               </p>
             </div>
 
@@ -182,26 +173,22 @@ export default function AdminVitrineClickEntregasPage() {
         </div>
       </section>
 
-      {/* filtros */}
+      {/* FILTROS */}
       <section className="max-w-6xl mx-auto px-4 py-5">
         <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,auto] gap-3 items-end">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                Buscar
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">Buscar</label>
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Ex.: Carlinhos do Gás, Maricá, Flamengo..."
+                placeholder="Ex.: Carlinhos do Gás, Maricá, Centro..."
                 className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-[13px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                Cidade
-              </label>
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">Cidade</label>
               <select
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
@@ -227,18 +214,15 @@ export default function AdminVitrineClickEntregasPage() {
           </div>
 
           <div className="mt-3 flex items-center justify-between flex-wrap gap-2 text-[11px] text-slate-400">
-            <span>
-              {loading ? "Carregando…" : `${listaFiltrada.length} itens encontrados`}
-            </span>
+            <span>{loading ? "Carregando…" : `${listaFiltrada.length} itens encontrados`}</span>
             <span className="text-slate-500">
-              Dica: a vitrine pública deve buscar por{" "}
-              <b>vitrine_delivery=true</b> + <b>ordem</b>.
+              Dica: a vitrine pública busca por <b>vitrine_delivery=true</b> + <b>ordem</b>.
             </span>
           </div>
         </div>
       </section>
 
-      {/* lista */}
+      {/* LISTA */}
       <section className="max-w-6xl mx-auto px-4 pb-10">
         {loading ? (
           <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 text-[12px] text-slate-300">
@@ -246,8 +230,7 @@ export default function AdminVitrineClickEntregasPage() {
           </div>
         ) : listaFiltrada.length === 0 ? (
           <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 text-[12px] text-slate-300">
-            Nenhum anúncio com delivery apareceu. Confirme se existem registros com{" "}
-            <b>tem_delivery=true</b>.
+            Nenhum anúncio com delivery apareceu. Confirme se existem registros com <b>tem_delivery=true</b>.
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -265,13 +248,13 @@ export default function AdminVitrineClickEntregasPage() {
                   className="rounded-3xl border border-slate-800 bg-slate-900/40 overflow-hidden shadow-sm"
                 >
                   <div className="flex gap-3 p-4">
-                    {/* thumb */}
+                    {/* THUMB */}
                     <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-800 flex-shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={capa} alt={item.titulo || "Anúncio"} className="h-full w-full object-cover" />
                     </div>
 
-                    {/* infos */}
+                    {/* INFOS */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -284,38 +267,32 @@ export default function AdminVitrineClickEntregasPage() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={[
-                              "text-[10px] font-bold px-2 py-1 rounded-full border",
-                              item.vitrine_delivery
-                                ? "bg-emerald-500/15 text-emerald-200 border-emerald-400/40"
-                                : "bg-slate-800 text-slate-300 border-slate-700",
-                            ].join(" ")}
-                          >
-                            {item.vitrine_delivery ? "NA VITRINE" : "FORA"}
-                          </span>
-                        </div>
+                        <span
+                          className={[
+                            "text-[10px] font-bold px-2 py-1 rounded-full border",
+                            item.vitrine_delivery
+                              ? "bg-emerald-500/15 text-emerald-200 border-emerald-400/40"
+                              : "bg-slate-800 text-slate-300 border-slate-700",
+                          ].join(" ")}
+                        >
+                          {item.vitrine_delivery ? "NA VITRINE" : "FORA"}
+                        </span>
                       </div>
 
-                      {/* controles */}
+                      {/* CONTROLES */}
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* vitrine toggle */}
+                        {/* TOGGLE VITRINE */}
                         <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
-                          <span className="text-[12px] font-semibold text-slate-200">
-                            Mostrar na vitrine
-                          </span>
+                          <span className="text-[12px] font-semibold text-slate-200">Mostrar na vitrine</span>
                           <input
                             type="checkbox"
                             checked={!!item.vitrine_delivery}
                             disabled={isSaving}
-                            onChange={(e) =>
-                              salvar(item, { vitrine_delivery: e.target.checked })
-                            }
+                            onChange={(e) => salvar(item, { vitrine_delivery: e.target.checked })}
                           />
                         </label>
 
-                        {/* ordem */}
+                        {/* ORDEM */}
                         <label className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
                           <span className="block text-[11px] font-semibold text-slate-300 mb-1">
                             Ordem (menor = primeiro)
@@ -335,7 +312,7 @@ export default function AdminVitrineClickEntregasPage() {
                           />
                         </label>
 
-                        {/* tipos_delivery (multi) */}
+                        {/* TIPOS DELIVERY */}
                         <div className="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-950 px-3 py-3">
                           <p className="text-[11px] font-semibold text-slate-300 mb-2">
                             Tipos de delivery (para filtros)
@@ -343,9 +320,7 @@ export default function AdminVitrineClickEntregasPage() {
 
                           <div className="flex flex-wrap gap-2">
                             {TIPOS_KEYS.map((key) => {
-                              const on = Array.isArray(item.tipos_delivery)
-                                ? item.tipos_delivery.includes(key)
-                                : false;
+                              const on = Array.isArray(item.tipos_delivery) ? item.tipos_delivery.includes(key) : false;
 
                               return (
                                 <button
@@ -353,12 +328,8 @@ export default function AdminVitrineClickEntregasPage() {
                                   type="button"
                                   disabled={isSaving}
                                   onClick={() => {
-                                    const cur = Array.isArray(item.tipos_delivery)
-                                      ? item.tipos_delivery
-                                      : [];
-                                    const next = on
-                                      ? cur.filter((x) => x !== key)
-                                      : [...cur, key];
+                                    const cur = Array.isArray(item.tipos_delivery) ? item.tipos_delivery : [];
+                                    const next = on ? cur.filter((x) => x !== key) : [...cur, key];
                                     salvar(item, { tipos_delivery: next });
                                   }}
                                   className={[
@@ -376,7 +347,7 @@ export default function AdminVitrineClickEntregasPage() {
                           </div>
                         </div>
 
-                        {/* whatsapp_delivery */}
+                        {/* WHATSAPP DELIVERY */}
                         <label className="sm:col-span-2 rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
                           <span className="block text-[11px] font-semibold text-slate-300 mb-1">
                             WhatsApp do delivery (se vazio, usa o WhatsApp normal do anúncio)
@@ -384,15 +355,13 @@ export default function AdminVitrineClickEntregasPage() {
                           <input
                             value={item.whatsapp_delivery || ""}
                             disabled={isSaving}
-                            onChange={(e) =>
-                              salvar(item, { whatsapp_delivery: e.target.value })
-                            }
+                            onChange={(e) => salvar(item, { whatsapp_delivery: e.target.value })}
                             className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[13px] text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                             placeholder="Ex.: (21) 9xxxx-xxxx"
                           />
                         </label>
 
-                        {/* ações */}
+                        {/* AÇÕES */}
                         <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2">
                           <Link
                             href={`/anuncios/${item.id}`}
@@ -419,16 +388,11 @@ export default function AdminVitrineClickEntregasPage() {
                           </button>
                         </div>
 
-                        {isSaving && (
-                          <p className="sm:col-span-2 text-[11px] text-slate-400">
-                            Salvando…
-                          </p>
-                        )}
+                        {isSaving && <p className="sm:col-span-2 text-[11px] text-slate-400">Salvando…</p>}
                       </div>
                     </div>
                   </div>
 
-                  {/* rodapé do card */}
                   <div className="px-4 pb-4">
                     <p className="text-[11px] text-slate-400">
                       Regras: para aparecer na vitrine pública, marque <b>Mostrar na vitrine</b> e defina a <b>ordem</b>.
