@@ -722,111 +722,124 @@ export default function LagoListasPage() {
         )}
       </section>
 
-      {/* ✅ DELIVERY / ATENDIMENTO RÁPIDO */}
-      <section className="max-w-6xl mx-auto px-4 pt-10 pb-2">
-        <div className="flex items-end justify-between gap-3 mb-3">
-          <div>
-            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
-              Atendimento Rápido e Entregas na Cidade
-            </h2>
-            <p className="mt-1 text-[12px] text-slate-600">
-              Serviços essenciais com contato direto, WhatsApp ativo e atendimento rápido.
-            </p>
-          </div>
+{/* ✅ DELIVERY / ATENDIMENTO RÁPIDO */}
+<section className="max-w-6xl mx-auto px-4 pt-10 pb-2">
+  <div className="flex items-end justify-between gap-3 mb-3">
+    <div>
+      <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+        Atendimento Rápido e Entregas na Cidade
+      </h2>
+      <p className="mt-1 text-[12px] text-slate-600">
+        Serviços essenciais com contato direto, WhatsApp ativo e atendimento rápido.
+      </p>
+    </div>
 
+    <Link
+      href="/busca?categoria=lagolistas&q=delivery"
+      className="text-[12px] font-semibold text-blue-700 hover:underline"
+    >
+      Ver mais →
+    </Link>
+  </div>
+
+  {!loading && delivery.length === 0 && (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
+      Ainda não há opções de delivery detectadas. Assim que você cadastrar (ou marcar)
+      empresas com “delivery/entrega”, elas aparecem aqui.
+    </div>
+  )}
+
+  {!loading && delivery.length > 0 && (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {delivery.map((item) => {
+        const imagens = Array.isArray(item.imagens) ? item.imagens : [];
+        const thumb = imagens.length > 0 ? imagens[0] : null;
+
+        // ✅ WhatsApp seguro
+        const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
+        const normalizeWhatsAppBR = (raw) => {
+          let n = onlyDigits(raw);
+          while (n.startsWith("0")) n = n.slice(1);
+          if (!n) return "";
+          if (n.startsWith("55")) return n;
+          if (n.length === 10 || n.length === 11) return `55${n}`;
+          return n;
+        };
+
+        const wa = item.whatsapp ? normalizeWhatsAppBR(item.whatsapp) : "";
+        const waLink = wa ? `https://wa.me/${wa}` : "";
+
+        return (
           <Link
-            href="/busca?categoria=lagolistas&q=delivery"
-            className="text-[12px] font-semibold text-blue-700 hover:underline"
+            key={item.id}
+            href={`/anuncios/${item.id}`}
+            className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
           >
-            Ver mais →
+            <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
+              {thumb ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={thumb}
+                  alt={item.titulo || "Delivery"}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
+                  Sem foto
+                </div>
+              )}
+            </div>
+
+            <div className="px-3 py-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">
+                  {item.titulo}
+                </p>
+                {item.destaque && (
+                  <span className="shrink-0 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                    DESTAQUE
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-1 text-[11px] text-slate-600">
+                {item.cidade}
+                {item.bairro ? ` • ${item.bairro}` : ""}
+              </p>
+
+              {item.area_profissional && (
+                <p className="mt-1 text-[11px] text-slate-800 line-clamp-1">
+                  {item.area_profissional}
+                </p>
+              )}
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-blue-700 group-hover:underline">
+                  Ver detalhes →
+                </span>
+
+                {waLink ? (
+                  <a
+                    href={waLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-full bg-green-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-green-700"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    WhatsApp
+                  </a>
+                ) : (
+                  <span className="text-[11px] text-slate-400">Sem WhatsApp</span>
+                )}
+              </div>
+            </div>
           </Link>
-        </div>
+        );
+      })}
+    </div>
+  )}
+</section>
 
-        {!loading && delivery.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
-            Ainda não há opções de delivery detectadas. Assim que você cadastrar (ou marcar) empresas com “delivery/entrega”, elas aparecem aqui.
-          </div>
-        )}
-
-        {!loading && delivery.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4
-          >
-            {delivery.map((item) => {
-              const imagens = Array.isArray(item.imagens) ? item.imagens : [];
-              const thumb = imagens.length > 0 ? imagens[0] : null;
-
-              return (
-                <Link
-                  key={item.id}
-                  href={`/anuncios/${item.id}`}
-                  className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
-                >
-                  <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
-                    {thumb ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={thumb}
-                        alt={item.titulo || "Delivery"}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
-                        Sem foto
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="px-3 py-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">
-                        {item.titulo}
-                      </p>
-                      {item.destaque && (
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
-                          DESTAQUE
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="mt-1 text-[11px] text-slate-600">
-                      {item.cidade}
-                      {item.bairro ? ` • ${item.bairro}` : ""}
-                    </p>
-
-                    {item.area_profissional && (
-                      <p className="mt-1 text-[11px] text-slate-800 line-clamp-1">
-                        {item.area_profissional}
-                      </p>
-                    )}
-
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-blue-700 group-hover:underline">
-                        Ver detalhes →
-                      </span>
-
-                      {waLink ? (
-                        <a
-                          href={waLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center justify-center rounded-full bg-green-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-green-700"
-                        >
-                          Pedir agora
-                        </a>
-                      ) : (
-                        <span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-700">
-                          Contato
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
       {/* ✅ LISTA GERAL DO LAGOLISTAS (Base democrática) */}
       <section className="max-w-6xl mx-auto px-4 pt-10 pb-10">
