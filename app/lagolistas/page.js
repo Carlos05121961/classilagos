@@ -284,6 +284,11 @@ export default function LagoListasPage() {
       cancelado = true;
     };
   }, []);
+const listaDaPagina = useMemo(() => {
+  if (!Array.isArray(anuncios)) return [];
+  return anuncios.slice(0, 60); // mantém a página leve
+}, [anuncios]);
+
 
   // ✅ Busca premium: manda para /busca
   function handleBuscar() {
