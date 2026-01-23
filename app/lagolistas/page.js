@@ -141,6 +141,9 @@ export default function LagoListasPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todos");
   const [filtroCidade, setFiltroCidade] = useState("Toda a região");
 
+  // ✅ Delivery: seletor de cidade (canto direito)
+  const [cidadeDelivery, setCidadeDelivery] = useState("Maricá");
+
   // HERO – 3 imagens em slide
   const heroImages = useMemo(
     () => [
@@ -284,18 +287,21 @@ export default function LagoListasPage() {
       cancelado = true;
     };
   }, []);
-const listaDaPagina = useMemo(() => {
-  if (!Array.isArray(anuncios)) return [];
-  return anuncios.slice(0, 60); // mantém a página leve
-}, [anuncios]);
 
+  // ✅ lista leve (base democrática)
+  const listaDaPagina = useMemo(() => {
+    if (!Array.isArray(anuncios)) return [];
+    return anuncios.slice(0, 60);
+  }, [anuncios]);
 
   // ✅ Busca premium: manda para /busca
   function handleBuscar() {
     const partes = [];
     if (buscaTexto.trim()) partes.push(buscaTexto.trim());
-    if (filtroCategoria && filtroCategoria !== "Todos") partes.push(filtroCategoria);
-    if (filtroCidade && filtroCidade !== "Toda a região") partes.push(filtroCidade);
+    if (filtroCategoria && filtroCategoria !== "Todos")
+      partes.push(filtroCategoria);
+    if (filtroCidade && filtroCidade !== "Toda a região")
+      partes.push(filtroCidade);
 
     const q = partes.join(" ").trim();
     const params = new URLSearchParams();
@@ -317,7 +323,6 @@ const listaDaPagina = useMemo(() => {
   // ✅ Separar vitrines (sem criar tabela nova)
   const destaques = useMemo(() => {
     const base = Array.isArray(anuncios) ? anuncios : [];
-    // pega primeiro os que são destaque/prioridade e limita
     const top = base.filter((a) => isTruthy(a?.destaque) || Number(a?.prioridade) > 0);
     return sortPremiumLocal(top).slice(0, 8);
   }, [anuncios]);
@@ -343,16 +348,13 @@ const listaDaPagina = useMemo(() => {
 
     const filtered = base.filter((a) => {
       const t = `${a?.titulo || ""} ${a?.descricao || ""} ${a?.area_profissional || ""}`;
-      return textContainsAny(t, terms) && (a?.whatsapp || a?.telefone);
+      const okDelivery = textContainsAny(t, terms) && (a?.whatsapp || a?.telefone);
+      const okCidade = !cidadeDelivery ? true : (a?.cidade || "") === cidadeDelivery;
+      return okDelivery && okCidade;
     });
 
     return sortPremiumLocal(filtered).slice(0, 8);
-  }, [anuncios]);
-
-  const listaGeralPreview = useMemo(() => {
-    const base = Array.isArray(anuncios) ? anuncios : [];
-    return base.slice(0, 10);
-  }, [anuncios]);
+  }, [anuncios, cidadeDelivery]);
 
   // ----------------- COMPONENTS -----------------
 
@@ -440,7 +442,9 @@ const listaDaPagina = useMemo(() => {
               target="_blank"
               rel="noreferrer"
               className={`inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-bold text-white ${
-                variant === "delivery" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-slate-900 hover:bg-slate-950"
+                variant === "delivery"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-slate-900 hover:bg-slate-950"
               }`}
             >
               {ctaText}
@@ -469,7 +473,12 @@ const listaDaPagina = useMemo(() => {
       {/* ✅ BANNER TOPO */}
       <section className="bg-white py-6 border-b">
         <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
+          <BannerRotator
+            images={bannersTopo}
+            interval={6000}
+            height={120}
+            maxWidth={720}
+          />
         </div>
       </section>
 
@@ -496,7 +505,8 @@ const listaDaPagina = useMemo(() => {
               O maior guia comercial da Região dos Lagos.
             </p>
             <p className="mt-1 text-[11px] md:text-xs text-slate-100/90 max-w-2xl">
-              Telefones, WhatsApp, endereços, sites e muito mais de comércios, serviços, saúde, turismo e profissionais liberais.
+              Telefones, WhatsApp, endereços, sites e muito mais de comércios,
+              serviços, saúde, turismo e profissionais liberais.
             </p>
           </div>
 
@@ -508,7 +518,9 @@ const listaDaPagina = useMemo(() => {
                 type="button"
                 onClick={() => setCurrentHero(index)}
                 className={`h-2.5 w-2.5 rounded-full border border-white/70 ${
-                  currentHero === index ? "bg-white" : "bg-white/30 hover:bg-white/60"
+                  currentHero === index
+                    ? "bg-white"
+                    : "bg-white/30 hover:bg-white/60"
                 }`}
                 aria-label={`Hero ${index + 1}`}
               />
@@ -555,7 +567,7 @@ const listaDaPagina = useMemo(() => {
                 onChange={(v) => setFiltroCidade(v || "Toda a região")}
               />
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={handleLimpar}
@@ -570,122 +582,38 @@ const listaDaPagina = useMemo(() => {
                 >
                   Buscar
                 </button>
+
+                {/* ✅ Botão azul (na linha da busca) */}
+                <Link
+                  href="/anunciar/lagolistas"
+                  className="w-full md:w-auto inline-flex items-center justify-center rounded-full border border-blue-600 bg-white px-5 py-2 text-xs md:text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                >
+                  Anunciar no LagoListas
+                </Link>
               </div>
             </div>
           </div>
 
           <p className="mt-1 text-[11px] text-center text-slate-500">
-            ✅ Busca ligada ao motor do Classilagos (abre resultados em outra página).
+            ✅ Busca ligada ao motor do Classilagos (abre resultados em outra
+            página).
           </p>
         </div>
       </section>
 
-      {/* CHAMADA PARA ANUNCIAR */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
-        <div className="rounded-3xl bg-slate-50 border border-slate-200 px-6 py-7 text-center">
-          <p className="text-sm font-extrabold text-slate-900 mb-1">
-            Quer colocar sua empresa no LagoListas?
-          </p>
-          <p className="text-xs text-slate-700 mb-4">
-            Cadastre gratuitamente seu comércio, serviço ou profissão e seja encontrado por milhares de pessoas em toda a Região dos Lagos.
-          </p>
 
-          <Link
-            href="/anunciar/lagolistas"
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Anunciar no LagoListas
-          </Link>
-        </div>
-      </section>
-
-      {/* ✅ TARJA INSTITUCIONAL (logo após a busca) */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div>
-              <h2 className="text-base md:text-lg font-extrabold text-slate-900">
-                Apoio ao Comércio Local e ao Empreendedor
-              </h2>
-              <p className="mt-1 text-[12px] text-slate-600 max-w-3xl leading-relaxed">
-                O LagoListas é uma iniciativa do Classilagos que conecta comerciantes, prestadores de serviços e profissionais liberais às oportunidades,
-                políticas públicas e iniciativas que fortalecem a economia local e o desenvolvimento da cidade.
+            {/* ✅ card “placeholder” leve (mantém o grid bonito) */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-[12px] font-extrabold text-slate-900">
+                Contratações locais
               </p>
-            </div>
-
-            <Link
-              href="/parcerias/poder-publico"
-              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-950"
-            >
-              Ver proposta institucional →
-            </Link>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <CardTarja
-              title="Desenvolvimento Econômico"
-              desc="Programas, ações e iniciativas voltadas ao fortalecimento do pequeno e médio empreendedor."
-            />
-            <CardTarja
-              title="Empreendedorismo & Formalização"
-              desc="Orientações, apoio e caminhos para quem deseja empreender, crescer ou formalizar seu negócio."
-            />
-            <CardTarja
-              title="Economia Local & Solidária"
-              desc="Iniciativas que estimulam o comércio local, a geração de renda e a circulação de oportunidades na cidade."
-            />
-            <CardTarja
-              title="Turismo & Economia Criativa"
-              desc="Negócios, serviços e profissionais que movimentam o turismo, a cultura e a economia criativa."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ✅ BLOCO EMPREGOS */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-2">
-        <div className="rounded-3xl bg-slate-50 border border-slate-200 p-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
-            <div>
-              <h2 className="text-base md:text-lg font-extrabold text-slate-900">
-                Empregos e Oportunidades no Comércio Local
-              </h2>
-              <p className="mt-1 text-[12px] text-slate-600 max-w-3xl leading-relaxed">
-                O comércio e os serviços também geram oportunidades. Aqui você pode anunciar vagas ou cadastrar currículos de forma simples e gratuita.
-              </p>
-            </div>
-
-            <Link href="/empregos" className="text-[12px] font-semibold text-slate-700 hover:underline">
-              Ver área de Empregos →
-            </Link>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Link
-              href="/empregos/lista?categoria=emprego"
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition"
-            >
-              <p className="text-[12px] font-extrabold text-slate-900">Publicar vaga</p>
               <p className="mt-1 text-[11px] text-slate-600">
-                Para empresas, comércios e prestadores de serviços anunciarem oportunidades.
+                Quanto mais empresas no LagoListas, mais oportunidades circulando na cidade.
               </p>
-              <span className="mt-3 inline-flex rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white">
-                Abrir vagas →
+              <span className="mt-3 inline-flex rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white">
+                Movimento local
               </span>
-            </Link>
-
-            <Link
-              href="/empregos/lista?categoria=curriculo"
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition"
-            >
-              <p className="text-[12px] font-extrabold text-slate-900">Cadastrar currículo</p>
-              <p className="mt-1 text-[11px] text-slate-600">
-                Para quem busca emprego ou novas oportunidades profissionais.
-              </p>
-              <span className="mt-3 inline-flex rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white">
-                Ver currículos →
-              </span>
-            </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -701,20 +629,14 @@ const listaDaPagina = useMemo(() => {
               Empresas, serviços e profissionais em evidência na cidade.
             </p>
           </div>
-
-          <Link
-            href="/anunciar/lagolistas"
-            className="hidden sm:inline-flex items-center justify-center rounded-full bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700"
-          >
-            Quero aparecer aqui
-          </Link>
         </div>
 
         {loading && <p className="text-[12px] text-slate-500">Carregando destaques…</p>}
 
         {!loading && destaques.length === 0 && (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
-            Ainda não há destaques configurados. Assim que existirem anúncios com destaque/prioridade, eles aparecem aqui.
+            Ainda não há destaques configurados. Assim que existirem anúncios com
+            destaque/prioridade, eles aparecem aqui.
           </div>
         )}
 
@@ -727,124 +649,44 @@ const listaDaPagina = useMemo(() => {
         )}
       </section>
 
-{/* ✅ DELIVERY / ATENDIMENTO RÁPIDO */}
-<section className="max-w-6xl mx-auto px-4 pt-10 pb-2">
-  <div className="flex items-end justify-between gap-3 mb-3">
-    <div>
-      <h2 className="text-base md:text-lg font-extrabold text-slate-900">
-        Atendimento Rápido e Entregas na Cidade
-      </h2>
-      <p className="mt-1 text-[12px] text-slate-600">
-        Serviços essenciais com contato direto, WhatsApp ativo e atendimento rápido.
-      </p>
-    </div>
+      {/* ✅ DELIVERY / ATENDIMENTO RÁPIDO (com seletor de cidade à direita) */}
+      <section className="max-w-6xl mx-auto px-4 pt-10 pb-2">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+              Atendimento Rápido e Entregas na Cidade
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-600">
+              Serviços essenciais com contato direto, WhatsApp ativo e atendimento rápido.
+            </p>
+          </div>
 
-    <Link
-      href="/busca?categoria=lagolistas&q=delivery"
-      className="text-[12px] font-semibold text-blue-700 hover:underline"
-    >
-      Ver mais →
-    </Link>
-  </div>
+          {/* ✅ seletor de cidade (no lugar do “Ver mais”) */}
+          <div className="w-full sm:w-[260px]">
+            <SmartSelect
+              label="Cidade"
+              value={cidadeDelivery}
+              options={cidades}
+              onChange={(v) => setCidadeDelivery(v || "Maricá")}
+            />
+          </div>
+        </div>
 
-  {!loading && delivery.length === 0 && (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
-      Ainda não há opções de delivery detectadas. Assim que você cadastrar (ou marcar)
-      empresas com “delivery/entrega”, elas aparecem aqui.
-    </div>
-  )}
+        {!loading && delivery.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-[12px] text-slate-600">
+            Ainda não há opções de delivery detectadas para {cidadeDelivery}. Assim que
+            existirem anúncios com termos de entrega e contato (WhatsApp/telefone), eles aparecem aqui.
+          </div>
+        )}
 
-  {!loading && delivery.length > 0 && (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {delivery.map((item) => {
-        const imagens = Array.isArray(item.imagens) ? item.imagens : [];
-        const thumb = imagens.length > 0 ? imagens[0] : null;
-
-        // ✅ WhatsApp seguro
-        const onlyDigits = (v) => String(v || "").replace(/\D/g, "");
-        const normalizeWhatsAppBR = (raw) => {
-          let n = onlyDigits(raw);
-          while (n.startsWith("0")) n = n.slice(1);
-          if (!n) return "";
-          if (n.startsWith("55")) return n;
-          if (n.length === 10 || n.length === 11) return `55${n}`;
-          return n;
-        };
-
-        const wa = item.whatsapp ? normalizeWhatsAppBR(item.whatsapp) : "";
-        const waLink = wa ? `https://wa.me/${wa}` : "";
-
-        return (
-          <Link
-            key={item.id}
-            href={`/anuncios/${item.id}`}
-            className="group overflow-hidden rounded-2xl shadow border border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md transition"
-          >
-            <div className="relative w-full h-28 md:h-32 bg-slate-200 overflow-hidden">
-              {thumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={thumb}
-                  alt={item.titulo || "Delivery"}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-500">
-                  Sem foto
-                </div>
-              )}
-            </div>
-
-            <div className="px-3 py-3">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[12px] font-extrabold text-slate-900 line-clamp-2">
-                  {item.titulo}
-                </p>
-                {item.destaque && (
-                  <span className="shrink-0 inline-flex items-center rounded-full bg-orange-500/10 border border-orange-400 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
-                    DESTAQUE
-                  </span>
-                )}
-              </div>
-
-              <p className="mt-1 text-[11px] text-slate-600">
-                {item.cidade}
-                {item.bairro ? ` • ${item.bairro}` : ""}
-              </p>
-
-              {item.area_profissional && (
-                <p className="mt-1 text-[11px] text-slate-800 line-clamp-1">
-                  {item.area_profissional}
-                </p>
-              )}
-
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <span className="text-[11px] text-blue-700 group-hover:underline">
-                  Ver detalhes →
-                </span>
-
-                {waLink ? (
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center rounded-full bg-green-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-green-700"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    WhatsApp
-                  </a>
-                ) : (
-                  <span className="text-[11px] text-slate-400">Sem WhatsApp</span>
-                )}
-              </div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  )}
-</section>
-
+        {!loading && delivery.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {delivery.map((item) => (
+              <CardVitrine key={item.id} item={item} variant="delivery" />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* ✅ LISTA GERAL DO LAGOLISTAS (Base democrática) */}
       <section className="max-w-6xl mx-auto px-4 pt-10 pb-10">
@@ -862,7 +704,7 @@ const listaDaPagina = useMemo(() => {
             href="/busca?categoria=lagolistas"
             className="text-[12px] font-semibold text-blue-700 hover:underline"
           >
-            Ver todos → 
+            Ver todos →
           </Link>
         </div>
 
@@ -882,7 +724,6 @@ const listaDaPagina = useMemo(() => {
               {anuncios.length} cadastro(s) no total • mostrando {listaDaPagina.length} aqui para manter a página leve.
             </div>
 
-            {/* ✅ você pode escolher: GRID (recomendado) OU manter "space-y" com o CardLagoLista atual */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {listaDaPagina.map((item) => (
                 <Link
@@ -981,10 +822,50 @@ const listaDaPagina = useMemo(() => {
         )}
       </section>
 
+      {/* ✅ TARJA INSTITUCIONAL (MOVIDA PARA O FINAL) */}
+      <section className="max-w-6xl mx-auto px-4 pb-8">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-base md:text-lg font-extrabold text-slate-900">
+              Apoio ao Comércio Local e ao Empreendedor
+            </h2>
+            <p className="text-[12px] text-slate-600 max-w-3xl leading-relaxed">
+              O LagoListas conecta comércio, serviços e profissionais a oportunidades e iniciativas
+              que fortalecem a economia local e o desenvolvimento da cidade.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <CardTarja
+              title="Desenvolvimento Econômico"
+              desc="Programas, ações e iniciativas voltadas ao fortalecimento do pequeno e médio empreendedor."
+            />
+            <CardTarja
+              title="Empreendedorismo & Formalização"
+              desc="Orientações, apoio e caminhos para quem deseja empreender, crescer ou formalizar seu negócio."
+            />
+            <CardTarja
+              title="Economia Local & Solidária"
+              desc="Iniciativas que estimulam o comércio local, a geração de renda e a circulação de oportunidades na cidade."
+            />
+            {/* ✅ TROCA SOMENTE ESTE CARD (mantendo os demais) */}
+            <CardTarja
+              title="Publicar Vagas de Empregos"
+              desc="Divulgue oportunidades no comércio e serviços da cidade e fortaleça a economia local."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ✅ BANNER RODAPÉ (PRINCIPAL) */}
       <section className="bg-white py-10 border-t">
         <div className="max-w-7xl mx-auto px-4">
-          <BannerRotator images={bannersRodape} interval={6500} height={170} maxWidth={720} />
+          <BannerRotator
+            images={bannersRodape}
+            interval={6500}
+            height={170}
+            maxWidth={720}
+          />
         </div>
       </section>
 
