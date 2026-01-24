@@ -602,22 +602,6 @@ export default function LagoListasPage() {
       </section>
 
 
-            {/* ✅ card “placeholder” leve (mantém o grid bonito) */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-[12px] font-extrabold text-slate-900">
-                Contratações locais
-              </p>
-              <p className="mt-1 text-[11px] text-slate-600">
-                Quanto mais empresas no LagoListas, mais oportunidades circulando na cidade.
-              </p>
-              <span className="mt-3 inline-flex rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white">
-                Movimento local
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ✅ VITRINE DE DESTAQUES */}
       <section className="max-w-6xl mx-auto px-4 pt-8 pb-2">
         <div className="flex items-end justify-between gap-3 mb-3">
