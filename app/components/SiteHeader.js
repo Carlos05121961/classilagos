@@ -93,10 +93,6 @@ export default function SiteHeader() {
             </Link>
           ))}
 
-          <Link href="/noticias" className="transition hover:text-slate-900">
-            Notícias
-          </Link>
-
           {isAdmin && (
             <Link href="/admin" className="transition hover:text-slate-900">
               Administração
