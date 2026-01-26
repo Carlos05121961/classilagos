@@ -153,19 +153,28 @@ export default function SiteHeader() {
                 Anuncie grátis
               </Link>
 
-              <div className="grid grid-cols-2 gap-2">
-                {categorias.map((c) => (
-                  <Link
-                    key={c.href}
-                    href={c.href}
-                    onClick={() => setOpen(false)}
-                    className="rounded-2xl border px-3 py-2 text-sm font-semibold"
-                  >
-                    {c.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
+<div className="grid grid-cols-2 gap-2">
+  {categorias.map((c) => (
+    <Link
+      key={c.href}
+      href={c.href}
+      onClick={() => setOpen(false)}
+      className="rounded-2xl border px-3 py-2 text-sm font-semibold"
+    >
+      {c.label}
+    </Link>
+  ))}
+
+  {/* Notícias sempre por último */}
+  <Link
+    href="/noticias"
+    onClick={() => setOpen(false)}
+    className="rounded-2xl border px-3 py-2 text-sm font-semibold"
+  >
+    Notícias
+  </Link>
+</div>
+
 
             <div className="mt-auto p-4 border-t text-xs text-slate-500">
               Classilagos • padrão Premium (mobile)
