@@ -5,12 +5,7 @@ import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
 export default function CadastroPage() {
-  const [nome, setNome] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [maiorDeIdade, setMaiorDeIdade] = useState(false);
 
@@ -22,8 +17,18 @@ export default function CadastroPage() {
     return String(v || "").trim().toLowerCase();
   }
 
-  function normalizeWhatsapp(v) {
-    return String(v || "").replace(/\D/g, ""); // só números
+  async function enviarLink(emailLimpo) {
+    // ✅ Magic Link (confirmação obrigatória pelo e-mail)
+    // shouldCreateUser: cria usuário caso não exista
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailLimpo,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `https://www.classilagos.shop/auth/callback`,
+      },
+    });
+
+    if (error) throw error;
   }
 
   async function handleSubmit(e) {
@@ -31,64 +36,46 @@ export default function CadastroPage() {
     setErro("");
     setShowModal(false);
 
-    const nomeLimpo = String(nome || "").trim();
-    const cidadeLimpa = String(cidade || "").trim();
-    const whatsappLimpo = normalizeWhatsapp(whatsapp);
     const emailLimpo = normalizeEmail(email);
-
-    const partesNome = nomeLimpo.split(" ").filter(Boolean);
-    if (partesNome.length < 2) return setErro("Por favor, informe nome e sobrenome.");
-    if (!cidadeLimpa) return setErro("Informe a cidade.");
-    if (!whatsappLimpo) return setErro("Informe o WhatsApp (DDD + número).");
     if (!emailLimpo) return setErro("Informe o e-mail.");
-
-    if (senha.length < 6) return setErro("A senha deve ter pelo menos 6 caracteres.");
-    if (senha !== confirmarSenha) return setErro("A confirmação de senha não confere.");
-
     if (!maiorDeIdade) return setErro("Você precisa confirmar que tem 18 anos ou mais.");
     if (!aceitaTermos) return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email: emailLimpo,
-      password: senha,
-      options: {
-        data: { nome: nomeLimpo, cidade: cidadeLimpa, whatsapp: whatsappLimpo },
-        emailRedirectTo: `https://www.classilagos.shop/auth/callback`,
-      },
-    });
-
-    setLoading(false);
-
-    if (error) {
-      console.error("Erro ao criar conta:", error);
-
-      const msg = String(error.message || "").toLowerCase();
-      if (msg.includes("already") || msg.includes("registered") || msg.includes("exist")) {
-        setErro("Este e-mail já está cadastrado. Tente fazer login.");
-      } else {
-        setErro("Erro ao criar conta. Tente novamente em alguns instantes.");
-      }
-      return;
+    try {
+      await enviarLink(emailLimpo);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Erro ao enviar link:", error);
+      setErro("Não foi possível enviar o link agora. Tente novamente em instantes.");
+    } finally {
+      setLoading(false);
     }
-
-    // sucesso: abre só o modal (sem botão de ir para o e-mail)
-    setShowModal(true);
-    setSenha("");
-    setConfirmarSenha("");
   }
 
-  function handleFecharModal() {
-    setShowModal(false);
+  async function handleReenviar() {
+    setErro("");
+    const emailLimpo = normalizeEmail(email);
+    if (!emailLimpo) return setErro("Informe o e-mail para reenviar.");
+    setLoading(true);
+    try {
+      await enviarLink(emailLimpo);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Erro ao reenviar link:", error);
+      setErro("Não foi possível reenviar agora. Tente novamente em instantes.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <main className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 relative">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Criar conta</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Entrar / Criar conta</h1>
         <p className="text-sm text-slate-600 mb-4">
-          Preencha seus dados para começar a anunciar no Classilagos.
+          Comece pelo seu e-mail. Você confirma na caixa de entrada e depois completa seu perfil.
         </p>
 
         {erro && (
@@ -98,54 +85,6 @@ export default function CadastroPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nome */}
-          <div>
-            <label htmlFor="nome" className="block text-sm font-medium text-slate-700 mb-1">
-              Nome completo *
-            </label>
-            <input
-              id="nome"
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Nome completo (nome e sobrenome)"
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              required
-            />
-          </div>
-
-          {/* Cidade */}
-          <div>
-            <label htmlFor="cidade" className="block text-sm font-medium text-slate-700 mb-1">
-              Cidade *
-            </label>
-            <input
-              id="cidade"
-              type="text"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              placeholder="Ex: Maricá, Cabo Frio..."
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              required
-            />
-          </div>
-
-          {/* WhatsApp */}
-          <div>
-            <label htmlFor="whatsapp" className="block text-sm font-medium text-slate-700 mb-1">
-              WhatsApp *
-            </label>
-            <input
-              id="whatsapp"
-              type="tel"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="DDD + número (somente números)"
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-              required
-            />
-          </div>
-
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
@@ -160,40 +99,6 @@ export default function CadastroPage() {
               className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
               required
             />
-          </div>
-
-          {/* Senhas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="senha" className="block text-sm font-medium text-slate-700 mb-1">
-                Senha *
-              </label>
-              <input
-                id="senha"
-                type="password"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="confirmarSenha"
-                className="block text-sm font-medium text-slate-700 mb-1"
-              >
-                Confirmar senha *
-              </label>
-              <input
-                id="confirmarSenha"
-                type="password"
-                value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                required
-              />
-            </div>
           </div>
 
           {/* Checkboxes */}
@@ -236,44 +141,55 @@ export default function CadastroPage() {
               disabled={loading}
               className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Criando conta..." : "Criar conta"}
+              {loading ? "Enviando link..." : "Continuar"}
             </button>
           </div>
 
           {/* Link para login */}
           <p className="text-xs text-slate-600 text-center mt-2">
-            Já tem uma conta?{" "}
+            Já confirmou antes e quer entrar?{" "}
             <Link href="/login" className="text-cyan-600 font-semibold">
-              Faça login
+              Ir para login
             </Link>
           </p>
         </form>
 
-        {/* MODAL (sem botão de abrir e-mail) */}
+        {/* MODAL */}
         {showModal && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
             <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
               <h2 className="text-lg font-semibold text-slate-900 mb-1">
-                Conta criada com sucesso! 🎉
+                Quase lá! 📩
               </h2>
 
               <p className="text-xs text-slate-600 mb-3">
-                Agora é só abrir seu e-mail, encontrar a mensagem do{" "}
-                <strong>Classilagos</strong> e clicar no botão de confirmação para ativar a sua conta.
+                Enviamos um link para <strong>{normalizeEmail(email)}</strong>.
+                Abra seu e-mail e clique no botão para confirmar o acesso.
               </p>
 
               <p className="text-[11px] text-slate-500 mb-4">
-                Dica: se não aparecer na caixa de entrada, confira também as pastas{" "}
+                Dica: se não aparecer na caixa de entrada, confira também{" "}
                 <strong>Spam</strong> e <strong>Promoções</strong>.
               </p>
 
-              <button
-                type="button"
-                onClick={handleFecharModal}
-                className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
-              >
-                Fechar esta janela
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleReenviar}
+                  disabled={loading}
+                  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2"
+                >
+                  {loading ? "Reenviando..." : "Reenviar link"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         )}
