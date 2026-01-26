@@ -30,6 +30,7 @@ export default function PainelPage() {
           setUserEmail(user.email);
         }
 
+        // ✅ checa role na tabela profiles (como já está no seu projeto)
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("role")
@@ -50,7 +51,7 @@ export default function PainelPage() {
     checarAdmin();
   }, []);
 
-  // nome simples: parte antes do @, só pra dar um "Olá, Carlos"
+  // nome simples: parte antes do @
   const displayName = userEmail ? userEmail.split("@")[0] : "bem-vindo(a)";
 
   return (
@@ -79,6 +80,28 @@ export default function PainelPage() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* ✅ Meu perfil (NOVO) */}
+            <Link
+              href="/perfil"
+              className="block rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-[2px] transition p-4"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Meu perfil
+                </h3>
+                <span className="text-lg" aria-hidden="true">
+                  👤
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mb-3">
+                Complete seus dados uma única vez para facilitar seus anúncios e
+                contatos.
+              </p>
+              <span className="inline-flex text-[11px] font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-full px-3 py-1">
+                Abrir meu perfil
+              </span>
+            </Link>
+
             {/* Meus anúncios */}
             <Link
               href="/painel/meus-anuncios"
