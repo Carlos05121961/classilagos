@@ -28,6 +28,31 @@ export default function CallbackClient() {
           return;
         }
 
+        // ✅ Agora que a sessão existe, pegamos o usuário
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+
+        // Sem user por algum motivo -> login
+        if (!user) {
+          setMsg("Sessão confirmada, mas não encontramos seu acesso. Indo para o login...");
+          router.replace("/login");
+          return;
+        }
+
+        // ✅ Checa se o perfil básico está completo (user_metadata)
+        const meta = user.user_metadata || {};
+        const nome = String(meta.nome || "").trim();
+        const cidade = String(meta.cidade || "").trim();
+        const whatsapp = String(meta.whatsapp || "").trim();
+
+        const perfilCompleto = nome && cidade && whatsapp;
+
+        if (!perfilCompleto) {
+          setMsg("E-mail confirmado! Agora complete seu perfil rapidinho...");
+          router.replace("/perfil");
+          return;
+        }
+
         setMsg("E-mail confirmado! Entrando no seu painel...");
         router.replace("/painel");
       } catch {
