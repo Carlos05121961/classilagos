@@ -171,10 +171,9 @@ export default function SiteHeader() {
     onClick={() => setOpen(false)}
     className="rounded-2xl border px-3 py-2 text-sm font-semibold"
   >
-    Notícias
-  </Link>
-</div>
-
+                Notícias
+              </Link>
+            </div>
 
             <div className="mt-auto p-4 border-t text-xs text-slate-500">
               Classilagos • padrão Premium (mobile)
@@ -185,3 +184,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+
