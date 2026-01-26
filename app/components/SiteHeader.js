@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import UserMenu from "./UserMenu";
 import { supabase } from "../supabaseClient";
@@ -15,22 +15,21 @@ export default function SiteHeader() {
   useEffect(() => {
     async function carregarPerfil() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data?.user) {
           setIsAdmin(false);
           return;
         }
 
-        const { data, error } = await supabase
+        const user = data.user;
+
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .single();
 
-        setIsAdmin(!error && data?.role === "admin");
+        setIsAdmin(!profileError && profile?.role === "admin");
       } catch (e) {
         console.error("Erro ao carregar perfil:", e);
         setIsAdmin(false);
@@ -53,6 +52,7 @@ export default function SiteHeader() {
     };
   }, [open]);
 
+  // ✅ Sem Notícias aqui (Notícias entra sempre por último, separado)
   const categorias = [
     { label: "Imóveis", href: "/imoveis" },
     { label: "Veículos", href: "/veiculos" },
@@ -69,15 +69,14 @@ export default function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-[auto,1fr,auto] items-center gap-4">
         {/* LOGO */}
         <Link href="/" className="flex items-center shrink-0">
-<Image
-  src="/logo-classilagos-shop.png"
-  alt="Classilagos"
-  width={300}
-  height={90}
-  priority
-  className="max-h-[80px] w-auto"
- />
-
+          <Image
+            src="/logo-classilagos-shop.png"
+            alt="Classilagos"
+            width={300}
+            height={90}
+            priority
+            className="max-h-[80px] w-auto"
+          />
         </Link>
 
         {/* MENU DESKTOP */}
@@ -91,13 +90,11 @@ export default function SiteHeader() {
               {c.label}
             </Link>
           ))}
-           <Link
-  href="/noticias"
-  className="transition hover:text-slate-900"
->
-  Notícias
-</Link>
 
+          {/* ✅ Notícias sempre por último (DESKTOP) */}
+          <Link href="/noticias" className="transition hover:text-slate-900">
+            Notícias
+          </Link>
 
           {isAdmin && (
             <Link href="/admin" className="transition hover:text-slate-900">
@@ -130,18 +127,23 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* DRAWER MOBILE */}
+      {/* DRAWER MOBILE (sem fragment, sem gambiarra) */}
       {open && (
-        <>
+        <div className="fixed inset-0 z-[70]">
+          {/* overlay */}
           <button
-            className="fixed inset-0 z-40 bg-black/30"
+            className="absolute inset-0 bg-black/30"
             onClick={() => setOpen(false)}
+            aria-label="Fechar menu"
           />
 
-          <div className="fixed top-0 right-0 z-50 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l flex flex-col">
-            <div className="p-4 border-b flex justify-between">
+          {/* painel */}
+          <div className="absolute top-0 right-0 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
               <strong>Menu</strong>
-              <button onClick={() => setOpen(false)}>✕</button>
+              <button onClick={() => setOpen(false)} aria-label="Fechar">
+                ✕
+              </button>
             </div>
 
             <div className="p-4 space-y-3">
@@ -153,35 +155,45 @@ export default function SiteHeader() {
                 Anuncie grátis
               </Link>
 
-<div className="grid grid-cols-2 gap-2">
-  {categorias.map((c) => (
-    <Link
-      key={c.href}
-      href={c.href}
-      onClick={() => setOpen(false)}
-      className="rounded-2xl border px-3 py-2 text-sm font-semibold"
-    >
-      {c.label}
-    </Link>
-  ))}
+              <div className="grid grid-cols-2 gap-2">
+                {categorias.map((c) => (
+                  <Link
+                    key={c.href}
+                    href={c.href}
+                    onClick={() => setOpen(false)}
+                    className="rounded-2xl border px-3 py-2 text-sm font-semibold"
+                  >
+                    {c.label}
+                  </Link>
+                ))}
 
-  {/* Notícias sempre por último */}
-  <Link
-    href="/noticias"
-    onClick={() => setOpen(false)}
-    className="rounded-2xl border px-3 py-2 text-sm font-semibold"
-  >
-                Notícias
-              </Link>
+                {/* ✅ Notícias sempre por último (MOBILE) */}
+                <Link
+                  href="/noticias"
+                  onClick={() => setOpen(false)}
+                  className="rounded-2xl border px-3 py-2 text-sm font-semibold"
+                >
+                  Notícias
+                </Link>
+
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="rounded-2xl border px-3 py-2 text-sm font-semibold"
+                  >
+                    Administração
+                  </Link>
+                )}
+              </div>
             </div>
 
             <div className="mt-auto p-4 border-t text-xs text-slate-500">
               Classilagos • padrão Premium (mobile)
             </div>
           </div>
-        </>
+        </div>
       )}
     </header>
   );
 }
-
