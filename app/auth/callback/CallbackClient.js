@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
-function sanitizeNext(v) {
-  const s = String(v || "").trim();
-  if (!s) return "";
-  if (!s.startsWith("/")) return "";
-  if (s.startsWith("//")) return "";
-  return s;
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  return v;
 }
 
 export default function CallbackClient() {
@@ -22,7 +22,7 @@ export default function CallbackClient() {
       try {
         const code = searchParams.get("code");
         const nextRaw = searchParams.get("next");
-        const next = sanitizeNext(nextRaw);
+        const nextPath = sanitizeNext(nextRaw);
 
         if (!code) {
           setMsg("Link inválido ou expirado. Indo para o login...");
@@ -38,25 +38,15 @@ export default function CallbackClient() {
           return;
         }
 
-        // ✅ Agora que a sessão existe, pegamos o usuário
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user;
 
-        // Sem user por algum motivo -> login
         if (!user) {
           setMsg("Sessão confirmada, mas não encontramos seu acesso. Indo para o login...");
           router.replace("/login");
           return;
         }
 
-        // ✅ PRIORIDADE TOTAL: se veio um destino da land, vai pra ele
-        if (next) {
-          setMsg("E-mail confirmado! Redirecionando...");
-          router.replace(next);
-          return;
-        }
-
-        // ✅ Fluxo normal do site (sem next)
         const meta = user.user_metadata || {};
         const nome = String(meta.nome || "").trim();
         const cidade = String(meta.cidade || "").trim();
@@ -64,9 +54,18 @@ export default function CallbackClient() {
 
         const perfilCompleto = nome && cidade && whatsapp;
 
+        // ✅ Se faltou perfil, manda pro perfil MAS preserva o destino
         if (!perfilCompleto) {
+          const url = nextPath ? `/perfil?next=${encodeURIComponent(nextPath)}` : "/perfil";
           setMsg("E-mail confirmado! Agora complete seu perfil rapidinho...");
-          router.replace("/perfil");
+          router.replace(url);
+          return;
+        }
+
+        // ✅ Perfil OK: vai direto pro destino (currículo/vaga) ou painel
+        if (nextPath) {
+          setMsg("E-mail confirmado! Indo para continuar...");
+          router.replace(nextPath);
           return;
         }
 
