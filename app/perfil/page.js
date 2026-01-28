@@ -41,11 +41,11 @@ export default function PerfilPage() {
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
   const [ok, setOk] = useState("");
+  const [nextPath, setNextPath] = useState("");
 
   const [email, setEmail] = useState("");
 
   // ✅ Destino pós-perfil (vem do callback: /perfil?next=/anunciar/curriculo etc)
-  const [nextPath, setNextPath] = useState("");
 
   // Campos do perfil (salvos em user_metadata do Supabase Auth)
   const [nome, setNome] = useState("");
