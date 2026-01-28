@@ -24,9 +24,8 @@ export default function IniciarVaga() {
     if (!ok) return;
 
     const q = encodeURIComponent(email.trim());
-    router.push(`/anunciar/vaga?email=${q}`);
+  router.push(`/cadastro?next=${encodeURIComponent("/anunciar/empregos")}&email=${q}`);
   }
-
   return (
     <main className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-emerald-50">
       <section className="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-10">
