@@ -12,100 +12,95 @@ function sanitizeNext(raw) {
   return v;
 }
 
-function getHashParams() {
-  // pega #access_token=...&refresh_token=...
-  const hash = typeof window !== "undefined" ? window.location.hash : "";
-  const clean = hash.startsWith("#") ? hash.slice(1) : hash;
-  return new URLSearchParams(clean);
-}
-
 export default function CallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [msg, setMsg] = useState("Confirmando seu e-mail...");
 
   useEffect(() => {
+    let alive = true;
+
     async function run() {
       try {
-        // ✅ next vem antes do # (query normal)
         const nextRaw = searchParams.get("next");
         const nextPath = sanitizeNext(nextRaw);
 
-        // 1) tenta fluxo PKCE (?code=)
-        const code = searchParams.get("code");
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
-            router.replace("/login");
-            return;
-          }
-        } else {
-          // 2) tenta fluxo HASH (#access_token=)
-          const hp = getHashParams();
-          const access_token = hp.get("access_token");
-          const refresh_token = hp.get("refresh_token");
+        // ✅ 1) Primeiro: tenta pegar sessão do HASH (#access_token)
+        const { data: fromUrl, error: fromUrlError } =
+          await supabase.auth.getSessionFromUrl({ storeSession: true });
 
-          if (access_token && refresh_token) {
-            const { error } = await supabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
+        // Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
+        if (!fromUrl?.session) {
+          const code = searchParams.get("code");
 
+          if (code) {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) {
-              setMsg("Sessão inválida/expirada. Indo para o login...");
+              if (!alive) return;
+              setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
               router.replace("/login");
               return;
             }
           } else {
+            // Nem hash nem code => link inválido
+            if (!alive) return;
             setMsg("Link inválido ou expirado. Indo para o login...");
             router.replace("/login");
             return;
           }
         }
 
-        // ✅ sessão deve existir agora
+        // ✅ 2) Agora a sessão deve existir
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user;
 
         if (!user) {
-          setMsg("Não encontramos seu acesso. Indo para o login...");
+          if (!alive) return;
+          setMsg("Sessão confirmada, mas não encontramos seu acesso. Indo para o login...");
           router.replace("/login");
           return;
         }
 
-        // ✅ checa perfil básico (user_metadata)
+        // ✅ 3) Checa perfil
         const meta = user.user_metadata || {};
         const nome = String(meta.nome || "").trim();
         const cidade = String(meta.cidade || "").trim();
         const whatsapp = String(meta.whatsapp || "").trim();
+
         const perfilCompleto = nome && cidade && whatsapp;
 
-        // ✅ Se faltou perfil, vai pro /perfil preservando o destino
+        // Se faltou perfil: manda pro /perfil preservando o destino
         if (!perfilCompleto) {
+          if (!alive) return;
           const url = nextPath ? `/perfil?next=${encodeURIComponent(nextPath)}` : "/perfil";
           setMsg("E-mail confirmado! Agora complete seu perfil rapidinho...");
           router.replace(url);
           return;
         }
 
-        // ✅ Perfil OK: vai pro destino ou painel
+        // Perfil OK: vai pro destino (currículo/vaga) ou painel
         if (nextPath) {
-          setMsg("E-mail confirmado! Indo continuar...");
+          if (!alive) return;
+          setMsg("E-mail confirmado! Indo para continuar...");
           router.replace(nextPath);
           return;
         }
 
+        if (!alive) return;
         setMsg("E-mail confirmado! Entrando no seu painel...");
         router.replace("/painel");
       } catch (e) {
         console.error(e);
+        if (!alive) return;
         setMsg("Erro inesperado. Indo para o login...");
         router.replace("/login");
       }
     }
 
     run();
+    return () => {
+      alive = false;
+    };
   }, [router, searchParams]);
 
   return (
