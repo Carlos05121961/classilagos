@@ -178,13 +178,13 @@ export default function PerfilPage() {
         return;
       }
 
-      setOk("Perfil salvo com sucesso! ✅");
-      setSenha("");
-      setConfirmarSenha("");
+setOk("Perfil salvo com sucesso! ✅");
+setSenha("");
+setConfirmarSenha("");
 
-      // ✅ AQUI É O PULO DO GATO:
-      // se veio destino (curriculo/vaga), vai pra lá; senão, painel.
-      router.replace(nextPath || "/painel");
+// ✅ Depois de salvar: se veio next, vai pra ele; senão, painel
+router.replace(nextPath || "/painel");
+
     } finally {
       setSaving(false);
     }
