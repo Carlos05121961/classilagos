@@ -12,6 +12,15 @@ function normalizeEmail(v) {
   return String(v || "").trim().toLowerCase();
 }
 
+// ✅ segurança: só aceita caminhos internos
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  return v;
+}
+
 // ✅ cidades fixas (Região dos Lagos + Maricá)
 const CIDADES = [
   "Maricá",
@@ -34,6 +43,9 @@ export default function PerfilPage() {
   const [ok, setOk] = useState("");
 
   const [email, setEmail] = useState("");
+
+  // ✅ Destino pós-perfil (vem do callback: /perfil?next=/anunciar/curriculo etc)
+  const [nextPath, setNextPath] = useState("");
 
   // Campos do perfil (salvos em user_metadata do Supabase Auth)
   const [nome, setNome] = useState("");
@@ -61,6 +73,17 @@ export default function PerfilPage() {
     return `https://wa.me/${numeroOficial}?text=${msg}`;
   }, [numeroOficial, email, whatsappLimpo]);
 
+  // ✅ pega next da URL sem complicar (sem useSearchParams)
+  useEffect(() => {
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      const rawNext = qs.get("next") || "";
+      setNextPath(sanitizeNext(rawNext));
+    } catch {
+      setNextPath("");
+    }
+  }, []);
+
   useEffect(() => {
     let alive = true;
 
@@ -85,7 +108,6 @@ export default function PerfilPage() {
       }
 
       // Se o e-mail não estiver confirmado, não deixa seguir
-      // (depende de config do Supabase, mas isso reforça o fluxo)
       if (!user.email_confirmed_at) {
         setEmail(user.email || "");
         setLoading(false);
@@ -142,7 +164,7 @@ export default function PerfilPage() {
           cidade: cidadeLimpa,
           whatsapp: whats,
           endereco: end,
-          whatsapp_confirmado: false, // ✅ fica pendente até o usuário confirmar
+          whatsapp_confirmado: false,
         },
       };
 
@@ -160,8 +182,9 @@ export default function PerfilPage() {
       setSenha("");
       setConfirmarSenha("");
 
-      // opcional: se quiser, pode mandar direto pro painel
-      // router.push("/painel");
+      // ✅ AQUI É O PULO DO GATO:
+      // se veio destino (curriculo/vaga), vai pra lá; senão, painel.
+      router.replace(nextPath || "/painel");
     } finally {
       setSaving(false);
     }
