@@ -49,14 +49,14 @@ export default function CallbackClient() {
           return;
         }
 
-        // ✅ Se veio um destino (land), ele tem prioridade
+        // ✅ PRIORIDADE TOTAL: se veio um destino da land, vai pra ele
         if (next) {
           setMsg("E-mail confirmado! Redirecionando...");
           router.replace(next);
           return;
         }
 
-        // ✅ Checa se o perfil básico está completo (user_metadata)
+        // ✅ Fluxo normal do site (sem next)
         const meta = user.user_metadata || {};
         const nome = String(meta.nome || "").trim();
         const cidade = String(meta.cidade || "").trim();
