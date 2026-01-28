@@ -1,13 +1,16 @@
 "use client";
 
+import { Suspense } from "react";
 import PrefillEmailFromQuery from "../../components/PrefillEmailFromQuery";
 import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
 
 export default function AnunciarEmpregosPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
-      {/* ✅ Preenche o email automaticamente se vier ?email= */}
-      <PrefillEmailFromQuery />
+      {/* ✅ precisa de Suspense por causa do useSearchParams */}
+      <Suspense fallback={null}>
+        <PrefillEmailFromQuery />
+      </Suspense>
 
       <header className="mb-8">
         <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
