@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
 
@@ -13,18 +13,48 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // ✅ Destino pós-confirmação (vem da land: /cadastro?next=/anunciar/curriculo etc)
+  const [nextPath, setNextPath] = useState("");
+
   function normalizeEmail(v) {
     return String(v || "").trim().toLowerCase();
   }
 
+  // ✅ segurança: só aceita caminhos internos
+  function sanitizeNext(raw) {
+    const v = String(raw || "").trim();
+    if (!v) return "";
+    if (!v.startsWith("/")) return "";
+    // bloqueia //, http(s), e afins (por precaução)
+    if (v.startsWith("//")) return "";
+    return v;
+  }
+
+  // ✅ pega next da URL sem usar useSearchParams
+  useEffect(() => {
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      const rawNext = qs.get("next") || "";
+      const cleanNext = sanitizeNext(rawNext);
+      setNextPath(cleanNext);
+    } catch {
+      setNextPath("");
+    }
+  }, []);
+
   async function enviarLink(emailLimpo) {
-    // ✅ Magic Link (confirmação obrigatória pelo e-mail)
-    // shouldCreateUser: cria usuário caso não exista
+    const base = "https://www.classilagos.shop/auth/callback";
+
+    // ✅ repassa o next pro callback (se existir)
+    const redirect = nextPath
+      ? `${base}?next=${encodeURIComponent(nextPath)}`
+      : base;
+
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLimpo,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: `https://www.classilagos.shop/auth/callback`,
+        emailRedirectTo: redirect,
       },
     });
 
@@ -85,7 +115,6 @@ export default function CadastroPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
               E-mail *
@@ -101,7 +130,6 @@ export default function CadastroPage() {
             />
           </div>
 
-          {/* Checkboxes */}
           <div className="space-y-2 text-xs text-slate-700">
             <label className="flex items-start gap-2">
               <input
@@ -134,7 +162,6 @@ export default function CadastroPage() {
             </label>
           </div>
 
-          {/* Botão */}
           <div className="pt-2">
             <button
               type="submit"
@@ -145,7 +172,6 @@ export default function CadastroPage() {
             </button>
           </div>
 
-          {/* Link para login */}
           <p className="text-xs text-slate-600 text-center mt-2">
             Já confirmou antes e quer entrar?{" "}
             <Link href="/login" className="text-cyan-600 font-semibold">
@@ -154,13 +180,10 @@ export default function CadastroPage() {
           </p>
         </form>
 
-        {/* MODAL */}
         {showModal && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
             <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
-              <h2 className="text-lg font-semibold text-slate-900 mb-1">
-                Quase lá! 📩
-              </h2>
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Quase lá! 📩</h2>
 
               <p className="text-xs text-slate-600 mb-3">
                 Enviamos um link para <strong>{normalizeEmail(email)}</strong>.
@@ -197,4 +220,3 @@ export default function CadastroPage() {
     </main>
   );
 }
-
