@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
+function sanitizeNext(v) {
+  const s = String(v || "").trim();
+  if (!s) return "";
+  if (!s.startsWith("/")) return "";
+  if (s.startsWith("//")) return "";
+  return s;
+}
+
 export default function CallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -13,6 +21,8 @@ export default function CallbackClient() {
     async function run() {
       try {
         const code = searchParams.get("code");
+        const nextRaw = searchParams.get("next");
+        const next = sanitizeNext(nextRaw);
 
         if (!code) {
           setMsg("Link inválido ou expirado. Indo para o login...");
@@ -36,6 +46,13 @@ export default function CallbackClient() {
         if (!user) {
           setMsg("Sessão confirmada, mas não encontramos seu acesso. Indo para o login...");
           router.replace("/login");
+          return;
+        }
+
+        // ✅ Se veio um destino (land), ele tem prioridade
+        if (next) {
+          setMsg("E-mail confirmado! Redirecionando...");
+          router.replace(next);
           return;
         }
 
