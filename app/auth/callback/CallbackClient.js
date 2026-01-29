@@ -25,11 +25,11 @@ export default function CallbackClient() {
         const nextRaw = searchParams.get("next");
         const nextPath = sanitizeNext(nextRaw);
 
-        // 1) Tenta fluxo por HASH (#access_token) quando existir
+        // ✅ 1) Primeiro: tenta pegar sessão do HASH (#access_token)
         const { data: fromUrl, error: fromUrlError } =
           await supabase.auth.getSessionFromUrl({ storeSession: true });
 
-        // 2) Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
+        // ✅ 2) Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
         if (!fromUrl?.session) {
           const code = searchParams.get("code");
 
@@ -43,6 +43,7 @@ export default function CallbackClient() {
               return;
             }
           } else {
+            // Nem hash nem code => link inválido
             if (!alive) return;
             if (fromUrlError) console.error("getSessionFromUrl error:", fromUrlError);
             setMsg("Link inválido ou expirado. Indo para o login...");
@@ -51,7 +52,7 @@ export default function CallbackClient() {
           }
         }
 
-        // 3) Agora a sessão deve existir
+        // ✅ 3) Agora a sessão deve existir
         const { data: userData, error: userErr } = await supabase.auth.getUser();
         if (userErr) console.error("getUser error:", userErr);
 
@@ -64,26 +65,8 @@ export default function CallbackClient() {
           return;
         }
 
-        // 4) Checa perfil (metadados)
-        const meta = user.user_metadata || {};
-        const nome = String(meta.nome || "").trim();
-        const cidade = String(meta.cidade || "").trim();
-        const whatsapp = String(meta.whatsapp || "").trim();
-
-        const perfilCompleto = Boolean(nome && cidade && whatsapp);
-
-        // Se faltou perfil: manda pro editar-perfil preservando o destino
-        if (!perfilCompleto) {
-          if (!alive) return;
-          const url = nextPath
-            ? `/editar-perfil?next=${encodeURIComponent(nextPath)}`
-            : "/editar-perfil";
-          setMsg("E-mail confirmado! Agora complete seu perfil rapidinho...");
-          router.replace(url);
-          return;
-        }
-
-        // Perfil OK: vai pro destino (currículo/vaga) ou painel
+        // ✅ PRIORIDADE TOTAL (Campanha Empregos):
+        // Se veio com next (currículo/vaga), vai direto pro formulário escolhido.
         if (nextPath) {
           if (!alive) return;
           setMsg("E-mail confirmado! Indo para continuar...");
@@ -91,6 +74,7 @@ export default function CallbackClient() {
           return;
         }
 
+        // ✅ Sem next: segue padrão do site
         if (!alive) return;
         setMsg("E-mail confirmado! Entrando no seu painel...");
         router.replace("/painel");
