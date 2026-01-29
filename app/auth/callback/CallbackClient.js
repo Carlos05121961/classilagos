@@ -9,6 +9,7 @@ function sanitizeNext(raw) {
   if (!v) return "";
   if (!v.startsWith("/")) return "";
   if (v.startsWith("//")) return "";
+  if (v.includes("http:") || v.includes("https:")) return "";
   return v;
 }
 
@@ -20,13 +21,13 @@ export default function CallbackClient() {
     let alive = true;
 
     async function run() {
+      const qs = new URLSearchParams(window.location.search);
+
+      // ✅ destino final (land -> cadastro -> emailRedirectTo -> callback?next=...)
+      const nextRaw = qs.get("next") || "";
+      const nextPath = sanitizeNext(nextRaw) || "/painel";
+
       try {
-        const qs = new URLSearchParams(window.location.search);
-
-        // ✅ destino final (land -> cadastro -> emailRedirectTo -> callback?next=...)
-        const nextRaw = qs.get("next") || "";
-        const nextPath = sanitizeNext(nextRaw) || "/painel";
-
         // ✅ Fluxo PKCE: se vier "code", troca por sessão
         const code = qs.get("code");
         if (code) {
@@ -38,8 +39,8 @@ export default function CallbackClient() {
           const { data } = await supabase.auth.getSession();
           if (!data?.session) {
             if (!alive) return;
-            setMsg("Link inválido ou expirado. Indo para cadastro...");
-            router.replace("/cadastro");
+            setMsg("Link inválido ou expirado. Voltando para cadastro...");
+            router.replace(`/cadastro?next=${encodeURIComponent(nextPath)}`);
             return;
           }
         }
@@ -52,8 +53,8 @@ export default function CallbackClient() {
       } catch (e) {
         console.error(e);
         if (!alive) return;
-        setMsg("Não foi possível confirmar seu e-mail. Indo para cadastro...");
-        router.replace("/cadastro");
+        setMsg("Não foi possível confirmar seu e-mail. Voltando para cadastro...");
+        router.replace(`/cadastro?next=${encodeURIComponent(nextPath)}`);
       }
     }
 
@@ -68,10 +69,9 @@ export default function CallbackClient() {
       <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
         <h1 className="text-xl font-semibold text-slate-900 mb-2">Confirmação de e-mail</h1>
         <p className="text-sm text-slate-600">{msg}</p>
-        <p className="mt-2 text-[11px] text-slate-500">
-          Classilagos Empregos • 100% gratuito
-        </p>
+        <p className="mt-2 text-[11px] text-slate-500">Classilagos Empregos • 100% gratuito</p>
       </div>
     </main>
   );
 }
+
