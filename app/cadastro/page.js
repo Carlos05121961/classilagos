@@ -2,12 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 export default function CadastroPage() {
-  const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [maiorDeIdade, setMaiorDeIdade] = useState(false);
@@ -17,10 +14,7 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // destino pós-confirmação (vem da land: /cadastro?next=/anunciar/curriculo etc)
   const [nextPath, setNextPath] = useState("");
-
-  // cooldown pra evitar o AuthApiError de “aguarde X segundos”
   const [cooldown, setCooldown] = useState(0);
 
   function normalizeEmail(v) {
@@ -29,43 +23,35 @@ export default function CadastroPage() {
 
   function sanitizeNext(raw) {
     const v = String(raw || "").trim();
-
     if (!v) return "";
-    // tem que ser caminho interno
     if (!v.startsWith("/")) return "";
-    // bloqueia esquema de protocolo / URL externa e caminhos suspeitos
     if (v.startsWith("//")) return "";
-    if (/^\/\s*$/.test(v)) return "";
     if (v.includes("http:") || v.includes("https:")) return "";
     return v;
   }
 
-  // pega next da URL
   useEffect(() => {
     try {
       const qs = new URLSearchParams(window.location.search);
-      const rawNext = qs.get("next") || "";
-      setNextPath(sanitizeNext(rawNext));
+      setNextPath(sanitizeNext(qs.get("next") || ""));
     } catch {
       setNextPath("");
     }
   }, []);
 
-  // relógio do cooldown
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
 
-  // extrai segundos do erro: “you can only request this after 37 seconds”
   function parseCooldownSeconds(msg) {
     const m = String(msg || "").match(/after\s+(\d+)\s+seconds/i);
     return m ? Number(m[1]) : 0;
   }
 
   const redirectUrl = useMemo(() => {
-    const base = "https://classilagos.shop/auth/callback";
+    const base = "https://classilagos.shop/auth/callback"; // sem www
     return nextPath ? `${base}?next=${encodeURIComponent(nextPath)}` : base;
   }, [nextPath]);
 
@@ -77,26 +63,7 @@ export default function CadastroPage() {
         emailRedirectTo: redirectUrl,
       },
     });
-
     if (error) throw error;
-  }
-
-  async function tryGoIfLogged() {
-    try {
-      const { data } = await supabase.auth.getSession();
-      const ok = !!data?.session;
-      if (!ok) return false;
-
-      // se estiver logado, manda direto pro next; se não tiver next, vai pro login normal
-      if (nextPath) {
-        router.replace(nextPath);
-      } else {
-        router.replace("/login");
-      }
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   async function handleSubmit(e) {
@@ -104,43 +71,29 @@ export default function CadastroPage() {
     setErro("");
     setInfo("");
 
-    // ✅ se já estiver logado, não precisa OTP
-    setLoading(true);
-    const redirected = await tryGoIfLogged();
-    if (redirected) return;
-
     const emailLimpo = normalizeEmail(email);
-    if (!emailLimpo) {
-      setLoading(false);
-      return setErro("Informe o e-mail.");
-    }
-    if (!maiorDeIdade) {
-      setLoading(false);
-      return setErro("Você precisa confirmar que tem 18 anos ou mais.");
-    }
-    if (!aceitaTermos) {
-      setLoading(false);
-      return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
-    }
+    if (!emailLimpo) return setErro("Informe o e-mail.");
+    if (!maiorDeIdade) return setErro("Você precisa confirmar que tem 18 anos ou mais.");
+    if (!aceitaTermos) return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
 
-    if (cooldown > 0) {
-      setLoading(false);
-      return setErro(`Aguarde ${cooldown}s para solicitar um novo link.`);
-    }
+    if (cooldown > 0) return setErro(`Aguarde ${cooldown}s para solicitar um novo link.`);
 
+    setLoading(true);
     try {
       await enviarLink(emailLimpo);
       setShowModal(true);
       setInfo("Link enviado! Confira sua caixa de entrada (e também Spam/Promoções).");
     } catch (err) {
       console.error("Erro ao enviar link:", err);
+      const msg = err?.message || err?.error_description || "Erro desconhecido";
 
-      const seconds = parseCooldownSeconds(err?.message);
+      const seconds = parseCooldownSeconds(msg);
       if (seconds > 0) {
         setCooldown(seconds);
         setErro(`Por segurança, aguarde ${seconds}s para solicitar um novo link.`);
       } else {
-        setErro("Não foi possível enviar o link agora. Tente novamente em instantes.");
+        // ✅ agora mostra o motivo real (pra gente enxergar)
+        setErro(`Falha ao enviar link: ${msg}`);
       }
     } finally {
       setLoading(false);
@@ -153,10 +106,7 @@ export default function CadastroPage() {
 
     const emailLimpo = normalizeEmail(email);
     if (!emailLimpo) return setErro("Informe o e-mail para reenviar.");
-
-    if (cooldown > 0) {
-      return setErro(`Aguarde ${cooldown}s para reenviar.`);
-    }
+    if (cooldown > 0) return setErro(`Aguarde ${cooldown}s para reenviar.`);
 
     setLoading(true);
     try {
@@ -165,13 +115,14 @@ export default function CadastroPage() {
       setInfo("Link reenviado! Confira sua caixa de entrada (e também Spam/Promoções).");
     } catch (err) {
       console.error("Erro ao reenviar link:", err);
+      const msg = err?.message || err?.error_description || "Erro desconhecido";
 
-      const seconds = parseCooldownSeconds(err?.message);
+      const seconds = parseCooldownSeconds(msg);
       if (seconds > 0) {
         setCooldown(seconds);
         setErro(`Por segurança, aguarde ${seconds}s para solicitar um novo link.`);
       } else {
-        setErro("Não foi possível reenviar agora. Tente novamente em instantes.");
+        setErro(`Falha ao reenviar link: ${msg}`);
       }
     } finally {
       setLoading(false);
@@ -253,7 +204,7 @@ export default function CadastroPage() {
               disabled={loading || cooldown > 0}
               className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Processando..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Continuar"}
+              {loading ? "Enviando link..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Continuar"}
             </button>
           </div>
 
@@ -271,13 +222,11 @@ export default function CadastroPage() {
               <h2 className="text-lg font-semibold text-slate-900 mb-1">Quase lá! 📩</h2>
 
               <p className="text-xs text-slate-600 mb-3">
-                Enviamos um link para <strong>{normalizeEmail(email)}</strong>.
-                Abra seu e-mail e clique no botão para confirmar.
+                Enviamos um link para <strong>{normalizeEmail(email)}</strong>. Abra seu e-mail e clique para confirmar.
               </p>
 
               <p className="text-[11px] text-slate-500 mb-4">
-                Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e{" "}
-                <strong>Promoções</strong>.
+                Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e <strong>Promoções</strong>.
               </p>
 
               <div className="space-y-2">
@@ -285,28 +234,4 @@ export default function CadastroPage() {
                   type="button"
                   onClick={handleReenviar}
                   disabled={loading || cooldown > 0}
-                  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Reenviando..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Reenviar link"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
-                >
-                  Fechar
-                </button>
-              </div>
-
-              <p className="mt-3 text-[11px] text-slate-500 text-center">
-                Publicação 100% gratuita • Sem cobrança
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </main>
-  );
-}
-
+                  className="w-full rounded-full border border-slate-300 hover:bg
