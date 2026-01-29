@@ -1,6 +1,7 @@
 "use client";
 
-import PremiumButton from "@/app/components/PremiumButton";
+import PremiumButton from "../../components/PremiumButton";
+
 
 export default function LandEmpregos() {
   return (
