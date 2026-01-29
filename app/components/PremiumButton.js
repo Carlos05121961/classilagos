@@ -4,6 +4,9 @@ import Link from "next/link";
 
 export default function PremiumButton({
   href,
+  onClick,
+  disabled = false,
+  type = "button",
   children,
   variant = "primary", // primary | secondary
   className = "",
@@ -21,9 +24,27 @@ export default function PremiumButton({
 
   const styles = variant === "primary" ? primary : secondary;
 
+  const cls = `${base} ${styles} ${className}`;
+
+  // ✅ Se for link, renderiza Link
+  if (href) {
+    return (
+      <Link href={href} className={cls} aria-disabled={disabled}>
+        {children}
+      </Link>
+    );
+  }
+
+  // ✅ Se for ação, renderiza button
   return (
-    <Link href={href} className={`${base} ${styles} ${className}`}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cls}
+    >
       {children}
-    </Link>
+    </button>
   );
 }
+
