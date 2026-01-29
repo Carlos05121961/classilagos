@@ -230,8 +230,16 @@ export default function CadastroPage() {
               </p>
 
               <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={handleReenviar}
-                  disabled={loading || cooldown > 0}
-                  className="w-full rounded-full border border-slate-300 hover:bg
+<button
+  type="button"
+  onClick={handleReenviar}
+  disabled={loading || cooldown > 0}
+  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  {loading
+    ? "Reenviando..."
+    : cooldown > 0
+    ? `Aguarde ${cooldown}s...`
+    : "Reenviar link"}
+</button>
+
