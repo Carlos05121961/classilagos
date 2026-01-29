@@ -25,11 +25,11 @@ export default function CallbackClient() {
         const nextRaw = searchParams.get("next");
         const nextPath = sanitizeNext(nextRaw);
 
-        // ✅ 1) Primeiro: tenta pegar sessão do HASH (#access_token)
+        // 1) Tenta fluxo por HASH (#access_token) quando existir
         const { data: fromUrl, error: fromUrlError } =
           await supabase.auth.getSessionFromUrl({ storeSession: true });
 
-        // Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
+        // 2) Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
         if (!fromUrl?.session) {
           const code = searchParams.get("code");
 
@@ -37,21 +37,24 @@ export default function CallbackClient() {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) {
               if (!alive) return;
+              console.error("exchangeCodeForSession error:", error);
               setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
               router.replace("/login");
               return;
             }
           } else {
-            // Nem hash nem code => link inválido
             if (!alive) return;
+            if (fromUrlError) console.error("getSessionFromUrl error:", fromUrlError);
             setMsg("Link inválido ou expirado. Indo para o login...");
             router.replace("/login");
             return;
           }
         }
 
-        // ✅ 2) Agora a sessão deve existir
-        const { data: userData } = await supabase.auth.getUser();
+        // 3) Agora a sessão deve existir
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr) console.error("getUser error:", userErr);
+
         const user = userData?.user;
 
         if (!user) {
@@ -61,18 +64,20 @@ export default function CallbackClient() {
           return;
         }
 
-        // ✅ 3) Checa perfil
+        // 4) Checa perfil (metadados)
         const meta = user.user_metadata || {};
         const nome = String(meta.nome || "").trim();
         const cidade = String(meta.cidade || "").trim();
         const whatsapp = String(meta.whatsapp || "").trim();
 
-        const perfilCompleto = nome && cidade && whatsapp;
+        const perfilCompleto = Boolean(nome && cidade && whatsapp);
 
-        // Se faltou perfil: manda pro /perfil preservando o destino
+        // Se faltou perfil: manda pro editar-perfil preservando o destino
         if (!perfilCompleto) {
           if (!alive) return;
-          const url = nextPath ? `/perfil?next=${encodeURIComponent(nextPath)}` : "/perfil";
+          const url = nextPath
+            ? `/editar-perfil?next=${encodeURIComponent(nextPath)}`
+            : "/editar-perfil";
           setMsg("E-mail confirmado! Agora complete seu perfil rapidinho...");
           router.replace(url);
           return;
