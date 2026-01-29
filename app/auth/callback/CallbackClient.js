@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
 function sanitizeNext(raw) {
@@ -14,7 +14,6 @@ function sanitizeNext(raw) {
 
 export default function CallbackClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [msg, setMsg] = useState("Confirmando seu e-mail...");
 
   useEffect(() => {
@@ -22,67 +21,39 @@ export default function CallbackClient() {
 
     async function run() {
       try {
-        const nextRaw = searchParams.get("next");
-        const nextPath = sanitizeNext(nextRaw);
+        const qs = new URLSearchParams(window.location.search);
 
-        // ✅ 1) Primeiro: tenta pegar sessão do HASH (#access_token)
-        const { data: fromUrl, error: fromUrlError } =
-          await supabase.auth.getSessionFromUrl({ storeSession: true });
+        // ✅ destino final (land -> cadastro -> emailRedirectTo -> callback?next=...)
+        const nextRaw = qs.get("next") || "";
+        const nextPath = sanitizeNext(nextRaw) || "/painel";
 
-        // ✅ 2) Se não veio sessão pelo hash, tenta o fluxo por code (PKCE)
-        if (!fromUrl?.session) {
-          const code = searchParams.get("code");
-
-          if (code) {
-            const { error } = await supabase.auth.exchangeCodeForSession(code);
-            if (error) {
-              if (!alive) return;
-              console.error("exchangeCodeForSession error:", error);
-              setMsg("Não conseguimos confirmar automaticamente. Indo para o login...");
-              router.replace("/login");
-              return;
-            }
-          } else {
-            // Nem hash nem code => link inválido
+        // ✅ Fluxo PKCE: se vier "code", troca por sessão
+        const code = qs.get("code");
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        } else {
+          // Alguns links podem não vir com code (ou já foi consumido)
+          // Tentamos pegar sessão existente
+          const { data } = await supabase.auth.getSession();
+          if (!data?.session) {
             if (!alive) return;
-            if (fromUrlError) console.error("getSessionFromUrl error:", fromUrlError);
-            setMsg("Link inválido ou expirado. Indo para o login...");
-            router.replace("/login");
+            setMsg("Link inválido ou expirado. Indo para cadastro...");
+            router.replace("/cadastro");
             return;
           }
         }
 
-        // ✅ 3) Agora a sessão deve existir
-        const { data: userData, error: userErr } = await supabase.auth.getUser();
-        if (userErr) console.error("getUser error:", userErr);
-
-        const user = userData?.user;
-
-        if (!user) {
-          if (!alive) return;
-          setMsg("Sessão confirmada, mas não encontramos seu acesso. Indo para o login...");
-          router.replace("/login");
-          return;
-        }
-
-        // ✅ PRIORIDADE TOTAL (Campanha Empregos):
-        // Se veio com next (currículo/vaga), vai direto pro formulário escolhido.
-        if (nextPath) {
-          if (!alive) return;
-          setMsg("E-mail confirmado! Indo para continuar...");
-          router.replace(nextPath);
-          return;
-        }
-
-        // ✅ Sem next: segue padrão do site
         if (!alive) return;
-        setMsg("E-mail confirmado! Entrando no seu painel...");
-        router.replace("/painel");
+        setMsg("E-mail confirmado! Redirecionando...");
+
+        // ✅ SEMPRE respeita next quando existir
+        router.replace(nextPath);
       } catch (e) {
         console.error(e);
         if (!alive) return;
-        setMsg("Erro inesperado. Indo para o login...");
-        router.replace("/login");
+        setMsg("Não foi possível confirmar seu e-mail. Indo para cadastro...");
+        router.replace("/cadastro");
       }
     }
 
@@ -90,13 +61,16 @@ export default function CallbackClient() {
     return () => {
       alive = false;
     };
-  }, [router, searchParams]);
+  }, [router]);
 
   return (
     <main className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
         <h1 className="text-xl font-semibold text-slate-900 mb-2">Confirmação de e-mail</h1>
         <p className="text-sm text-slate-600">{msg}</p>
+        <p className="mt-2 text-[11px] text-slate-500">
+          Classilagos Empregos • 100% gratuito
+        </p>
       </div>
     </main>
   );
