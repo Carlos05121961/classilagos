@@ -14,7 +14,10 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  // destino pós-confirmação (vem da land: /cadastro?next=/anunciar/curriculo etc)
   const [nextPath, setNextPath] = useState("");
+
+  // cooldown pra evitar o AuthApiError de “aguarde X segundos”
   const [cooldown, setCooldown] = useState(0);
 
   function normalizeEmail(v) {
@@ -30,21 +33,25 @@ export default function CadastroPage() {
     return v;
   }
 
+  // pega next da URL
   useEffect(() => {
     try {
       const qs = new URLSearchParams(window.location.search);
-      setNextPath(sanitizeNext(qs.get("next") || ""));
+      const rawNext = qs.get("next") || "";
+      setNextPath(sanitizeNext(rawNext));
     } catch {
       setNextPath("");
     }
   }, []);
 
+  // relógio do cooldown
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
 
+  // extrai segundos do erro: “you can only request this after 37 seconds”
   function parseCooldownSeconds(msg) {
     const m = String(msg || "").match(/after\s+(\d+)\s+seconds/i);
     return m ? Number(m[1]) : 0;
@@ -63,6 +70,7 @@ export default function CadastroPage() {
         emailRedirectTo: redirectUrl,
       },
     });
+
     if (error) throw error;
   }
 
@@ -92,7 +100,7 @@ export default function CadastroPage() {
         setCooldown(seconds);
         setErro(`Por segurança, aguarde ${seconds}s para solicitar um novo link.`);
       } else {
-        // ✅ agora mostra o motivo real (pra gente enxergar)
+        // mostra o motivo real para diagnosticar
         setErro(`Falha ao enviar link: ${msg}`);
       }
     } finally {
@@ -106,6 +114,7 @@ export default function CadastroPage() {
 
     const emailLimpo = normalizeEmail(email);
     if (!emailLimpo) return setErro("Informe o e-mail para reenviar.");
+
     if (cooldown > 0) return setErro(`Aguarde ${cooldown}s para reenviar.`);
 
     setLoading(true);
@@ -216,47 +225,50 @@ export default function CadastroPage() {
           </p>
         </form>
 
-{showModal && (
-  <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
-      <h2 className="text-lg font-semibold text-slate-900 mb-1">Quase lá! 📩</h2>
+        {showModal && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+            <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl px-5 py-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Quase lá! 📩</h2>
 
-      <p className="text-xs text-slate-600 mb-3">
-        Enviamos um link para <strong>{normalizeEmail(email)}</strong>. Abra seu e-mail e clique
-        para confirmar.
-      </p>
+              <p className="text-xs text-slate-600 mb-3">
+                Enviamos um link para <strong>{normalizeEmail(email)}</strong>. Abra seu e-mail e clique para confirmar.
+              </p>
 
-      <p className="text-[11px] text-slate-500 mb-4">
-        Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e{" "}
-        <strong>Promoções</strong>.
-      </p>
+              <p className="text-[11px] text-slate-500 mb-4">
+                Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e{" "}
+                <strong>Promoções</strong>.
+              </p>
 
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={handleReenviar}
-          disabled={loading || cooldown > 0}
-          className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loading
-            ? "Reenviando..."
-            : cooldown > 0
-            ? `Aguarde ${cooldown}s...`
-            : "Reenviar link"}
-        </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleReenviar}
+                  disabled={loading || cooldown > 0}
+                  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading
+                    ? "Reenviando..."
+                    : cooldown > 0
+                    ? `Aguarde ${cooldown}s...`
+                    : "Reenviar link"}
+                </button>
 
-        <button
-          type="button"
-          onClick={() => setShowModal(false)}
-          className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
-        >
-          Fechar
-        </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2"
+                >
+                  Fechar
+                </button>
+              </div>
+
+              <p className="mt-3 text-[11px] text-slate-500 text-center">
+                Publicação 100% gratuita • Sem cobrança
+              </p>
+            </div>
+          </div>
+        )}
       </div>
-
-      <p className="mt-3 text-[11px] text-slate-500 text-center">
-        Publicação 100% gratuita • Sem cobrança
-      </p>
-    </div>
-  </div>
-)}
+    </main>
+  );
+}
