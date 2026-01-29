@@ -52,9 +52,10 @@ export default function LandEmpregos() {
               Anunciar uma vaga
             </PremiumButton>
 
-            <p className="pt-2 text-xs text-slate-500">
-              Ao continuar, você confirma seu e-mail para publicar (100% grátis).
-            </p>
+<p className="pt-2 text-xs text-slate-500">
+  Plataforma 100% gratuita para currículos e vagas.
+</p>
+
           </div>
         </div>
       </section>
