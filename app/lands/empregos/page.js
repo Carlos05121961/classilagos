@@ -1,9 +1,54 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../supabaseClient";
 import PremiumButton from "../../components/PremiumButton";
 
+const NEXT_CURRICULO = "/anunciar/curriculo";
+const NEXT_VAGA = "/anunciar/empregos";
 
 export default function LandEmpregos() {
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function check() {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const ok = !!data?.session;
+        if (!mounted) return;
+        setIsLogged(ok);
+      } catch {
+        // se der erro, mantém como não logado (não trava a landing)
+        if (!mounted) return;
+        setIsLogged(false);
+      } finally {
+        if (!mounted) return;
+        setCheckingAuth(false);
+      }
+    }
+
+    check();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function go(nextPath) {
+    // Se está logado, vai direto pro form.
+    // Se não, manda pro cadastro com ?next=
+    if (isLogged) {
+      router.push(nextPath);
+      return;
+    }
+    router.push(`/cadastro?next=${encodeURIComponent(nextPath)}`);
+  }
+
   return (
     <main className="min-h-[70vh] px-4 py-10 bg-slate-50">
       <section className="mx-auto max-w-4xl">
@@ -32,10 +77,12 @@ export default function LandEmpregos() {
               <p className="text-sm font-semibold text-slate-900">Sem cobrança</p>
               <p className="mt-1 text-xs text-slate-600">Publicação 100% gratuita.</p>
             </div>
+
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Contato direto</p>
               <p className="mt-1 text-xs text-slate-600">Fale com empresa/candidato.</p>
             </div>
+
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Região dos Lagos</p>
               <p className="mt-1 text-xs text-slate-600">Vagas e currículos locais.</p>
@@ -44,18 +91,25 @@ export default function LandEmpregos() {
 
           {/* CTAs */}
           <div className="mt-8 space-y-3">
-            <PremiumButton href="/cadastro?next=/anunciar/curriculo" variant="primary">
+            <PremiumButton
+              onClick={() => go(NEXT_CURRICULO)}
+              variant="primary"
+              disabled={checkingAuth}
+            >
               Começar meu currículo →
             </PremiumButton>
 
-            <PremiumButton href="/cadastro?next=/anunciar/empregos" variant="secondary">
+            <PremiumButton
+              onClick={() => go(NEXT_VAGA)}
+              variant="secondary"
+              disabled={checkingAuth}
+            >
               Anunciar uma vaga
             </PremiumButton>
 
-<p className="pt-2 text-xs text-slate-500">
-  Plataforma 100% gratuita para currículos e vagas.
-</p>
-
+            <p className="pt-2 text-xs text-slate-500">
+              Plataforma 100% gratuita para currículos e vagas.
+            </p>
           </div>
         </div>
       </section>
