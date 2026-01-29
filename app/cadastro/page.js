@@ -1,8 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
+
+function normalizeEmail(v) {
+  return String(v || "").trim().toLowerCase();
+}
+
+// ✅ segurança: só aceita caminhos internos
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  return v;
+}
+
+// ✅ pega cooldown do erro do Supabase: "you can only request this after XX seconds"
+function parseCooldownSeconds(err) {
+  const msg = String(err?.message || err || "");
+  const m = msg.match(/after\s+(\d+)\s+seconds/i);
+  return m ? parseInt(m[1], 10) : 0;
+}
 
 export default function CadastroPage() {
   const [email, setEmail] = useState("");
@@ -16,19 +36,10 @@ export default function CadastroPage() {
   // ✅ Destino pós-confirmação (vem da land: /cadastro?next=/anunciar/curriculo etc)
   const [nextPath, setNextPath] = useState("");
 
-  function normalizeEmail(v) {
-    return String(v || "").trim().toLowerCase();
-  }
+  // ✅ Cooldown para reenviar (evita rate limit virar "erro")
+  const [cooldown, setCooldown] = useState(0);
 
-  // ✅ segurança: só aceita caminhos internos
-  function sanitizeNext(raw) {
-    const v = String(raw || "").trim();
-    if (!v) return "";
-    if (!v.startsWith("/")) return "";
-    // bloqueia //, http(s), e afins (por precaução)
-    if (v.startsWith("//")) return "";
-    return v;
-  }
+  const emailLimpoMemo = useMemo(() => normalizeEmail(email), [email]);
 
   // ✅ pega next da URL sem usar useSearchParams
   useEffect(() => {
@@ -42,8 +53,17 @@ export default function CadastroPage() {
     }
   }, []);
 
+  // ✅ contador de cooldown (1s)
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => {
+      setCooldown((c) => (c > 0 ? c - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
+
   async function enviarLink(emailLimpo) {
-  const base = "https://classilagos.shop/auth/callback";
+    const base = "https://classilagos.shop/auth/callback";
 
     // ✅ repassa o next pro callback (se existir)
     const redirect = nextPath
@@ -78,7 +98,15 @@ export default function CadastroPage() {
       setShowModal(true);
     } catch (error) {
       console.error("Erro ao enviar link:", error);
-      setErro("Não foi possível enviar o link agora. Tente novamente em instantes.");
+
+      const wait = parseCooldownSeconds(error);
+      if (wait > 0) {
+        setCooldown(wait);
+        setShowModal(true);
+        setErro("");
+      } else {
+        setErro("Não foi possível enviar o link agora. Tente novamente em instantes.");
+      }
     } finally {
       setLoading(false);
     }
@@ -86,15 +114,31 @@ export default function CadastroPage() {
 
   async function handleReenviar() {
     setErro("");
+
     const emailLimpo = normalizeEmail(email);
     if (!emailLimpo) return setErro("Informe o e-mail para reenviar.");
+
+    // ✅ evita chamar API durante cooldown
+    if (cooldown > 0) {
+      setShowModal(true);
+      return;
+    }
+
     setLoading(true);
     try {
       await enviarLink(emailLimpo);
       setShowModal(true);
     } catch (error) {
       console.error("Erro ao reenviar link:", error);
-      setErro("Não foi possível reenviar agora. Tente novamente em instantes.");
+
+      const wait = parseCooldownSeconds(error);
+      if (wait > 0) {
+        setCooldown(wait);
+        setShowModal(true);
+        setErro("");
+      } else {
+        setErro("Não foi possível reenviar agora. Tente novamente em instantes.");
+      }
     } finally {
       setLoading(false);
     }
@@ -105,7 +149,7 @@ export default function CadastroPage() {
       <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl px-6 py-6 relative">
         <h1 className="text-2xl font-semibold text-slate-900 mb-1">Entrar / Criar conta</h1>
         <p className="text-sm text-slate-600 mb-4">
-          Comece pelo seu e-mail. Você confirma na caixa de entrada e depois completa seu perfil.
+          Comece pelo seu e-mail. Você confirma na caixa de entrada e depois continua exatamente de onde parou.
         </p>
 
         {erro && (
@@ -186,7 +230,7 @@ export default function CadastroPage() {
               <h2 className="text-lg font-semibold text-slate-900 mb-1">Quase lá! 📩</h2>
 
               <p className="text-xs text-slate-600 mb-3">
-                Enviamos um link para <strong>{normalizeEmail(email)}</strong>.
+                Enviamos um link para <strong>{emailLimpoMemo}</strong>.
                 Abra seu e-mail e clique no botão para confirmar o acesso.
               </p>
 
@@ -195,14 +239,24 @@ export default function CadastroPage() {
                 <strong>Spam</strong> e <strong>Promoções</strong>.
               </p>
 
+              {cooldown > 0 && (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+                  Por segurança, aguarde <strong>{cooldown}s</strong> para reenviar.
+                </div>
+              )}
+
               <div className="space-y-2">
                 <button
                   type="button"
                   onClick={handleReenviar}
-                  disabled={loading}
-                  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2"
+                  disabled={loading || cooldown > 0}
+                  className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Reenviando..." : "Reenviar link"}
+                  {cooldown > 0
+                    ? `Aguarde ${cooldown}s para reenviar`
+                    : loading
+                      ? "Reenviando..."
+                      : "Reenviar link"}
                 </button>
 
                 <button
@@ -212,6 +266,13 @@ export default function CadastroPage() {
                 >
                   Fechar
                 </button>
+
+                {nextPath ? (
+                  <p className="pt-1 text-center text-[11px] text-slate-500">
+                    Depois de confirmar, você será levado para continuar:{" "}
+                    <span className="font-semibold">{nextPath}</span>
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
