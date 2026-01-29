@@ -1,53 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../supabaseClient";
 import PremiumButton from "../../components/PremiumButton";
 
 const NEXT_CURRICULO = "/anunciar/curriculo";
 const NEXT_VAGA = "/anunciar/empregos";
 
 export default function LandEmpregos() {
-  const router = useRouter();
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [isLogged, setIsLogged] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function check() {
-      try {
-        const { data } = await supabase.auth.getSession();
-        const ok = !!data?.session;
-        if (!mounted) return;
-        setIsLogged(ok);
-      } catch {
-        // se der erro, mantém como não logado (não trava a landing)
-        if (!mounted) return;
-        setIsLogged(false);
-      } finally {
-        if (!mounted) return;
-        setCheckingAuth(false);
-      }
-    }
-
-    check();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  function go(nextPath) {
-    // Se está logado, vai direto pro form.
-    // Se não, manda pro cadastro com ?next=
-    if (isLogged) {
-      router.push(nextPath);
-      return;
-    }
-    router.push(`/cadastro?next=${encodeURIComponent(nextPath)}`);
-  }
+  const hrefCurriculo = `/cadastro?next=${encodeURIComponent(NEXT_CURRICULO)}`;
+  const hrefVaga = `/cadastro?next=${encodeURIComponent(NEXT_VAGA)}`;
 
   return (
     <main className="min-h-[70vh] px-4 py-10 bg-slate-50">
@@ -91,19 +51,11 @@ export default function LandEmpregos() {
 
           {/* CTAs */}
           <div className="mt-8 space-y-3">
-            <PremiumButton
-              onClick={() => go(NEXT_CURRICULO)}
-              variant="primary"
-              disabled={checkingAuth}
-            >
+            <PremiumButton href={hrefCurriculo} variant="primary">
               Começar meu currículo →
             </PremiumButton>
 
-            <PremiumButton
-              onClick={() => go(NEXT_VAGA)}
-              variant="secondary"
-              disabled={checkingAuth}
-            >
+            <PremiumButton href={hrefVaga} variant="secondary">
               Anunciar uma vaga
             </PremiumButton>
 
