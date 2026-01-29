@@ -43,7 +43,7 @@ export default function CadastroPage() {
   }, []);
 
   async function enviarLink(emailLimpo) {
-    const base = "https://www.classilagos.shop/auth/callback";
+  const base = "https://classilagos.shop/auth/callback";
 
     // ✅ repassa o next pro callback (se existir)
     const redirect = nextPath
