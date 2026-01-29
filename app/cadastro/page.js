@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 export default function CadastroPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [maiorDeIdade, setMaiorDeIdade] = useState(false);
@@ -26,9 +29,14 @@ export default function CadastroPage() {
 
   function sanitizeNext(raw) {
     const v = String(raw || "").trim();
+
     if (!v) return "";
+    // tem que ser caminho interno
     if (!v.startsWith("/")) return "";
+    // bloqueia esquema de protocolo / URL externa e caminhos suspeitos
     if (v.startsWith("//")) return "";
+    if (/^\/\s*$/.test(v)) return "";
+    if (v.includes("http:") || v.includes("https:")) return "";
     return v;
   }
 
@@ -57,7 +65,8 @@ export default function CadastroPage() {
   }
 
   const redirectUrl = useMemo(() => {
-    const base = "https://classilagos.shop/auth/callback"; // ✅ SEM WWW
+    // ✅ padroniza com WWW (seu domínio final que você usa no tráfego)
+    const base = "https://www.classilagos.shop/auth/callback";
     return nextPath ? `${base}?next=${encodeURIComponent(nextPath)}` : base;
   }, [nextPath]);
 
@@ -73,21 +82,52 @@ export default function CadastroPage() {
     if (error) throw error;
   }
 
+  async function tryGoIfLogged() {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const ok = !!data?.session;
+      if (!ok) return false;
+
+      // se estiver logado, manda direto pro next; se não tiver next, vai pro login normal
+      if (nextPath) {
+        router.replace(nextPath);
+      } else {
+        router.replace("/login");
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
     setInfo("");
 
-    const emailLimpo = normalizeEmail(email);
-    if (!emailLimpo) return setErro("Informe o e-mail.");
-    if (!maiorDeIdade) return setErro("Você precisa confirmar que tem 18 anos ou mais.");
-    if (!aceitaTermos) return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
+    // ✅ se já estiver logado, não precisa OTP
+    setLoading(true);
+    const redirected = await tryGoIfLogged();
+    if (redirected) return;
 
-    if (cooldown > 0) {
-      return setErro(`Aguarde ${cooldown}s para solicitar um novo link.`);
+    const emailLimpo = normalizeEmail(email);
+    if (!emailLimpo) {
+      setLoading(false);
+      return setErro("Informe o e-mail.");
+    }
+    if (!maiorDeIdade) {
+      setLoading(false);
+      return setErro("Você precisa confirmar que tem 18 anos ou mais.");
+    }
+    if (!aceitaTermos) {
+      setLoading(false);
+      return setErro("Você precisa aceitar os Termos de Uso e a Política de Privacidade.");
     }
 
-    setLoading(true);
+    if (cooldown > 0) {
+      setLoading(false);
+      return setErro(`Aguarde ${cooldown}s para solicitar um novo link.`);
+    }
 
     try {
       await enviarLink(emailLimpo);
@@ -214,7 +254,7 @@ export default function CadastroPage() {
               disabled={loading || cooldown > 0}
               className="w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Enviando link..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Continuar"}
+              {loading ? "Processando..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Continuar"}
             </button>
           </div>
 
@@ -237,7 +277,8 @@ export default function CadastroPage() {
               </p>
 
               <p className="text-[11px] text-slate-500 mb-4">
-                Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e <strong>Promoções</strong>.
+                Dica: se não aparecer na caixa de entrada, confira também <strong>Spam</strong> e{" "}
+                <strong>Promoções</strong>.
               </p>
 
               <div className="space-y-2">
