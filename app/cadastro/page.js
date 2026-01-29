@@ -65,8 +65,7 @@ export default function CadastroPage() {
   }
 
   const redirectUrl = useMemo(() => {
-    // ✅ padroniza com WWW (seu domínio final que você usa no tráfego)
-    const base = "https://www.classilagos.shop/auth/callback";
+    const base = "https://classilagos.shop/auth/callback";
     return nextPath ? `${base}?next=${encodeURIComponent(nextPath)}` : base;
   }, [nextPath]);
 
