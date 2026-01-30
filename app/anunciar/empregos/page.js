@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
 import { supabase } from "../../supabaseClient";
@@ -13,9 +13,27 @@ function isPerfilCompleto(user) {
   return Boolean(nome && cidade && whatsapp);
 }
 
+function getSrcFromUrl() {
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    return (qs.get("src") || "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 export default function AnunciarEmpregosPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [isLand, setIsLand] = useState(false);
+
+  const nextDest = useMemo(() => {
+    return isLand ? "/anunciar/empregos?src=land" : "/anunciar/empregos";
+  }, [isLand]);
+
+  useEffect(() => {
+    setIsLand(getSrcFromUrl() === "land");
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -25,24 +43,29 @@ export default function AnunciarEmpregosPage() {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // 1) Sem sessão -> vai pro cadastro (mantém o destino)
+        // ✅ MODO LAND: libera o form (anti-spam é no cadastro/form)
+        if (isLand) {
+          if (!alive) return;
+          setReady(true);
+          return;
+        }
+
+        // 🔵 MODO NORMAL DO SITE (mantém sua regra antiga)
         if (!user) {
-          router.replace("/cadastro?next=/anunciar/empregos");
+          router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        // 2) Sessão ok, mas perfil incompleto -> vai pro perfil (mantém o destino)
         if (!isPerfilCompleto(user)) {
-          router.replace("/perfil?next=/anunciar/empregos");
+          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        // 3) Tudo ok -> libera
         if (!alive) return;
         setReady(true);
       } catch (e) {
         console.error(e);
-        router.replace("/cadastro?next=/anunciar/empregos");
+        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
       }
     }
 
@@ -51,7 +74,7 @@ export default function AnunciarEmpregosPage() {
     return () => {
       alive = false;
     };
-  }, [router]);
+  }, [router, isLand, nextDest]);
 
   if (!ready) {
     return (
@@ -67,7 +90,7 @@ export default function AnunciarEmpregosPage() {
     <main className="max-w-4xl mx-auto px-4 py-10">
       <header className="mb-8">
         <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
-          Anuncie gratuitamente
+          Anuncie gratuitamente {isLand ? "• Modo campanha" : ""}
         </p>
 
         <h1 className="text-2xl md:text-3xl font-bold mb-2">
@@ -85,4 +108,3 @@ export default function AnunciarEmpregosPage() {
     </main>
   );
 }
-
