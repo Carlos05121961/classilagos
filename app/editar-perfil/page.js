@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+import PremiumButton from "../components/PremiumButton"; // ✅ ajuste o caminho se necessário
 
 function sanitizeNext(raw) {
   const v = String(raw || "").trim();
@@ -112,7 +113,7 @@ export default function EditarPerfilPage() {
         nome: nome.trim(),
         cidade: cidade.trim(),
         whatsapp: whatsapp.trim(),
-        // ✅ agora opcionais (como você quer)
+        // ✅ opcionais
         cep: String(cep || "").trim(),
         endereco: String(endereco || "").trim(),
         numero: String(numero || "").trim(),
@@ -162,7 +163,6 @@ export default function EditarPerfilPage() {
             </div>
           </div>
 
-          {/* barra progresso */}
           <div className="mt-2 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
             <div className="h-full w-1/2 bg-emerald-500 rounded-full" />
           </div>
@@ -174,10 +174,7 @@ export default function EditarPerfilPage() {
           <p className="text-xs text-slate-600">
             É rápido e ajuda as empresas a confiarem nas informações.
             {destino ? (
-              <>
-                {" "}
-                Depois de salvar, você será levado de volta para continuar seu anúncio.
-              </>
+              <> Depois de salvar, você será levado de volta para continuar seu anúncio.</>
             ) : null}
           </p>
         </div>
@@ -195,7 +192,6 @@ export default function EditarPerfilPage() {
         )}
 
         <form onSubmit={salvarDados} className="space-y-3 text-xs">
-          {/* NOME */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
               Nome completo *
@@ -209,7 +205,6 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* CIDADE */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
               Cidade *
@@ -223,7 +218,6 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* WHATSAPP */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
               WhatsApp / Telefone *
@@ -237,7 +231,6 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* EMAIL (SOMENTE LEITURA) */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
               E-mail (não editável)
@@ -250,7 +243,6 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* DATA DE NASCIMENTO */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
               Data de nascimento *
@@ -263,13 +255,11 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* Dados opcionais */}
           <div className="pt-1">
             <div className="text-[11px] text-slate-500 mb-2">
               Endereço é opcional (você pode preencher depois).
             </div>
 
-            {/* CEP */}
             <div className="mb-3">
               <label className="block text-slate-700 font-semibold mb-1">
                 CEP (opcional)
@@ -283,7 +273,6 @@ export default function EditarPerfilPage() {
               />
             </div>
 
-            {/* ENDEREÇO + NÚMERO */}
             <div className="grid grid-cols-3 gap-3 mb-3">
               <div className="col-span-2">
                 <label className="block text-slate-700 font-semibold mb-1">
@@ -310,7 +299,6 @@ export default function EditarPerfilPage() {
               </div>
             </div>
 
-            {/* BAIRRO + UF */}
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
                 <label className="block text-slate-700 font-semibold mb-1">
@@ -339,24 +327,32 @@ export default function EditarPerfilPage() {
             </div>
           </div>
 
-          {/* BOTÕES */}
-          <button
-            type="submit"
-            disabled={salvando}
-            className="mt-2 w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 disabled:opacity-60"
-          >
-            {salvando ? "Salvando…" : destino ? "Salvar e continuar →" : "Salvar alterações"}
-          </button>
+          {/* ✅ PremiumButton como submit */}
+          <div className="pt-2">
+            <PremiumButton
+              as="button"
+              type="submit"
+              variant="primary"
+              disabled={salvando}
+              className="w-full"
+            >
+              {salvando
+                ? "Salvando…"
+                : destino
+                ? "Salvar e continuar →"
+                : "Salvar alterações"}
+            </PremiumButton>
 
-          {destino ? (
-            <p className="text-[11px] text-slate-500 text-center">
-              Você será redirecionado automaticamente para continuar seu anúncio.
-            </p>
-          ) : (
-            <p className="text-[11px] text-slate-500 text-center">
-              Classilagos • Dados protegidos • Plataforma gratuita
-            </p>
-          )}
+            {destino ? (
+              <p className="mt-2 text-[11px] text-slate-500 text-center">
+                Você será redirecionado automaticamente para continuar seu anúncio.
+              </p>
+            ) : (
+              <p className="mt-2 text-[11px] text-slate-500 text-center">
+                Classilagos • Dados protegidos • Plataforma gratuita
+              </p>
+            )}
+          </div>
         </form>
       </div>
     </main>
