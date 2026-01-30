@@ -331,11 +331,8 @@ export default function PerfilPage() {
                   }`}
                   title="Confirmar WhatsApp"
                 >
-                  Confirmar WhatsApp pelo WhatsApp
+                    Confirmar WhatsApp (opcional — você pode fazer depois)
                 </a>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Você vai enviar uma mensagem automática para confirmar seu número (sem código/SMS).
-                </p>
               </div>
             </div>
 
