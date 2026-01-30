@@ -13,6 +13,20 @@ function sanitizeNext(raw) {
   return v;
 }
 
+function getSavedRedirect() {
+  try {
+    return sanitizeNext(localStorage.getItem("postAuthRedirect") || "");
+  } catch {
+    return "";
+  }
+}
+
+function clearSavedRedirect() {
+  try {
+    localStorage.removeItem("postAuthRedirect");
+  } catch {}
+}
+
 export default function CallbackClient() {
   const router = useRouter();
   const [msg, setMsg] = useState("Confirmando seu e-mail...");
@@ -23,9 +37,17 @@ export default function CallbackClient() {
     async function run() {
       const qs = new URLSearchParams(window.location.search);
 
-      // ✅ destino final (land -> cadastro -> emailRedirectTo -> callback?next=...)
+      const source = (qs.get("source") || "").trim(); // ex: "empregos"
       const nextRaw = qs.get("next") || "";
-      const nextPath = sanitizeNext(nextRaw) || "/painel";
+      const nextFromQuery = sanitizeNext(nextRaw);
+      const nextFromStorage = getSavedRedirect();
+
+      // ✅ prioridade total: query > storage > fallback por source > /painel
+      const fallbackBySource =
+        source === "empregos" ? "/empregos" : "";
+
+      const nextPath =
+        nextFromQuery || nextFromStorage || fallbackBySource || "/painel";
 
       try {
         // ✅ Fluxo PKCE: se vier "code", troca por sessão
@@ -39,21 +61,23 @@ export default function CallbackClient() {
           const { data } = await supabase.auth.getSession();
           if (!data?.session) {
             if (!alive) return;
-            setMsg("Link inválido ou expirado. Voltando para cadastro...");
+            setMsg("Link inválido ou expirado. Voltando...");
             router.replace(`/cadastro?next=${encodeURIComponent(nextPath)}`);
             return;
           }
         }
 
         if (!alive) return;
-        setMsg("E-mail confirmado! Redirecionando...");
 
-        // ✅ SEMPRE respeita next quando existir
+        // ✅ se chegou aqui, login OK — pode limpar o storage
+        clearSavedRedirect();
+
+        setMsg("E-mail confirmado! Redirecionando...");
         router.replace(nextPath);
       } catch (e) {
         console.error(e);
         if (!alive) return;
-        setMsg("Não foi possível confirmar seu e-mail. Voltando para cadastro...");
+        setMsg("Não foi possível confirmar seu e-mail. Voltando...");
         router.replace(`/cadastro?next=${encodeURIComponent(nextPath)}`);
       }
     }
@@ -67,9 +91,13 @@ export default function CallbackClient() {
   return (
     <main className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 text-center">
-        <h1 className="text-xl font-semibold text-slate-900 mb-2">Confirmação de e-mail</h1>
+        <h1 className="text-xl font-semibold text-slate-900 mb-2">
+          Confirmação de e-mail
+        </h1>
         <p className="text-sm text-slate-600">{msg}</p>
-        <p className="mt-2 text-[11px] text-slate-500">Classilagos Empregos • 100% gratuito</p>
+        <p className="mt-2 text-[11px] text-slate-500">
+          Classilagos Empregos • 100% gratuito
+        </p>
       </div>
     </main>
   );
