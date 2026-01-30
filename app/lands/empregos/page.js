@@ -52,7 +52,7 @@ export default function LandEmpregos() {
             <PremiumButton
               href="/cadastro?src=land&next=/anunciar/empregos"
               variant="primary"
-              className="py-3 text-base bg-gradient-to-r from-emerald-500 via-cyan-500 to-sky-600 shadow-[0_0_16px_rgba(0,180,255,0.45)] hover:scale-[1.02]"
+className="py-3 text-base bg-gradient-to-r from-lime-500 via-emerald-500 to-green-600 shadow-[0_0_14px_rgba(34,197,94,0.45)] hover:scale-[1.02]"
             >
               Anunciar uma vaga
             </PremiumButton>
