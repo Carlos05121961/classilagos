@@ -1,32 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
-import PremiumButton from "../components/PremiumButton"; // ✅ ajuste o caminho se necessário
-
-function sanitizeNext(raw) {
-  const v = String(raw || "").trim();
-  if (!v) return "";
-  if (!v.startsWith("/")) return "";
-  if (v.startsWith("//")) return "";
-  if (v.includes("http:") || v.includes("https:")) return "";
-  return v;
-}
-
-function getPostAuthRedirect() {
-  try {
-    return sanitizeNext(localStorage.getItem("postAuthRedirect") || "");
-  } catch {
-    return "";
-  }
-}
-
-function clearPostAuthRedirect() {
-  try {
-    localStorage.removeItem("postAuthRedirect");
-  } catch {}
-}
+import PremiumButton from "../components/PremiumButton";
 
 export default function EditarPerfilPage() {
   const router = useRouter();
@@ -45,33 +22,28 @@ export default function EditarPerfilPage() {
   const [dataNascimento, setDataNascimento] = useState("");
   const [email, setEmail] = useState("");
 
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
-
-  // ✅ destino (quando veio da land/cadastro)
-  const destino = useMemo(() => getPostAuthRedirect(), []);
 
   useEffect(() => {
     async function carregar() {
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error || !data?.user) {
+      const { data } = await supabase.auth.getUser();
+      if (!data?.user) {
         router.push("/login");
         return;
       }
 
       const u = data.user;
-      const meta = u.user_metadata || {};
+      const m = u.user_metadata || {};
 
-      setNome(meta.nome || "");
-      setCidade(meta.cidade || "");
-      setWhatsapp(meta.whatsapp || "");
-      setCep(meta.cep || "");
-      setEndereco(meta.endereco || "");
-      setNumero(meta.numero || "");
-      setBairro(meta.bairro || "");
-      setUf(meta.uf || "");
-      setDataNascimento(meta.data_nascimento || "");
+      setNome(m.nome || "");
+      setCidade(m.cidade || "");
+      setWhatsapp(m.whatsapp || "");
+      setCep(m.cep || "");
+      setEndereco(m.endereco || "");
+      setNumero(m.numero || "");
+      setBairro(m.bairro || "");
+      setUf(m.uf || "");
+      setDataNascimento(m.data_nascimento || "");
       setEmail(u.email || "");
 
       setLoading(false);
@@ -93,266 +65,92 @@ export default function EditarPerfilPage() {
   async function salvarDados(e) {
     e.preventDefault();
     setErro("");
-    setMensagem("");
 
-    // ✅ essenciais (rápidos)
-    if (!nome.trim()) return setErro("Informe seu nome completo.");
-    if (!cidade.trim()) return setErro("Informe sua cidade.");
-    if (!whatsapp.trim()) return setErro("Informe um telefone/WhatsApp válido.");
-    if (!dataNascimento) return setErro("Informe sua data de nascimento.");
+    if (!nome || !cidade || !whatsapp || !cep || !endereco || !numero || !bairro || !uf || !dataNascimento) {
+      setErro("Preencha os campos obrigatórios.");
+      return;
+    }
 
     const idade = calcularIdade(dataNascimento);
     if (idade !== null && idade < 18) {
-      return setErro("Para usar o Classilagos é necessário ter 18 anos ou mais.");
+      setErro("É necessário ter 18 anos ou mais.");
+      return;
     }
 
     setSalvando(true);
 
     const { error } = await supabase.auth.updateUser({
       data: {
-        nome: nome.trim(),
-        cidade: cidade.trim(),
-        whatsapp: whatsapp.trim(),
-        // ✅ opcionais
-        cep: String(cep || "").trim(),
-        endereco: String(endereco || "").trim(),
-        numero: String(numero || "").trim(),
-        bairro: String(bairro || "").trim(),
-        uf: String(uf || "").trim().toUpperCase(),
+        nome,
+        cidade,
+        whatsapp,
+        cep,
+        endereco,
+        numero,
+        bairro,
+        uf,
         data_nascimento: dataNascimento,
       },
     });
 
     setSalvando(false);
 
-    if (error) {
-      console.error(error);
-      setErro("Não foi possível salvar as alterações. Tente novamente.");
-      return;
+    if (!error) {
+      router.back();
+    } else {
+      setErro("Erro ao salvar. Tente novamente.");
     }
-
-    // ✅ se existe destino (land/cadastro), volta automaticamente
-    if (destino) {
-      clearPostAuthRedirect();
-      router.replace(destino);
-      return;
-    }
-
-    setMensagem("Dados atualizados com sucesso!");
   }
 
   if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center text-sm text-slate-600">
-        Carregando dados…
-      </main>
-    );
+    return <main className="min-h-screen flex items-center justify-center">Carregando…</main>;
   }
 
   return (
-    <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-sm px-6 py-7">
-        {/* Topo: etapa */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-semibold text-slate-700">
-              Etapa 1 de 2 • Dados rápidos
-            </div>
-            <div className="text-[11px] text-slate-500">
-              {destino ? "Você volta automaticamente" : "Atualize quando quiser"}
-            </div>
-          </div>
+    <main className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="mx-auto max-w-xl">
 
-          <div className="mt-2 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-            <div className="h-full w-1/2 bg-emerald-500 rounded-full" />
-          </div>
-
-          <h1 className="mt-4 text-xl font-bold text-slate-900 mb-1">
-            Complete seu perfil
-          </h1>
-
-          <p className="text-xs text-slate-600">
-            É rápido e ajuda as empresas a confiarem nas informações.
-            {destino ? (
-              <> Depois de salvar, você será levado de volta para continuar seu anúncio.</>
-            ) : null}
+        {/* 🔝 TARJA SUPERIOR */}
+        <div className="mb-6 rounded-3xl p-6 text-white shadow-lg bg-gradient-to-r from-sky-500 via-cyan-500 to-emerald-500">
+          <h1 className="text-2xl font-bold mb-1">Complete seu perfil</h1>
+          <p className="text-sm opacity-95">
+            É rápido e só uma vez. Depois você continua seu anúncio.
+          </p>
+          <p className="mt-1 text-xs opacity-80">
+            Seu e-mail: {email}
           </p>
         </div>
 
-        {erro && (
-          <div className="mb-3 rounded-2xl bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-700">
-            {erro}
-          </div>
-        )}
+        {/* FORM */}
+        <form
+          onSubmit={salvarDados}
+          className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-3 text-sm"
+        >
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="Nome completo *" value={nome} onChange={(e) => setNome(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="Cidade *" value={cidade} onChange={(e) => setCidade(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="WhatsApp *" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="CEP *" value={cep} onChange={(e) => setCep(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="Endereço *" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="Número *" value={numero} onChange={(e) => setNumero(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2" placeholder="Bairro *" value={bairro} onChange={(e) => setBairro(e.target.value)} />
+          <input className="w-full rounded-xl border px-3 py-2 uppercase" placeholder="UF *" value={uf} onChange={(e) => setUf(e.target.value)} />
+          <input type="date" className="w-full rounded-xl border px-3 py-2" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
 
-        {mensagem && (
-          <div className="mb-3 rounded-2xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-700">
-            {mensagem}
-          </div>
-        )}
-
-        <form onSubmit={salvarDados} className="space-y-3 text-xs">
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              Nome completo *
-            </label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Ex.: Maria Silva"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              Cidade *
-            </label>
-            <input
-              type="text"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Ex.: Maricá"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              WhatsApp / Telefone *
-            </label>
-            <input
-              type="text"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Ex.: (21) 99999-9999"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              E-mail (não editável)
-            </label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              Data de nascimento *
-            </label>
-            <input
-              type="date"
-              value={dataNascimento}
-              onChange={(e) => setDataNascimento(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div className="pt-1">
-            <div className="text-[11px] text-slate-500 mb-2">
-              Endereço é opcional (você pode preencher depois).
+          {erro && (
+            <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+              {erro}
             </div>
+          )}
 
-            <div className="mb-3">
-              <label className="block text-slate-700 font-semibold mb-1">
-                CEP (opcional)
-              </label>
-              <input
-                type="text"
-                value={cep}
-                onChange={(e) => setCep(e.target.value)}
-                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Ex.: 28900-000"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              <div className="col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">
-                  Endereço (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={endereco}
-                  onChange={(e) => setEndereco(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-                  placeholder="Rua, avenida..."
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">
-                  Nº (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={numero}
-                  onChange={(e) => setNumero(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">
-                  Bairro (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={bairro}
-                  onChange={(e) => setBairro(e.target.value)}
-                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">
-                  UF (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={uf}
-                  onChange={(e) => setUf(e.target.value.toUpperCase())}
-                  maxLength={2}
-                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm uppercase"
-                  placeholder="RJ"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ✅ PremiumButton como submit */}
-          <div className="pt-2">
-            <PremiumButton
-              as="button"
-              type="submit"
-              variant="primary"
-              disabled={salvando}
-              className="w-full"
-            >
-              {salvando
-                ? "Salvando…"
-                : destino
-                ? "Salvar e continuar →"
-                : "Salvar alterações"}
-            </PremiumButton>
-
-            {destino ? (
-              <p className="mt-2 text-[11px] text-slate-500 text-center">
-                Você será redirecionado automaticamente para continuar seu anúncio.
-              </p>
-            ) : (
-              <p className="mt-2 text-[11px] text-slate-500 text-center">
-                Classilagos • Dados protegidos • Plataforma gratuita
-              </p>
-            )}
-          </div>
+          {/* 🔽 BOTÃO FINAL */}
+          <PremiumButton
+            type="submit"
+            disabled={salvando}
+            variant="primary"
+            className="mt-4 bg-gradient-to-r from-orange-400 via-pink-500 to-cyan-400 shadow-[0_0_18px_rgba(255,140,0,0.45)] hover:scale-[1.03]"
+          >
+            {salvando ? "Salvando…" : "Salvar e continuar →"}
+          </PremiumButton>
         </form>
       </div>
     </main>
