@@ -2,24 +2,16 @@
 
 import PremiumButton from "../../components/PremiumButton";
 
-const NEXT_CURRICULO = "/anunciar/curriculo";
-const NEXT_VAGA = "/anunciar/empregos";
-
 export default function LandEmpregos() {
-  const hrefCurriculo = `/cadastro?next=${encodeURIComponent(NEXT_CURRICULO)}`;
-  const hrefVaga = `/cadastro?next=${encodeURIComponent(NEXT_VAGA)}`;
-
   return (
     <main className="min-h-[70vh] px-4 py-10 bg-slate-50">
       <section className="mx-auto max-w-4xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-10 shadow-sm">
-          {/* selo */}
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             Classilagos • Empregos • 100% grátis
           </div>
 
-          {/* título */}
           <h1 className="mt-4 text-4xl md:text-5xl font-extrabold leading-tight text-slate-900">
             Seu primeiro emprego
             <br />
@@ -31,31 +23,34 @@ export default function LandEmpregos() {
             <span className="font-semibold text-slate-800"> É gratuito.</span>
           </p>
 
-          {/* cards de confiança */}
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Sem cobrança</p>
               <p className="mt-1 text-xs text-slate-600">Publicação 100% gratuita.</p>
             </div>
-
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Contato direto</p>
               <p className="mt-1 text-xs text-slate-600">Fale com empresa/candidato.</p>
             </div>
-
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Região dos Lagos</p>
               <p className="mt-1 text-xs text-slate-600">Vagas e currículos locais.</p>
             </div>
           </div>
 
-          {/* CTAs */}
           <div className="mt-8 space-y-3">
-            <PremiumButton href={hrefCurriculo} variant="primary">
+            {/* ✅ modo campanha: adiciona src=land no destino */}
+            <PremiumButton
+              href="/cadastro?next=/anunciar/curriculo?src=land"
+              variant="primary"
+            >
               Começar meu currículo →
             </PremiumButton>
 
-            <PremiumButton href={hrefVaga} variant="secondary">
+            <PremiumButton
+              href="/cadastro?next=/anunciar/empregos?src=land"
+              variant="secondary"
+            >
               Anunciar uma vaga
             </PremiumButton>
 
