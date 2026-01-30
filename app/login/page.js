@@ -100,6 +100,7 @@ export default function LoginPage() {
     router.replace(nextPath);
   }
 
+  // ✅ Enquanto checa sessão, mostra só uma mensagem
   if (checking) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center px-4">
@@ -183,3 +184,18 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
             </button>
           </div>
+
+          <p className="text-xs text-slate-600 text-center mt-2">
+            Ainda não tem conta?{" "}
+            <Link
+              href={`/cadastro?next=${encodeURIComponent(nextPath)}`}
+              className="text-cyan-600 font-semibold"
+            >
+              Criar conta grátis
+            </Link>
+          </p>
+        </form>
+      </div>
+    </main>
+  );
+}
