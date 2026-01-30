@@ -34,6 +34,13 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
+function isPerfilCompletoFromMeta(meta) {
+  const nome = String(meta?.nome || "").trim();
+  const cidade = String(meta?.cidade || "").trim();
+  const whatsapp = String(meta?.whatsapp || "").trim();
+  return Boolean(nome && cidade && whatsapp);
+}
+
 export default function PerfilPage() {
   const router = useRouter();
 
@@ -42,10 +49,9 @@ export default function PerfilPage() {
   const [erro, setErro] = useState("");
   const [ok, setOk] = useState("");
   const [nextPath, setNextPath] = useState("");
+  const [fromLand, setFromLand] = useState(false);
 
   const [email, setEmail] = useState("");
-
-  // ✅ Destino pós-perfil (vem do callback: /perfil?next=/anunciar/curriculo etc)
 
   // Campos do perfil (salvos em user_metadata do Supabase Auth)
   const [nome, setNome] = useState("");
@@ -73,14 +79,18 @@ export default function PerfilPage() {
     return `https://wa.me/${numeroOficial}?text=${msg}`;
   }, [numeroOficial, email, whatsappLimpo]);
 
-  // ✅ pega next da URL sem complicar (sem useSearchParams)
+  // ✅ pega next + src da URL (sem useSearchParams)
   useEffect(() => {
     try {
       const qs = new URLSearchParams(window.location.search);
       const rawNext = qs.get("next") || "";
       setNextPath(sanitizeNext(rawNext));
+
+      const src = (qs.get("src") || "").toLowerCase();
+      setFromLand(src === "land");
     } catch {
       setNextPath("");
+      setFromLand(false);
     }
   }, []);
 
@@ -95,9 +105,7 @@ export default function PerfilPage() {
       const { data, error } = await supabase.auth.getUser();
       if (!alive) return;
 
-      if (error) {
-        console.error("getUser error:", error);
-      }
+      if (error) console.error("getUser error:", error);
 
       const user = data?.user;
 
@@ -124,13 +132,18 @@ export default function PerfilPage() {
       setEndereco(meta.endereco || "");
 
       setLoading(false);
+
+      // ✅ SE VEIO DA LAND e o perfil já está completo, não precisa ficar aqui
+      if (fromLand && isPerfilCompletoFromMeta(meta)) {
+        router.replace(nextPath || "/painel");
+      }
     }
 
     load();
     return () => {
       alive = false;
     };
-  }, [router]);
+  }, [router, fromLand, nextPath]);
 
   async function handleSalvar(e) {
     e.preventDefault();
@@ -178,13 +191,12 @@ export default function PerfilPage() {
         return;
       }
 
-setOk("Perfil salvo com sucesso! ✅");
-setSenha("");
-setConfirmarSenha("");
+      setOk("Perfil salvo com sucesso! ✅");
+      setSenha("");
+      setConfirmarSenha("");
 
-// ✅ Depois de salvar: se veio next, vai pra ele; senão, painel
-router.replace(nextPath || "/painel");
-
+      // ✅ Depois de salvar: se veio next, vai pra ele; senão, painel
+      router.replace(nextPath || "/painel");
     } finally {
       setSaving(false);
     }
@@ -202,6 +214,13 @@ router.replace(nextPath || "/painel");
     );
   }
 
+  // ✅ Perfil completo?
+  const perfilCompleto = isPerfilCompletoFromMeta({
+    nome,
+    cidade,
+    whatsapp: whatsappLimpo,
+  });
+
   return (
     <main className="min-h-screen bg-slate-50 py-10">
       <div className="max-w-2xl mx-auto px-4">
@@ -216,6 +235,34 @@ router.replace(nextPath || "/painel");
             Seu e-mail: <span className="font-semibold">{email || "—"}</span>
           </p>
         </div>
+
+        {/* ✅ BLOCO ESPECIAL: veio da LAND */}
+        {fromLand && (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm text-amber-900 font-semibold">Você veio do Classilagos Empregos ✅</p>
+            <p className="mt-1 text-xs text-amber-800">
+              Para publicar mais rápido, o perfil ajuda, mas <strong>não é obrigatório</strong> para a campanha.
+            </p>
+
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => router.replace(nextPath || "/painel")}
+                className="w-full sm:w-auto rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 px-5"
+              >
+                Continuar para publicar agora
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="w-full sm:w-auto rounded-full border border-amber-300 hover:bg-amber-100 text-amber-900 text-sm font-semibold py-2.5 px-5"
+              >
+                Quero completar meu perfil
+              </button>
+            </div>
+          </div>
+        )}
 
         {erro && (
           <div className="mb-4 rounded-md bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">
@@ -233,9 +280,7 @@ router.replace(nextPath || "/painel");
           <form onSubmit={handleSalvar} className="space-y-4">
             {/* Nome */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Nome completo *
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nome completo *</label>
               <input
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
@@ -246,9 +291,7 @@ router.replace(nextPath || "/painel");
 
             {/* Cidade */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Cidade *
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Cidade *</label>
               <select
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
@@ -268,9 +311,7 @@ router.replace(nextPath || "/painel");
 
             {/* WhatsApp */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                WhatsApp *
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp *</label>
               <input
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
@@ -300,9 +341,7 @@ router.replace(nextPath || "/painel");
 
             {/* Endereço (opcional) */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Endereço (opcional)
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Endereço (opcional)</label>
               <input
                 value={endereco}
                 onChange={(e) => setEndereco(e.target.value)}
@@ -313,9 +352,7 @@ router.replace(nextPath || "/painel");
 
             {/* Senha (opcional) */}
             <div className="pt-2 border-t border-slate-200">
-              <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                Criar senha (opcional)
-              </h2>
+              <h2 className="text-sm font-semibold text-slate-900 mb-2">Criar senha (opcional)</h2>
               <p className="text-[11px] text-slate-500 mb-3">
                 Você pode usar só o link por e-mail, mas a senha facilita entrar depois.
               </p>
@@ -331,9 +368,7 @@ router.replace(nextPath || "/painel");
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Confirmar senha
-                  </label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Confirmar senha</label>
                   <input
                     type="password"
                     value={confirmarSenha}
@@ -360,12 +395,24 @@ router.replace(nextPath || "/painel");
               >
                 Voltar ao painel
               </Link>
+
+              {/* ✅ Se veio da LAND, oferece continuar mesmo sem salvar */}
+              {fromLand && !perfilCompleto && (
+                <button
+                  type="button"
+                  onClick={() => router.replace(nextPath || "/painel")}
+                  className="w-full sm:w-auto rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 px-6 shadow-md"
+                >
+                  Pular e publicar agora
+                </button>
+              )}
             </div>
           </form>
         </div>
 
         <p className="text-[11px] text-slate-500 mt-4">
-          Dica: depois de salvar seu perfil, você pode clicar em <strong>Anuncie grátis</strong> e seus dados vão ajudar a preencher mais rápido.
+          Dica: depois de salvar seu perfil, você pode clicar em <strong>Anuncie grátis</strong> e seus dados vão ajudar a
+          preencher mais rápido.
         </p>
       </div>
     </main>
