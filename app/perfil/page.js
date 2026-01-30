@@ -347,14 +347,15 @@ export default function PerfilPage() {
               />
             </div>
 
-            {/* Senha (opcional) */}
             <div className="pt-2 border-t border-slate-200">
-              <h2 className="text-sm font-semibold text-slate-900 mb-2">Criar senha (opcional)</h2>
-              <p className="text-[11px] text-slate-500 mb-3">
-                Você pode usar só o link por e-mail, mas a senha facilita entrar depois.
-              </p>
+<h2 className="text-sm font-semibold text-slate-900 mb-2">
+  Criar senha
+</h2>
+<p className="text-[11px] text-slate-500 mb-3">
+  Criar uma senha é seguro e facilita seus próximos acessos.
+</p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">Senha</label>
                   <input
