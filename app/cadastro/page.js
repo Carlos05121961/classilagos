@@ -4,6 +4,32 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../supabaseClient";
 
+function normalizeEmail(v) {
+  return String(v || "").trim().toLowerCase();
+}
+
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  if (v.includes("http:") || v.includes("https:")) return "";
+  return v;
+}
+
+// extrai segundos do erro: “you can only request this after 37 seconds”
+function parseCooldownSeconds(msg) {
+  const m = String(msg || "").match(/after\s+(\d+)\s+seconds/i);
+  return m ? Number(m[1]) : 0;
+}
+
+function safeSetRedirect(v) {
+  try {
+    if (!v) return;
+    localStorage.setItem("postAuthRedirect", v);
+  } catch {}
+}
+
 export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
@@ -17,30 +43,27 @@ export default function CadastroPage() {
   // destino pós-confirmação (vem da land: /cadastro?next=/anunciar/curriculo etc)
   const [nextPath, setNextPath] = useState("");
 
+  // origem (pra ajudar fallback no callback)
+  const [source, setSource] = useState("cadastro");
+
   // cooldown pra evitar o AuthApiError de “aguarde X segundos”
   const [cooldown, setCooldown] = useState(0);
 
-  function normalizeEmail(v) {
-    return String(v || "").trim().toLowerCase();
-  }
-
-  function sanitizeNext(raw) {
-    const v = String(raw || "").trim();
-    if (!v) return "";
-    if (!v.startsWith("/")) return "";
-    if (v.startsWith("//")) return "";
-    if (v.includes("http:") || v.includes("https:")) return "";
-    return v;
-  }
-
-  // pega next da URL
+  // pega next (e src) da URL
   useEffect(() => {
     try {
       const qs = new URLSearchParams(window.location.search);
       const rawNext = qs.get("next") || "";
-      setNextPath(sanitizeNext(rawNext));
+      const rawSrc = (qs.get("src") || "").trim();
+
+      const sanitized = sanitizeNext(rawNext);
+      setNextPath(sanitized);
+
+      // se veio da land, normalmente src vem como "land"
+      setSource(rawSrc || "cadastro");
     } catch {
       setNextPath("");
+      setSource("cadastro");
     }
   }, []);
 
@@ -51,18 +74,19 @@ export default function CadastroPage() {
     return () => clearInterval(t);
   }, [cooldown]);
 
-  // extrai segundos do erro: “you can only request this after 37 seconds”
-  function parseCooldownSeconds(msg) {
-    const m = String(msg || "").match(/after\s+(\d+)\s+seconds/i);
-    return m ? Number(m[1]) : 0;
-  }
-
   const redirectUrl = useMemo(() => {
     const base = "https://classilagos.shop/auth/callback"; // sem www
-    return nextPath ? `${base}?next=${encodeURIComponent(nextPath)}` : base;
-  }, [nextPath]);
+    // ✅ manda source junto
+    if (nextPath) {
+      return `${base}?source=${encodeURIComponent(source)}&next=${encodeURIComponent(nextPath)}`;
+    }
+    return `${base}?source=${encodeURIComponent(source)}`;
+  }, [nextPath, source]);
 
   async function enviarLink(emailLimpo) {
+    // ✅ salva destino como fallback (se o link vier sem next por algum motivo)
+    safeSetRedirect(nextPath || "/");
+
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLimpo,
       options: {
@@ -100,7 +124,6 @@ export default function CadastroPage() {
         setCooldown(seconds);
         setErro(`Por segurança, aguarde ${seconds}s para solicitar um novo link.`);
       } else {
-        // mostra o motivo real para diagnosticar
         setErro(`Falha ao enviar link: ${msg}`);
       }
     } finally {
@@ -129,7 +152,7 @@ export default function CadastroPage() {
       const seconds = parseCooldownSeconds(msg);
       if (seconds > 0) {
         setCooldown(seconds);
-        setErro(`Por segurança, aguarde ${seconds}s para solicitar um novo link.`);
+        setErro(`Por segurança, aguarde ${seconds}s para reenviar.`);
       } else {
         setErro(`Falha ao reenviar link: ${msg}`);
       }
@@ -246,11 +269,7 @@ export default function CadastroPage() {
                   disabled={loading || cooldown > 0}
                   className="w-full rounded-full border border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold py-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {loading
-                    ? "Reenviando..."
-                    : cooldown > 0
-                    ? `Aguarde ${cooldown}s...`
-                    : "Reenviar link"}
+                  {loading ? "Reenviando..." : cooldown > 0 ? `Aguarde ${cooldown}s...` : "Reenviar link"}
                 </button>
 
                 <button
@@ -262,9 +281,7 @@ export default function CadastroPage() {
                 </button>
               </div>
 
-              <p className="mt-3 text-[11px] text-slate-500 text-center">
-                Publicação 100% gratuita • Sem cobrança
-              </p>
+              <p className="mt-3 text-[11px] text-slate-500 text-center">Publicação 100% gratuita • Sem cobrança</p>
             </div>
           </div>
         )}
@@ -272,3 +289,4 @@ export default function CadastroPage() {
     </main>
   );
 }
+
