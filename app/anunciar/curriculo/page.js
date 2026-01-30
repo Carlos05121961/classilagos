@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import FormularioCurriculo from "../../components/forms/FormularioCurriculo";
 import { supabase } from "../../supabaseClient";
 
@@ -13,20 +13,28 @@ function isPerfilCompleto(user) {
   return Boolean(nome && cidade && whatsapp);
 }
 
+function getSrcFromUrl() {
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    return (qs.get("src") || "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 export default function AnunciarCurriculoPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [ready, setReady] = useState(false);
+  const [isLand, setIsLand] = useState(false);
 
-  const isLand = useMemo(() => {
-    return (searchParams?.get("src") || "").toLowerCase() === "land";
-  }, [searchParams]);
-
-  // Mantém o destino final com src=land quando existir
   const nextDest = useMemo(() => {
     return isLand ? "/anunciar/curriculo?src=land" : "/anunciar/curriculo";
   }, [isLand]);
 
-  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    // ✅ detecta src=land sem usar useSearchParams
+    setIsLand(getSrcFromUrl() === "land");
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -36,27 +44,24 @@ export default function AnunciarCurriculoPage() {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // ✅ MODO LAND: deixa o formulário abrir (anti-spam é pelo email/OTP)
+        // ✅ MODO LAND: libera o form (anti-spam é no cadastro/form)
         if (isLand) {
           if (!alive) return;
           setReady(true);
           return;
         }
 
-        // 🔵 MODO NORMAL DO SITE (igual ao seu)
-        // 1) Sem sessão -> vai pro cadastro (mantém destino)
+        // 🔵 MODO NORMAL DO SITE (mantém sua regra antiga)
         if (!user) {
           router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        // 2) Sessão ok, mas perfil incompleto -> vai pro perfil (mantém destino)
         if (!isPerfilCompleto(user)) {
           router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        // 3) Tudo ok -> libera
         if (!alive) return;
         setReady(true);
       } catch (e) {
