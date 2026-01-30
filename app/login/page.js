@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 import Link from "next/link";
+
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  if (v.includes("http:") || v.includes("https:")) return "";
+  return v;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +24,16 @@ export default function LoginPage() {
   const [checking, setChecking] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Se já estiver logado, não mostra login: vai direto pro painel
+  // ✅ destino pós-login: respeita ?next=
+  const nextPath = useMemo(() => {
+    const qs = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : ""
+    );
+    const nextRaw = qs.get("next") || "";
+    return sanitizeNext(nextRaw) || "/painel";
+  }, []);
+
+  // ✅ Se já estiver logado, não mostra login: vai direto pro destino
   useEffect(() => {
     let active = true;
 
@@ -28,7 +46,7 @@ export default function LoginPage() {
         if (!active) return;
 
         if (user) {
-          router.replace("/painel");
+          router.replace(nextPath);
           return;
         }
 
@@ -43,7 +61,7 @@ export default function LoginPage() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [router, nextPath]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -78,11 +96,10 @@ export default function LoginPage() {
       return;
     }
 
-    // ✅ Login OK → vai pro painel
-    router.replace("/painel");
+    // ✅ Login OK → vai pro destino (se veio da LAND, cai no formulário)
+    router.replace(nextPath);
   }
 
-  // ✅ Enquanto checa sessão, mostra só uma mensagem (evita “piscada” do form)
   if (checking) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center px-4">
@@ -166,15 +183,3 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
             </button>
           </div>
-
-          <p className="text-xs text-slate-600 text-center mt-2">
-            Ainda não tem conta?{" "}
-            <Link href="/cadastro" className="text-cyan-600 font-semibold">
-              Criar conta grátis
-            </Link>
-          </p>
-        </form>
-      </div>
-    </main>
-  );
-}
