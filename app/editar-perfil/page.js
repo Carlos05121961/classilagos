@@ -103,14 +103,18 @@ export default function EditarPerfilPage() {
   }
 
   if (loading) {
-    return <main className="min-h-screen flex items-center justify-center">Carregando…</main>;
+    return (
+      <main className="min-h-screen flex items-center justify-center text-sm text-slate-600">
+        Carregando…
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto max-w-xl">
 
-        {/* 🔝 TARJA SUPERIOR */}
+        {/* TARJA SUPERIOR */}
         <div className="mb-6 rounded-3xl p-6 text-white shadow-lg bg-gradient-to-r from-sky-500 via-cyan-500 to-emerald-500">
           <h1 className="text-2xl font-bold mb-1">Complete seu perfil</h1>
           <p className="text-sm opacity-95">
@@ -142,7 +146,7 @@ export default function EditarPerfilPage() {
             </div>
           )}
 
-          {/* 🔽 BOTÃO FINAL */}
+          {/* BOTÃO FINAL */}
           <PremiumButton
             type="submit"
             disabled={salvando}
@@ -156,3 +160,4 @@ export default function EditarPerfilPage() {
     </main>
   );
 }
+
