@@ -1,8 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
+
+function sanitizeNext(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "";
+  if (!v.startsWith("/")) return "";
+  if (v.startsWith("//")) return "";
+  if (v.includes("http:") || v.includes("https:")) return "";
+  return v;
+}
+
+function getPostAuthRedirect() {
+  try {
+    return sanitizeNext(localStorage.getItem("postAuthRedirect") || "");
+  } catch {
+    return "";
+  }
+}
+
+function clearPostAuthRedirect() {
+  try {
+    localStorage.removeItem("postAuthRedirect");
+  } catch {}
+}
 
 export default function EditarPerfilPage() {
   const router = useRouter();
@@ -23,6 +46,9 @@ export default function EditarPerfilPage() {
 
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+
+  // ✅ destino (quando veio da land/cadastro)
+  const destino = useMemo(() => getPostAuthRedirect(), []);
 
   useEffect(() => {
     async function carregar() {
@@ -59,9 +85,7 @@ export default function EditarPerfilPage() {
     const nasc = new Date(dateStr);
     let idade = hoje.getFullYear() - nasc.getFullYear();
     const m = hoje.getMonth() - nasc.getMonth();
-    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
-      idade--;
-    }
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
     return idade;
   }
 
@@ -70,62 +94,30 @@ export default function EditarPerfilPage() {
     setErro("");
     setMensagem("");
 
-    if (!nome.trim()) {
-      setErro("Informe seu nome completo.");
-      return;
-    }
-    if (!cidade.trim()) {
-      setErro("Informe sua cidade.");
-      return;
-    }
-    if (!whatsapp.trim()) {
-      setErro("Informe um telefone/WhatsApp válido.");
-      return;
-    }
-    if (!cep.trim()) {
-      setErro("Informe o CEP.");
-      return;
-    }
-    if (!endereco.trim()) {
-      setErro("Informe o endereço (rua, avenida...).");
-      return;
-    }
-    if (!numero.trim()) {
-      setErro("Informe o número do imóvel.");
-      return;
-    }
-    if (!bairro.trim()) {
-      setErro("Informe o bairro.");
-      return;
-    }
-    if (!uf.trim()) {
-      setErro("Informe a UF (estado).");
-      return;
-    }
-    if (!dataNascimento) {
-      setErro("Informe sua data de nascimento.");
-      return;
-    }
+    // ✅ essenciais (rápidos)
+    if (!nome.trim()) return setErro("Informe seu nome completo.");
+    if (!cidade.trim()) return setErro("Informe sua cidade.");
+    if (!whatsapp.trim()) return setErro("Informe um telefone/WhatsApp válido.");
+    if (!dataNascimento) return setErro("Informe sua data de nascimento.");
 
     const idade = calcularIdade(dataNascimento);
     if (idade !== null && idade < 18) {
-      setErro("Para usar o Classilagos é necessário ter 18 anos ou mais.");
-      return;
+      return setErro("Para usar o Classilagos é necessário ter 18 anos ou mais.");
     }
 
     setSalvando(true);
 
     const { error } = await supabase.auth.updateUser({
-      // e-mail não será alterado aqui, apenas metadados
       data: {
-        nome,
-        cidade,
-        whatsapp,
-        cep,
-        endereco,
-        numero,
-        bairro,
-        uf,
+        nome: nome.trim(),
+        cidade: cidade.trim(),
+        whatsapp: whatsapp.trim(),
+        // ✅ agora opcionais (como você quer)
+        cep: String(cep || "").trim(),
+        endereco: String(endereco || "").trim(),
+        numero: String(numero || "").trim(),
+        bairro: String(bairro || "").trim(),
+        uf: String(uf || "").trim().toUpperCase(),
         data_nascimento: dataNascimento,
       },
     });
@@ -135,6 +127,13 @@ export default function EditarPerfilPage() {
     if (error) {
       console.error(error);
       setErro("Não foi possível salvar as alterações. Tente novamente.");
+      return;
+    }
+
+    // ✅ se existe destino (land/cadastro), volta automaticamente
+    if (destino) {
+      clearPostAuthRedirect();
+      router.replace(destino);
       return;
     }
 
@@ -152,12 +151,36 @@ export default function EditarPerfilPage() {
   return (
     <main className="min-h-screen bg-[#F5FBFF] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-sm px-6 py-7">
-        <h1 className="text-xl font-bold text-slate-900 mb-1">
-          Editar cadastro
-        </h1>
-        <p className="text-xs text-slate-600 mb-5">
-          Atualize suas informações pessoais e de contato.
-        </p>
+        {/* Topo: etapa */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold text-slate-700">
+              Etapa 1 de 2 • Dados rápidos
+            </div>
+            <div className="text-[11px] text-slate-500">
+              {destino ? "Você volta automaticamente" : "Atualize quando quiser"}
+            </div>
+          </div>
+
+          {/* barra progresso */}
+          <div className="mt-2 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-full w-1/2 bg-emerald-500 rounded-full" />
+          </div>
+
+          <h1 className="mt-4 text-xl font-bold text-slate-900 mb-1">
+            Complete seu perfil
+          </h1>
+
+          <p className="text-xs text-slate-600">
+            É rápido e ajuda as empresas a confiarem nas informações.
+            {destino ? (
+              <>
+                {" "}
+                Depois de salvar, você será levado de volta para continuar seu anúncio.
+              </>
+            ) : null}
+          </p>
+        </div>
 
         {erro && (
           <div className="mb-3 rounded-2xl bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-700">
@@ -182,6 +205,7 @@ export default function EditarPerfilPage() {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Ex.: Maria Silva"
             />
           </div>
 
@@ -195,6 +219,7 @@ export default function EditarPerfilPage() {
               value={cidade}
               onChange={(e) => setCidade(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Ex.: Maricá"
             />
           </div>
 
@@ -208,6 +233,7 @@ export default function EditarPerfilPage() {
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Ex.: (21) 99999-9999"
             />
           </div>
 
@@ -224,74 +250,6 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* CEP */}
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1">
-              CEP *
-            </label>
-            <input
-              type="text"
-              value={cep}
-              onChange={(e) => setCep(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Ex.: 28900-000"
-            />
-          </div>
-
-          {/* ENDEREÇO + NÚMERO */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="block text-slate-700 font-semibold mb-1">
-                Endereço (rua, avenida...) *
-              </label>
-              <input
-                type="text"
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
-                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-slate-700 font-semibold mb-1">
-                Número *
-              </label>
-              <input
-                type="text"
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* BAIRRO + UF */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="block text-slate-700 font-semibold mb-1">
-                Bairro *
-              </label>
-              <input
-                type="text"
-                value={bairro}
-                onChange={(e) => setBairro(e.target.value)}
-                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-slate-700 font-semibold mb-1">
-                UF *
-              </label>
-              <input
-                type="text"
-                value={uf}
-                onChange={(e) => setUf(e.target.value.toUpperCase())}
-                maxLength={2}
-                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm uppercase"
-                placeholder="RJ"
-              />
-            </div>
-          </div>
-
           {/* DATA DE NASCIMENTO */}
           <div>
             <label className="block text-slate-700 font-semibold mb-1">
@@ -305,14 +263,100 @@ export default function EditarPerfilPage() {
             />
           </div>
 
-          {/* BOTÃO SALVAR */}
+          {/* Dados opcionais */}
+          <div className="pt-1">
+            <div className="text-[11px] text-slate-500 mb-2">
+              Endereço é opcional (você pode preencher depois).
+            </div>
+
+            {/* CEP */}
+            <div className="mb-3">
+              <label className="block text-slate-700 font-semibold mb-1">
+                CEP (opcional)
+              </label>
+              <input
+                type="text"
+                value={cep}
+                onChange={(e) => setCep(e.target.value)}
+                className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+                placeholder="Ex.: 28900-000"
+              />
+            </div>
+
+            {/* ENDEREÇO + NÚMERO */}
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="col-span-2">
+                <label className="block text-slate-700 font-semibold mb-1">
+                  Endereço (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={endereco}
+                  onChange={(e) => setEndereco(e.target.value)}
+                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+                  placeholder="Rua, avenida..."
+                />
+              </div>
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">
+                  Nº (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={numero}
+                  onChange={(e) => setNumero(e.target.value)}
+                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* BAIRRO + UF */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2">
+                <label className="block text-slate-700 font-semibold mb-1">
+                  Bairro (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">
+                  UF (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={uf}
+                  onChange={(e) => setUf(e.target.value.toUpperCase())}
+                  maxLength={2}
+                  className="w-full rounded-full border border-slate-200 px-3 py-2 text-sm uppercase"
+                  placeholder="RJ"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* BOTÕES */}
           <button
             type="submit"
             disabled={salvando}
             className="mt-2 w-full rounded-full bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-semibold py-2.5 disabled:opacity-60"
           >
-            {salvando ? "Salvando…" : "Salvar alterações"}
+            {salvando ? "Salvando…" : destino ? "Salvar e continuar →" : "Salvar alterações"}
           </button>
+
+          {destino ? (
+            <p className="text-[11px] text-slate-500 text-center">
+              Você será redirecionado automaticamente para continuar seu anúncio.
+            </p>
+          ) : (
+            <p className="text-[11px] text-slate-500 text-center">
+              Classilagos • Dados protegidos • Plataforma gratuita
+            </p>
+          )}
         </form>
       </div>
     </main>
