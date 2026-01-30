@@ -39,20 +39,20 @@ export default function LandEmpregos() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {/* ✅ Currículo: CTA principal */}
+            {/* ✅ Currículo: quente (sol) */}
             <PremiumButton
               href="/cadastro?src=land&next=/anunciar/curriculo"
               variant="primary"
-              className="py-3 text-base"
+              className="py-3 text-base bg-gradient-to-r from-orange-400 via-pink-500 to-cyan-400 shadow-[0_0_18px_rgba(255,120,220,0.55)] hover:scale-[1.02]"
             >
               Começar meu currículo →
             </PremiumButton>
 
-            {/* ✅ Vaga: CTA forte também (sem branco apagado) */}
+            {/* ✅ Vaga: frio (mar) — bem diferente do primeiro */}
             <PremiumButton
               href="/cadastro?src=land&next=/anunciar/empregos"
               variant="primary"
-              className="py-3 text-base shadow-[0_0_14px_rgba(0,180,255,0.45)] bg-gradient-to-r from-cyan-500 to-blue-500"
+              className="py-3 text-base bg-gradient-to-r from-emerald-500 via-cyan-500 to-sky-600 shadow-[0_0_16px_rgba(0,180,255,0.45)] hover:scale-[1.02]"
             >
               Anunciar uma vaga
             </PremiumButton>
