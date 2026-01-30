@@ -39,25 +39,45 @@ export default function LandEmpregos() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {/* ✅ Currículo: quente (sol) */}
-            <PremiumButton
-              href="/cadastro?src=land&next=/anunciar/curriculo"
-              variant="primary"
-              className="py-3 text-base bg-gradient-to-r from-orange-400 via-pink-500 to-cyan-400 shadow-[0_0_18px_rgba(255,120,220,0.55)] hover:scale-[1.02]"
-            >
-              Começar meu currículo →
-            </PremiumButton>
+            {/* ✅ Currículo (principal): mais profissional, menor, com setinha */}
+            <div className="flex justify-center">
+              <PremiumButton
+                href="/cadastro?src=land&next=/anunciar/curriculo"
+                variant="primary"
+                className="
+                  w-auto px-10 py-3 text-base
+                  bg-gradient-to-r from-sky-500 to-emerald-500
+                  shadow-md hover:shadow-lg
+                  group
+                "
+              >
+                <span className="flex items-center gap-2">
+                  Começar meu currículo
+                  <span className="transition-transform group-hover:translate-x-1">→</span>
+                </span>
+              </PremiumButton>
+            </div>
 
-            {/* ✅ Vaga: frio (mar) — bem diferente do primeiro */}
-            <PremiumButton
-              href="/cadastro?src=land&next=/anunciar/empregos"
-              variant="primary"
-className="py-3 text-base bg-gradient-to-r from-lime-500 via-emerald-500 to-green-600 shadow-[0_0_14px_rgba(34,197,94,0.45)] hover:scale-[1.02]"
-            >
-              Anunciar uma vaga
-            </PremiumButton>
+            {/* ✅ Vaga (secundário): diferente, elegante, sem “carnaval” */}
+            <div className="flex justify-center">
+              <PremiumButton
+                href="/cadastro?src=land&next=/anunciar/empregos"
+                variant="secondary"
+                className="
+                  w-auto px-10 py-3 text-base
+                  border border-emerald-300
+                  text-emerald-700
+                  hover:bg-emerald-50
+                "
+              >
+                <span className="flex items-center gap-2">
+                  Anunciar uma vaga
+                  <span className="opacity-70">→</span>
+                </span>
+              </PremiumButton>
+            </div>
 
-            <p className="pt-1 text-xs text-slate-500">
+            <p className="pt-1 text-xs text-slate-500 text-center">
               Plataforma 100% gratuita para currículos e vagas.
             </p>
           </div>
@@ -66,3 +86,4 @@ className="py-3 text-base bg-gradient-to-r from-lime-500 via-emerald-500 to-gree
     </main>
   );
 }
+
