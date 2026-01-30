@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import FormularioCurriculo from "../../components/forms/FormularioCurriculo";
 import { supabase } from "../../supabaseClient";
 
@@ -15,6 +15,17 @@ function isPerfilCompleto(user) {
 
 export default function AnunciarCurriculoPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const isLand = useMemo(() => {
+    return (searchParams?.get("src") || "").toLowerCase() === "land";
+  }, [searchParams]);
+
+  // Mantém o destino final com src=land quando existir
+  const nextDest = useMemo(() => {
+    return isLand ? "/anunciar/curriculo?src=land" : "/anunciar/curriculo";
+  }, [isLand]);
+
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -25,15 +36,23 @@ export default function AnunciarCurriculoPage() {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // 1) Sem sessão -> vai pro cadastro (mantém o destino)
-        if (!user) {
-          router.replace("/cadastro?next=/anunciar/curriculo");
+        // ✅ MODO LAND: deixa o formulário abrir (anti-spam é pelo email/OTP)
+        if (isLand) {
+          if (!alive) return;
+          setReady(true);
           return;
         }
 
-        // 2) Sessão ok, mas perfil incompleto -> vai pro perfil (mantém o destino)
+        // 🔵 MODO NORMAL DO SITE (igual ao seu)
+        // 1) Sem sessão -> vai pro cadastro (mantém destino)
+        if (!user) {
+          router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+          return;
+        }
+
+        // 2) Sessão ok, mas perfil incompleto -> vai pro perfil (mantém destino)
         if (!isPerfilCompleto(user)) {
-          router.replace("/perfil?next=/anunciar/curriculo");
+          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
@@ -42,7 +61,7 @@ export default function AnunciarCurriculoPage() {
         setReady(true);
       } catch (e) {
         console.error(e);
-        router.replace("/cadastro?next=/anunciar/curriculo");
+        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
       }
     }
 
@@ -51,7 +70,7 @@ export default function AnunciarCurriculoPage() {
     return () => {
       alive = false;
     };
-  }, [router]);
+  }, [router, isLand, nextDest]);
 
   if (!ready) {
     return (
@@ -67,7 +86,7 @@ export default function AnunciarCurriculoPage() {
     <main className="max-w-4xl mx-auto px-4 py-10">
       <header className="mb-8">
         <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
-          Anuncie gratuitamente
+          Anuncie gratuitamente {isLand ? "• Modo campanha" : ""}
         </p>
 
         <h1 className="text-2xl md:text-3xl font-bold mb-2">
