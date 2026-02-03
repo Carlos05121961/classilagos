@@ -3,10 +3,6 @@
 import Link from "next/link";
 
 export default function CampanhaServicosPage() {
-  const nextClassimed = encodeURIComponent("/anunciar/servicos/classimed?src=campanha");
-  const nextEventos = encodeURIComponent("/anunciar/servicos/eventos?src=campanha");
-  const nextProfissionais = encodeURIComponent("/anunciar/servicos/profissionais?src=campanha");
-
   return (
     <main className="px-4 py-6 bg-slate-50 min-h-screen">
       <section className="mx-auto max-w-3xl">
@@ -24,60 +20,100 @@ export default function CampanhaServicosPage() {
             na Região dos Lagos
           </h1>
 
-          <p className="mt-3 text-slate-600 max-w-xl">
+          <p className="mt-3 text-sm md:text-base text-slate-600 max-w-2xl">
             Profissionais liberais, saúde, bem-estar, festas e eventos.
-            Divulgação gratuita, contato direto e alcance regional.
+            <span className="font-semibold text-slate-800"> Divulgação gratuita</span>, contato direto e
+            alcance regional.
           </p>
 
-          {/* BOTÕES */}
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {/* Cards/Botões Premium */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* CLASSIMED */}
             <Link
-              href={`/cadastro?src=campanha&next=${nextClassimed}`}
-              className="group rounded-2xl p-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 hover:scale-[1.02] transition"
+              href="/anunciar/servicos/classimed?src=campanha"
+              className="group relative block rounded-3xl p-[2px] bg-gradient-to-r from-emerald-400 to-teal-500 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
             >
-              <div className="rounded-2xl bg-white p-5 h-full">
-                <div className="text-3xl mb-2">🩺</div>
-                <h2 className="font-bold text-slate-900">Classimed</h2>
-                <p className="text-sm text-slate-600 mt-1">Saúde &amp; bem-estar</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-emerald-600">
-                  Anunciar serviço →
-                </span>
+              <div className="rounded-3xl bg-white p-5 h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">
+                    🩺
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                      Saúde &amp; bem-estar
+                    </p>
+                    <h2 className="text-base md:text-lg font-bold text-slate-900">Classimed</h2>
+                  </div>
+                </div>
+
+                <p className="text-xs md:text-sm text-slate-600 mb-4">
+                  Médicos, psicólogos, clínicas, terapias, academias e serviços de saúde em geral.
+                </p>
+
+                <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs md:text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500">
+                  Anunciar serviço <span className="transition-transform group-hover:translate-x-1">→</span>
+                </div>
               </div>
             </Link>
 
-            {/* EVENTOS */}
+            {/* FESTAS E EVENTOS */}
             <Link
-              href={`/cadastro?src=campanha&next=${nextEventos}`}
-              className="group rounded-2xl p-[2px] bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:scale-[1.02] transition"
+              href="/anunciar/servicos/eventos?src=campanha"
+              className="group relative block rounded-3xl p-[2px] bg-gradient-to-r from-fuchsia-500 to-pink-500 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
             >
-              <div className="rounded-2xl bg-white p-5 h-full">
-                <div className="text-3xl mb-2">🎉</div>
-                <h2 className="font-bold text-slate-900">Festas &amp; Eventos</h2>
-                <p className="text-sm text-slate-600 mt-1">Eventos, DJs, buffets</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-fuchsia-600">
-                  Anunciar serviço →
-                </span>
+              <div className="rounded-3xl bg-white p-5 h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-fuchsia-100 text-2xl">
+                    🎉
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-fuchsia-700">
+                      Festas &amp; eventos
+                    </p>
+                    <h2 className="text-base md:text-lg font-bold text-slate-900">Festas &amp; Eventos</h2>
+                  </div>
+                </div>
+
+                <p className="text-xs md:text-sm text-slate-600 mb-4">
+                  Buffets, bolos e doces, decoração, DJs, som e luz, foto e filmagem, espaços e muito mais.
+                </p>
+
+                <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs md:text-sm font-semibold text-white bg-gradient-to-r from-fuchsia-500 to-pink-500">
+                  Anunciar serviço <span className="transition-transform group-hover:translate-x-1">→</span>
+                </div>
               </div>
             </Link>
 
             {/* PROFISSIONAIS */}
             <Link
-              href={`/cadastro?src=campanha&next=${nextProfissionais}`}
-              className="group rounded-2xl p-[2px] bg-gradient-to-r from-sky-500 to-blue-500 hover:scale-[1.02] transition"
+              href="/anunciar/servicos/profissionais?src=campanha"
+              className="group relative block rounded-3xl p-[2px] bg-gradient-to-r from-sky-500 to-blue-500 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
             >
-              <div className="rounded-2xl bg-white p-5 h-full">
-                <div className="text-3xl mb-2">🛠️</div>
-                <h2 className="font-bold text-slate-900">Profissionais</h2>
-                <p className="text-sm text-slate-600 mt-1">Serviços em geral</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-sky-600">
-                  Anunciar serviço →
-                </span>
+              <div className="rounded-3xl bg-white p-5 h-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-2xl">
+                    🛠️
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                      Profissionais &amp; serviços
+                    </p>
+                    <h2 className="text-base md:text-lg font-bold text-slate-900">Profissionais</h2>
+                  </div>
+                </div>
+
+                <p className="text-xs md:text-sm text-slate-600 mb-4">
+                  Eletricista, encanador, diarista, professor particular, consultor, designer, técnicos e serviços em geral.
+                </p>
+
+                <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs md:text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-500">
+                  Anunciar serviço <span className="transition-transform group-hover:translate-x-1">→</span>
+                </div>
               </div>
             </Link>
           </div>
 
-          <p className="mt-6 text-center text-xs text-slate-500">
+          <p className="mt-6 text-xs text-slate-500 text-center">
             Plataforma 100% gratuita. Alcance regional em toda a Região dos Lagos.
           </p>
         </div>
