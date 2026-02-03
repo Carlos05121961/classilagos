@@ -3,6 +3,9 @@
 import PremiumButton from "../../components/PremiumButton";
 
 export default function LandEmpregos() {
+  const nextCurriculo = encodeURIComponent("/anunciar/curriculo?src=land");
+  const nextVaga = encodeURIComponent("/anunciar/empregos?src=land");
+
   return (
     <main className="px-4 py-6 bg-slate-50">
       <section className="mx-auto max-w-3xl">
@@ -39,10 +42,10 @@ export default function LandEmpregos() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {/* ✅ Currículo (principal) */}
+            {/* Currículo */}
             <div className="flex justify-center">
               <PremiumButton
-                href="/cadastro?src=land&next=/anunciar/curriculo?src=land"
+                href={`/cadastro?src=land&next=${nextCurriculo}`}
                 variant="primary"
                 className="
                   w-auto px-10 py-3 text-base
@@ -58,10 +61,10 @@ export default function LandEmpregos() {
               </PremiumButton>
             </div>
 
-            {/* ✅ Vaga (secundário) */}
+            {/* Vaga */}
             <div className="flex justify-center">
               <PremiumButton
-                href="/cadastro?src=land&next=/anunciar/empregos?src=land"
+                href={`/cadastro?src=land&next=${nextVaga}`}
                 variant="secondary"
                 className="
                   w-auto px-10 py-3 text-base
@@ -86,3 +89,4 @@ export default function LandEmpregos() {
     </main>
   );
 }
+
