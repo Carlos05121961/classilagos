@@ -485,6 +485,7 @@ export default function FormularioCurriculo() {
           habilidades: habilidades || null,
 
           curriculo_foto_url: fotoUrl,
+           imagens: fotoUrl ? [fotoUrl] : [],
 
           status: "ativo",
           destaque: false,
