@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../supabaseClient";
 import FormularioClassimed from "../../../components/forms/FormularioClassimed";
@@ -27,27 +27,29 @@ export default function AnunciarClassimedPage() {
   const [ready, setReady] = useState(false);
   const [isCampanha, setIsCampanha] = useState(false);
 
-  const nextDest = useMemo(() => {
-    return isCampanha
-      ? "/anunciar/servicos/classimed?src=campanha"
-      : "/anunciar/servicos/classimed";
-  }, [isCampanha]);
-
   useEffect(() => {
     let alive = true;
 
     async function guard() {
       try {
-        const src = getSrc();
-        const campanhaNow = src === "campanha";
+        // ✅ Decide campanha de forma síncrona (sem corrida)
+        const campanhaNow = getSrc() === "campanha";
         if (alive) setIsCampanha(campanhaNow);
+
+        // ✅ next correto (calculado com campanhaNow, não com state)
+        const nextDestNow = campanhaNow
+          ? "/anunciar/servicos/classimed?src=campanha"
+          : "/anunciar/servicos/classimed";
 
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // ✅ Se não estiver logado: sempre manda pro cadastro com next
+        // ✅ Se não estiver logado: manda pro cadastro com next (e src só se for campanha)
         if (!user) {
-          router.replace(`/cadastro?src=${campanhaNow ? "campanha" : ""}&next=${encodeURIComponent(nextDest)}`);
+          const url =
+            `/cadastro?next=${encodeURIComponent(nextDestNow)}` +
+            (campanhaNow ? `&src=campanha` : "");
+          router.replace(url);
           return;
         }
 
@@ -60,7 +62,7 @@ export default function AnunciarClassimedPage() {
 
         // 🔵 NORMAL: exige perfil completo
         if (!isPerfilCompleto(user)) {
-          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
+          router.replace(`/perfil?next=${encodeURIComponent(nextDestNow)}`);
           return;
         }
 
@@ -68,7 +70,7 @@ export default function AnunciarClassimedPage() {
         setReady(true);
       } catch (e) {
         console.error(e);
-        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+        router.replace(`/cadastro?next=${encodeURIComponent("/anunciar/servicos/classimed")}`);
       }
     }
 
@@ -76,7 +78,7 @@ export default function AnunciarClassimedPage() {
     return () => {
       alive = false;
     };
-  }, [router, nextDest]);
+  }, [router]);
 
   if (!ready) {
     return (
@@ -97,12 +99,14 @@ export default function AnunciarClassimedPage() {
           <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
             Classimed – Saúde &amp; bem-estar {isCampanha ? "• Campanha" : ""}
           </span>
+
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço de saúde
           </h1>
+
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Cadastre seu serviço de saúde, clínica, consultório ou terapia para
-            ser encontrado por moradores e visitantes de toda a Região dos Lagos.
+            Cadastre seu serviço de saúde, clínica, consultório ou terapia para ser encontrado por moradores e visitantes
+            de toda a Região dos Lagos.
           </p>
         </div>
 
