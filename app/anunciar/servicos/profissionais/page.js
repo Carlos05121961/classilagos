@@ -13,7 +13,7 @@ function isPerfilCompleto(user) {
   return Boolean(nome && cidade && whatsapp);
 }
 
-function getSrcFromUrl() {
+function getSrc() {
   try {
     const qs = new URLSearchParams(window.location.search);
     return (qs.get("src") || "").toLowerCase();
@@ -25,36 +25,33 @@ function getSrcFromUrl() {
 export default function AnunciarProfissionaisPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [isLand, setIsLand] = useState(false);
+  const [isCampanha, setIsCampanha] = useState(false);
 
   const nextDest = useMemo(() => {
-    return isLand
-      ? "/anunciar/servicos/profissionais?src=land"
+    return isCampanha
+      ? "/anunciar/servicos/profissionais?src=campanha"
       : "/anunciar/servicos/profissionais";
-  }, [isLand]);
-
-  useEffect(() => {
-    setIsLand(getSrcFromUrl() === "land");
-  }, []);
+  }, [isCampanha]);
 
   useEffect(() => {
     let alive = true;
 
     async function guard() {
       try {
+        const campanhaNow = getSrc() === "campanha";
+        if (alive) setIsCampanha(campanhaNow);
+
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // ✅ MODO LAND: não trava em /perfil
-        if (isLand) {
-          if (!alive) return;
-          setReady(true);
+        if (!user) {
+          router.replace(`/cadastro?src=${campanhaNow ? "campanha" : ""}&next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        // 🔵 MODO NORMAL: regra antiga
-        if (!user) {
-          router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+        if (campanhaNow) {
+          if (!alive) return;
+          setReady(true);
           return;
         }
 
@@ -72,17 +69,17 @@ export default function AnunciarProfissionaisPage() {
     }
 
     guard();
-    return () => {
-      alive = false;
-    };
-  }, [router, isLand, nextDest]);
+    return () => (alive = false);
+  }, [router, nextDest]);
 
   if (!ready) {
     return (
-      <main className="max-w-5xl mx-auto px-4 py-10">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-sm text-slate-600">Preparando seu acesso…</p>
-        </div>
+      <main className="bg-slate-50 min-h-screen pb-12">
+        <section className="max-w-5xl mx-auto px-4 pt-8">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-slate-600">Preparando seu acesso…</p>
+          </div>
+        </section>
       </main>
     );
   }
@@ -92,14 +89,14 @@ export default function AnunciarProfissionaisPage() {
       <section className="max-w-5xl mx-auto px-4 pt-8">
         <div className="mb-6">
           <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-700 border border-sky-200">
-            Profissionais & serviços gerais {isLand ? "• Modo campanha" : ""}
+            Profissionais &amp; serviços gerais {isCampanha ? "• Campanha" : ""}
           </span>
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço profissional
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Divulgue seus serviços como eletricista, encanador, diarista, professor,
-            consultor, designer, técnico e muito mais em toda a Região dos Lagos.
+            Divulgue seus serviços como eletricista, encanador, diarista,
+            professor, consultor, designer, técnico e muito mais em toda a Região dos Lagos.
           </p>
         </div>
 
