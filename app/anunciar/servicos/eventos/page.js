@@ -13,7 +13,7 @@ function isPerfilCompleto(user) {
   return Boolean(nome && cidade && whatsapp);
 }
 
-function getSrcFromUrl() {
+function getSrc() {
   try {
     const qs = new URLSearchParams(window.location.search);
     return (qs.get("src") || "").toLowerCase();
@@ -25,32 +25,33 @@ function getSrcFromUrl() {
 export default function AnunciarEventosPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [isLand, setIsLand] = useState(false);
+  const [isCampanha, setIsCampanha] = useState(false);
 
   const nextDest = useMemo(() => {
-    return isLand ? "/anunciar/servicos/eventos?src=land" : "/anunciar/servicos/eventos";
-  }, [isLand]);
-
-  useEffect(() => {
-    setIsLand(getSrcFromUrl() === "land");
-  }, []);
+    return isCampanha
+      ? "/anunciar/servicos/eventos?src=campanha"
+      : "/anunciar/servicos/eventos";
+  }, [isCampanha]);
 
   useEffect(() => {
     let alive = true;
 
     async function guard() {
       try {
+        const campanhaNow = getSrc() === "campanha";
+        if (alive) setIsCampanha(campanhaNow);
+
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        if (isLand) {
-          if (!alive) return;
-          setReady(true);
+        if (!user) {
+          router.replace(`/cadastro?src=${campanhaNow ? "campanha" : ""}&next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        if (!user) {
-          router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+        if (campanhaNow) {
+          if (!alive) return;
+          setReady(true);
           return;
         }
 
@@ -68,17 +69,17 @@ export default function AnunciarEventosPage() {
     }
 
     guard();
-    return () => {
-      alive = false;
-    };
-  }, [router, isLand, nextDest]);
+    return () => (alive = false);
+  }, [router, nextDest]);
 
   if (!ready) {
     return (
-      <main className="max-w-5xl mx-auto px-4 py-10">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-sm text-slate-600">Preparando seu acesso…</p>
-        </div>
+      <main className="bg-slate-50 min-h-screen pb-12">
+        <section className="max-w-5xl mx-auto px-4 pt-8">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-slate-600">Preparando seu acesso…</p>
+          </div>
+        </section>
       </main>
     );
   }
@@ -88,14 +89,14 @@ export default function AnunciarEventosPage() {
       <section className="max-w-5xl mx-auto px-4 pt-8">
         <div className="mb-6">
           <span className="inline-flex items-center rounded-full bg-fuchsia-50 px-3 py-1 text-[11px] font-semibold text-fuchsia-700 border border-fuchsia-200">
-            Festas &amp; eventos {isLand ? "• Modo campanha" : ""}
+            Festas &amp; eventos {isCampanha ? "• Campanha" : ""}
           </span>
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço para festas e eventos
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo, espaços para festas
-            e tudo o que seu evento precisa na Região dos Lagos.
+            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo,
+            espaços para festas e tudo o que seu evento precisa na Região dos Lagos.
           </p>
         </div>
 
@@ -106,3 +107,4 @@ export default function AnunciarEventosPage() {
     </main>
   );
 }
+
