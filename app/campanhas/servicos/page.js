@@ -20,10 +20,9 @@ export default function CampanhaServicosPage() {
             na Região dos Lagos
           </h1>
 
+          {/* Subtítulo (suave – campanha) */}
           <p className="mt-3 text-sm md:text-base text-slate-600 max-w-2xl">
-            Profissionais liberais, saúde, bem-estar, festas e eventos.
-            <span className="font-semibold text-slate-800"> Divulgação gratuita</span>, contato direto e
-            alcance regional.
+            Divulgue seu trabalho gratuitamente, fale direto com clientes e apareça para toda a Região dos Lagos.
           </p>
 
           {/* Cards/Botões Premium */}
@@ -121,4 +120,3 @@ export default function CampanhaServicosPage() {
     </main>
   );
 }
-
