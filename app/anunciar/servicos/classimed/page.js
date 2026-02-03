@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../../supabaseClient";
 import FormularioClassimed from "../../../components/forms/FormularioClassimed";
+import { supabase } from "../../../supabaseClient";
 
 function isPerfilCompleto(user) {
   const meta = user?.user_metadata || {};
@@ -25,14 +25,16 @@ function getSrcFromUrl() {
 export default function AnunciarClassimedPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [isLand, setIsLand] = useState(false);
+  const [isCampanha, setIsCampanha] = useState(false);
 
   const nextDest = useMemo(() => {
-    return isLand ? "/anunciar/servicos/classimed?src=land" : "/anunciar/servicos/classimed";
-  }, [isLand]);
+    return isCampanha
+      ? "/anunciar/servicos/classimed?src=campanha"
+      : "/anunciar/servicos/classimed";
+  }, [isCampanha]);
 
   useEffect(() => {
-    setIsLand(getSrcFromUrl() === "land");
+    setIsCampanha(getSrcFromUrl() === "campanha");
   }, []);
 
   useEffect(() => {
@@ -43,12 +45,14 @@ export default function AnunciarClassimedPage() {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        if (isLand) {
+        // ✅ MODO CAMPANHA: não trava em perfil
+        if (isCampanha) {
           if (!alive) return;
           setReady(true);
           return;
         }
 
+        // 🔵 MODO NORMAL (sua regra antiga)
         if (!user) {
           router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
           return;
@@ -71,7 +75,7 @@ export default function AnunciarClassimedPage() {
     return () => {
       alive = false;
     };
-  }, [router, isLand, nextDest]);
+  }, [router, isCampanha, nextDest]);
 
   if (!ready) {
     return (
@@ -88,11 +92,13 @@ export default function AnunciarClassimedPage() {
       <section className="max-w-5xl mx-auto px-4 pt-8">
         <div className="mb-6">
           <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
-            Classimed – Saúde &amp; bem-estar {isLand ? "• Modo campanha" : ""}
+            Classimed – Saúde &amp; bem-estar {isCampanha ? "• Campanha" : ""}
           </span>
+
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço de saúde
           </h1>
+
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
             Cadastre seu serviço de saúde, clínica, consultório ou terapia para ser encontrado
             por moradores e visitantes de toda a Região dos Lagos.
