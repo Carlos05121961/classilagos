@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../supabaseClient";
 import FormularioProfissionais from "../../../components/forms/FormularioProfissionais";
@@ -27,36 +27,42 @@ export default function AnunciarProfissionaisPage() {
   const [ready, setReady] = useState(false);
   const [isCampanha, setIsCampanha] = useState(false);
 
-  const nextDest = useMemo(() => {
-    return isCampanha
-      ? "/anunciar/servicos/profissionais?src=campanha"
-      : "/anunciar/servicos/profissionais";
-  }, [isCampanha]);
-
   useEffect(() => {
     let alive = true;
 
     async function guard() {
       try {
+        // ✅ decide campanha de forma síncrona (sem corrida)
         const campanhaNow = getSrc() === "campanha";
         if (alive) setIsCampanha(campanhaNow);
+
+        // ✅ next correto calculado com campanhaNow
+        const nextDestNow = campanhaNow
+          ? "/anunciar/servicos/profissionais?src=campanha"
+          : "/anunciar/servicos/profissionais";
 
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
+        // ✅ não logado -> cadastro com next (e src só se for campanha)
         if (!user) {
-          router.replace(`/cadastro?src=${campanhaNow ? "campanha" : ""}&next=${encodeURIComponent(nextDest)}`);
+          const url =
+            `/cadastro?next=${encodeURIComponent(nextDestNow)}` +
+            (campanhaNow ? `&src=campanha` : "");
+          router.replace(url);
           return;
         }
 
+        // ✅ CAMPANHA: libera sem exigir perfil completo
         if (campanhaNow) {
           if (!alive) return;
           setReady(true);
           return;
         }
 
+        // 🔵 NORMAL: exige perfil completo
         if (!isPerfilCompleto(user)) {
-          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
+          router.replace(`/perfil?next=${encodeURIComponent(nextDestNow)}`);
           return;
         }
 
@@ -64,13 +70,17 @@ export default function AnunciarProfissionaisPage() {
         setReady(true);
       } catch (e) {
         console.error(e);
-        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+        router.replace(
+          `/cadastro?next=${encodeURIComponent("/anunciar/servicos/profissionais")}`
+        );
       }
     }
 
     guard();
-    return () => (alive = false);
-  }, [router, nextDest]);
+    return () => {
+      alive = false;
+    };
+  }, [router]);
 
   if (!ready) {
     return (
@@ -91,12 +101,15 @@ export default function AnunciarProfissionaisPage() {
           <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-700 border border-sky-200">
             Profissionais &amp; serviços gerais {isCampanha ? "• Campanha" : ""}
           </span>
+
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço profissional
           </h1>
+
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
             Divulgue seus serviços como eletricista, encanador, diarista,
-            professor, consultor, designer, técnico e muito mais em toda a Região dos Lagos.
+            professor, consultor, designer, técnico e muito mais em toda a
+            Região dos Lagos.
           </p>
         </div>
 
