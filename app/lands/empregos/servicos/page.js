@@ -1,6 +1,6 @@
 "use client";
 
-import PremiumButton from "../../components/PremiumButton";
+import PremiumButton from "../../../components/PremiumButton";
 
 export default function LandServicos() {
   return (
