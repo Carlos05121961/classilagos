@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
 import { supabase } from "../../supabaseClient";
 
-function isPerfilCompleto(user) {
-  const meta = user?.user_metadata || {};
-  const nome = String(meta.nome || "").trim();
-  const cidade = String(meta.cidade || "").trim();
-  const whatsapp = String(meta.whatsapp || "").trim();
-  return Boolean(nome && cidade && whatsapp);
-}
-
 function getSrcFromUrl() {
   try {
     const qs = new URLSearchParams(window.location.search);
@@ -32,6 +24,7 @@ export default function AnunciarEmpregosPage() {
   }, [isLand]);
 
   useEffect(() => {
+    // ✅ detecta src=land sem useSearchParams
     setIsLand(getSrcFromUrl() === "land");
   }, []);
 
@@ -43,20 +36,36 @@ export default function AnunciarEmpregosPage() {
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
-        // ✅ MODO LAND: libera o form (anti-spam é no cadastro/form)
+        // ✅ MODO LAND: libera o form (anti-spam fica no cadastro/form)
         if (isLand) {
           if (!alive) return;
           setReady(true);
           return;
         }
 
-        // 🔵 MODO NORMAL DO SITE (mantém sua regra antiga)
+        // 🔵 MODO NORMAL DO SITE
         if (!user) {
           router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
           return;
         }
 
-        if (!isPerfilCompleto(user)) {
+        // ✅ checa perfil em public.profiles (padrão novo do Classilagos)
+        const { data: p, error: pErr } = await supabase
+          .from("profiles")
+          .select("name, city, phone")
+          .eq("id", user.id)
+          .single();
+
+        if (pErr || !p) {
+          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
+          return;
+        }
+
+        const nome = String(p.name || "").trim();
+        const cidade = String(p.city || "").trim();
+        const phone = String(p.phone || "").trim();
+
+        if (!(nome && cidade && phone)) {
           router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
           return;
         }
@@ -70,7 +79,6 @@ export default function AnunciarEmpregosPage() {
     }
 
     guard();
-
     return () => {
       alive = false;
     };
@@ -99,6 +107,7 @@ export default function AnunciarEmpregosPage() {
 
         <p className="text-sm md:text-base text-slate-600 max-w-2xl">
           Preencha os dados da vaga e publique gratuitamente no Classilagos.
+          Depois você pode completar seu perfil (sem travar a publicação).
         </p>
       </header>
 
