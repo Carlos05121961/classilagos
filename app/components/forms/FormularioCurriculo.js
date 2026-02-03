@@ -624,12 +624,23 @@ const [salvarNoPerfil, setSalvarNoPerfil] = useState(true);
       return;
     }
 
-    if (!user) {
-      setAuthEmail((email || "").trim().toLowerCase());
-      setShowAuthModal(true);
-      return;
-    }
+if (!user) {
+  setAuthEmail((email || "").trim().toLowerCase());
+  setShowAuthModal(true);
+  return;
+}
 
+// 👇 BLOCO COLADO AQUI
+if (salvarNoPerfil && user?.id) {
+  await supabase
+    .from("profiles")
+    .update({
+      name: nome || null,
+      phone: telefone || whatsapp || null,
+      city: cidade || null,
+    })
+    .eq("id", user.id);
+}
     await publishNow(user);
   };
 
