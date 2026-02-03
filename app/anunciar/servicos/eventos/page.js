@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../supabaseClient";
 import FormularioEventos from "../../../components/forms/FormularioEventos";
@@ -27,36 +27,42 @@ export default function AnunciarEventosPage() {
   const [ready, setReady] = useState(false);
   const [isCampanha, setIsCampanha] = useState(false);
 
-  const nextDest = useMemo(() => {
-    return isCampanha
-      ? "/anunciar/servicos/eventos?src=campanha"
-      : "/anunciar/servicos/eventos";
-  }, [isCampanha]);
-
   useEffect(() => {
     let alive = true;
 
     async function guard() {
       try {
+        // ✅ decide campanha de forma síncrona (sem corrida)
         const campanhaNow = getSrc() === "campanha";
         if (alive) setIsCampanha(campanhaNow);
+
+        // ✅ next correto calculado com campanhaNow
+        const nextDestNow = campanhaNow
+          ? "/anunciar/servicos/eventos?src=campanha"
+          : "/anunciar/servicos/eventos";
 
         const { data } = await supabase.auth.getUser();
         const user = data?.user;
 
+        // ✅ não logado -> cadastro com next (e src só se for campanha)
         if (!user) {
-          router.replace(`/cadastro?src=${campanhaNow ? "campanha" : ""}&next=${encodeURIComponent(nextDest)}`);
+          const url =
+            `/cadastro?next=${encodeURIComponent(nextDestNow)}` +
+            (campanhaNow ? `&src=campanha` : "");
+          router.replace(url);
           return;
         }
 
+        // ✅ CAMPANHA: libera sem exigir perfil completo
         if (campanhaNow) {
           if (!alive) return;
           setReady(true);
           return;
         }
 
+        // 🔵 NORMAL: exige perfil completo
         if (!isPerfilCompleto(user)) {
-          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
+          router.replace(`/perfil?next=${encodeURIComponent(nextDestNow)}`);
           return;
         }
 
@@ -64,13 +70,17 @@ export default function AnunciarEventosPage() {
         setReady(true);
       } catch (e) {
         console.error(e);
-        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
+        router.replace(
+          `/cadastro?next=${encodeURIComponent("/anunciar/servicos/eventos")}`
+        );
       }
     }
 
     guard();
-    return () => (alive = false);
-  }, [router, nextDest]);
+    return () => {
+      alive = false;
+    };
+  }, [router]);
 
   if (!ready) {
     return (
@@ -91,12 +101,14 @@ export default function AnunciarEventosPage() {
           <span className="inline-flex items-center rounded-full bg-fuchsia-50 px-3 py-1 text-[11px] font-semibold text-fuchsia-700 border border-fuchsia-200">
             Festas &amp; eventos {isCampanha ? "• Campanha" : ""}
           </span>
+
           <h1 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900">
             Anunciar serviço para festas e eventos
           </h1>
+
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo,
-            espaços para festas e tudo o que seu evento precisa na Região dos Lagos.
+            Buffets, bolos, doces, decoração, DJ, som, luz, foto, vídeo, espaços
+            para festas e tudo o que seu evento precisa na Região dos Lagos.
           </p>
         </div>
 
