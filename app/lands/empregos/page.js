@@ -39,10 +39,10 @@ export default function LandEmpregos() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {/* ✅ Currículo (principal): mais profissional, menor, com setinha */}
+            {/* ✅ Currículo (principal) */}
             <div className="flex justify-center">
               <PremiumButton
-                href="/cadastro?src=land&next=/anunciar/curriculo"
+                href="/cadastro?src=land&next=/anunciar/curriculo?src=land"
                 variant="primary"
                 className="
                   w-auto px-10 py-3 text-base
@@ -58,10 +58,10 @@ export default function LandEmpregos() {
               </PremiumButton>
             </div>
 
-            {/* ✅ Vaga (secundário): diferente, elegante, sem “carnaval” */}
+            {/* ✅ Vaga (secundário) */}
             <div className="flex justify-center">
               <PremiumButton
-                href="/cadastro?src=land&next=/anunciar/empregos"
+                href="/cadastro?src=land&next=/anunciar/empregos?src=land"
                 variant="secondary"
                 className="
                   w-auto px-10 py-3 text-base
@@ -86,4 +86,3 @@ export default function LandEmpregos() {
     </main>
   );
 }
-
