@@ -4,13 +4,43 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 
+/* =========================
+   Helpers
+========================= */
 function isValidEmail(v) {
   const s = String(v || "").trim();
   if (!s) return true;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
+function onlyDigits(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+function formatCEP(v) {
+  const d = onlyDigits(v).slice(0, 8);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+function formatBRPhone(v) {
+  const d = onlyDigits(v).slice(0, 11);
+  if (!d) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+function compactBRPhone(v) {
+  return onlyDigits(v);
+}
+function joinLines(lines) {
+  return lines
+    .map((s) => String(s || "").trim())
+    .filter(Boolean)
+    .join("\n");
+}
 
-// ✅ Card fora do componente (evita remount a cada render)
+/* =========================
+   UI: Card
+========================= */
 function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -23,7 +53,9 @@ function Card({ title, subtitle, children }) {
   );
 }
 
-// ✅ listas fora (estabilidade + organização)
+/* =========================
+   Lists
+========================= */
 const CIDADES = [
   "Maricá",
   "Saquarema",
@@ -60,8 +92,19 @@ const AREAS = [
   "Outros",
 ];
 
-// ✅ Draft helpers (campanha Empregos)
-const DRAFT_KEY = "cl_empregos_curriculo_draft_v1";
+const ESCOLARIDADE_OPCOES = [
+  { key: "fundamental", label: "Fundamental" },
+  { key: "medio", label: "Médio" },
+  { key: "tecnico", label: "Técnico" },
+  { key: "superior", label: "Superior" },
+];
+
+const CNH_OPCOES = ["Não", "A", "B", "AB", "C", "D", "E"];
+
+/* =========================
+   Draft helpers
+========================= */
+const DRAFT_KEY = "cl_empregos_curriculo_draft_v2";
 
 function safeJsonParse(v) {
   try {
@@ -70,13 +113,11 @@ function safeJsonParse(v) {
     return null;
   }
 }
-
 function saveDraft(payload) {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ payload, savedAt: Date.now() }));
   } catch {}
 }
-
 function loadDraft() {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
@@ -86,7 +127,6 @@ function loadDraft() {
     return null;
   }
 }
-
 function clearDraft() {
   try {
     localStorage.removeItem(DRAFT_KEY);
@@ -96,44 +136,69 @@ function clearDraft() {
 export default function FormularioCurriculo() {
   const router = useRouter();
 
+  /* =========================
+     Estados (baseados no PDF)
+  ========================= */
   // Dados pessoais
   const [nome, setNome] = useState("");
+  const [dataNascimento, setDataNascimento] = useState(""); // texto livre ou dd/mm/aaaa
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
-  const [idade, setIdade] = useState("");
-  const [areaProfissional, setAreaProfissional] = useState("");
-
-  // Formação / experiência
-  const [escolaridade, setEscolaridade] = useState("");
-  const [formacaoAcademica, setFormacaoAcademica] = useState("");
-  const [experienciasProf, setExperienciasProf] = useState("");
-  const [habilidades, setHabilidades] = useState("");
-  const [idiomas, setIdiomas] = useState("");
-  const [resumo, setResumo] = useState("");
+  const [cep, setCep] = useState("");
 
   // Contatos
-  const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
 
-  // Foto do currículo
+  // Perfil/objetivo
+  const [areaProfissional, setAreaProfissional] = useState("");
+  const [objetivoProfissional, setObjetivoProfissional] = useState("");
+
+  // Experiência
+  const [ultimoEmprego, setUltimoEmprego] = useState("");
+  const [funcao, setFuncao] = useState("");
+  const [tempoTrabalho, setTempoTrabalho] = useState("");
+
+  // Formação / escolaridade
+  const [escolaridadeSel, setEscolaridadeSel] = useState({
+    fundamental: false,
+    medio: false,
+    tecnico: false,
+    superior: false,
+  });
+  const [curso, setCurso] = useState("");
+
+  // Habilidades / resumo
+  const [habilidades, setHabilidades] = useState("");
+  const [resumo, setResumo] = useState("");
+
+  // Infos adicionais
+  const [disponibilidadeHorario, setDisponibilidadeHorario] = useState("");
+  const [cnh, setCnh] = useState(""); // "Não" | "A" | ...
+  const [cursosRapidos, setCursosRapidos] = useState("");
+
+  // Foto 3x4 (opcional)
   const [fotoFile, setFotoFile] = useState(null);
 
-  // Checkbox
+  // Declaração
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
+  // UI states
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // ✅ auth / fluxo premium
+  // Auth/fluxo premium
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [authSending, setAuthSending] = useState(false);
   const [hasDraftToPublish, setHasDraftToPublish] = useState(false);
 
-  // preview da foto
+  /* =========================
+     Preview Foto
+  ========================= */
   const fotoPreview = useMemo(() => {
     if (!fotoFile) return null;
     return URL.createObjectURL(fotoFile);
@@ -145,20 +210,19 @@ export default function FormularioCurriculo() {
     };
   }, [fotoPreview]);
 
-  // ✅ pega user logado (se tiver), sem forçar login
+  /* =========================
+     Auth (não força login)
+  ========================= */
   useEffect(() => {
     let alive = true;
 
     supabase.auth.getUser().then(({ data }) => {
       if (!alive) return;
       setUser(data?.user || null);
-
-      // se estiver logado e existe draft, oferece "Publicar agora"
       const d = loadDraft();
       setHasDraftToPublish(Boolean(d?.payload));
     });
 
-    // Listener para mudanças de auth (ex.: voltou do callback logado)
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
       const d = loadDraft();
@@ -171,55 +235,86 @@ export default function FormularioCurriculo() {
     };
   }, []);
 
-  // ✅ ao abrir, se existir draft, repõe os campos (modo campanha)
+  /* =========================
+     Restore draft ao abrir
+  ========================= */
   useEffect(() => {
     const d = loadDraft();
     if (!d?.payload) return;
-
     const p = d.payload;
 
-    // só preencher se estiver vazio, pra não atrapalhar quem já está editando
     if (!nome) setNome(p.nome || "");
+    if (!dataNascimento) setDataNascimento(p.dataNascimento || "");
     if (!cidade) setCidade(p.cidade || "");
     if (!bairro) setBairro(p.bairro || "");
-    if (!idade) setIdade(p.idade || "");
-    if (!areaProfissional) setAreaProfissional(p.areaProfissional || "");
-    if (!escolaridade) setEscolaridade(p.escolaridade || "");
-    if (!formacaoAcademica) setFormacaoAcademica(p.formacaoAcademica || "");
-    if (!experienciasProf) setExperienciasProf(p.experienciasProf || "");
-    if (!habilidades) setHabilidades(p.habilidades || "");
-    if (!idiomas) setIdiomas(p.idiomas || "");
-    if (!resumo) setResumo(p.resumo || "");
-    if (!telefone) setTelefone(p.telefone || "");
-    if (!whatsapp) setWhatsapp(p.whatsapp || "");
-    if (!email) setEmail(p.email || "");
-    if (!aceitoTermos) setAceitoTermos(Boolean(p.aceitoTermos));
+    if (!cep) setCep(p.cep || "");
 
+    if (!whatsapp) setWhatsapp(p.whatsapp || "");
+    if (!telefone) setTelefone(p.telefone || "");
+    if (!email) setEmail(p.email || "");
+
+    if (!areaProfissional) setAreaProfissional(p.areaProfissional || "");
+    if (!objetivoProfissional) setObjetivoProfissional(p.objetivoProfissional || "");
+
+    if (!ultimoEmprego) setUltimoEmprego(p.ultimoEmprego || "");
+    if (!funcao) setFuncao(p.funcao || "");
+    if (!tempoTrabalho) setTempoTrabalho(p.tempoTrabalho || "");
+
+    if (p.escolaridadeSel && typeof p.escolaridadeSel === "object") {
+      setEscolaridadeSel((prev) => ({
+        ...prev,
+        ...p.escolaridadeSel,
+      }));
+    }
+
+    if (!curso) setCurso(p.curso || "");
+    if (!habilidades) setHabilidades(p.habilidades || "");
+    if (!resumo) setResumo(p.resumo || "");
+
+    if (!disponibilidadeHorario) setDisponibilidadeHorario(p.disponibilidadeHorario || "");
+    if (!cnh) setCnh(p.cnh || "");
+    if (!cursosRapidos) setCursosRapidos(p.cursosRapidos || "");
+
+    if (!aceitoTermos) setAceitoTermos(Boolean(p.aceitoTermos));
     // fotoFile não restaura (arquivo)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ autosave rascunho (leve) enquanto digita
+  /* =========================
+     Autosave draft
+  ========================= */
   useEffect(() => {
-    // não salva se estiver publicando
     if (uploading) return;
 
     const payload = {
       tipo: "curriculo",
       nome,
+      dataNascimento,
       cidade,
       bairro,
-      idade,
-      areaProfissional,
-      escolaridade,
-      formacaoAcademica,
-      experienciasProf,
-      habilidades,
-      idiomas,
-      resumo,
-      telefone,
+      cep,
+
       whatsapp,
+      telefone,
       email,
+
+      areaProfissional,
+      objetivoProfissional,
+
+      ultimoEmprego,
+      funcao,
+      tempoTrabalho,
+
+      escolaridadeSel,
+      curso,
+
+      habilidades,
+      resumo,
+
+      disponibilidadeHorario,
+      cnh,
+      cursosRapidos,
+
       aceitoTermos,
     };
 
@@ -228,22 +323,31 @@ export default function FormularioCurriculo() {
   }, [
     uploading,
     nome,
+    dataNascimento,
     cidade,
     bairro,
-    idade,
-    areaProfissional,
-    escolaridade,
-    formacaoAcademica,
-    experienciasProf,
-    habilidades,
-    idiomas,
-    resumo,
-    telefone,
+    cep,
     whatsapp,
+    telefone,
     email,
+    areaProfissional,
+    objetivoProfissional,
+    ultimoEmprego,
+    funcao,
+    tempoTrabalho,
+    escolaridadeSel,
+    curso,
+    habilidades,
+    resumo,
+    disponibilidadeHorario,
+    cnh,
+    cursosRapidos,
     aceitoTermos,
   ]);
 
+  /* =========================
+     Upload Foto 3x4 (opcional)
+  ========================= */
   const handleFotoChange = (e) => {
     const file = e.target.files?.[0] || null;
     if (!file) return;
@@ -255,7 +359,7 @@ export default function FormularioCurriculo() {
       return;
     }
 
-    const maxBytes = 1.5 * 1024 * 1024; // 1,5MB
+    const maxBytes = 1.5 * 1024 * 1024;
     if (file.size > maxBytes) {
       setErro("A foto está muito pesada. Use uma imagem de até 1,5MB.");
       setFotoFile(null);
@@ -268,12 +372,17 @@ export default function FormularioCurriculo() {
     e.target.value = "";
   };
 
+  function escolaridadeTexto() {
+    const picked = ESCOLARIDADE_OPCOES.filter((o) => escolaridadeSel[o.key]).map((o) => o.label);
+    return picked.length ? picked.join(", ") : "";
+  }
+
   function validateForm() {
     if (!nome || !cidade || !areaProfissional) {
       return "Preencha pelo menos Nome, Cidade e Área profissional.";
     }
 
-    const contatoPrincipal = whatsapp || telefone || email;
+    const contatoPrincipal = compactBRPhone(whatsapp) || compactBRPhone(telefone) || email;
     if (!contatoPrincipal) {
       return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
     }
@@ -287,6 +396,29 @@ export default function FormularioCurriculo() {
     }
 
     return "";
+  }
+
+  function buildDescricao() {
+    const esc = escolaridadeTexto();
+    const linhas = [
+      objetivoProfissional ? `Objetivo: ${objetivoProfissional}` : "",
+      dataNascimento ? `Data de nascimento: ${dataNascimento}` : "",
+      cep ? `CEP: ${cep}` : "",
+      bairro ? `Bairro/Região: ${bairro}` : "",
+      esc ? `Escolaridade: ${esc}` : "",
+      curso ? `Curso (se houver): ${curso}` : "",
+      ultimoEmprego ? `Último emprego: ${ultimoEmprego}` : "",
+      funcao ? `Função: ${funcao}` : "",
+      tempoTrabalho ? `Tempo de trabalho: ${tempoTrabalho}` : "",
+      disponibilidadeHorario ? `Disponibilidade: ${disponibilidadeHorario}` : "",
+      cnh ? `CNH: ${cnh}` : "",
+      cursosRapidos ? `Cursos rápidos: ${cursosRapidos}` : "",
+      habilidades ? `Habilidades: ${habilidades}` : "",
+      resumo ? `Resumo: ${resumo}` : "",
+    ];
+
+    const texto = joinLines(linhas);
+    return texto || "Currículo cadastrado no banco de talentos do Classilagos.";
   }
 
   async function publishNow(loggedUser) {
@@ -306,10 +438,9 @@ export default function FormularioCurriculo() {
     try {
       const bucket = "anuncios";
 
-      // Upload da foto (opcional)
       if (fotoFile) {
         const ext = fotoFile.name.split(".").pop();
-        const path = `curriculos/${loggedUser.id}/foto-${Date.now()}.${ext}`;
+        const path = `curriculos/${loggedUser.id}/foto-3x4-${Date.now()}.${ext}`;
 
         const { error: uploadErroFoto } = await supabase.storage.from(bucket).upload(path, fotoFile);
         if (uploadErroFoto) throw uploadErroFoto;
@@ -319,15 +450,11 @@ export default function FormularioCurriculo() {
       }
 
       const tituloDb = `Currículo - ${nome}${areaProfissional ? ` (${areaProfissional})` : ""}`;
+      const descricaoBase = buildDescricao();
 
-      const descricaoBase =
-        resumo?.trim() ||
-        experienciasProf?.trim() ||
-        formacaoAcademica?.trim() ||
-        "Currículo cadastrado no banco de talentos do Classilagos.";
+      const contatoPrincipal = compactBRPhone(whatsapp) || compactBRPhone(telefone) || email;
 
-      const contatoPrincipal = whatsapp || telefone || email;
-
+      // ⚠️ Importante: mantemos os campos existentes para NÃO quebrar o banco.
       const { data: inserted, error: insertError } = await supabase
         .from("anuncios")
         .insert({
@@ -335,21 +462,27 @@ export default function FormularioCurriculo() {
           categoria: "curriculo",
           titulo: tituloDb,
           descricao: descricaoBase,
+
           cidade,
           bairro,
 
           nome_contato: nome,
           contato: contatoPrincipal,
-          telefone: telefone || null,
-          whatsapp: whatsapp || null,
+          telefone: compactBRPhone(telefone) || null,
+          whatsapp: compactBRPhone(whatsapp) || null,
           email: email || null,
 
           area_profissional: areaProfissional,
-          escolaridade_minima: escolaridade || null,
-          formacao_academica: formacaoAcademica || null,
-          experiencias_profissionais: experienciasProf || null,
+
+          // Reaproveita campos já existentes
+          escolaridade_minima: escolaridadeTexto() || null,
+          formacao_academica: curso || null,
+          experiencias_profissionais: joinLines([
+            ultimoEmprego ? `Último emprego: ${ultimoEmprego}` : "",
+            funcao ? `Função: ${funcao}` : "",
+            tempoTrabalho ? `Tempo: ${tempoTrabalho}` : "",
+          ]) || null,
           habilidades: habilidades || null,
-          idiomas: idiomas || null,
 
           curriculo_foto_url: fotoUrl,
 
@@ -386,11 +519,7 @@ export default function FormularioCurriculo() {
 
     setAuthSending(true);
     try {
-      // ✅ sempre no mesmo domínio que o usuário está usando
       const base = `${window.location.origin}/auth/callback`;
-
-      // ✅ volta para o próprio formulário (campanha Empregos)
-      // quando o usuário voltar logado, ele clica "Publicar agora"
       const redirect = `${base}?next=${encodeURIComponent("/anunciar/curriculo")}`;
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -402,11 +531,9 @@ export default function FormularioCurriculo() {
       });
 
       if (error) {
-        // rate limit etc
         return error.message || "Não foi possível enviar o e-mail agora. Tente novamente em instantes.";
       }
 
-      // mantém draft salvo (já está) + fecha modal
       setShowAuthModal(false);
       setSucesso(
         "Enviamos um link de confirmação para seu e-mail. É 100% gratuito — a confirmação serve apenas para evitar anúncios falsos."
@@ -431,16 +558,17 @@ export default function FormularioCurriculo() {
       return;
     }
 
-    // ✅ se não estiver logado: pede confirmação por email (anti-spam)
     if (!user) {
-      // usa o email do formulário como sugestão
       setAuthEmail((email || "").trim().toLowerCase());
       setShowAuthModal(true);
       return;
     }
 
-    // ✅ logado: publica direto
     await publishNow(user);
+  };
+
+  const toggleEscolaridade = (key) => {
+    setEscolaridadeSel((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -457,7 +585,6 @@ export default function FormularioCurriculo() {
           </div>
         )}
 
-        {/* ✅ Se voltou logado e tem draft, oferece publicar */}
         {user && hasDraftToPublish && (
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs md:text-sm text-slate-700">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -479,32 +606,36 @@ export default function FormularioCurriculo() {
           </div>
         )}
 
-        <Card title="Dados pessoais" subtitle="Preencha o básico para aparecer no banco de talentos.">
+        {/* DADOS PESSOAIS */}
+        <Card title="Dados pessoais" subtitle="Preencha seus dados básicos (igual ao currículo).">
           <div className="space-y-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Nome completo <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-[1fr,220px]">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700">Idade (opcional)</label>
+                <label className="block text-[11px] font-semibold text-slate-700">
+                  Nome completo <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  value={idade}
-                  onChange={(e) => setIdade(e.target.value)}
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  required
                 />
               </div>
 
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">Data de nascimento</label>
+                <input
+                  type="text"
+                  placeholder="__/__/____"
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={dataNascimento}
+                  onChange={(e) => setDataNascimento(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700">
                   Cidade <span className="text-red-500">*</span>
@@ -525,7 +656,7 @@ export default function FormularioCurriculo() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700">Bairro / Região</label>
+                <label className="block text-[11px] font-semibold text-slate-700">Bairro</label>
                 <input
                   type="text"
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -533,100 +664,25 @@ export default function FormularioCurriculo() {
                   onChange={(e) => setBairro(e.target.value)}
                 />
               </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">CEP</label>
+                <input
+                  type="text"
+                  placeholder="00000-000"
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={cep}
+                  onChange={(e) => setCep(formatCEP(e.target.value))}
+                />
+              </div>
             </div>
           </div>
         </Card>
 
-        <Card title="Perfil profissional" subtitle="Escolha a área para empresas te encontrarem com facilidade.">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">
-                Área profissional desejada <span className="text-red-500">*</span>
-              </label>
-              <select
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                value={areaProfissional}
-                onChange={(e) => setAreaProfissional(e.target.value)}
-                required
-              >
-                <option value="">Selecione...</option>
-                {AREAS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">Escolaridade</label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                placeholder="Ex.: Ensino médio completo, superior em andamento..."
-                value={escolaridade}
-                onChange={(e) => setEscolaridade(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">Formação acadêmica / cursos</label>
-              <textarea
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                value={formacaoAcademica}
-                onChange={(e) => setFormacaoAcademica(e.target.value)}
-                placeholder="Cursos, faculdades, especializações, treinamentos..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">Experiências profissionais</label>
-              <textarea
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                value={experienciasProf}
-                onChange={(e) => setExperienciasProf(e.target.value)}
-                placeholder="Últimos empregos, funções e tempo de atuação..."
-              />
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700">Habilidades / competências</label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  value={habilidades}
-                  onChange={(e) => setHabilidades(e.target.value)}
-                  placeholder="Ex.: atendimento, vendas, informática, cozinha..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700">Resumo profissional</label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  value={resumo}
-                  onChange={(e) => setResumo(e.target.value)}
-                  placeholder="Breve resumo de quem você é profissionalmente."
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700">Idiomas (se houver)</label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                value={idiomas}
-                onChange={(e) => setIdiomas(e.target.value)}
-                placeholder="Ex.: Inglês básico, Espanhol intermediário..."
-              />
-            </div>
-          </div>
-        </Card>
-
+        {/* FOTO 3x4 */}
         <Card
-          title="Foto do currículo"
-          subtitle="Opcional. Se você confirmar o e-mail em outro momento/dispositivo, pode ser necessário selecionar a foto novamente."
+          title="Foto 3x4"
+          subtitle="Opcional. Currículos com foto costumam ter mais visualizações."
         >
           <div className="grid gap-3 md:grid-cols-[160px,1fr] items-start">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
@@ -657,15 +713,17 @@ export default function FormularioCurriculo() {
           </div>
         </Card>
 
+        {/* CONTATOS (no PDF fica em dados pessoais, aqui fica separado como no seu layout premium) */}
         <Card title="Contatos" subtitle="Pelo menos um canal é obrigatório.">
           <div className="grid gap-3 md:grid-cols-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700">Telefone</label>
               <input
                 type="text"
+                placeholder="(22) 9999-9999"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
+                onChange={(e) => setTelefone(formatBRPhone(e.target.value))}
               />
             </div>
 
@@ -673,9 +731,10 @@ export default function FormularioCurriculo() {
               <label className="block text-[11px] font-semibold text-slate-700">WhatsApp</label>
               <input
                 type="text"
+                placeholder="(22) 99999-9999"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
+                onChange={(e) => setWhatsapp(formatBRPhone(e.target.value))}
               />
             </div>
 
@@ -683,6 +742,7 @@ export default function FormularioCurriculo() {
               <label className="block text-[11px] font-semibold text-slate-700">E-mail</label>
               <input
                 type="email"
+                placeholder="seuemail@exemplo.com"
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -695,6 +755,177 @@ export default function FormularioCurriculo() {
           </p>
         </Card>
 
+        {/* OBJETIVO PROFISSIONAL */}
+        <Card
+          title="Objetivo profissional"
+          subtitle="Ex.: Primeiro emprego / Atendimento / Serviços gerais..."
+        >
+          <textarea
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            value={objetivoProfissional}
+            onChange={(e) => setObjetivoProfissional(e.target.value)}
+            placeholder="Descreva seu objetivo profissional..."
+          />
+        </Card>
+
+        {/* PERFIL PROFISSIONAL (área) */}
+        <Card title="Área profissional" subtitle="Escolha a área para empresas te encontrarem com facilidade.">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-700">
+              Área profissional desejada <span className="text-red-500">*</span>
+            </label>
+            <select
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              value={areaProfissional}
+              onChange={(e) => setAreaProfissional(e.target.value)}
+              required
+            >
+              <option value="">Selecione...</option>
+              {AREAS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
+
+        {/* EXPERIÊNCIA PROFISSIONAL */}
+        <Card title="Experiência profissional" subtitle="Preencha se tiver (ou deixe em branco se for primeiro emprego).">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Último emprego</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                value={ultimoEmprego}
+                onChange={(e) => setUltimoEmprego(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Função</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                value={funcao}
+                onChange={(e) => setFuncao(e.target.value)}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-[11px] font-semibold text-slate-700">Tempo de trabalho</label>
+              <input
+                type="text"
+                placeholder="Ex.: 6 meses / 1 ano e 3 meses..."
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                value={tempoTrabalho}
+                onChange={(e) => setTempoTrabalho(e.target.value)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* FORMAÇÃO / ESCOLARIDADE */}
+        <Card title="Formação / Escolaridade" subtitle="Marque sua escolaridade e informe cursos (se houver).">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-3">
+              {ESCOLARIDADE_OPCOES.map((o) => (
+                <label key={o.key} className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300"
+                    checked={Boolean(escolaridadeSel[o.key])}
+                    onChange={() => toggleEscolaridade(o.key)}
+                  />
+                  <span className="text-[12px] md:text-sm">{o.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Curso (se houver)</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                value={curso}
+                onChange={(e) => setCurso(e.target.value)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* HABILIDADES */}
+        <Card title="Habilidades" subtitle="Ex.: atendimento, informática básica, vendas, cozinha, limpeza...">
+          <textarea
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            value={habilidades}
+            onChange={(e) => setHabilidades(e.target.value)}
+            placeholder="Liste suas habilidades..."
+          />
+        </Card>
+
+        {/* RESUMO PROFISSIONAL */}
+        <Card title="Resumo profissional (opcional)" subtitle="Fale em poucas palavras quem você é e no que sabe trabalhar.">
+          <textarea
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            value={resumo}
+            onChange={(e) => setResumo(e.target.value)}
+            placeholder="Conte um resumo rápido sobre você..."
+          />
+        </Card>
+
+        {/* INFORMAÇÕES ADICIONAIS */}
+        <Card title="Informações adicionais (opcional)" subtitle="Disponibilidade, CNH e cursos rápidos.">
+          <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">Disponibilidade de horário</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={disponibilidadeHorario}
+                  onChange={(e) => setDisponibilidadeHorario(e.target.value)}
+                  placeholder="Ex.: manhã e tarde / noite / finais de semana..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700">CNH</label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {CNH_OPCOES.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setCnh(opt)}
+                      className={`rounded-full px-3 py-1.5 text-xs border transition ${
+                        cnh === opt
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500">Clique para selecionar (ex.: B, AB...).</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700">Cursos rápidos</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                value={cursosRapidos}
+                onChange={(e) => setCursosRapidos(e.target.value)}
+                placeholder="Ex.: informática, atendimento, recepção..."
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* DECLARAÇÃO + BOTÃO */}
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
           <label className="flex items-start gap-2 text-[11px] md:text-xs text-slate-600">
             <input
@@ -703,10 +934,7 @@ export default function FormularioCurriculo() {
               checked={aceitoTermos}
               onChange={(e) => setAceitoTermos(e.target.checked)}
             />
-            <span>
-              Declaro que as informações são verdadeiras e autorizo a exibição do meu currículo para empresas na plataforma
-              Classilagos.
-            </span>
+            <span>Declaro que as informações acima são verdadeiras e assumo total responsabilidade pelos dados informados.</span>
           </label>
 
           <button
@@ -723,14 +951,14 @@ export default function FormularioCurriculo() {
         </div>
       </form>
 
-      {/* ✅ Modal de validação por e-mail */}
+      {/* Modal de validação por e-mail */}
       {showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="max-w-md w-full rounded-2xl bg-white shadow-xl border border-slate-200 p-5">
             <h3 className="text-lg font-semibold text-slate-900">Confirmar e publicar (grátis)</h3>
             <p className="mt-1 text-xs text-slate-600">
-              A plataforma é <strong>100% gratuita</strong>. A confirmação do e-mail é apenas para evitar spam e anúncios
-              falsos. Seus dados já estão salvos como rascunho.
+              A plataforma é <strong>100% gratuita</strong>. A confirmação do e-mail é apenas para evitar spam e anúncios falsos.
+              Seus dados já estão salvos como rascunho.
             </p>
 
             <div className="mt-4">
