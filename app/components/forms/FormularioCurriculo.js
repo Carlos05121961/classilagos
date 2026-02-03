@@ -187,6 +187,8 @@ export default function FormularioCurriculo() {
 
   // Declaração
   const [aceitoTermos, setAceitoTermos] = useState(false);
+   // ✅ salvar dados no perfil (autopreencher futuramente)
+const [salvarNoPerfil, setSalvarNoPerfil] = useState(true);
 
   // UI states
   const [uploading, setUploading] = useState(false);
