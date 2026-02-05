@@ -14,11 +14,12 @@ export default function CampanhaServicosPage() {
           </div>
 
           {/* Título */}
-          <h1 className="mt-4 text-3xl md:text-4xl font-extrabold leading-tight text-slate-900">
-            Anuncie seus serviços
-            <br className="hidden md:block" />
-            na Região dos Lagos
-          </h1>
+<h1 className="mt-4 text-3xl md:text-4xl font-extrabold leading-tight text-slate-900">
+  Anuncie seus serviços{" "}
+  <br className="hidden md:block" />
+  na Região dos Lagos
+</h1>
+
 
           {/* Subtítulo (suave – campanha) */}
           <p className="mt-3 text-sm md:text-base text-slate-600 max-w-2xl">
