@@ -87,7 +87,7 @@ export default function FormularioImoveis() {
   const finalidades = [
     { label: "Venda", value: "venda" },
     { label: "Aluguel", value: "aluguel" },
-    { label: "Aluguel por temporada", value: "aluguel temporada" },
+    { label: "Aluguel por temporada", value: "temporada" }
   ];
 
   // Garante login
