@@ -481,7 +481,17 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
                   >
                     <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
                       {thumb ? (
-                        <img src={thumb} alt={item.titulo} className="w-full h-full object-cover" />
+<img
+  src={thumb}
+  alt={item.titulo}
+  className="w-full h-full object-cover"
+  onError={(e) => {
+    const cat = String(item.categoria || "").toLowerCase();
+    if (cat === "curriculo") {
+      e.currentTarget.src = "/curriculos/avatar-curriculo.png";
+    }
+  }}
+/>
                       ) : (
                         <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
                       )}
