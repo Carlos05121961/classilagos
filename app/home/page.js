@@ -465,8 +465,13 @@ export default function Home() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {destaques.map((item) => {
-                const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
-                const thumb = imagensValidas.length > 0 ? imagensValidas[0] : "";
+          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+const primeiraImagem = imagensValidas.length > 0 ? String(imagensValidas[0] || "") : "";
+
+const cat = String(item.categoria || "").toLowerCase();
+const isCurriculo = cat === "curriculo"; // ✅ só currículos
+
+const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png" : "");
 
                 return (
                   <Link
