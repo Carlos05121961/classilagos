@@ -1,69 +1,58 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const runtime = "nodejs";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false } }
-);
-
-export async function DELETE(req) {
+export async function DELETE(request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const rawId = searchParams.get("id");
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
 
-    const id = Number(rawId);
-    if (!rawId || Number.isNaN(id) || id <= 0) {
+    if (!id) {
       return NextResponse.json(
-        { message: "ID inválido para exclusão." },
+        { message: "ID não informado." },
         { status: 400 }
       );
     }
 
-    // 1) Confere se existe
-    const { data: found, error: findErr } = await supabase
-      .from("noticias")
-      .select("id")
-      .eq("id", id)
-      .maybeSingle();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 
-    if (findErr) {
-      console.error("Erro ao buscar notícia para excluir:", findErr);
+    if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        { message: "Erro ao localizar a notícia." },
+        { message: "ENV faltando: NEXT_PUBLIC_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY" },
         { status: 500 }
       );
     }
 
-    if (!found) {
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { error, count } = await supabaseAdmin
+      .from("noticias")
+      .delete({ count: "exact" })
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json(
+        { message: error.message || "Erro ao excluir." },
+        { status: 500 }
+      );
+    }
+
+    if (!count) {
       return NextResponse.json(
         { message: "Nada foi excluído (ID não encontrado)." },
         { status: 404 }
       );
     }
 
-    // 2) Exclui
-    const { error: delErr } = await supabase
-      .from("noticias")
-      .delete()
-      .eq("id", id);
-
-    if (delErr) {
-      console.error("Erro ao excluir notícia:", delErr);
-      return NextResponse.json(
-        { message: "Erro ao excluir a notícia." },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ message: "Notícia excluída com sucesso.", id });
+    return NextResponse.json({ message: "Notícia excluída com sucesso." });
   } catch (e) {
-    console.error("Erro geral excluir:", e);
     return NextResponse.json(
-      { message: "Erro interno ao excluir notícia." },
+      { message: "Erro inesperado ao excluir." },
       { status: 500 }
     );
   }
