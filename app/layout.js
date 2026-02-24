@@ -2,7 +2,6 @@ import "./globals.css";
 import Script from "next/script";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
-import Script from "next/script";
 
 export const metadata = {
   title: "Classilagos",
