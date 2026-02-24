@@ -17,8 +17,8 @@ export async function GET(req) {
     let query = supabase
       .from("noticias")
       .select("*")
-      // externas: fonte OU link/url de origem preenchido
-      .or("fonte.ilike.%g1%,fonte.ilike.%rc24%,url_origem.not.is.null,link_original.not.is.null")
+      // externas: fonte OU link_original preenchido
+      .or("fonte.ilike.%g1%,fonte.ilike.%rc24%,link_original.not.is.null")
       .order("created_at", { ascending: false });
 
     if (status) {
