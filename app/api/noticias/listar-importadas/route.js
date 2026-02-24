@@ -17,18 +17,13 @@ export async function GET(req) {
     let query = supabase
       .from("noticias")
       .select("*")
-      // externas: fonte (com variações) OU url_origem/link_original preenchido
-      .or([
-        "fonte.ilike.%g1%",
-        "fonte.ilike.%rc24%",
-        "url_origem.not.is.null",
-        "link_original.not.is.null",
-        "url_origem.neq.\"\"",
-        "link_original.neq.\"\"",
-      ].join(","))
+      // externas: fonte OU link/url de origem preenchido
+      .or("fonte.ilike.%g1%,fonte.ilike.%rc24%,url_origem.not.is.null,link_original.not.is.null")
       .order("created_at", { ascending: false });
 
-    if (status) query = query.eq("status", status);
+    if (status) {
+      query = query.eq("status", status);
+    }
 
     const { data, error } = await query;
 
