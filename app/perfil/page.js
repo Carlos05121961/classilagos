@@ -199,7 +199,7 @@ export default function PerfilPage() {
 
       if (error) {
         console.error("updateUser error:", error);
-        setErro("Não foi possível salvar seu perfil agora. Tente novamente em instantes.");
+       setErro(`Erro ao salvar: ${error.message || "falha desconhecida"}`);
         return;
       }
 
