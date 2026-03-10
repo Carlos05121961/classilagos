@@ -174,11 +174,19 @@ export default function PerfilPage() {
     if (whats.length < 10) return setErro("Informe seu WhatsApp com DDD (apenas números).");
 
     // senha opcional
-    const querSenha = String(senha || "").length > 0 || String(confirmarSenha || "").length > 0;
-    if (querSenha) {
-      if (senha.length < 6) return setErro("A senha deve ter pelo menos 6 caracteres.");
-      if (senha !== confirmarSenha) return setErro("A confirmação de senha não confere.");
-    }
+const senhaLimpa = String(senha || "").trim();
+const confirmarSenhaLimpa = String(confirmarSenha || "").trim();
+
+const querSenha = senhaLimpa.length > 0 || confirmarSenhaLimpa.length > 0;
+
+if (querSenha) {
+  if (senhaLimpa.length < 6) {
+    return setErro("A senha deve ter pelo menos 6 caracteres.");
+  }
+  if (senhaLimpa !== confirmarSenhaLimpa) {
+    return setErro("A confirmação de senha não confere.");
+  }
+}
 
     setSaving(true);
 
