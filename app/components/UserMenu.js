@@ -148,7 +148,7 @@ async function ensureProfileIncompleteNotification(user) {
       setIsAdmin(Boolean(profile?.is_admin));
 
       // notificações
-      await ensureProfileIncompleteNotification(user.id);
+      await ensureProfileIncompleteNotification(user);
       await fetchUnreadCount(user.id);
 
       // (opcional) realtime simples: atualiza badge quando mudar algo nas notificações do usuário
