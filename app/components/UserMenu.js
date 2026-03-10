@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function UserMenu() {
   const [user, setUser] = useState(null);
@@ -13,7 +13,7 @@ export default function UserMenu() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const menuRef = useRef(null);
-  const pathname = usePathname();
+  const router = useRouter();
 
   // ===============================
   // Helpers
@@ -175,10 +175,11 @@ export default function UserMenu() {
     setOpen(false);
   }, [pathname]);
 
-  async function sair() {
-    await supabase.auth.signOut();
-    setOpen(false);
-  }
+async function sair() {
+  await supabase.auth.signOut();
+  setOpen(false);
+  router.replace("/login");
+}
 
   const nome =
     user?.user_metadata?.name ||
