@@ -177,9 +177,15 @@ const router = useRouter();
   }, [pathname]);
 
 async function sair() {
-  await supabase.auth.signOut();
   setOpen(false);
-  router.replace("/login");
+
+  try {
+    await supabase.auth.signOut();
+  } catch (err) {
+    console.error("Erro ao sair:", err);
+  } finally {
+    window.location.href = "/login";
+  }
 }
 
   const nome =
