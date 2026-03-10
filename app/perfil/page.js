@@ -8,6 +8,18 @@ import { supabase } from "../supabaseClient";
 function onlyDigits(v) {
   return String(v || "").replace(/\D/g, "");
 }
+
+function normalizeWhatsapp(v) {
+  let digits = onlyDigits(v);
+
+  // Se a pessoa digitou só DDD + número (11 dígitos), adiciona 55
+  if (digits.length === 11) {
+    digits = "55" + digits;
+  }
+
+  return digits;
+}
+
 function normalizeEmail(v) {
   return String(v || "").trim().toLowerCase();
 }
