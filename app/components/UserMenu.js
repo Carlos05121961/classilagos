@@ -12,8 +12,9 @@ export default function UserMenu() {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const menuRef = useRef(null);
-  const router = useRouter();
+const menuRef = useRef(null);
+const pathname = usePathname();
+const router = useRouter();
 
   // ===============================
   // Helpers
