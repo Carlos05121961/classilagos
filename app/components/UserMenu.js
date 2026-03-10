@@ -34,32 +34,21 @@ const pathname = usePathname();
   }
 
   // ✅ cria/garante notificação de perfil incompleto (sem travar)
-  async function ensureProfileIncompleteNotification(uid) {
-    if (!uid) return;
+async function ensureProfileIncompleteNotification(user) {
+  const uid = user?.id;
+  if (!uid) return;
 
-    // 1) pega perfil (ajuste os campos conforme seu profiles real)
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, nome, cidade, whatsapp") // <-- se seus campos tiverem outros nomes, me diga que eu ajusto
-      .eq("id", uid)
-      .single();
+  const meta = user?.user_metadata || {};
 
-    const perfilIncompleto =
-      !profile?.nome || !profile?.cidade || !profile?.whatsapp;
+  const nome = String(meta?.nome || "").trim();
+  const cidade = String(meta?.cidade || "").trim();
+  const whatsapp = String(meta?.whatsapp || "").replace(/\D/g, "");
+  const whatsappConfirmado = Boolean(meta?.whatsapp_confirmado);
 
-    if (!perfilIncompleto) {
-      // se completou: marca como lida (se existir)
-      await supabase
-        .from("notificacoes")
-        .update({ lida: true, lida_em: new Date().toISOString() })
-        .eq("user_id", uid)
-        .eq("tipo", "perfil_incompleto")
-        .eq("lida", false);
+  const perfilCompleto = Boolean(nome && cidade && whatsapp);
 
-      return;
-    }
-
-    // 2) evita duplicar: se já existe uma aberta, não cria outra
+  // 1) Se o perfil NÃO está completo -> mantém/gera aviso de perfil incompleto
+  if (!perfilCompleto) {
     const { data: existing } = await supabase
       .from("notificacoes")
       .select("id")
@@ -68,20 +57,65 @@ const pathname = usePathname();
       .eq("lida", false)
       .limit(1);
 
-    if (existing && existing.length) return;
+    if (!existing || !existing.length) {
+      await supabase.from("notificacoes").insert({
+        user_id: uid,
+        tipo: "perfil_incompleto",
+        titulo: "Complete seu perfil",
+        mensagem:
+          "Complete seu perfil para usar melhor o Classilagos (melhorar seus anúncios, facilitar contato e aparecer com mais destaque).",
+        acao_label: "Completar agora",
+        acao_url: "/perfil?next=/empregos",
+        lida: false,
+      });
+    }
 
-    // 3) cria a mensagem
-    await supabase.from("notificacoes").insert({
-      user_id: uid,
-      tipo: "perfil_incompleto",
-      titulo: "Complete seu perfil",
-      mensagem:
-        "Complete seu perfil para usar melhor o Classilagos (melhorar seus anúncios, facilitar contato e aparecer com mais destaque).",
-      acao_label: "Completar agora",
-      acao_url: "/perfil?next=/empregos",
-      lida: false,
-    });
+    // se perfil ainda está incompleto, não segue para whatsapp
+    return;
   }
+
+  // 2) Se o perfil ficou completo -> marca antigas de perfil incompleto como lidas
+  await supabase
+    .from("notificacoes")
+    .update({ lida: true, lida_em: new Date().toISOString() })
+    .eq("user_id", uid)
+    .eq("tipo", "perfil_incompleto")
+    .eq("lida", false);
+
+  // 3) Se falta confirmar whatsapp -> cria aviso específico
+  if (!whatsappConfirmado) {
+    const { data: existingWhatsapp } = await supabase
+      .from("notificacoes")
+      .select("id")
+      .eq("user_id", uid)
+      .eq("tipo", "whatsapp_pendente")
+      .eq("lida", false)
+      .limit(1);
+
+    if (!existingWhatsapp || !existingWhatsapp.length) {
+      await supabase.from("notificacoes").insert({
+        user_id: uid,
+        tipo: "whatsapp_pendente",
+        titulo: "Confirme seu WhatsApp",
+        mensagem:
+          "Seu perfil já está preenchido. Agora falta apenas confirmar seu WhatsApp.",
+        acao_label: "Confirmar agora",
+        acao_url: "/perfil?next=/empregos",
+        lida: false,
+      });
+    }
+
+    return;
+  }
+
+  // 4) Se o whatsapp já está confirmado -> fecha avisos pendentes
+  await supabase
+    .from("notificacoes")
+    .update({ lida: true, lida_em: new Date().toISOString() })
+    .eq("user_id", uid)
+    .in("tipo", ["whatsapp_pendente"])
+    .eq("lida", false);
+}
 
   // ===============================
   // 🔐 Carrega usuário + perfil + notificações
