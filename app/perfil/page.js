@@ -164,7 +164,7 @@ export default function PerfilPage() {
 
     const nomeLimpo = String(nome || "").trim();
     const cidadeLimpa = String(cidade || "").trim();
-    const whats = onlyDigits(whatsapp);
+    const whats = normalizeWhatsapp(whatsapp);
     const end = String(endereco || "").trim();
 
     // validações básicas (sem travar demais)
