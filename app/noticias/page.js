@@ -21,63 +21,46 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-/** ✅ BANNERS AFILIADOS (Topo) */
-const bannersTopo = [
-  {
-    src: "/banners/topo/banner-topo-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/topo/banner-topo-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
+/** ✅ NOVO PADRÃO DE BANNERS NOTÍCIAS */
+function getBannersTopoNoticias() {
+  return [
+    {
+      src: "/banners/topo/topo-noticias-01.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Banner topo notícias 01",
+    },
+    {
+      src: "/banners/topo/topo-noticias-02.webp",
+      href: "https://mercadolivre.com/sec/2nVCHmw",
+      alt: "Banner topo notícias 02",
+    },
+    {
+      src: "/banners/topo/topo-noticias-03.webp",
+      href: "https://mercadolivre.com/sec/17Q8mju",
+      alt: "Banner topo notícias 03",
+    },
+  ];
+}
 
-/** ✅ BANNERS AFILIADOS (Rodapé) */
-const bannersRodape = [
-  {
-    src: "/banners/rodape/banner-rodape-01.webp",
-    href: "https://mercadolivre.com/sec/2KgtVeb",
-    alt: "Ofertas de Verão – Ventiladores e Ar-condicionado (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-02.webp",
-    href: "https://mercadolivre.com/sec/2nVCHmw",
-    alt: "Verão Praia 2026 – Cadeiras, Sombreiros e Coolers (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-03.webp",
-    href: "https://mercadolivre.com/sec/17Q8mju",
-    alt: "Caixas de Som (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-04.webp",
-    href: "https://mercadolivre.com/sec/2BbG4vr",
-    alt: "TVs Smart (Mercado Livre)",
-  },
-  {
-    src: "/banners/rodape/banner-rodape-05.webp",
-    href: "https://mercadolivre.com/sec/32bqvEJ",
-    alt: "Celulares e Tablets (Mercado Livre)",
-  },
-];
+function getBannersRodapeNoticias() {
+  return [
+    {
+      src: "/banners/rodape/rodape-noticias-01.webp",
+      href: "https://mercadolivre.com/sec/2BbG4vr",
+      alt: "Banner rodapé notícias 01",
+    },
+    {
+      src: "/banners/rodape/rodape-noticias-02.webp",
+      href: "https://mercadolivre.com/sec/32bqvEJ",
+      alt: "Banner rodapé notícias 02",
+    },
+    {
+      src: "/banners/rodape/rodape-noticias-03.webp",
+      href: "https://mercadolivre.com/sec/2KgtVeb",
+      alt: "Banner rodapé notícias 03",
+    },
+  ];
+}
 
 function formatDateBR(value) {
   try {
@@ -91,7 +74,6 @@ function safeText(v) {
   return typeof v === "string" ? v : "";
 }
 
-/** ✅ Decodifica coisas tipo &#8230; &#8220; etc */
 function decodeHtmlEntities(input = "") {
   const str = safeText(input);
   if (!str) return "";
@@ -108,7 +90,6 @@ function decodeHtmlEntities(input = "") {
   return txt.value || str;
 }
 
-/** ✅ Badge do tipo (Importada / Correspondente / Classilagos) */
 function getTipoInfo(tipoRaw) {
   const t = (tipoRaw || "").toString().trim().toLowerCase();
 
@@ -135,7 +116,6 @@ function getTipoInfo(tipoRaw) {
   };
 }
 
-/** ✅ Agenda (MVP) — depois podemos puxar do Supabase */
 const AGENDA_EVENTOS_MVP = [
   {
     id: "ev1",
@@ -416,69 +396,15 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   const pins = [
-    {
-      cidade: "Maricá",
-      left: "49.0%",
-      top: "81.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Saquarema",
-      left: "63.0%",
-      top: "81.8%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Araruama",
-      left: "71.0%",
-      top: "74.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Iguaba Grande",
-      left: "75.5%",
-      top: "70.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "São Pedro da Aldeia",
-      left: "79.0%",
-      top: "69.5%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Cabo Frio",
-      left: "83.2%",
-      top: "76.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Arraial do Cabo",
-      left: "84.1%",
-      top: "89.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Búzios",
-      left: "92.7%",
-      top: "58.0%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
-    {
-      cidade: "Rio das Ostras",
-      left: "89.3%",
-      top: "28.5%",
-      textClass: "-translate-x-1/2 -translate-y-[175%]",
-      tooltipClass: "-translate-x-1/2 -translate-y-[235%]",
-    },
+    { cidade: "Maricá", left: "48.0%", top: "79.8%" },
+    { cidade: "Saquarema", left: "61.8%", top: "82.2%" },
+    { cidade: "Araruama", left: "69.8%", top: "73.8%" },
+    { cidade: "Iguaba Grande", left: "75.4%", top: "68.8%" },
+    { cidade: "São Pedro da Aldeia", left: "78.7%", top: "69.6%" },
+    { cidade: "Cabo Frio", left: "83.7%", top: "76.5%" },
+    { cidade: "Arraial do Cabo", left: "84.0%", top: "89.8%" },
+    { cidade: "Búzios", left: "92.0%", top: "58.0%" },
+    { cidade: "Rio das Ostras", left: "89.8%", top: "28.0%" },
   ];
 
   const pick = (cidade) => {
@@ -489,7 +415,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          <div className="relative aspect-[1919/662] w-full">
+          <div className="relative aspect-[1920/660] w-full">
             <Image
               src="/hero/noticias-mapa.webp"
               alt="Mapa da Região dos Lagos"
@@ -499,7 +425,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               className="object-contain object-center"
             />
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/88 via-white/58 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent" />
 
             <div className="absolute inset-0 z-10 flex">
               <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
@@ -516,7 +442,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </p>
 
                 <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
-                  Clique em uma cidade do mapa para filtrar as notícias locais.
+                  Passe o mouse sobre os pontos ou clique para filtrar as notícias locais.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -591,7 +517,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                         "animate-pulse",
                       ].join(" ")}
                     />
-
                     <span
                       className={[
                         "relative flex h-4 w-4 items-center justify-center rounded-full border-2 shadow-md transition-all duration-200",
@@ -605,18 +530,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
 
                     <span
                       className={[
-                        "pointer-events-none absolute whitespace-nowrap text-[10px] font-bold text-slate-800 drop-shadow-sm transition-opacity duration-200",
-                        p.textClass,
-                        "opacity-90 group-hover:opacity-0",
-                      ].join(" ")}
-                    >
-                      {p.cidade}
-                    </span>
-
-                    <span
-                      className={[
                         "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
-                        p.tooltipClass,
+                        "-translate-x-1/2 -translate-y-[235%]",
                         "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
                         ativo ? "ring-2 ring-sky-200" : "",
                       ].join(" ")}
@@ -631,7 +546,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
         </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
-          Dica: clique em uma cidade do mapa para filtrar as notícias locais.
+          Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
         </p>
       </div>
     </section>
@@ -708,7 +623,7 @@ export default function NoticiasHomePage() {
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
       <BannerRotator
-        banners={bannersTopo}
+        banners={getBannersTopoNoticias()}
         height={120}
         label="Ofertas e parceiros (afiliados)."
       />
@@ -1026,7 +941,7 @@ export default function NoticiasHomePage() {
       </section>
 
       <BannerRotator
-        banners={bannersRodape}
+        banners={getBannersRodapeNoticias()}
         height={120}
         label="Ofertas e parceiros (afiliados)."
       />
