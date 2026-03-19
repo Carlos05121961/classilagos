@@ -188,6 +188,13 @@ function formatAgendaDate(iso) {
   }
 }
 
+const normalizeCity = (s = "") =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
 /** =========================
  *  COMPONENTS
  *  ========================= */
@@ -511,7 +518,125 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
                   Clique em uma cidade do mapa para filtrar as notícias locais.
                 </p>
-  
+
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  <Link
+                    href="/noticias/cameras"
+                    className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-[11px] md:text-sm font-semibold text-white shadow hover:bg-sky-700"
+                  >
+                    Ver câmeras ao vivo
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => pick("Todas")}
+                    className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Ver todas as notícias
+                  </button>
+
+                  <Link
+                    href="/noticias/correspondentes"
+                    className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-white"
+                  >
+                    Correspondentes
+                  </Link>
+                </div>
+
+                <div className="mt-4">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] text-slate-600 shadow-sm">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Exibindo:
+                    <b className="text-slate-900">{cidadeAtiva || "Todas"}</b>
+                  </span>
+                </div>
+
+                <div className="mt-4 md:hidden">
+                  <label className="block text-[10px] font-semibold text-slate-500 mb-1.5">
+                    Filtrar por cidade
+                  </label>
+                  <select
+                    className="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    value={cidadeAtiva || "Todas"}
+                    onChange={(e) => pick(e.target.value)}
+                  >
+                    <option value="Todas">Todas</option>
+                    {CIDADES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute inset-0 z-20 hidden md:block">
+              {pins.map((p) => {
+                const ativo = cidadeAtiva === p.cidade;
+                return (
+                  <button
+                    key={p.cidade}
+                    type="button"
+                    onClick={() => pick(p.cidade)}
+                    title={p.cidade}
+                    aria-label={`Filtrar por ${p.cidade}`}
+                    className="group absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: p.left, top: p.top }}
+                  >
+                    <span
+                      className={[
+                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        ativo ? "h-7 w-7 bg-sky-400/20" : "h-6 w-6 bg-amber-300/20",
+                        "animate-pulse",
+                      ].join(" ")}
+                    />
+
+                    <span
+                      className={[
+                        "relative flex h-4 w-4 items-center justify-center rounded-full border-2 shadow-md transition-all duration-200",
+                        ativo
+                          ? "border-sky-700 bg-sky-500 scale-110"
+                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
+                      ].join(" ")}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+
+                    <span
+                      className={[
+                        "pointer-events-none absolute whitespace-nowrap text-[10px] font-bold text-slate-800 drop-shadow-sm transition-opacity duration-200",
+                        p.textClass,
+                        "opacity-90 group-hover:opacity-0",
+                      ].join(" ")}
+                    >
+                      {p.cidade}
+                    </span>
+
+                    <span
+                      className={[
+                        "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
+                        p.tooltipClass,
+                        "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
+                        ativo ? "ring-2 ring-sky-200" : "",
+                      ].join(" ")}
+                    >
+                      {p.cidade}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] text-slate-500">
+          Dica: clique em uma cidade do mapa para filtrar as notícias locais.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 /** =========================
  *  PAGE
@@ -571,7 +696,7 @@ export default function NoticiasHomePage() {
   const noticiasFiltradas = useMemo(() => {
     if (cidadeFiltro === "Todas") return noticias;
     return noticias.filter(
-      (n) => (n.cidade || "").toLowerCase() === cidadeFiltro.toLowerCase()
+      (n) => normalizeCity(n.cidade || "") === normalizeCity(cidadeFiltro)
     );
   }, [noticias, cidadeFiltro]);
 
