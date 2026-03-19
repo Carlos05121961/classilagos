@@ -128,7 +128,6 @@ function getTipoInfo(tipoRaw) {
     };
   }
 
-  // padrão: autoral / classilagos / vazio
   return {
     label: "CLASSILAGOS",
     cls: "bg-sky-50 text-sky-700 border-sky-200",
@@ -410,15 +409,60 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   const pins = [
-    { cidade: "Maricá", left: "15.1%", top: "77.7%" },
-    { cidade: "Saquarema", left: "35.0%", top: "75.0%" },
-    { cidade: "Araruama", left: "47.5%", top: "66.2%" },
-    { cidade: "Iguaba Grande", left: "63.7%", top: "60.1%" },
-    { cidade: "São Pedro da Aldeia", left: "67.8%", top: "64.8%" },
-    { cidade: "Cabo Frio", left: "71.4%", top: "69.1%" },
-    { cidade: "Arraial do Cabo", left: "67.3%", top: "78.2%" },
-    { cidade: "Búzios", left: "75.6%", top: "49.4%" },
-    { cidade: "Rio das Ostras", left: "74.2%", top: "7.9%" },
+    {
+      cidade: "Maricá",
+      left: "48.7%",
+      top: "80.5%",
+      labelClass: "translate-x-[-18%] -translate-y-[135%]",
+    },
+    {
+      cidade: "Saquarema",
+      left: "63.2%",
+      top: "81.5%",
+      labelClass: "translate-x-[-35%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Araruama",
+      left: "70.6%",
+      top: "73.8%",
+      labelClass: "translate-x-[-20%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Iguaba Grande",
+      left: "75.4%",
+      top: "69.9%",
+      labelClass: "translate-x-[-15%] -translate-y-[145%]",
+    },
+    {
+      cidade: "São Pedro da Aldeia",
+      left: "78.2%",
+      top: "69.2%",
+      labelClass: "translate-x-[-15%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Cabo Frio",
+      left: "82.3%",
+      top: "76.4%",
+      labelClass: "translate-x-[-20%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Arraial do Cabo",
+      left: "83.9%",
+      top: "89.3%",
+      labelClass: "translate-x-[-35%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Búzios",
+      left: "92.8%",
+      top: "58.2%",
+      labelClass: "translate-x-[-50%] -translate-y-[145%]",
+    },
+    {
+      cidade: "Rio das Ostras",
+      left: "89.4%",
+      top: "28.7%",
+      labelClass: "translate-x-[-50%] -translate-y-[145%]",
+    },
   ];
 
   const pick = (cidade) => {
@@ -428,125 +472,136 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   return (
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
-        <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow bg-slate-950">
-          <div className="relative w-full aspect-[12/5] max-h-[260px] md:max-h-[340px] lg:max-h-[400px]">
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="relative aspect-[1919/662] w-full">
             <Image
               src="/hero/noticias-mapa.webp"
-              alt="Mapa – Região dos Lagos"
+              alt="Mapa da Região dos Lagos"
               fill
               priority
               sizes="100vw"
-              className="object-cover scale-[1.02] brightness-[0.98] contrast-[1.04] saturate-[1.02]"
+              className="object-contain object-center"
             />
 
-            {/* overlays SEM clique */}
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/10 via-transparent to-transparent" />
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: "inset 0 0 160px rgba(0,0,0,0.30)" }}
-            />
+            {/* brilho suave no lado esquerdo */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/85 via-white/55 to-transparent" />
 
-            {/* camada principal */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* conteúdo clicável */}
-              <div className="h-full max-w-6xl mx-auto px-4 py-6 lg:py-10 pointer-events-auto">
-                <div className="max-w-xl">
-                  <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white border border-white/15 backdrop-blur">
-                    REGIÃO DOS LAGOS
-                  </div>
+            {/* conteúdo */}
+            <div className="absolute inset-0 z-10 flex">
+              <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
+                <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
+                  Região dos Lagos
+                </span>
 
-                  <h1 className="mt-3 text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-                    Classilagos Notícias
-                  </h1>
+                <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900">
+                  Classilagos Notícias
+                </h1>
 
-                  <p className="mt-2 text-sm md:text-base text-white/85">
-                    O portal oficial de informação da Região dos Lagos
-                  </p>
+                <p className="mt-3 max-w-md text-sm md:text-base text-slate-700">
+                  O portal oficial de informação da Região dos Lagos.
+                </p>
 
-                  <p className="mt-3 text-xs md:text-sm text-white/70">
-                    Clique em uma cidade no mapa para ver as notícias locais.
-                  </p>
+                <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
+                  Clique em uma cidade do mapa para filtrar as notícias locais.
+                </p>
 
-                  {/* Mobile: seletor */}
-                  <div className="mt-4 md:hidden">
-                    <label className="block text-[10px] font-semibold text-white/75 mb-1">
-                      Filtrar por cidade
-                    </label>
-                    <select
-                      className="w-full rounded-full border border-white/15 bg-white/10 text-white px-3 py-2 text-[12px] backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/25"
-                      value={cidadeAtiva || "Todas"}
-                      onChange={(e) => pick(e.target.value)}
-                    >
-                      <option value="Todas">Todas</option>
-                      {CIDADES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  <Link
+                    href="/noticias/cameras"
+                    className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-[11px] md:text-sm font-semibold text-white shadow hover:bg-sky-700"
+                  >
+                    Ver câmeras ao vivo
+                  </Link>
 
-                  {/* BOTÕES */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      href="/noticias/cameras"
-                      className="inline-flex items-center rounded-full bg-white/12 px-4 py-2 text-[11px] md:text-sm font-semibold text-white border border-white/15 hover:bg-white/20 backdrop-blur"
-                    >
-                      Ver câmeras ao vivo
-                    </Link>
+                  <button
+                    type="button"
+                    onClick={() => pick("Todas")}
+                    className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Ver todas as notícias
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={() => pick("Todas")}
-                      className="inline-flex items-center rounded-full bg-white/12 px-4 py-2 text-[11px] md:text-sm font-semibold text-white border border-white/15 hover:bg-white/20 backdrop-blur"
-                    >
-                      Ver todas as notícias
-                    </button>
+                  <Link
+                    href="/noticias/correspondentes"
+                    className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-white"
+                  >
+                    Correspondentes
+                  </Link>
+                </div>
 
-                    <Link
-                      href="/noticias/correspondentes"
-                      className="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-[11px] md:text-sm font-semibold text-white/90 border border-white/10 hover:bg-white/15 hover:text-white backdrop-blur"
-                      title="Correspondentes culturais por cidade"
-                    >
-                      Correspondentes
-                    </Link>
-                  </div>
+                <div className="mt-4">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] text-slate-600 shadow-sm">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Exibindo:
+                    <b className="text-slate-900">{cidadeAtiva || "Todas"}</b>
+                  </span>
+                </div>
 
-                  <div className="mt-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] text-white/85 border border-white/15 backdrop-blur">
-                      <span className="h-2 w-2 rounded-full bg-white/80" />
-                      Exibindo: <b className="text-white">{cidadeAtiva || "Todas"}</b>
-                    </span>
-                  </div>
+                <div className="mt-4 md:hidden">
+                  <label className="block text-[10px] font-semibold text-slate-500 mb-1.5">
+                    Filtrar por cidade
+                  </label>
+                  <select
+                    className="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    value={cidadeAtiva || "Todas"}
+                    onChange={(e) => pick(e.target.value)}
+                  >
+                    <option value="Todas">Todas</option>
+                    {CIDADES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+            </div>
 
-              {/* Desktop: só os pins clicam */}
-              <div className="absolute inset-0 hidden md:block pointer-events-none">
-                {pins.map((p) => {
-                  const ativo = cidadeAtiva === p.cidade;
-                  return (
-                    <button
-                      key={p.cidade}
-                      type="button"
-                      onClick={() => pick(p.cidade)}
-                      style={{ left: p.left, top: p.top }}
+            {/* pins desktop */}
+            <div className="absolute inset-0 z-20 hidden md:block">
+              {pins.map((p) => {
+                const ativo = cidadeAtiva === p.cidade;
+                return (
+                  <button
+                    key={p.cidade}
+                    type="button"
+                    onClick={() => pick(p.cidade)}
+                    title={p.cidade}
+                    aria-label={`Filtrar por ${p.cidade}`}
+                    className="group absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: p.left, top: p.top }}
+                  >
+                    <span
                       className={[
-                        "pointer-events-auto",
-                        "absolute -translate-x-1/2 -translate-y-1/2",
-                        "h-3.5 w-3.5 rounded-full",
-                        "bg-red-600 border border-white shadow",
-                        "transition-transform duration-200",
-                        "hover:scale-150",
-                        ativo ? "ring-4 ring-white/30 scale-110" : "",
+                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        ativo ? "h-7 w-7 bg-sky-400/25" : "h-6 w-6 bg-amber-300/20",
+                        "animate-pulse",
                       ].join(" ")}
-                      title={p.cidade}
-                      aria-label={`Filtrar por ${p.cidade}`}
                     />
-                  );
-                })}
-              </div>
+                    <span
+                      className={[
+                        "relative flex h-4 w-4 items-center justify-center rounded-full border-2 shadow-md transition-all duration-200",
+                        ativo
+                          ? "border-sky-700 bg-sky-500 scale-110"
+                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
+                      ].join(" ")}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+
+                    <span
+                      className={[
+                        "absolute whitespace-nowrap rounded-full border px-2 py-1 text-[10px] font-bold shadow-sm transition-all duration-200",
+                        "bg-white/95 text-slate-800 border-slate-200",
+                        p.labelClass,
+                        ativo ? "ring-2 ring-sky-200" : "group-hover:border-sky-200 group-hover:text-sky-700",
+                      ].join(" ")}
+                    >
+                      {p.cidade}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -628,15 +683,15 @@ export default function NoticiasHomePage() {
 
   return (
     <main className="min-h-screen bg-[#F5FBFF] pb-10">
-      {/* BANNER TOPO */}
-      <BannerRotator banners={bannersTopo} height={120} label="Ofertas e parceiros (afiliados)." />
+      <BannerRotator
+        banners={bannersTopo}
+        height={120}
+        label="Ofertas e parceiros (afiliados)."
+      />
 
-      {/* HERO MAPA */}
       <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
 
-      {/* CONTEÚDO PRINCIPAL */}
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
-        {/* ESQUERDA */}
         <div className="space-y-6">
           {erro && (
             <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
@@ -644,8 +699,7 @@ export default function NoticiasHomePage() {
             </div>
           )}
 
-          {/* Filtro por cidade */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
             </div>
@@ -684,7 +738,6 @@ export default function NoticiasHomePage() {
             </p>
           </div>
 
-          {/* DESTAQUES */}
           <section>
             <h2 className="text-sm font-semibold text-slate-900 mb-3">Destaques</h2>
 
@@ -790,7 +843,6 @@ export default function NoticiasHomePage() {
             )}
           </section>
 
-          {/* ÚLTIMAS */}
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
@@ -849,7 +901,6 @@ export default function NoticiasHomePage() {
             </section>
           )}
 
-          {/* TV + Painel */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
@@ -906,7 +957,6 @@ export default function NoticiasHomePage() {
           </section>
         </div>
 
-        {/* SIDEBAR */}
         <aside className="space-y-4">
           <AgendaPremium />
 
@@ -951,8 +1001,11 @@ export default function NoticiasHomePage() {
         </aside>
       </section>
 
-      {/* BANNER RODAPÉ */}
-      <BannerRotator banners={bannersRodape} height={120} label="Ofertas e parceiros (afiliados)." />
+      <BannerRotator
+        banners={bannersRodape}
+        height={120}
+        label="Ofertas e parceiros (afiliados)."
+      />
     </main>
   );
 }
