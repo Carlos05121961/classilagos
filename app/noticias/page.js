@@ -396,15 +396,60 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   const pins = [
-    { cidade: "Maricá", left: "48.0%", top: "79.8%" },
-    { cidade: "Saquarema", left: "61.8%", top: "82.2%" },
-    { cidade: "Araruama", left: "69.8%", top: "73.8%" },
-    { cidade: "Iguaba Grande", left: "75.4%", top: "68.8%" },
-    { cidade: "São Pedro da Aldeia", left: "78.7%", top: "69.6%" },
-    { cidade: "Cabo Frio", left: "83.7%", top: "76.5%" },
-    { cidade: "Arraial do Cabo", left: "84.0%", top: "89.8%" },
-    { cidade: "Búzios", left: "92.0%", top: "58.0%" },
-    { cidade: "Rio das Ostras", left: "89.8%", top: "28.0%" },
+    {
+      cidade: "Maricá",
+      left: "47.0%",
+      top: "80.5%",
+      tip: "-translate-x-[20%] -translate-y-[250%]",
+    },
+    {
+      cidade: "Saquarema",
+      left: "61.0%",
+      top: "82.2%",
+      tip: "-translate-x-[35%] -translate-y-[250%]",
+    },
+    {
+      cidade: "Araruama",
+      left: "69.5%",
+      top: "73.2%",
+      tip: "-translate-x-[25%] -translate-y-[255%]",
+    },
+    {
+      cidade: "Iguaba Grande",
+      left: "75.0%",
+      top: "68.8%",
+      tip: "-translate-x-[70%] -translate-y-[260%]",
+    },
+    {
+      cidade: "São Pedro da Aldeia",
+      left: "78.0%",
+      top: "69.2%",
+      tip: "-translate-x-[45%] translate-y-[20%]",
+    },
+    {
+      cidade: "Cabo Frio",
+      left: "83.1%",
+      top: "76.8%",
+      tip: "-translate-x-[15%] -translate-y-[255%]",
+    },
+    {
+      cidade: "Arraial do Cabo",
+      left: "84.2%",
+      top: "89.8%",
+      tip: "-translate-x-[75%] -translate-y-[255%]",
+    },
+    {
+      cidade: "Búzios",
+      left: "92.0%",
+      top: "57.0%",
+      tip: "-translate-x-[55%] -translate-y-[255%]",
+    },
+    {
+      cidade: "Rio das Ostras",
+      left: "89.6%",
+      top: "28.2%",
+      tip: "-translate-x-[70%] -translate-y-[255%]",
+    },
   ];
 
   const pick = (cidade) => {
@@ -513,25 +558,26 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     <span
                       className={[
                         "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
-                        ativo ? "h-7 w-7 bg-sky-400/20" : "h-6 w-6 bg-amber-300/20",
+                        ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
                         "animate-pulse",
                       ].join(" ")}
                     />
+
                     <span
                       className={[
-                        "relative flex h-4 w-4 items-center justify-center rounded-full border-2 shadow-md transition-all duration-200",
+                        "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
                         ativo
                           ? "border-sky-700 bg-sky-500 scale-110"
                           : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
                       ].join(" ")}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                      <span className="h-1 w-1 rounded-full bg-white" />
                     </span>
 
                     <span
                       className={[
                         "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
-                        "-translate-x-1/2 -translate-y-[235%]",
+                        p.tip,
                         "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
                         ativo ? "ring-2 ring-sky-200" : "",
                       ].join(" ")}
