@@ -412,18 +412,6 @@ function AgendaPremium() {
  *  ========================= */
 
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  const pins = [
-    { cidade: "Maricá", left: "42.6%", top: "78.6%", tip: "left" },
-    { cidade: "Saquarema", left: "52.4%", top: "83.2%", tip: "top" },
-    { cidade: "Araruama", left: "61.5%", top: "50.2%", tip: "top" },
-    { cidade: "Iguaba Grande", left: "73.9%", top: "74.7%", tip: "left" },
-    { cidade: "São Pedro da Aldeia", left: "75.6%", top: "70.6%", tip: "bottom" },
-    { cidade: "Cabo Frio", left: "82.2%", top: "70.5%", tip: "left" },
-    { cidade: "Arraial do Cabo", left: "85.6%", top: "89.5%", tip: "left" },
-    { cidade: "Búzios", left: "92.6%", top: "58.0%", tip: "left" },
-    { cidade: "Rio das Ostras", left: "87.6%", top: "33.0%", tip: "left" },
-  ];
-
   const pick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
   };
@@ -459,7 +447,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </p>
 
                 <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
-                  Passe o mouse sobre os pontos ou clique para filtrar as notícias locais.
+                  Passe o mouse sobre o mapa ou clique para filtrar as notícias locais.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -513,6 +501,38 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
             </div>
+
+            <div className="absolute inset-0 z-20 hidden md:flex items-center justify-end pr-[2%]">
+              <div className="w-[58%]">
+                <MapaCidades
+                  onSelectCity={(cidade) => {
+                    const mapa = {
+                      marica: "Maricá",
+                      saquarema: "Saquarema",
+                      araruama: "Araruama",
+                      iguaba: "Iguaba Grande",
+                      sao_pedro: "São Pedro da Aldeia",
+                      cabo_frio: "Cabo Frio",
+                      arraial: "Arraial do Cabo",
+                      buzios: "Búzios",
+                      rio_das_ostras: "Rio das Ostras",
+                    };
+
+                    pick(mapa[cidade] || "Todas");
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] text-slate-500">
+          Dica: no computador, passe o mouse no mapa; no celular, use o seletor por cidade.
+        </p>
+      </div>
+    </section>
+  );
+}
 
   <div className="absolute inset-0 z-20 hidden md:flex items-center justify-end pr-[2%]">
   <div className="w-[58%]">
