@@ -21,7 +21,10 @@ const CIDADES = [
   "Rio das Ostras",
 ];
 
-/** ✅ NOVO PADRÃO DE BANNERS NOTÍCIAS */
+/** =========================
+ *  BANNERS NOTÍCIAS
+ *  ========================= */
+
 function getBannersTopoNoticias() {
   return [
     {
@@ -62,6 +65,10 @@ function getBannersRodapeNoticias() {
   ];
 }
 
+/** =========================
+ *  HELPERS
+ *  ========================= */
+
 function formatDateBR(value) {
   try {
     return new Date(value).toLocaleDateString("pt-BR");
@@ -90,6 +97,14 @@ function decodeHtmlEntities(input = "") {
   return txt.value || str;
 }
 
+function normalizeCity(s = "") {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function getTipoInfo(tipoRaw) {
   const t = (tipoRaw || "").toString().trim().toLowerCase();
 
@@ -115,6 +130,10 @@ function getTipoInfo(tipoRaw) {
     title: "Conteúdo autoral / curadoria Classilagos",
   };
 }
+
+/** =========================
+ *  AGENDA MVP
+ *  ========================= */
 
 const AGENDA_EVENTOS_MVP = [
   {
@@ -168,13 +187,6 @@ function formatAgendaDate(iso) {
   }
 }
 
-const normalizeCity = (s = "") =>
-  s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
 /** =========================
  *  COMPONENTS
  *  ========================= */
@@ -184,7 +196,9 @@ function BannerRotator({ banners = [], height = 120, label = "" }) {
 
   useEffect(() => {
     if (!banners || banners.length <= 1) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % banners.length), 5000);
+    const t = setInterval(() => {
+      setIdx((p) => (p + 1) % banners.length);
+    }, 5000);
     return () => clearInterval(t);
   }, [banners]);
 
@@ -215,7 +229,6 @@ function BannerRotator({ banners = [], height = 120, label = "" }) {
                 className="object-contain cursor-pointer"
                 priority={false}
               />
-              <span className="absolute inset-0 opacity-0 hover:opacity-100 transition bg-black/0 hover:bg-black/5" />
             </Link>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
@@ -393,19 +406,26 @@ function AgendaPremium() {
   );
 }
 
-/** ✅ HERO MAPA PREMIUM */
+/** =========================
+ *  HERO MAPA
+ *  ========================= */
+
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-const pins = [
-  { cidade: "Maricá", x: 817, y: 519, tip: "left" },
-  { cidade: "Saquarema", x: 1007, y: 549, tip: "top" },
-  { cidade: "Araruama", x: 1180, y: 331, tip: "top" },
-  { cidade: "Iguaba Grande", x: 1419, y: 493, tip: "left" },
-  { cidade: "São Pedro da Aldeia", x: 1451, y: 466, tip: "bottom" },
-  { cidade: "Cabo Frio", x: 1579, y: 465, tip: "left" },
-  { cidade: "Arraial do Cabo", x: 1643, y: 591, tip: "left" },
-  { cidade: "Búzios", x: 1778, y: 383, tip: "left" },
-  { cidade: "Rio das Ostras", x: 1681, y: 218, tip: "left" },
-];
+  const pins = [
+    { cidade: "Maricá", left: "42.6%", top: "78.6%", tip: "left" },
+    { cidade: "Saquarema", left: "52.4%", top: "83.2%", tip: "top" },
+    { cidade: "Araruama", left: "61.5%", top: "50.2%", tip: "top" },
+    { cidade: "Iguaba Grande", left: "73.9%", top: "74.7%", tip: "left" },
+    { cidade: "São Pedro da Aldeia", left: "75.6%", top: "70.6%", tip: "bottom" },
+    { cidade: "Cabo Frio", left: "82.2%", top: "70.5%", tip: "left" },
+    { cidade: "Arraial do Cabo", left: "85.6%", top: "89.5%", tip: "left" },
+    { cidade: "Búzios", left: "92.6%", top: "58.0%", tip: "left" },
+    { cidade: "Rio das Ostras", left: "87.6%", top: "33.0%", tip: "left" },
+  ];
+
+  const pick = (cidade) => {
+    if (typeof onSelectCidade === "function") onSelectCidade(cidade);
+  };
 
   return (
     <section className="bg-white border-b border-slate-200">
@@ -493,74 +513,72 @@ const pins = [
               </div>
             </div>
 
-<div className="absolute inset-0 z-20 hidden md:block">
-  {pins.map((p) => {
-    const ativo = cidadeAtiva === p.cidade;
+            <div className="absolute inset-0 z-20 hidden md:block">
+              {pins.map((p) => {
+                const ativo = cidadeAtiva === p.cidade;
 
-    const tipClass =
-      p.tip === "left"
-        ? "-translate-x-[105%] -translate-y-1/2"
-        : p.tip === "bottom"
-        ? "-translate-x-1/2 translate-y-[14px]"
-        : "-translate-x-1/2 -translate-y-[38px]";
+                const tipClass =
+                  p.tip === "left"
+                    ? "-translate-x-[105%] -translate-y-1/2"
+                    : p.tip === "bottom"
+                    ? "-translate-x-1/2 translate-y-[14px]"
+                    : "-translate-x-1/2 -translate-y-[38px]";
 
-    return (
-      <button
-        key={p.cidade}
-        type="button"
-        onClick={() => pick(p.cidade)}
-        title={p.cidade}
-        aria-label={`Filtrar por ${p.cidade}`}
-        className="group absolute"
-        style={{
-          left: `${p.x}px`,
-          top: `${p.y}px`,
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        {/* Aura */}
-        <span
-          className={[
-            "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
-            ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
-            "animate-pulse",
-          ].join(" ")}
-        />
+                return (
+                  <button
+                    key={p.cidade}
+                    type="button"
+                    onClick={() => pick(p.cidade)}
+                    title={p.cidade}
+                    aria-label={`Filtrar por ${p.cidade}`}
+                    className="group absolute"
+                    style={{
+                      left: p.left,
+                      top: p.top,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <span
+                      className={[
+                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
+                        "animate-pulse",
+                      ].join(" ")}
+                    />
 
-        {/* Pin */}
-        <span
-          className={[
-            "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
-            ativo
-              ? "border-sky-700 bg-sky-500 scale-110"
-              : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
-          ].join(" ")}
-        >
-          <span className="h-1 w-1 rounded-full bg-white" />
-        </span>
+                    <span
+                      className={[
+                        "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
+                        ativo
+                          ? "border-sky-700 bg-sky-500 scale-110"
+                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
+                      ].join(" ")}
+                    >
+                      <span className="h-1 w-1 rounded-full bg-white" />
+                    </span>
 
-        {/* Tooltip (só no hover) */}
-        <span
-          className={[
-            "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
-            tipClass,
-            "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
-            ativo ? "ring-2 ring-sky-200" : "",
-          ].join(" ")}
-        >
-          {p.cidade}
-        </span>
-      </button>
-    );
-  })}
-</div>
+                    <span
+                      className={[
+                        "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
+                        tipClass,
+                        "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
+                        ativo ? "ring-2 ring-sky-200" : "",
+                      ].join(" ")}
+                    >
+                      {p.cidade}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
           Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
         </p>
       </div>
-    </div>
-  </section>
+    </section>
   );
 }
 
@@ -587,8 +605,11 @@ export default function NoticiasHomePage() {
 
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      if (!val || val === "Todas") url.searchParams.delete("cidade");
-      else url.searchParams.set("cidade", val);
+      if (!val || val === "Todas") {
+        url.searchParams.delete("cidade");
+      } else {
+        url.searchParams.set("cidade", val);
+      }
       window.history.pushState({}, "", url.toString());
     }
   };
