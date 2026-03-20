@@ -84,7 +84,7 @@ export default function MapaCidades({ onSelectCity }) {
         </span>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[820px]">
+     <div className="relative w-full">
 <svg
   viewBox="0 0 16256 5418.66"
   xmlns="http://www.w3.org/2000/svg"
