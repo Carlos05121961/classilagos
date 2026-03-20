@@ -395,7 +395,6 @@ function AgendaPremium() {
 
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  const pins = [
 const pins = [
   { cidade: "Maricá", x: 817, y: 519, tip: "left" },
   { cidade: "Saquarema", x: 1007, y: 549, tip: "top" },
