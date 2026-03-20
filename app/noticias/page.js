@@ -514,66 +514,27 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               </div>
             </div>
 
-            <div className="absolute inset-0 z-20 hidden md:block">
-              {pins.map((p) => {
-                const ativo = cidadeAtiva === p.cidade;
+  <div className="absolute inset-0 z-20 hidden md:flex items-center justify-end pr-[2%]">
+  <div className="w-[58%]">
+    <MapaCidades
+      onSelectCity={(cidade) => {
+        const mapa = {
+          marica: "Maricá",
+          saquarema: "Saquarema",
+          araruama: "Araruama",
+          iguaba: "Iguaba Grande",
+          sao_pedro: "São Pedro da Aldeia",
+          cabo_frio: "Cabo Frio",
+          arraial: "Arraial do Cabo",
+          buzios: "Búzios",
+          rio_das_ostras: "Rio das Ostras",
+        };
 
-                const tipClass =
-                  p.tip === "left"
-                    ? "-translate-x-[105%] -translate-y-1/2"
-                    : p.tip === "bottom"
-                    ? "-translate-x-1/2 translate-y-[14px]"
-                    : "-translate-x-1/2 -translate-y-[38px]";
-
-                return (
-                  <button
-                    key={p.cidade}
-                    type="button"
-                    onClick={() => pick(p.cidade)}
-                    title={p.cidade}
-                    aria-label={`Filtrar por ${p.cidade}`}
-                    className="group absolute"
-                    style={{
-                      left: p.left,
-                      top: p.top,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <span
-                      className={[
-                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
-                        ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
-                        "animate-pulse",
-                      ].join(" ")}
-                    />
-
-                    <span
-                      className={[
-                        "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
-                        ativo
-                          ? "border-sky-700 bg-sky-500 scale-110"
-                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
-                      ].join(" ")}
-                    >
-                      <span className="h-1 w-1 rounded-full bg-white" />
-                    </span>
-
-                    <span
-                      className={[
-                        "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
-                        tipClass,
-                        "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
-                        ativo ? "ring-2 ring-sky-200" : "",
-                      ].join(" ")}
-                    >
-                      {p.cidade}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        pick(mapa[cidade] || "Todas");
+      }}
+    />
+  </div>
+</div>
 
         <p className="mt-3 text-[11px] text-slate-500">
           Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
