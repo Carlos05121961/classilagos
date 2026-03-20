@@ -396,65 +396,17 @@ function AgendaPremium() {
 /** ✅ HERO MAPA PREMIUM */
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   const pins = [
-    {
-      cidade: "Maricá",
-      left: "47.0%",
-      top: "80.5%",
-      tip: "-translate-x-[20%] -translate-y-[250%]",
-    },
-    {
-      cidade: "Saquarema",
-      left: "61.0%",
-      top: "82.2%",
-      tip: "-translate-x-[35%] -translate-y-[250%]",
-    },
-    {
-      cidade: "Araruama",
-      left: "69.5%",
-      top: "73.2%",
-      tip: "-translate-x-[25%] -translate-y-[255%]",
-    },
-    {
-      cidade: "Iguaba Grande",
-      left: "75.0%",
-      top: "68.8%",
-      tip: "-translate-x-[70%] -translate-y-[260%]",
-    },
-    {
-      cidade: "São Pedro da Aldeia",
-      left: "78.0%",
-      top: "69.2%",
-      tip: "-translate-x-[45%] translate-y-[20%]",
-    },
-    {
-      cidade: "Cabo Frio",
-      left: "83.1%",
-      top: "76.8%",
-      tip: "-translate-x-[15%] -translate-y-[255%]",
-    },
-    {
-      cidade: "Arraial do Cabo",
-      left: "84.2%",
-      top: "89.8%",
-      tip: "-translate-x-[75%] -translate-y-[255%]",
-    },
-    {
-      cidade: "Búzios",
-      left: "92.0%",
-      top: "57.0%",
-      tip: "-translate-x-[55%] -translate-y-[255%]",
-    },
-    {
-      cidade: "Rio das Ostras",
-      left: "89.6%",
-      top: "28.2%",
-      tip: "-translate-x-[70%] -translate-y-[255%]",
-    },
-  ];
-
-  const pick = (cidade) => {
-    if (typeof onSelectCidade === "function") onSelectCidade(cidade);
-  };
+const pins = [
+  { cidade: "Maricá", x: 817, y: 519, tip: "left" },
+  { cidade: "Saquarema", x: 1007, y: 549, tip: "top" },
+  { cidade: "Araruama", x: 1180, y: 331, tip: "top" },
+  { cidade: "Iguaba Grande", x: 1419, y: 493, tip: "left" },
+  { cidade: "São Pedro da Aldeia", x: 1451, y: 466, tip: "bottom" },
+  { cidade: "Cabo Frio", x: 1579, y: 465, tip: "left" },
+  { cidade: "Arraial do Cabo", x: 1643, y: 591, tip: "left" },
+  { cidade: "Búzios", x: 1778, y: 383, tip: "left" },
+  { cidade: "Rio das Ostras", x: 1681, y: 218, tip: "left" },
+];
 
   return (
     <section className="bg-white border-b border-slate-200">
