@@ -429,7 +429,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
           <div className="relative aspect-[1920/660] w-full">
             <Image
-              src="/hero/noticias-mapa.webp"
+              src="/hero/noticias-mapa-arte.webp"
               alt="Mapa da Região dos Lagos"
               fill
               priority
