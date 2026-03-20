@@ -222,3 +222,7 @@ export default function MapaCidades({ onSelectCity }) {
     style={styleCidade("buzios")}
   />
 </svg>
+        </div>
+    </div>
+  );
+}
