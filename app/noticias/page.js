@@ -559,7 +559,8 @@ const pins = [
           Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
         </p>
       </div>
-    </section>
+    </div>
+  </section>
   );
 }
 
