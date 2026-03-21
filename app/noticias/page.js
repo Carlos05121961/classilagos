@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
-import MapaCidades from "../components/MapaCidades";
 
 /** =========================
  *  CONFIG
@@ -85,7 +84,6 @@ function safeText(v) {
 function decodeHtmlEntities(input = "") {
   const str = safeText(input);
   if (!str) return "";
-
   if (typeof window === "undefined") {
     return str
       .replace(/&#8230;/g, "...")
@@ -94,7 +92,6 @@ function decodeHtmlEntities(input = "") {
       .replace(/&#8211;/g, "-")
       .replace(/&nbsp;/g, " ");
   }
-
   const txt = document.createElement("textarea");
   txt.innerHTML = str;
   return txt.value || str;
@@ -206,8 +203,7 @@ function BannerRotator({ banners = [], height = 120, label = "" }) {
   }, [banners]);
 
   const current = banners?.[idx] || null;
-  const isExternal = (href) =>
-    typeof href === "string" && /^https?:\/\//i.test(href);
+  const isExternal = (href) => typeof href === "string" && /^https?:\/\//i.test(href);
 
   return (
     <section className="w-full bg-slate-100 border-b border-slate-200">
@@ -363,18 +359,14 @@ function AgendaPremium() {
                 >
                   <div className="w-12 flex-shrink-0 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-700 text-white text-center py-2">
                     <div className="text-sm font-extrabold leading-none">{dt.dia}</div>
-                    <div className="text-[10px] font-semibold leading-none opacity-90">
-                      {dt.mes}
-                    </div>
+                    <div className="text-[10px] font-semibold leading-none opacity-90">{dt.mes}</div>
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-rose-700">
                       {ev.cidade} • {ev.tag}
                     </p>
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {ev.titulo}
-                    </p>
+                    <p className="text-xs font-bold text-slate-900 truncate">{ev.titulo}</p>
                     <p className="text-[11px] text-slate-600">
                       {ev.hora ? `${ev.hora}` : ""}
                       {ev.local ? ` • ${ev.local}` : ""}
@@ -419,6 +411,18 @@ function AgendaPremium() {
  *  ========================= */
 
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
+  const pins = [
+    { cidade: "Maricá", left: "42.6%", top: "78.6%", tip: "left" },
+    { cidade: "Saquarema", left: "52.4%", top: "83.2%", tip: "top" },
+    { cidade: "Araruama", left: "61.5%", top: "50.2%", tip: "top" },
+    { cidade: "Iguaba Grande", left: "73.9%", top: "74.7%", tip: "left" },
+    { cidade: "São Pedro da Aldeia", left: "75.6%", top: "70.6%", tip: "bottom" },
+    { cidade: "Cabo Frio", left: "82.2%", top: "70.5%", tip: "left" },
+    { cidade: "Arraial do Cabo", left: "85.6%", top: "89.5%", tip: "left" },
+    { cidade: "Búzios", left: "92.6%", top: "58.0%", tip: "left" },
+    { cidade: "Rio das Ostras", left: "87.6%", top: "33.0%", tip: "left" },
+  ];
+
   const pick = (cidade) => {
     if (typeof onSelectCidade === "function") onSelectCidade(cidade);
   };
@@ -427,38 +431,20 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          <div className="relative min-h-[520px] lg:min-h-[620px]">
-            {/* mapa grande no fundo */}
-            <div className="absolute inset-0 hidden md:block">
-              <div className="absolute inset-y-0 right-[-10%] left-[5%] flex items-center justify-center">
-                <div className="w-[135%] lg:w-[145%]">
-                  <MapaCidades
-                    onSelectCity={(cidade) => {
-                      const mapa = {
-                        marica: "Maricá",
-                        saquarema: "Saquarema",
-                        araruama: "Araruama",
-                        iguaba: "Iguaba Grande",
-                        sao_pedro: "São Pedro da Aldeia",
-                        cabo_frio: "Cabo Frio",
-                        arraial: "Arraial do Cabo",
-                        buzios: "Búzios",
-                        rio_das_ostras: "Rio das Ostras",
-                      };
+          <div className="relative aspect-[1920/660] w-full">
+            <Image
+              src="/hero/noticias-mapa.webp"
+              alt="Mapa da Região dos Lagos"
+              fill
+              priority
+              sizes="100vw"
+              className="object-contain object-center"
+            />
 
-                      pick(mapa[cidade] || "Todas");
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent" />
 
-            {/* véu claro sobre a área do texto */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-full md:w-[48%] bg-gradient-to-r from-white/96 via-white/82 to-transparent z-10" />
-
-            {/* conteúdo */}
-            <div className="relative z-20 flex min-h-[520px] lg:min-h-[620px] pointer-events-none">
-              <div className="w-full md:w-[44%] pointer-events-auto px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
+            <div className="absolute inset-0 z-10 flex">
+              <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
                 <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
                   Região dos Lagos
                 </span>
@@ -472,7 +458,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </p>
 
                 <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
-                  Passe o mouse sobre o mapa ou clique para filtrar as notícias locais.
+                  Passe o mouse sobre os pontos ou clique para filtrar as notícias locais.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -526,11 +512,70 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 </div>
               </div>
             </div>
+
+            <div className="absolute inset-0 z-20 hidden md:block">
+              {pins.map((p) => {
+                const ativo = cidadeAtiva === p.cidade;
+
+                const tipClass =
+                  p.tip === "left"
+                    ? "-translate-x-[105%] -translate-y-1/2"
+                    : p.tip === "bottom"
+                    ? "-translate-x-1/2 translate-y-[14px]"
+                    : "-translate-x-1/2 -translate-y-[38px]";
+
+                return (
+                  <button
+                    key={p.cidade}
+                    type="button"
+                    onClick={() => pick(p.cidade)}
+                    title={p.cidade}
+                    aria-label={`Filtrar por ${p.cidade}`}
+                    className="group absolute"
+                    style={{
+                      left: p.left,
+                      top: p.top,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <span
+                      className={[
+                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
+                        "animate-pulse",
+                      ].join(" ")}
+                    />
+
+                    <span
+                      className={[
+                        "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
+                        ativo
+                          ? "border-sky-700 bg-sky-500 scale-110"
+                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
+                      ].join(" ")}
+                    >
+                      <span className="h-1 w-1 rounded-full bg-white" />
+                    </span>
+
+                    <span
+                      className={[
+                        "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
+                        tipClass,
+                        "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
+                        ativo ? "ring-2 ring-sky-200" : "",
+                      ].join(" ")}
+                    >
+                      {p.cidade}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         <p className="mt-3 text-[11px] text-slate-500">
-          Dica: no computador, passe o mouse no mapa; no celular, use o seletor por cidade.
+          Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
         </p>
       </div>
     </section>
@@ -576,9 +621,7 @@ export default function NoticiasHomePage() {
 
       const { data, error } = await supabase
         .from("noticias")
-        .select(
-          "id, titulo, cidade, categoria, resumo, imagem_capa, created_at, published_at, status, tipo"
-        )
+        .select("id, titulo, cidade, categoria, resumo, imagem_capa, created_at, published_at, status, tipo")
         .eq("status", "publicado")
         .order("created_at", { ascending: false })
         .limit(24);
@@ -617,10 +660,7 @@ export default function NoticiasHomePage() {
         label="Ofertas e parceiros (afiliados)."
       />
 
-      <HeroMapaNoticias
-        cidadeAtiva={cidadeFiltro}
-        onSelectCidade={aplicarCidade}
-      />
+      <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
 
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
         <div className="space-y-6">
@@ -632,9 +672,7 @@ export default function NoticiasHomePage() {
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 className="text-sm font-semibold text-slate-900">
-                Notícias por cidade
-              </h2>
+              <h2 className="text-sm font-semibold text-slate-900">Notícias por cidade</h2>
             </div>
 
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -667,15 +705,12 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[11px] text-slate-500">
-              Exibindo:{" "}
-              <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
+              Exibindo: <span className="font-semibold text-slate-800">{cidadeFiltro}</span>
             </p>
           </div>
 
           <section>
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">
-              Destaques
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">Destaques</h2>
 
             {loading ? (
               <p className="text-xs text-slate-500">Carregando notícias…</p>
@@ -702,8 +737,7 @@ export default function NoticiasHomePage() {
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-[11px] text-sky-700 font-semibold uppercase tracking-wide">
-                            {safeText(destaques[0].cidade)} •{" "}
-                            {safeText(destaques[0].categoria)}
+                            {safeText(destaques[0].cidade)} • {safeText(destaques[0].categoria)}
                           </p>
 
                           {(() => {
@@ -728,9 +762,7 @@ export default function NoticiasHomePage() {
                       </div>
 
                       <p className="text-[11px] text-slate-400">
-                        {formatDateBR(
-                          destaques[0].published_at || destaques[0].created_at
-                        )}
+                        {formatDateBR(destaques[0].published_at || destaques[0].created_at)}
                       </p>
                     </div>
                   </Link>
@@ -785,12 +817,8 @@ export default function NoticiasHomePage() {
           {!loading && noticiasFiltradas.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-900">
-                  Últimas notícias
-                </h2>
-                <span className="text-[11px] text-slate-500">
-                  Em breve: filtros por tema.
-                </span>
+                <h2 className="text-sm font-semibold text-slate-900">Últimas notícias</h2>
+                <span className="text-[11px] text-slate-500">Em breve: filtros por tema.</span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -846,9 +874,7 @@ export default function NoticiasHomePage() {
 
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                🎥 TV Classilagos
-              </h2>
+              <h2 className="text-sm font-semibold text-slate-900">🎥 TV Classilagos</h2>
               <span className="text-[11px] text-slate-500">
                 Conteúdos em vídeo sobre a Região dos Lagos
               </span>
@@ -876,9 +902,7 @@ export default function NoticiasHomePage() {
                       <span className="opacity-80">Player (em breve)</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-900">
-                        {c.title}
-                      </p>
+                      <p className="text-xs font-semibold text-slate-900">{c.title}</p>
                       <p className="text-[11px] text-slate-600">{c.desc}</p>
                       <Link
                         href={c.url}
@@ -899,8 +923,7 @@ export default function NoticiasHomePage() {
             </div>
 
             <p className="mt-2 text-[10px] text-slate-400">
-              Em breve, esta seção poderá puxar automaticamente os últimos vídeos
-              do canal.
+              Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
             </p>
           </section>
         </div>
@@ -909,35 +932,22 @@ export default function NoticiasHomePage() {
           <AgendaPremium />
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Diretriz editorial
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Diretriz editorial</h2>
             <ul className="text-[11px] text-slate-700 space-y-1 list-disc pl-5">
               <li>Foco em cultura, turismo, serviços e comércio local.</li>
               <li>Sem violência e sem sensacionalismo.</li>
-              <li>
-                Sem política partidária (comunicados oficiais entram como
-                “serviço”).
-              </li>
+              <li>Sem política partidária (comunicados oficiais entram como “serviço”).</li>
               <li>Crédito e fonte quando forem de parceiros.</li>
             </ul>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Fontes e parcerias
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-900">Fontes e parcerias</h2>
             <p className="text-[11px] text-slate-600">
-              O Classilagos pode republicar chamadas com <b>crédito</b> e{" "}
-              <b>link</b> para a fonte.
+              O Classilagos pode republicar chamadas com <b>crédito</b> e <b>link</b> para a fonte.
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                "Lagos Notícias",
-                "Folha dos Lagos",
-                "RC24h",
-                "G1 Região dos Lagos",
-              ].map((f) => (
+              {["Lagos Notícias", "Folha dos Lagos", "RC24h", "G1 Região dos Lagos"].map((f) => (
                 <span
                   key={f}
                   className="inline-flex rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] text-slate-700"
@@ -952,10 +962,7 @@ export default function NoticiasHomePage() {
             <h2 className="text-sm font-semibold text-slate-900 mb-2">
               Trânsito e câmeras ao vivo
             </h2>
-            <Link
-              href="/noticias/cameras"
-              className="text-[11px] text-sky-700 underline"
-            >
+            <Link href="/noticias/cameras" className="text-[11px] text-sky-700 underline">
               Ponte Rio–Niterói, Via Lagos e RJ-106 (câmeras)
             </Link>
             <p className="mt-2 text-[10px] text-slate-400">
