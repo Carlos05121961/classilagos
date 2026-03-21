@@ -60,7 +60,7 @@ export default function MapaCidades({ onSelectCity }) {
       </div>
 
       {/* MAPA */}
-      <div className="relative w-full aspect-[1920/640]">
+      <div className="relative w-full max-w-[900px] mx-auto">
         {/* BASE (SVG) */}
         <img
           src="/mapas/mapa-cidades-classilagos.svg"
