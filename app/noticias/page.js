@@ -427,17 +427,38 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="relative min-h-[520px] lg:min-h-[620px]">
+            {/* mapa grande no fundo */}
+            <div className="absolute inset-0 hidden md:block">
+              <div className="absolute inset-y-0 right-[-10%] left-[22%] flex items-center justify-center">
+                <div className="w-[135%] lg:w-[145%]">
+                  <MapaCidades
+                    onSelectCity={(cidade) => {
+                      const mapa = {
+                        marica: "Maricá",
+                        saquarema: "Saquarema",
+                        araruama: "Araruama",
+                        iguaba: "Iguaba Grande",
+                        sao_pedro: "São Pedro da Aldeia",
+                        cabo_frio: "Cabo Frio",
+                        arraial: "Arraial do Cabo",
+                        buzios: "Búzios",
+                        rio_das_ostras: "Rio das Ostras",
+                      };
 
-          {/* CONTAINER PRINCIPAL */}
-          <div className="relative w-full min-h-[420px] lg:min-h-[520px]">
+                      pick(mapa[cidade] || "Todas");
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
 
-            {/* FUNDO CLARO PARA TEXTO */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent z-10" />
+            {/* véu claro sobre a área do texto */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-full md:w-[48%] bg-gradient-to-r from-white/96 via-white/82 to-transparent z-10" />
 
-            {/* TEXTO */}
-            <div className="absolute inset-0 z-20 flex">
-              <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
-
+            {/* conteúdo */}
+            <div className="relative z-20 flex min-h-[520px] lg:min-h-[620px]">
+              <div className="w-full md:w-[44%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
                 <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
                   Região dos Lagos
                 </span>
@@ -486,7 +507,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                   </span>
                 </div>
 
-                {/* MOBILE SELECT */}
                 <div className="mt-4 md:hidden">
                   <label className="block text-[10px] font-semibold text-slate-500 mb-1.5">
                     Filtrar por cidade
@@ -504,33 +524,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     ))}
                   </select>
                 </div>
-
               </div>
             </div>
-
-            {/* MAPA */}
-            <div className="absolute inset-0 z-0 flex items-center justify-end pr-[2%]">
-              <div className="w-full md:w-[58%]">
-                <MapaCidades
-                  onSelectCity={(cidade) => {
-                    const mapa = {
-                      marica: "Maricá",
-                      saquarema: "Saquarema",
-                      araruama: "Araruama",
-                      iguaba: "Iguaba Grande",
-                      sao_pedro: "São Pedro da Aldeia",
-                      cabo_frio: "Cabo Frio",
-                      arraial: "Arraial do Cabo",
-                      buzios: "Búzios",
-                      rio_das_ostras: "Rio das Ostras",
-                    };
-
-                    pick(mapa[cidade] || "Todas");
-                  }}
-                />
-              </div>
-            </div>
-
           </div>
         </div>
 
