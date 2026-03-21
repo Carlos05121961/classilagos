@@ -430,7 +430,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
           <div className="relative min-h-[520px] lg:min-h-[620px]">
             {/* mapa grande no fundo */}
             <div className="absolute inset-0 hidden md:block">
-              <div className="absolute inset-y-0 right-[-10%] left-[22%] flex items-center justify-center">
+              <div className="absolute inset-y-0 right-[-10%] left-[5%] flex items-center justify-center">
                 <div className="w-[135%] lg:w-[145%]">
                   <MapaCidades
                     onSelectCity={(cidade) => {
