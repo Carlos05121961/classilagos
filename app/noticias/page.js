@@ -457,8 +457,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-full md:w-[48%] bg-gradient-to-r from-white/96 via-white/82 to-transparent z-10" />
 
             {/* conteúdo */}
-            <div className="relative z-20 flex min-h-[520px] lg:min-h-[620px]">
-              <div className="w-full md:w-[44%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
+            <div className="relative z-20 flex min-h-[520px] lg:min-h-[620px] pointer-events-none">
+              <div className="w-full md:w-[44%] pointer-events-auto px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
                 <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
                   Região dos Lagos
                 </span>
