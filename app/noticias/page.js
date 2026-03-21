@@ -427,20 +427,17 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          <div className="relative aspect-[1920/660] w-full">
-            <Image
-              src="/hero/noticias-mapa-arte.webp"
-              alt="Mapa da Região dos Lagos"
-              fill
-              priority
-              sizes="100vw"
-              className="object-contain object-center"
-            />
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent" />
+          {/* CONTAINER PRINCIPAL */}
+          <div className="relative w-full min-h-[420px] lg:min-h-[520px]">
 
-            <div className="absolute inset-0 z-10 flex">
+            {/* FUNDO CLARO PARA TEXTO */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent z-10" />
+
+            {/* TEXTO */}
+            <div className="absolute inset-0 z-20 flex">
               <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
+
                 <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
                   Região dos Lagos
                 </span>
@@ -489,6 +486,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                   </span>
                 </div>
 
+                {/* MOBILE SELECT */}
                 <div className="mt-4 md:hidden">
                   <label className="block text-[10px] font-semibold text-slate-500 mb-1.5">
                     Filtrar por cidade
@@ -506,11 +504,13 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     ))}
                   </select>
                 </div>
+
               </div>
             </div>
 
-            <div className="absolute inset-0 z-20 hidden md:flex items-center justify-end pr-[2%]">
-              <div className="w-[58%]">
+            {/* MAPA */}
+            <div className="absolute inset-0 z-0 flex items-center justify-end pr-[2%]">
+              <div className="w-full md:w-[58%]">
                 <MapaCidades
                   onSelectCity={(cidade) => {
                     const mapa = {
@@ -530,6 +530,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                 />
               </div>
             </div>
+
           </div>
         </div>
 
