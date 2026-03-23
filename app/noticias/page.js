@@ -429,71 +429,70 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
     <section className="relative overflow-hidden bg-[#EEF3F7] border-b border-slate-200">
       <div className="relative max-w-[1700px] mx-auto px-4 py-8 md:px-6 lg:px-8 lg:py-10">
        <div className="grid items-center gap-6 lg:grid-cols-[0.78fr,1.52fr]">
-          {/* LADO ESQUERDO */}
-          <div className="order-2 lg:order-1 -translate-y-[20px] md:-translate-y-[30px]">
-            <div className="inline-flex items-center rounded-2xl border border-slate-500 bg-white px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm">
-              REGIÃO DOS LAGOS
-            </div>
+      {/* LADO ESQUERDO */}
+<div className="order-2 lg:order-1 relative z-20 pt-2 md:pt-4 lg:pt-6">
+  <div className="inline-flex items-center rounded-2xl border border-slate-500 bg-white px-4 py-2 text-[12px] md:text-[13px] font-extrabold tracking-wide text-slate-900 shadow-sm">
+    REGIÃO DOS LAGOS
+  </div>
 
-            <h1 className="mt-5 max-w-[520px] text-[40px] leading-[0.94] md:text-[58px] lg:text-[72px] font-black tracking-tight text-slate-950">
-              Classilagos
-              <br />
-              Notícias
-            </h1>
+  <h1 className="mt-5 max-w-[460px] text-[38px] leading-[0.92] md:text-[54px] lg:text-[66px] font-black tracking-tight text-slate-950">
+    Classilagos
+    <br />
+    Notícias
+  </h1>
 
-            <p className="mt-4 max-w-[560px] text-[18px] md:text-[24px] italic leading-snug text-slate-900">
-              O Portal Oficial de Informação da Região dos Lagos
-            </p>
+  <p className="mt-4 max-w-[500px] text-[17px] md:text-[22px] italic leading-snug text-slate-900">
+    O Portal Oficial de Informação da Região dos Lagos
+  </p>
 
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Link
-                href="/noticias"
-                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-              >
-                Ver notícias
-              </Link>
+  <div className="mt-8 flex flex-wrap gap-3">
+    <Link
+      href="/noticias"
+      className="rounded-2xl bg-white px-5 py-3 text-[17px] md:text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+    >
+      Ver notícias
+    </Link>
 
-              <Link
-                href="/noticias/cameras"
-                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-              >
-                Ver câmeras
-              </Link>
+    <Link
+      href="/noticias/cameras"
+      className="rounded-2xl bg-white px-5 py-3 text-[17px] md:text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+    >
+      Ver câmeras
+    </Link>
 
-              <Link
-                href="/noticias/correspondentes"
-                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-              >
-                Correspondentes
-              </Link>
-            </div>
+    <Link
+      href="/noticias/correspondentes"
+      className="rounded-2xl bg-white px-5 py-3 text-[17px] md:text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+    >
+      Correspondentes
+    </Link>
+  </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {cidades.map((cidade) => {
-                const ativa = cidadeAtiva === cidade;
-                return (
-                  <button
-                    key={cidade}
-                    type="button"
-                    onClick={() => onSelectCidade?.(cidade)}
-                    className={[
-                      "rounded-full border px-4 py-2 text-[11px] font-extrabold transition",
-                      ativa
-                        ? "border-sky-300 bg-sky-50 text-sky-700"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:text-sky-700",
-                    ].join(" ")}
-                  >
-                    {cidade}
-                  </button>
-                );
-              })}
-            </div>
+  <div className="mt-6 flex flex-wrap gap-2 max-w-[540px]">
+    {cidades.map((cidade) => {
+      const ativa = cidadeAtiva === cidade;
+      return (
+        <button
+          key={cidade}
+          type="button"
+          onClick={() => onSelectCidade?.(cidade)}
+          className={[
+            "rounded-full border px-4 py-2 text-[11px] font-extrabold transition",
+            ativa
+              ? "border-sky-300 bg-sky-50 text-sky-700"
+              : "border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:text-sky-700",
+          ].join(" ")}
+        >
+          {cidade}
+        </button>
+      );
+    })}
+  </div>
 
-            <div className="mt-4 inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-700 shadow-sm">
-              Cidade selecionada:
-              <span className="ml-2 font-black text-sky-700">{cidadeAtiva}</span>
-            </div>
-          </div>
+  <div className="mt-4 inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-700 shadow-sm">
+    Cidade selecionada:
+    <span className="ml-2 font-black text-sky-700">{cidadeAtiva}</span>
+  </div>
 
           {/* LADO DIREITO */}
           <div className="order-1 lg:order-2">
