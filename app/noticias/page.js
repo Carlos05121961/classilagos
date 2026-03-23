@@ -580,7 +580,7 @@ export default function NoticiasHomePage() {
         label="Ofertas e parceiros (afiliados)."
       />
 
-      <HeroMapaNoticias cidadeAtiva={cidadeFiltro} onSelectCidade={aplicarCidade} />
+     <MapaCidades onSelectCity={aplicarCidade} />
 
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
         <div className="space-y-6">
