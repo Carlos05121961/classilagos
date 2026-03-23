@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "../supabaseClient";
+import MapaCidades from "../components/MapaCidades";
 
 /** =========================
  *  CONFIG
