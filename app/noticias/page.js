@@ -583,13 +583,13 @@ export default function NoticiasHomePage() {
 
      <section className="relative overflow-hidden bg-[#EEF3F7]">
   {/* mar embaixo */}
-  <div className="absolute bottom-0 left-0 right-0 h-[20%] bg-gradient-to-r from-sky-300 via-sky-400 to-sky-500" />
+  <div className="absolute bottom-0 left-0 right-0 h-[19%] bg-[#54B9EE]" />
 
   {/* mar subindo pela direita */}
-  <div className="absolute right-0 top-0 h-full w-[34%] bg-gradient-to-b from-sky-400 via-sky-500 to-sky-600" />
+ <div className="absolute right-0 bottom-0 h-[72%] w-[31%] bg-[#1EA5E6]" />
 
   {/* faixa suave de separação */}
-  <div className="absolute inset-y-0 left-[53%] hidden lg:block w-px bg-sky-200/80" />
+ <div className="absolute inset-y-0 left-[53%] hidden lg:block w-px bg-sky-200/50" />
 
   <div className="relative max-w-[1700px] mx-auto min-h-[540px] lg:min-h-[640px] px-4 md:px-6 pt-6 lg:pt-10">
     <div className="grid lg:grid-cols-[0.95fr,1.45fr] items-start gap-6 lg:gap-10">
@@ -632,8 +632,8 @@ export default function NoticiasHomePage() {
       </div>
 
       {/* LADO DIREITO / MAPA */}
-      <div className="relative z-20 lg:-mr-10 xl:-mr-16 2xl:-mr-20 lg:pt-1">
-        <div className="origin-center scale-[1.08] md:scale-[1.12] lg:scale-[1.18] xl:scale-[1.24] 2xl:scale-[1.28]">
+     <div className="relative z-20 lg:-mr-6 xl:-mr-10 2xl:-mr-12 lg:pt-2">
+  <div className="origin-center scale-[0.98] md:scale-[1.02] lg:scale-[1.08] xl:scale-[1.12] 2xl:scale-[1.14]">
           <MapaCidades onSelectCity={aplicarCidade} />
         </div>
       </div>
