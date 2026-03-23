@@ -514,7 +514,6 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
             </div>
           </div>
         </div>
-      </div>
     </section>
   );
 }
