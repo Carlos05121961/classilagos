@@ -411,172 +411,92 @@ function AgendaPremium() {
  *  ========================= */
 
 function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
-  const pins = [
-    { cidade: "Maricá", left: "42.6%", top: "78.6%", tip: "left" },
-    { cidade: "Saquarema", left: "52.4%", top: "83.2%", tip: "top" },
-    { cidade: "Araruama", left: "61.5%", top: "50.2%", tip: "top" },
-    { cidade: "Iguaba Grande", left: "73.9%", top: "74.7%", tip: "left" },
-    { cidade: "São Pedro da Aldeia", left: "75.6%", top: "70.6%", tip: "bottom" },
-    { cidade: "Cabo Frio", left: "82.2%", top: "70.5%", tip: "left" },
-    { cidade: "Arraial do Cabo", left: "85.6%", top: "89.5%", tip: "left" },
-    { cidade: "Búzios", left: "92.6%", top: "58.0%", tip: "left" },
-    { cidade: "Rio das Ostras", left: "87.6%", top: "33.0%", tip: "left" },
+  const cidades = [
+    "Todas",
+    "Maricá",
+    "Saquarema",
+    "Araruama",
+    "Iguaba Grande",
+    "São Pedro da Aldeia",
+    "Arraial do Cabo",
+    "Cabo Frio",
+    "Búzios",
+    "Rio das Ostras",
   ];
 
-  const pick = (cidade) => {
-    if (typeof onSelectCidade === "function") onSelectCidade(cidade);
-  };
-
   return (
-    <section className="bg-white border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 py-6 lg:py-8">
-        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          <div className="relative aspect-[1920/660] w-full">
-            <Image
-              src="/hero/noticias-mapa.webp"
-              alt="Mapa da Região dos Lagos"
-              fill
-              priority
-              sizes="100vw"
-              className="object-contain object-center"
-            />
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-sky-950 to-cyan-950">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%)]" />
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[44%] bg-gradient-to-r from-white/86 via-white/56 to-transparent" />
-
-            <div className="absolute inset-0 z-10 flex">
-              <div className="w-full md:w-[42%] px-5 py-5 sm:px-7 sm:py-7 lg:px-9 lg:py-9 flex flex-col justify-center">
-                <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-700 shadow-sm">
-                  Região dos Lagos
-                </span>
-
-                <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900">
-                  Classilagos Notícias
-                </h1>
-
-                <p className="mt-3 max-w-md text-sm md:text-base text-slate-700">
-                  O portal oficial de informação da Região dos Lagos.
-                </p>
-
-                <p className="mt-2 max-w-md text-xs md:text-sm text-slate-500">
-                  Passe o mouse sobre os pontos ou clique para filtrar as notícias locais.
-                </p>
-
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link
-                    href="/noticias/cameras"
-                    className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-[11px] md:text-sm font-semibold text-white shadow hover:bg-sky-700"
-                  >
-                    Ver câmeras ao vivo
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => pick("Todas")}
-                    className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Ver todas as notícias
-                  </button>
-
-                  <Link
-                    href="/noticias/correspondentes"
-                    className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[11px] md:text-sm font-semibold text-slate-700 hover:bg-white"
-                  >
-                    Correspondentes
-                  </Link>
-                </div>
-
-                <div className="mt-4">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] text-slate-600 shadow-sm">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    Exibindo:
-                    <b className="text-slate-900">{cidadeAtiva || "Todas"}</b>
-                  </span>
-                </div>
-
-                <div className="mt-4 md:hidden">
-                  <label className="block text-[10px] font-semibold text-slate-500 mb-1.5">
-                    Filtrar por cidade
-                  </label>
-                  <select
-                    className="w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    value={cidadeAtiva || "Todas"}
-                    onChange={(e) => pick(e.target.value)}
-                  >
-                    <option value="Todas">Todas</option>
-                    {CIDADES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+      <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-10">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr,1.35fr]">
+          {/* LADO ESQUERDO */}
+          <div className="order-2 lg:order-1">
+            <div className="inline-flex items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">
+              Notícias • Região dos Lagos
             </div>
 
-            <div className="absolute inset-0 z-20 hidden md:block">
-              {pins.map((p) => {
-                const ativo = cidadeAtiva === p.cidade;
+            <h1 className="mt-4 text-2xl md:text-4xl font-black leading-tight text-white">
+              Notícias do Classilagos
+            </h1>
 
-                const tipClass =
-                  p.tip === "left"
-                    ? "-translate-x-[105%] -translate-y-1/2"
-                    : p.tip === "bottom"
-                    ? "-translate-x-1/2 translate-y-[14px]"
-                    : "-translate-x-1/2 -translate-y-[38px]";
+            <p className="mt-3 max-w-xl text-sm md:text-[15px] leading-relaxed text-slate-200">
+              Acompanhe os principais acontecimentos de Maricá, Saquarema,
+              Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial do Cabo,
+              Cabo Frio, Búzios e Rio das Ostras.
+            </p>
 
+            <div className="mt-5 flex flex-wrap gap-2">
+              {cidades.map((cidade) => {
+                const ativa = cidadeAtiva === cidade;
                 return (
                   <button
-                    key={p.cidade}
+                    key={cidade}
                     type="button"
-                    onClick={() => pick(p.cidade)}
-                    title={p.cidade}
-                    aria-label={`Filtrar por ${p.cidade}`}
-                    className="group absolute"
-                    style={{
-                      left: p.left,
-                      top: p.top,
-                      transform: "translate(-50%, -50%)",
-                    }}
+                    onClick={() => onSelectCidade?.(cidade)}
+                    className={[
+                      "rounded-full border px-4 py-2 text-[11px] font-extrabold transition",
+                      ativa
+                        ? "border-cyan-300 bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20"
+                        : "border-white/15 bg-white/8 text-white hover:bg-white/14",
+                    ].join(" ")}
                   >
-                    <span
-                      className={[
-                        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full",
-                        ativo ? "h-5 w-5 bg-sky-400/20" : "h-4 w-4 bg-amber-300/20",
-                        "animate-pulse",
-                      ].join(" ")}
-                    />
-
-                    <span
-                      className={[
-                        "relative flex h-3 w-3 items-center justify-center rounded-full border shadow-sm transition-all duration-200",
-                        ativo
-                          ? "border-sky-700 bg-sky-500 scale-110"
-                          : "border-slate-800 bg-amber-300 hover:scale-110 hover:bg-amber-400",
-                      ].join(" ")}
-                    >
-                      <span className="h-1 w-1 rounded-full bg-white" />
-                    </span>
-
-                    <span
-                      className={[
-                        "pointer-events-none absolute whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold text-slate-800 shadow-sm transition-all duration-200",
-                        tipClass,
-                        "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
-                        ativo ? "ring-2 ring-sky-200" : "",
-                      ].join(" ")}
-                    >
-                      {p.cidade}
-                    </span>
+                    {cidade}
                   </button>
                 );
               })}
             </div>
+
+            <div className="mt-4 inline-flex items-center rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs text-slate-200 backdrop-blur-sm">
+              Cidade selecionada:
+              <span className="ml-2 font-black text-cyan-300">{cidadeAtiva}</span>
+            </div>
+          </div>
+
+          {/* LADO DIREITO */}
+          <div className="order-1 lg:order-2">
+            <div className="relative w-full">
+              <div className="relative mx-auto w-full max-w-[1400px]">
+                {/* SVG BASE */}
+                <img
+                  src="/mapas/mapa-cidades-classilagos.svg"
+                  alt="Mapa das cidades atendidas pelo Classilagos"
+                  className="relative z-10 block w-full h-auto select-none"
+                  draggable={false}
+                />
+
+                {/* ILUSTRAÇÃO POR CIMA */}
+                <img
+                  src="/hero/noticias-mapa-arte.webp"
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 z-20 w-full h-full object-contain select-none"
+                  draggable={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
-
-        <p className="mt-3 text-[11px] text-slate-500">
-          Dica: no computador, passe o mouse nos pontos; no celular, use o seletor por cidade.
-        </p>
       </div>
     </section>
   );
