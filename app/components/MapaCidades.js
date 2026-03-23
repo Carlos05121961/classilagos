@@ -93,10 +93,16 @@ export default function MapaCidades({ onSelectCity }) {
                 aria-label={nomes[chave]}
                 tabIndex={0}
                 onMouseEnter={() => handleEnter(chave)}
-                onMouseLeave={handleLeave}
-                onClick={() => handleClick(chave)}
-                onFocus={() => handleEnter(chave)}
-                onBlur={handleLeave}
+onMouseLeave={handleLeave}
+onClick={() => {
+  handleEnter(chave);
+  handleClick(chave);
+}}
+onTouchStart={() => {
+  handleEnter(chave);
+}}
+onFocus={() => handleEnter(chave)}
+onBlur={handleLeave}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
