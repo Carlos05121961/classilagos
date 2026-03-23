@@ -428,20 +428,20 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   return (
     <section className="relative overflow-hidden bg-[#EEF3F7] border-b border-slate-200">
       <div className="relative max-w-[1700px] mx-auto px-4 py-8 md:px-6 lg:px-8 lg:py-10">
-        <div className="grid items-center gap-8 lg:grid-cols-[0.95fr,1.35fr]">
+       <div className="grid items-center gap-6 lg:grid-cols-[0.78fr,1.52fr]">
           {/* LADO ESQUERDO */}
           <div className="order-2 lg:order-1">
             <div className="inline-flex items-center rounded-2xl border border-slate-500 bg-white px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm">
               REGIÃO DOS LAGOS
             </div>
 
-            <h1 className="mt-5 text-[46px] leading-[0.92] md:text-[74px] lg:text-[96px] font-black tracking-tight text-slate-950">
+            <h1 className="mt-5 max-w-[520px] text-[40px] leading-[0.94] md:text-[58px] lg:text-[72px] font-black tracking-tight text-slate-950">
               Classilagos
               <br />
               Notícias
             </h1>
 
-            <p className="mt-5 max-w-[760px] text-[20px] md:text-[30px] italic leading-snug text-slate-900">
+            <p className="mt-4 max-w-[560px] text-[18px] md:text-[24px] italic leading-snug text-slate-900">
               O Portal Oficial de Informação da Região dos Lagos
             </p>
 
