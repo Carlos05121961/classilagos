@@ -426,28 +426,49 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-sky-950 to-cyan-950">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%)]" />
-
-      <div className="relative max-w-7xl mx-auto px-4 py-8 md:py-10">
-        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr,1.35fr]">
+    <section className="relative overflow-hidden bg-[#EEF3F7] border-b border-slate-200">
+      <div className="relative max-w-[1700px] mx-auto px-4 py-8 md:px-6 lg:px-8 lg:py-10">
+        <div className="grid items-center gap-8 lg:grid-cols-[0.95fr,1.35fr]">
           {/* LADO ESQUERDO */}
           <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-200">
-              Notícias • Região dos Lagos
+            <div className="inline-flex items-center rounded-2xl border border-slate-500 bg-white px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm">
+              REGIÃO DOS LAGOS
             </div>
 
-            <h1 className="mt-4 text-2xl md:text-4xl font-black leading-tight text-white">
-              Notícias do Classilagos
+            <h1 className="mt-5 text-[46px] leading-[0.92] md:text-[74px] lg:text-[96px] font-black tracking-tight text-slate-950">
+              Classilagos
+              <br />
+              Notícias
             </h1>
 
-            <p className="mt-3 max-w-xl text-sm md:text-[15px] leading-relaxed text-slate-200">
-              Acompanhe os principais acontecimentos de Maricá, Saquarema,
-              Araruama, Iguaba Grande, São Pedro da Aldeia, Arraial do Cabo,
-              Cabo Frio, Búzios e Rio das Ostras.
+            <p className="mt-5 max-w-[760px] text-[20px] md:text-[30px] italic leading-snug text-slate-900">
+              O Portal Oficial de Informação da Região dos Lagos
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link
+                href="/noticias"
+                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                Ver notícias
+              </Link>
+
+              <Link
+                href="/noticias/cameras"
+                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                Ver câmeras
+              </Link>
+
+              <Link
+                href="/noticias/correspondentes"
+                className="rounded-2xl bg-white px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+              >
+                Correspondentes
+              </Link>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
               {cidades.map((cidade) => {
                 const ativa = cidadeAtiva === cidade;
                 return (
@@ -458,8 +479,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
                     className={[
                       "rounded-full border px-4 py-2 text-[11px] font-extrabold transition",
                       ativa
-                        ? "border-cyan-300 bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20"
-                        : "border-white/15 bg-white/8 text-white hover:bg-white/14",
+                        ? "border-sky-300 bg-sky-50 text-sky-700"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:text-sky-700",
                     ].join(" ")}
                   >
                     {cidade}
@@ -468,33 +489,29 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
               })}
             </div>
 
-            <div className="mt-4 inline-flex items-center rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs text-slate-200 backdrop-blur-sm">
+            <div className="mt-4 inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-700 shadow-sm">
               Cidade selecionada:
-              <span className="ml-2 font-black text-cyan-300">{cidadeAtiva}</span>
+              <span className="ml-2 font-black text-sky-700">{cidadeAtiva}</span>
             </div>
           </div>
 
           {/* LADO DIREITO */}
           <div className="order-1 lg:order-2">
-            <div className="relative w-full">
-              <div className="relative mx-auto w-full max-w-[1400px]">
-                {/* SVG BASE */}
-                <img
-                  src="/mapas/mapa-cidades-classilagos.svg"
-                  alt="Mapa das cidades atendidas pelo Classilagos"
-                  className="relative z-10 block w-full h-auto select-none"
-                  draggable={false}
-                />
+            <div className="relative mx-auto w-full max-w-[1500px]">
+              <img
+                src="/mapas/mapa-cidades-classilagos.svg"
+                alt="Mapa das cidades atendidas pelo Classilagos"
+                className="block w-full h-auto select-none"
+                draggable={false}
+              />
 
-                {/* ILUSTRAÇÃO POR CIMA */}
-                <img
-                  src="/hero/noticias-mapa-arte.webp"
-                  alt=""
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 z-20 w-full h-full object-contain select-none"
-                  draggable={false}
-                />
-              </div>
+              <img
+                src="/hero/noticias-mapa-arte.webp"
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 w-full h-full object-contain select-none"
+                draggable={false}
+              />
             </div>
           </div>
         </div>
