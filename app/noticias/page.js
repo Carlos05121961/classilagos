@@ -899,7 +899,7 @@ export default function NoticiasHomePage() {
               Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
             </p>
           </section>
-        </div>
+      
 
         <aside className="space-y-4">
           <AgendaPremium />
