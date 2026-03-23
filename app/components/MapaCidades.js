@@ -36,9 +36,9 @@ export default function MapaCidades({ onSelectCity }) {
     setCidadeAtiva(cidade);
   }
 
-  function handleLeave() {
-    setCidadeAtiva("");
-  }
+function handleLeave() {
+  // no desktop o hover sai, mas no mobile mantemos a última cidade tocada
+}
 
   function handleClick(cidade) {
     if (typeof onSelectCity === "function") {
