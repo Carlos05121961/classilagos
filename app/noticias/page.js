@@ -497,8 +497,8 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
           </div>
 
           {/* LADO DIREITO */}
- <div className="order-1 lg:order-2 pt-6 lg:pt-10">
-  <div className="relative w-full scale-[1.22] md:scale-[1.30] lg:scale-[1.50] origin-right -translate-x-[20px] md:-translate-x-[40px] lg:-translate-x-[70px] -translate-y-[35px] md:-translate-y-[55px] lg:-translate-y-[85px]">
+ <div className="order-2 lg:order-2 pt-6 lg:pt-10">
+<div className="relative w-full scale-[1.0] md:scale-[1.30] lg:scale-[1.50] origin-center md:origin-right translate-x-0 md:-translate-x-[40px] lg:-translate-x-[70px] translate-y-0 md:-translate-y-[55px] lg:-translate-y-[85px]">
     <MapaCidades onSelectCity={onSelectCidade} />
   </div>
 </div>
