@@ -598,65 +598,10 @@ export default function NoticiasHomePage() {
         label="Ofertas e parceiros (afiliados)."
       />
 
-     <section className="relative overflow-hidden bg-[#EEF3F7]">
-  {/* mar embaixo */}
-  <div className="absolute bottom-0 left-0 right-0 h-[19%] bg-[#54B9EE]" />
-
-  {/* mar subindo pela direita */}
- <div className="absolute right-0 bottom-0 h-[72%] w-[31%] bg-[#1EA5E6]" />
-
-  {/* faixa suave de separação */}
- <div className="absolute inset-y-0 left-[53%] hidden lg:block w-px bg-sky-200/50" />
-
-  <div className="relative max-w-[1700px] mx-auto min-h-[540px] lg:min-h-[640px] px-4 md:px-6 pt-6 lg:pt-10">
-    <div className="grid lg:grid-cols-[0.95fr,1.45fr] items-start gap-6 lg:gap-10">
-      {/* LADO ESQUERDO */}
-      <div className="relative z-20 pt-2 lg:pt-6">
-        <div className="inline-flex items-center rounded-2xl border border-slate-600 bg-white/70 px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm backdrop-blur">
-          REGIÃO DOS LAGOS
-        </div>
-
-        <h1 className="mt-6 text-[42px] leading-[0.95] md:text-[68px] lg:text-[86px] font-black tracking-tight text-slate-950">
-          Classilagos Notícias
-        </h1>
-
-        <p className="mt-5 max-w-[720px] text-[20px] md:text-[28px] italic leading-snug text-slate-900">
-          O Portal Oficial de Informação da Região dos Lagos
-        </p>
-
-        <div className="mt-10 flex flex-wrap gap-3">
-          <Link
-            href="/noticias"
-            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
-          >
-            Ver notícias
-          </Link>
-
-          <Link
-            href="/noticias/cameras"
-            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
-          >
-            Ver câmeras
-          </Link>
-
-          <Link
-            href="/noticias/correspondentes"
-            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
-          >
-            Correspondentes
-          </Link>
-        </div>
-      </div>
-
-      {/* LADO DIREITO / MAPA */}
-     <div className="relative z-20 lg:-mr-6 xl:-mr-10 2xl:-mr-12 lg:pt-2">
-  <div className="origin-center scale-[0.98] md:scale-[1.02] lg:scale-[1.08] xl:scale-[1.12] 2xl:scale-[1.14]">
-          <MapaCidades onSelectCity={aplicarCidade} />
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      <HeroMapaNoticias
+        cidadeAtiva={cidadeFiltro}
+        onSelectCidade={aplicarCidade}
+      />
 
       <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
         <div className="space-y-6">
