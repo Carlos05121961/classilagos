@@ -581,67 +581,73 @@ export default function NoticiasHomePage() {
         label="Ofertas e parceiros (afiliados)."
       />
 
-<section className="relative overflow-hidden bg-[#EEF3F7]">
-  {/* MAR BASE */}
-  <div className="absolute bottom-0 left-0 right-0 h-[19%] bg-[#57B7E8]" />
+     <section className="relative overflow-hidden bg-[#EEF3F7]">
+  {/* mar embaixo */}
+  <div className="absolute bottom-0 left-0 right-0 h-[19%] bg-[#54B9EE]" />
 
-  {/* MAR SUBINDO NA DIREITA COM CURVA */}
-  <div className="absolute right-0 bottom-0 h-[74%] w-[36%] rounded-tl-[180px] bg-[#1EA5E6]" />
+  {/* mar subindo pela direita */}
+ <div className="absolute right-0 bottom-0 h-[72%] w-[31%] bg-[#1EA5E6]" />
 
-  {/* LINHA SUAVE CENTRAL */}
-  <div className="absolute inset-y-0 left-[53.2%] hidden lg:block w-px bg-sky-200/60" />
+  {/* faixa suave de separação */}
+ <div className="absolute inset-y-0 left-[53%] hidden lg:block w-px bg-sky-200/50" />
 
-  <div className="relative mx-auto max-w-[1920px] min-h-[540px] px-6 pt-8 lg:min-h-[640px] lg:px-8 lg:pt-10">
-    <div className="grid items-start gap-6 lg:grid-cols-[1.05fr,1.15fr]">
-      {/* ESQUERDA */}
-      <div className="relative z-20 pt-3 lg:pt-6">
-        <div className="inline-flex items-center rounded-2xl border border-slate-700 bg-white/80 px-4 py-2 text-[13px] font-extrabold tracking-wide text-slate-900">
+  <div className="relative max-w-[1700px] mx-auto min-h-[540px] lg:min-h-[640px] px-4 md:px-6 pt-6 lg:pt-10">
+    <div className="grid lg:grid-cols-[0.95fr,1.45fr] items-start gap-6 lg:gap-10">
+      {/* LADO ESQUERDO */}
+      <div className="relative z-20 pt-2 lg:pt-6">
+        <div className="inline-flex items-center rounded-2xl border border-slate-600 bg-white/70 px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm backdrop-blur">
           REGIÃO DOS LAGOS
         </div>
 
-        <h1 className="mt-6 text-[62px] font-black leading-[0.92] tracking-tight text-slate-950 md:text-[84px] lg:text-[106px]">
-          Classilagos
-          <br />
-          Notícias
+        <h1 className="mt-6 text-[42px] leading-[0.95] md:text-[68px] lg:text-[86px] font-black tracking-tight text-slate-950">
+          Classilagos Notícias
         </h1>
 
-        <p className="mt-6 max-w-[760px] text-[22px] italic leading-snug text-slate-900 md:text-[32px]">
+        <p className="mt-5 max-w-[720px] text-[20px] md:text-[28px] italic leading-snug text-slate-900">
           O Portal Oficial de Informação da Região dos Lagos
         </p>
 
-        <div className="mt-12 flex flex-wrap gap-4">
+        <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/noticias"
-            className="rounded-2xl bg-white/85 px-6 py-3 text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-white"
+            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
           >
             Ver notícias
           </Link>
 
           <Link
             href="/noticias/cameras"
-            className="rounded-2xl bg-white/85 px-6 py-3 text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-white"
+            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
           >
             Ver câmeras
           </Link>
 
           <Link
             href="/noticias/correspondentes"
-            className="rounded-2xl bg-white/85 px-6 py-3 text-[20px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 hover:bg-white"
+            className="rounded-2xl bg-white/80 px-5 py-3 text-[18px] md:text-[22px] italic text-slate-900 shadow-sm ring-1 ring-slate-200 backdrop-blur hover:bg-white"
           >
             Correspondentes
           </Link>
         </div>
       </div>
 
-      {/* DIREITA */}
-      <div className="relative z-20 min-h-[420px] lg:min-h-[560px]">
-        <div className="absolute left-[-2%] top-[2%] w-[112%] origin-top-left scale-[1.04] lg:left-[-6%] lg:top-[2%] lg:w-[118%] lg:scale-[1.08] xl:left-[-8%] xl:w-[122%] xl:scale-[1.12]">
+      {/* LADO DIREITO / MAPA */}
+     <div className="relative z-20 lg:-mr-6 xl:-mr-10 2xl:-mr-12 lg:pt-2">
+  <div className="origin-center scale-[0.98] md:scale-[1.02] lg:scale-[1.08] xl:scale-[1.12] 2xl:scale-[1.14]">
           <MapaCidades onSelectCity={aplicarCidade} />
         </div>
       </div>
     </div>
   </div>
 </section>
+
+      <section className="max-w-6xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-[3fr,2fr] gap-6">
+        <div className="space-y-6">
+          {erro && (
+            <div className="bg-red-50 border border-red-100 text-red-700 text-xs rounded-2xl px-4 py-3">
+              {erro}
+            </div>
+          )}
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -899,7 +905,7 @@ export default function NoticiasHomePage() {
               Em breve, esta seção poderá puxar automaticamente os últimos vídeos do canal.
             </p>
           </section>
-      
+        </div>
 
         <aside className="space-y-4">
           <AgendaPremium />
