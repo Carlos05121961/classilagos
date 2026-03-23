@@ -430,7 +430,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
       <div className="relative max-w-[1700px] mx-auto px-4 py-8 md:px-6 lg:px-8 lg:py-10">
        <div className="grid items-center gap-6 lg:grid-cols-[0.78fr,1.52fr]">
           {/* LADO ESQUERDO */}
-          <div className="order-2 lg:order-1">
+          <div className="order-2 lg:order-1 -translate-y-[20px] md:-translate-y-[30px]">
             <div className="inline-flex items-center rounded-2xl border border-slate-500 bg-white px-4 py-2 text-[12px] md:text-[14px] font-extrabold tracking-wide text-slate-900 shadow-sm">
               REGIÃO DOS LAGOS
             </div>
