@@ -497,7 +497,7 @@ function HeroMapaNoticias({ cidadeAtiva = "Todas", onSelectCidade }) {
 
           {/* LADO DIREITO */}
           <div className="order-1 lg:order-2">
-           <div className="relative w-full scale-[1.25] lg:scale-[1.45] origin-right">
+           <div className="relative w-full scale-[1.18] md:scale-[1.26] lg:scale-[1.45] origin-right -translate-y-[20px] md:-translate-y-[40px] lg:-translate-y-[60px]">
               <img
                 src="/mapas/mapa-cidades-classilagos.svg"
                 alt="Mapa das cidades atendidas pelo Classilagos"
