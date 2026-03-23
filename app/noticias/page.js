@@ -950,5 +950,6 @@ export default function NoticiasHomePage() {
         height={120}
         label="Ofertas e parceiros (afiliados)."
       />
+    </main>
   );
 }
