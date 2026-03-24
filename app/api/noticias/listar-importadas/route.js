@@ -3,8 +3,6 @@ export const revalidate = 0;
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,8 +18,7 @@ export async function GET(req) {
     let query = supabase
       .from("noticias")
       .select("*")
-      // externas: fonte OU link_original preenchido
-      .or("fonte.ilike.%g1%,fonte.ilike.%rc24%,link_original.not.is.null")
+      .or("fonte.ilike.%g1%,fonte.ilike.%rc24%")
       .order("created_at", { ascending: false });
 
     if (status) {
