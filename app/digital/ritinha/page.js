@@ -57,132 +57,143 @@ export default function RitinhaPage() {
       <section
         style={{
           position: "relative",
-          minHeight: "72vh",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          background: "#fff",
         }}
       >
-        {heroImages.map((image, index) => (
-          <div
-            key={image}
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${image})`,
-              backgroundSize: "110%",
-              backgroundPosition: "50% 10%",
-              opacity: currentHero === index ? 1 : 0,
-              transition: "opacity 1.2s ease-in-out",
-              transform: "scale(1)",
-            }}
-          />
-        ))}
-
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(rgba(0,0,0,0.22), rgba(0,0,0,0.30))",
-          }}
-        />
-
         <div
           style={{
             position: "relative",
-            zIndex: 2,
             width: "100%",
-            maxWidth: "1000px",
-            textAlign: "center",
-            padding: "36px 20px",
+            maxHeight: "78vh",
+            overflow: "hidden",
           }}
         >
-          <p
+          <img
+            src="/ritinha/hero-ritinha-1.jpg"
+            alt="Quiosque da Ritinha na Barra de Maricá"
             style={{
-              color: "#fef3c7",
-              fontWeight: "bold",
-              letterSpacing: "0.10em",
-              textTransform: "uppercase",
-              fontSize: "0.9rem",
-              marginBottom: "14px",
+              width: "100%",
+              height: "auto",
+              display: "block",
             }}
-          >
-            Barra de Maricá • Pé na areia
-          </p>
-
-          <h1
-            style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: "clamp(2.4rem, 5vw, 4.6rem)",
-              lineHeight: 1.05,
-              color: "#ffffff",
-              marginBottom: "16px",
-              textShadow: "0 3px 14px rgba(0,0,0,0.25)",
-            }}
-          >
-            Quiosque da Ritinha
-          </h1>
-
-          <p
-            style={{
-              fontSize: "clamp(1rem, 2vw, 1.35rem)",
-              color: "#ffffff",
-              maxWidth: "760px",
-              margin: "0 auto 26px",
-              lineHeight: 1.7,
-              textShadow: "0 2px 10px rgba(0,0,0,0.22)",
-            }}
-          >
-            Sabor, tradição e aquele clima especial da praia em um dos cantinhos
-            mais queridos da Barra de Maricá.
-          </p>
+          />
 
           <div
             style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.22))",
               display: "flex",
+              alignItems: "center",
               justifyContent: "center",
-              gap: "14px",
-              flexWrap: "wrap",
+              padding: "20px",
             }}
           >
-            <a
-              href={`https://wa.me/${whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <div
               style={{
-                background: "#22c55e",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontWeight: "bold",
-                padding: "15px 26px",
-                borderRadius: "999px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
-                fontSize: "1rem",
+                width: "100%",
+                maxWidth: "920px",
+                textAlign: "center",
               }}
             >
-              Falar no WhatsApp
-            </a>
+              <div
+                style={{
+                  display: "inline-block",
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.28)",
+                  backdropFilter: "blur(4px)",
+                  WebkitBackdropFilter: "blur(4px)",
+                  borderRadius: "24px",
+                  padding: "24px 22px",
+                }}
+              >
+                <p
+                  style={{
+                    color: "#fef3c7",
+                    fontWeight: "bold",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    fontSize: "0.88rem",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Barra de Maricá • Pé na areia
+                </p>
 
-            <a
-              href="https://www.instagram.com/quiosquedaritinha/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                background: "rgba(255,255,255,0.18)",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontWeight: "bold",
-                padding: "15px 26px",
-                borderRadius: "999px",
-                border: "1px solid rgba(255,255,255,0.35)",
-                backdropFilter: "blur(4px)",
-                fontSize: "1rem",
-              }}
-            >
-              Ver Instagram
-            </a>
+                <h1
+                  style={{
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontSize: "clamp(2.1rem, 4.6vw, 4.2rem)",
+                    lineHeight: 1.08,
+                    color: "#ffffff",
+                    marginBottom: "14px",
+                    textShadow: "0 2px 10px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  Quiosque da Ritinha
+                </h1>
+
+                <p
+                  style={{
+                    fontSize: "clamp(1rem, 1.9vw, 1.28rem)",
+                    color: "#ffffff",
+                    maxWidth: "700px",
+                    margin: "0 auto 22px",
+                    lineHeight: 1.6,
+                    textShadow: "0 2px 8px rgba(0,0,0,0.16)",
+                  }}
+                >
+                  Sabor, tradição e aquele clima especial da praia em um dos cantinhos
+                  mais queridos da Barra de Maricá.
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <a
+                    href={`https://wa.me/${whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: "#22c55e",
+                      color: "#ffffff",
+                      textDecoration: "none",
+                      fontWeight: "bold",
+                      padding: "14px 24px",
+                      borderRadius: "999px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.14)",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Falar no WhatsApp
+                  </a>
+
+                  <a
+                    href="https://www.instagram.com/quiosquedaritinha/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: "rgba(255,255,255,0.16)",
+                      color: "#ffffff",
+                      textDecoration: "none",
+                      fontWeight: "bold",
+                      padding: "14px 24px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(255,255,255,0.34)",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Ver Instagram
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
