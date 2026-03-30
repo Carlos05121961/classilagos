@@ -12,7 +12,7 @@ export default function RitinhaPage() {
     "/ritinha/hero-ritinha-1.jpg",
   ];
 
-const imagens = [
+const galeria = [
   "/ritinha/1.webp",
   "/ritinha/2.webp",
   "/ritinha/3.webp",
