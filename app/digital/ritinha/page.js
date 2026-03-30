@@ -50,12 +50,12 @@ export default function RitinhaPage() {
           gap: "10px"
         }}>
           {[
-            "/ritinha/1.jpg",
-            "/ritinha/2.jpg",
-            "/ritinha/3.jpg",
-            "/ritinha/4.jpg",
-            "/ritinha/5.jpg",
-            "/ritinha/6.jpg",
+           "/ritinha/1.jpg.webp",
+  "/ritinha/2.jpg.webp",
+  "/ritinha/3.jpg.webp",
+  "/ritinha/4.jpg.webp",
+  "/ritinha/5.jpg.webp",
+  "/ritinha/6.jpg.webp",
           ].map((img, i) => (
             <img
               key={i}
