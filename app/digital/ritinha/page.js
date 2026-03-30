@@ -56,16 +56,14 @@ export default function RitinhaPage() {
       {/* HERO */}
       <section
         style={{
-          position: "relative",
           background: "#fff",
         }}
       >
         <div
           style={{
-            position: "relative",
             width: "100%",
-            maxHeight: "78vh",
             overflow: "hidden",
+            background: "#e5e7eb",
           }}
         >
           <img
@@ -77,123 +75,99 @@ export default function RitinhaPage() {
               display: "block",
             }}
           />
+        </div>
+
+        <div
+          style={{
+            maxWidth: "980px",
+            margin: "0 auto",
+            padding: "34px 20px 38px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              color: "#c2410c",
+              fontWeight: "bold",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              fontSize: "0.9rem",
+              marginBottom: "12px",
+            }}
+          >
+            Barra de Maricá • Pé na areia
+          </p>
+
+          <h1
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: "clamp(2.3rem, 4.8vw, 4.4rem)",
+              lineHeight: 1.08,
+              color: "#0f172a",
+              marginBottom: "16px",
+            }}
+          >
+            Quiosque da Ritinha
+          </h1>
+
+          <p
+            style={{
+              fontSize: "clamp(1rem, 1.9vw, 1.28rem)",
+              color: "#475569",
+              maxWidth: "760px",
+              margin: "0 auto 24px",
+              lineHeight: 1.7,
+            }}
+          >
+            Sabor, tradição e aquele clima especial da praia em um dos cantinhos
+            mais queridos da Barra de Maricá.
+          </p>
 
           <div
             style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.22))",
               display: "flex",
-              alignItems: "center",
               justifyContent: "center",
-              padding: "20px",
+              gap: "12px",
+              flexWrap: "wrap",
             }}
           >
-            <div
+            <a
+              href={`https://wa.me/${whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                width: "100%",
-                maxWidth: "920px",
-                textAlign: "center",
+                display: "inline-block",
+                background: "#22c55e",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontWeight: "bold",
+                padding: "14px 24px",
+                borderRadius: "999px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                fontSize: "1rem",
               }}
             >
-              <div
-                style={{
-                  display: "inline-block",
-                  background: "rgba(255,255,255,0.18)",
-                  border: "1px solid rgba(255,255,255,0.28)",
-                  backdropFilter: "blur(4px)",
-                  WebkitBackdropFilter: "blur(4px)",
-                  borderRadius: "24px",
-                  padding: "24px 22px",
-                }}
-              >
-                <p
-                  style={{
-                    color: "#fef3c7",
-                    fontWeight: "bold",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    fontSize: "0.88rem",
-                    marginBottom: "10px",
-                  }}
-                >
-                  Barra de Maricá • Pé na areia
-                </p>
+              Falar no WhatsApp
+            </a>
 
-                <h1
-                  style={{
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
-                    fontSize: "clamp(2.1rem, 4.6vw, 4.2rem)",
-                    lineHeight: 1.08,
-                    color: "#ffffff",
-                    marginBottom: "14px",
-                    textShadow: "0 2px 10px rgba(0,0,0,0.18)",
-                  }}
-                >
-                  Quiosque da Ritinha
-                </h1>
-
-                <p
-                  style={{
-                    fontSize: "clamp(1rem, 1.9vw, 1.28rem)",
-                    color: "#ffffff",
-                    maxWidth: "700px",
-                    margin: "0 auto 22px",
-                    lineHeight: 1.6,
-                    textShadow: "0 2px 8px rgba(0,0,0,0.16)",
-                  }}
-                >
-                  Sabor, tradição e aquele clima especial da praia em um dos cantinhos
-                  mais queridos da Barra de Maricá.
-                </p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: "12px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <a
-                    href={`https://wa.me/${whatsapp}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      background: "#22c55e",
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                      padding: "14px 24px",
-                      borderRadius: "999px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.14)",
-                      fontSize: "1rem",
-                    }}
-                  >
-                    Falar no WhatsApp
-                  </a>
-
-                  <a
-                    href="https://www.instagram.com/quiosquedaritinha/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      background: "rgba(255,255,255,0.16)",
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                      padding: "14px 24px",
-                      borderRadius: "999px",
-                      border: "1px solid rgba(255,255,255,0.34)",
-                      fontSize: "1rem",
-                    }}
-                  >
-                    Ver Instagram
-                  </a>
-                </div>
-              </div>
-            </div>
+            <a
+              href="https://www.instagram.com/quiosquedaritinha/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-block",
+                background: "#ffffff",
+                color: "#0f172a",
+                textDecoration: "none",
+                fontWeight: "bold",
+                padding: "14px 24px",
+                borderRadius: "999px",
+                border: "1px solid #cbd5e1",
+                fontSize: "1rem",
+              }}
+            >
+              Ver Instagram
+            </a>
           </div>
         </div>
       </section>
