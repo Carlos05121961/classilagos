@@ -71,11 +71,11 @@ export default function RitinhaPage() {
               position: "absolute",
               inset: 0,
               backgroundImage: `url(${image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "50% 35%",
+              backgroundSize: "110%",
+              backgroundPosition: "50% 10%",
               opacity: currentHero === index ? 1 : 0,
               transition: "opacity 1.2s ease-in-out",
-              transform: "scale(1.03)",
+              transform: "scale(1)",
             }}
           />
         ))}
