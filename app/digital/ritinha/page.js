@@ -53,124 +53,127 @@ export default function RitinhaPage() {
         color: "#0f172a",
       }}
     >
-      {/* HERO */}
-      <section
+{/* HERO PADRÃO CLASSILAGOS */}
+<section
+  style={{
+    position: "relative",
+    width: "100%",
+    height: "800px",
+    minHeight: "520px",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    backgroundImage: 'url("/ritinha/hero-ritinha-1.webp")',
+    backgroundSize: "cover",
+    backgroundPosition: "left center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  {/* Overlay leve */}
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background: "linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0.15))",
+    }}
+  />
+
+  {/* Conteúdo */}
+  <div
+    style={{
+      position: "relative",
+      zIndex: 2,
+      maxWidth: "700px",
+      padding: "0 20px",
+      marginLeft: "80px",
+    }}
+  >
+    {/* Linha pequena */}
+    <p
+      style={{
+        color: "#fef3c7",
+        fontWeight: "bold",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        fontSize: "0.9rem",
+        marginBottom: "14px",
+      }}
+    >
+      Barra de Maricá • Pé na areia
+    </p>
+
+    {/* Título */}
+    <h1
+      style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        fontSize: "clamp(2.6rem, 5vw, 4.6rem)",
+        lineHeight: 1.05,
+        color: "#ffffff",
+        marginBottom: "18px",
+        textShadow: "0 2px 12px rgba(0,0,0,0.25)",
+      }}
+    >
+      Quiosque da Ritinha
+    </h1>
+
+    {/* Subtítulo */}
+    <p
+      style={{
+        fontSize: "clamp(1rem, 2vw, 1.3rem)",
+        color: "#ffffff",
+        marginBottom: "26px",
+        lineHeight: 1.6,
+        textShadow: "0 2px 10px rgba(0,0,0,0.22)",
+      }}
+    >
+      Pastel de camarão, frutos do mar e o sabor que conquista quem passa pela praia.
+    </p>
+
+    {/* Botões */}
+    <div
+      style={{
+        display: "flex",
+        gap: "12px",
+        flexWrap: "wrap",
+      }}
+    >
+      <a
+        href={`https://wa.me/${whatsapp}`}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
-          background: "#fff",
+          background: "#22c55e",
+          color: "#fff",
+          textDecoration: "none",
+          fontWeight: "bold",
+          padding: "14px 24px",
+          borderRadius: "999px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            overflow: "hidden",
-            background: "#e5e7eb",
-          }}
-        >
-          <img
-            src="/ritinha/hero-ritinha-1.jpg"
-            alt="Quiosque da Ritinha na Barra de Maricá"
-            style={{
-              width: "100%",
-              height: "auto",
-              display: "block",
-            }}
-          />
-        </div>
+        Falar no WhatsApp
+      </a>
 
-        <div
-          style={{
-            maxWidth: "980px",
-            margin: "0 auto",
-            padding: "34px 20px 38px",
-            textAlign: "center",
-          }}
-        >
-          <p
-            style={{
-              color: "#c2410c",
-              fontWeight: "bold",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              fontSize: "0.9rem",
-              marginBottom: "12px",
-            }}
-          >
-            Barra de Maricá • Pé na areia
-          </p>
-
-          <h1
-            style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: "clamp(2.3rem, 4.8vw, 4.4rem)",
-              lineHeight: 1.08,
-              color: "#0f172a",
-              marginBottom: "16px",
-            }}
-          >
-            Quiosque da Ritinha
-          </h1>
-
-          <p
-            style={{
-              fontSize: "clamp(1rem, 1.9vw, 1.28rem)",
-              color: "#475569",
-              maxWidth: "760px",
-              margin: "0 auto 24px",
-              lineHeight: 1.7,
-            }}
-          >
-            Sabor, tradição e aquele clima especial da praia em um dos cantinhos
-            mais queridos da Barra de Maricá.
-          </p>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <a
-              href={`https://wa.me/${whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                background: "#22c55e",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontWeight: "bold",
-                padding: "14px 24px",
-                borderRadius: "999px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                fontSize: "1rem",
-              }}
-            >
-              Falar no WhatsApp
-            </a>
-
-            <a
-              href="https://www.instagram.com/quiosquedaritinha/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                background: "#ffffff",
-                color: "#0f172a",
-                textDecoration: "none",
-                fontWeight: "bold",
-                padding: "14px 24px",
-                borderRadius: "999px",
-                border: "1px solid #cbd5e1",
-                fontSize: "1rem",
-              }}
-            >
-              Ver Instagram
-            </a>
-          </div>
-        </div>
-      </section>
+      <a
+        href="https://www.instagram.com/quiosquedaritinha/"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          background: "rgba(255,255,255,0.15)",
+          color: "#fff",
+          textDecoration: "none",
+          fontWeight: "bold",
+          padding: "14px 24px",
+          borderRadius: "999px",
+          border: "1px solid rgba(255,255,255,0.35)",
+        }}
+      >
+        Ver Instagram
+      </a>
+    </div>
+  </div>
+</section>
 
       {/* INTRO */}
       <section style={{ padding: "70px 20px 30px" }}>
