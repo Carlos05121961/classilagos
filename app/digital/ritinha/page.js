@@ -64,22 +64,31 @@ export default function RitinhaPage() {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-start",
-    backgroundImage: 'url("/ritinha/hero-ritinha-1.webp")',
-    backgroundSize: "cover",
-    backgroundPosition: "left center",
-    backgroundRepeat: "no-repeat",
+    background: "#000",
   }}
 >
-  {/* Overlay leve */}
+  <img
+    src="/ritinha/hero-ritinha-1.webp"
+    alt="Quiosque da Ritinha"
+    style={{
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: "center center",
+      display: "block",
+    }}
+  />
+
   <div
     style={{
       position: "absolute",
       inset: 0,
-      background: "linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0.15))",
+      background: "linear-gradient(to right, rgba(0,0,0,0.45), rgba(0,0,0,0.08))",
     }}
   />
 
-  {/* Conteúdo */}
   <div
     style={{
       position: "relative",
@@ -89,7 +98,6 @@ export default function RitinhaPage() {
       marginLeft: "80px",
     }}
   >
-    {/* Linha pequena */}
     <p
       style={{
         color: "#fef3c7",
@@ -103,7 +111,6 @@ export default function RitinhaPage() {
       Barra de Maricá • Pé na areia
     </p>
 
-    {/* Título */}
     <h1
       style={{
         fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -117,7 +124,6 @@ export default function RitinhaPage() {
       Quiosque da Ritinha
     </h1>
 
-    {/* Subtítulo */}
     <p
       style={{
         fontSize: "clamp(1rem, 2vw, 1.3rem)",
@@ -125,12 +131,12 @@ export default function RitinhaPage() {
         marginBottom: "26px",
         lineHeight: 1.6,
         textShadow: "0 2px 10px rgba(0,0,0,0.22)",
+        maxWidth: "620px",
       }}
     >
       Pastel de camarão, frutos do mar e o sabor que conquista quem passa pela praia.
     </p>
 
-    {/* Botões */}
     <div
       style={{
         display: "flex",
