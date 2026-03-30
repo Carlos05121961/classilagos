@@ -13,14 +13,14 @@ export default function RitinhaPage() {
   ];
 
 const galeria = [
-  "/ritinha/1.webp",
-  "/ritinha/2.webp",
-  "/ritinha/3.webp",
-  "/ritinha/4.webp",
-  "/ritinha/5.webp",
-  "/ritinha/6.webp",
-  "/ritinha/7.webp",
-  "/ritinha/8.webp",
+  "/ritinha/1.jpg.webp",
+  "/ritinha/2.jpg.webp",
+  "/ritinha/3.jpg.webp",
+  "/ritinha/4.jpg.webp",
+  "/ritinha/5.jpg.webp",
+  "/ritinha/6.jpg.webp",
+  "/ritinha/7.jpg.webp",
+  "/ritinha/8.jpg.webp",
 ];
 
   const [currentHero, setCurrentHero] = useState(0);
