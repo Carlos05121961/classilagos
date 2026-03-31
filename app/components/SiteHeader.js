@@ -12,6 +12,11 @@ export default function SiteHeader() {
   const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
 
+  // Esconde o header nas páginas de landing em /digital
+  if (pathname?.startsWith("/digital")) {
+    return null;
+  }
+
   useEffect(() => {
     async function carregarPerfil() {
       try {
@@ -52,7 +57,6 @@ export default function SiteHeader() {
     };
   }, [open]);
 
-  // ✅ Sem Notícias aqui (Notícias entra sempre por último, separado)
   const categorias = [
     { label: "Imóveis", href: "/imoveis" },
     { label: "Veículos", href: "/veiculos" },
@@ -91,7 +95,6 @@ export default function SiteHeader() {
             </Link>
           ))}
 
-          {/* ✅ Notícias sempre por último (DESKTOP) */}
           <Link href="/noticias" className="transition hover:text-slate-900">
             Notícias
           </Link>
@@ -114,7 +117,7 @@ export default function SiteHeader() {
           <UserMenu />
         </div>
 
-        {/* MOBILE (somente usuário + menu) */}
+        {/* MOBILE */}
         <div className="flex md:hidden items-center gap-2 justify-end col-span-2">
           <UserMenu />
           <button
@@ -127,17 +130,15 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* DRAWER MOBILE (sem fragment, sem gambiarra) */}
+      {/* DRAWER MOBILE */}
       {open && (
         <div className="fixed inset-0 z-[70]">
-          {/* overlay */}
           <button
             className="absolute inset-0 bg-black/30"
             onClick={() => setOpen(false)}
             aria-label="Fechar menu"
           />
 
-          {/* painel */}
           <div className="absolute top-0 right-0 h-full w-[86%] max-w-[360px] bg-white shadow-2xl border-l flex flex-col">
             <div className="p-4 border-b flex items-center justify-between">
               <strong>Menu</strong>
@@ -167,7 +168,6 @@ export default function SiteHeader() {
                   </Link>
                 ))}
 
-                {/* ✅ Notícias sempre por último (MOBILE) */}
                 <Link
                   href="/noticias"
                   onClick={() => setOpen(false)}
