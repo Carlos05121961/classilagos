@@ -1,8 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function SiteFooter() {
+  const pathname = usePathname();
+
+  // Esconde o footer nas páginas de landing em /digital
+  if (pathname?.startsWith("/digital")) {
+    return null;
+  }
+
   const year = new Date().getFullYear();
 
   return (
@@ -15,14 +23,14 @@ export default function SiteFooter() {
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.38, // + visível, sem “brigar” com o texto
+          opacity: 0.38,
         }}
       />
 
-      {/* OVERLAY ESCURO (mantém legibilidade) */}
+      {/* OVERLAY ESCURO */}
       <div className="absolute inset-0 bg-slate-950/70" />
 
-      {/* DEGRADÊ DE TRANSIÇÃO NO TOPO (encosta melhor na seção acima) */}
+      {/* DEGRADÊ DE TRANSIÇÃO NO TOPO */}
       <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-slate-950/0 via-slate-950/30 to-slate-950/70 pointer-events-none" />
 
       {/* CONTEÚDO */}
@@ -36,7 +44,10 @@ export default function SiteFooter() {
             <Link href="/como-anunciar" className="hover:text-white transition">
               Como anunciar
             </Link>
-            <Link href="/fale-conosco" className="hover:text-white transition font-semibold">
+            <Link
+              href="/fale-conosco"
+              className="hover:text-white transition font-semibold"
+            >
               Fale conosco
             </Link>
             <Link href="/termos-de-uso" className="hover:text-white transition">
@@ -87,17 +98,17 @@ export default function SiteFooter() {
             </div>
 
             <p className="mt-3 text-[10px] text-slate-200/60 max-w-2xl mx-auto">
-              Para anúncios, parcerias comerciais, envio de pautas, comunicados oficiais e
-              contato institucional com o portal.
+              Para anúncios, parcerias comerciais, envio de pautas, comunicados
+              oficiais e contato institucional com o portal.
             </p>
           </div>
-
 
           {/* MARCA */}
           <div className="text-center mt-7">
             <p className="text-base font-semibold text-white">Classilagos</p>
             <p className="mt-1 text-[11px] text-slate-200/70">
-              O seu guia de compras, serviços, turismo e oportunidades na Região dos Lagos.
+              O seu guia de compras, serviços, turismo e oportunidades na Região
+              dos Lagos.
             </p>
           </div>
 
