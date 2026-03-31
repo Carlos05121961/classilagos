@@ -13,7 +13,7 @@ export default function RitinhaLayout({ children }) {
           padding: "20px 0",
         }}
       >
-        Produzido por Classilagos.shop
+        Produzido por Classilagos Digital
       </div>
     </div>
   );
