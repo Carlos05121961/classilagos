@@ -308,17 +308,40 @@ export default function RitinhaPage() {
 
             <h2 style={sectionTitle}>Por trás do sabor, está a Ritinha</h2>
 
+            <p
+              style={{
+                display: "inline-block",
+                background: "#f59e0b",
+                color: "#ffffff",
+                padding: "6px 12px",
+                borderRadius: "999px",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginTop: "4px",
+                marginBottom: "18px",
+              }}
+            >
+              Patrimônio Cultural Imaterial de Maricá • Lei nº 0163/2025
+            </p>
+
             <p style={{ ...sectionText, marginBottom: "16px" }}>
               Mais do que um ponto de praia, o Quiosque da Ritinha representa
-              carinho no atendimento, tradição e comida feita com capricho. É
-              esse jeito acolhedor que transformou o espaço em referência para
-              quem procura boa comida e um clima especial na Barra de Maricá.
+              carinho no atendimento, tradição e comida feita com capricho. Esse
+              jeito acolhedor transformou o espaço em referência para quem procura
+              boa comida e um clima especial na Barra de Maricá.
+            </p>
+
+            <p style={{ ...sectionText, marginBottom: "16px" }}>
+              Reconhecido oficialmente como Patrimônio Cultural Imaterial de
+              Maricá (Lei nº 0163/2025), o quiosque carrega uma história viva da
+              cidade, sendo parte da identidade local e da memória afetiva de
+              moradores e visitantes.
             </p>
 
             <p style={sectionText}>
-              Cada prato, cada pastel e cada detalhe carregam essa identidade
-              forte: simplicidade, sabor e uma história construída com dedicação
-              ao longo do tempo.
+              Cada prato, cada pastel e cada detalhe refletem essa essência:
+              simplicidade, sabor e uma trajetória construída com dedicação ao
+              longo do tempo.
             </p>
           </div>
         </div>
