@@ -79,7 +79,7 @@ export default function RitinhaPage() {
           style={{
             position: "relative",
             zIndex: 2,
-            maxWidth: "700px",
+            maxWidth: "760px",
             padding: "0 20px",
             marginLeft: "80px",
           }}
@@ -91,12 +91,28 @@ export default function RitinhaPage() {
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               fontSize: "0.9rem",
-              marginBottom: "14px",
+              marginBottom: "12px",
               textShadow: "0 1px 6px rgba(0,0,0,0.28)",
             }}
           >
             Barra de Maricá • Pé na areia
           </p>
+
+          <div
+            style={{
+              display: "inline-block",
+              background: "rgba(245, 158, 11, 0.95)",
+              color: "#ffffff",
+              padding: "7px 14px",
+              borderRadius: "999px",
+              fontSize: "12px",
+              fontWeight: "bold",
+              marginBottom: "18px",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
+            }}
+          >
+            Patrimônio Cultural Imaterial de Maricá • Lei nº 0163/2025
+          </div>
 
           <h1
             style={{
