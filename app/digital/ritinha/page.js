@@ -525,16 +525,16 @@ export default function RitinhaPage() {
               </p>
             </div>
 
-            <iframe
-              src="https://www.google.com/maps?q=Rua%2010,%20Barra%20de%20Maric%C3%A1&output=embed"
-              width="100%"
-              height="420"
-              style={{ border: 0, display: "block" }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Mapa do Quiosque da Ritinha"
-            />
+<iframe
+  src="https://www.google.com/maps?q=Quiosque+da+Ritinha,+Barra+de+Maricá,+RJ&z=17&output=embed"
+  width="100%"
+  height="420"
+  style={{ border: 0, display: "block" }}
+  allowFullScreen=""
+  loading="lazy"
+  referrerPolicy="no-referrer-when-downgrade"
+  title="Mapa do Quiosque da Ritinha"
+/>
           </div>
         </div>
       </section>
