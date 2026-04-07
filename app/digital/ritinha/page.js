@@ -1,37 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 export const dynamic = "force-dynamic";
 
 export default function RitinhaPage() {
-  const whatsapp = "5521968698306";
+  const whatsapp = "5521991147233";
 
-  const heroImages = [
-    "/ritinha/hero-ritinha-2.jpg",
-    "/ritinha/hero-ritinha-1.jpg",
+  const galeria = [
+    "/ritinha/1.jpg.webp",
+    "/ritinha/2.jpg.webp",
+    "/ritinha/3.jpg.webp",
+    "/ritinha/4.jpg.webp",
+    "/ritinha/5.jpg.webp",
+    "/ritinha/6.jpg.webp",
+    "/ritinha/7.jpg.webp",
+    "/ritinha/8.jpg.webp",
   ];
-
-const galeria = [
-  "/ritinha/1.jpg.webp",
-  "/ritinha/2.jpg.webp",
-  "/ritinha/3.jpg.webp",
-  "/ritinha/4.jpg.webp",
-  "/ritinha/5.jpg.webp",
-  "/ritinha/6.jpg.webp",
-  "/ritinha/7.jpg.webp",
-  "/ritinha/8.jpg.webp",
-];
-
-  const [currentHero, setCurrentHero] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
 
   const sectionTitle = {
     fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -55,133 +38,136 @@ const galeria = [
         color: "#0f172a",
       }}
     >
-{/* HERO PADRÃO CLASSILAGOS */}
-<section
-  style={{
-    position: "relative",
-    width: "100%",
-    height: "800px",
-    minHeight: "520px",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    background: "#000",
-  }}
->
-  <img
-    src="/ritinha/hero-ritinha-1.webp"
-    alt="Quiosque da Ritinha"
-    style={{
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height: "100%",
-      objectFit: "cover",
-      objectPosition: "center center",
-      display: "block",
-    }}
-  />
-
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      background: "linear-gradient(to right, rgba(0,0,0,0.45), rgba(0,0,0,0.08))",
-    }}
-  />
-
-  <div
-    style={{
-      position: "relative",
-      zIndex: 2,
-      maxWidth: "700px",
-      padding: "0 20px",
-      marginLeft: "80px",
-    }}
-  >
-    <p
-      style={{
-        color: "#fef3c7",
-        fontWeight: "bold",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        fontSize: "0.9rem",
-        marginBottom: "14px",
-      }}
-    >
-      Barra de Maricá • Pé na areia
-    </p>
-
-    <h1
-      style={{
-        fontFamily: "'Georgia', 'Times New Roman', serif",
-        fontSize: "clamp(2.6rem, 5vw, 4.6rem)",
-        lineHeight: 1.05,
-        color: "#ffffff",
-        marginBottom: "18px",
-        textShadow: "0 2px 12px rgba(0,0,0,0.25)",
-      }}
-    >
-      Quiosque da Ritinha
-    </h1>
-
-    <p
-      style={{
-        fontSize: "clamp(1rem, 2vw, 1.3rem)",
-        color: "#ffffff",
-        marginBottom: "26px",
-        lineHeight: 1.6,
-        textShadow: "0 2px 10px rgba(0,0,0,0.22)",
-        maxWidth: "620px",
-      }}
-    >
-      Pastel de camarão, frutos do mar e o sabor que conquista quem passa pela praia.
-    </p>
-
-    <div
-      style={{
-        display: "flex",
-        gap: "12px",
-        flexWrap: "wrap",
-      }}
-    >
-      <a
-        href={`https://wa.me/${whatsapp}`}
-        target="_blank"
-        rel="noopener noreferrer"
+      {/* HERO */}
+      <section
         style={{
-          background: "#22c55e",
-          color: "#fff",
-          textDecoration: "none",
-          fontWeight: "bold",
-          padding: "14px 24px",
-          borderRadius: "999px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+          position: "relative",
+          width: "100%",
+          height: "800px",
+          minHeight: "520px",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          background: "#000",
         }}
       >
-        Falar no WhatsApp
-      </a>
+        <img
+          src="/ritinha/hero-ritinha-1.webp"
+          alt="Quiosque da Ritinha"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center center",
+            display: "block",
+          }}
+        />
 
-      <a
-        href="https://www.instagram.com/quiosquedaritinha/"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          background: "rgba(255,255,255,0.15)",
-          color: "#fff",
-          textDecoration: "none",
-          fontWeight: "bold",
-          padding: "14px 24px",
-          borderRadius: "999px",
-          border: "1px solid rgba(255,255,255,0.35)",
-        }}
-      >
-        Ver Instagram
-      </a>
-    </div>
-  </div>
-</section>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to right, rgba(0,0,0,0.42), rgba(0,0,0,0.10))",
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            maxWidth: "700px",
+            padding: "0 20px",
+            marginLeft: "80px",
+          }}
+        >
+          <p
+            style={{
+              color: "#fef3c7",
+              fontWeight: "bold",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              fontSize: "0.9rem",
+              marginBottom: "14px",
+              textShadow: "0 1px 6px rgba(0,0,0,0.28)",
+            }}
+          >
+            Barra de Maricá • Pé na areia
+          </p>
+
+          <h1
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: "clamp(2.6rem, 5vw, 4.6rem)",
+              lineHeight: 1.05,
+              color: "#ffffff",
+              marginBottom: "18px",
+              textShadow: "0 3px 14px rgba(0,0,0,0.30)",
+            }}
+          >
+            Quiosque da Ritinha
+          </h1>
+
+          <p
+            style={{
+              fontSize: "clamp(1rem, 2vw, 1.3rem)",
+              color: "#ffffff",
+              marginBottom: "26px",
+              lineHeight: 1.6,
+              textShadow: "0 2px 10px rgba(0,0,0,0.28)",
+              maxWidth: "620px",
+            }}
+          >
+            Pastel de camarão, frutos do mar e o sabor que conquista quem passa
+            pela praia.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <a
+              href={`https://wa.me/${whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "#22c55e",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: "bold",
+                padding: "14px 24px",
+                borderRadius: "999px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+              }}
+            >
+              Falar no WhatsApp
+            </a>
+
+            <a
+              href="https://www.instagram.com/quiosquedaritinha/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: "bold",
+                padding: "14px 24px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.35)",
+              }}
+            >
+              Ver Instagram
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* INTRO */}
       <section style={{ padding: "70px 20px 30px" }}>
@@ -308,8 +294,8 @@ const galeria = [
 
             <p style={{ ...sectionText, marginBottom: "16px" }}>
               Mais do que um ponto de praia, o Quiosque da Ritinha representa
-              carinho no atendimento, tradição e comida feita com capricho.
-              É esse jeito acolhedor que transformou o espaço em referência para
+              carinho no atendimento, tradição e comida feita com capricho. É
+              esse jeito acolhedor que transformou o espaço em referência para
               quem procura boa comida e um clima especial na Barra de Maricá.
             </p>
 
@@ -322,12 +308,11 @@ const galeria = [
         </div>
       </section>
 
-      {/* CARDAPIO */}
+      {/* CARDÁPIO */}
       <section
         style={{
           padding: "56px 20px",
-          background:
-            "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
+          background: "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
         }}
       >
         <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
@@ -353,8 +338,8 @@ const galeria = [
                 margin: "0 auto",
               }}
             >
-              Uma prévia especial do que o público encontra no Quiosque da Ritinha.
-              Aqui, o sabor do mar e o famoso pastel ganham destaque.
+              Uma prévia especial do que o público encontra no Quiosque da
+              Ritinha. Aqui, o sabor do mar e o famoso pastel ganham destaque.
             </p>
           </div>
 
@@ -444,17 +429,6 @@ const galeria = [
               textAlign: "center",
             }}
           >
-            <p
-              style={{
-                color: "#475569",
-                marginBottom: "18px",
-                fontSize: "1rem",
-              }}
-            >
-              Cardápio ilustrativo para apresentação. O cardápio completo pode ser
-              organizado em uma versão oficial da página.
-            </p>
-
             <a
               href={`https://wa.me/${whatsapp}`}
               target="_blank"
@@ -520,6 +494,47 @@ const galeria = [
                 <p style={{ color: "#475569", lineHeight: 1.7 }}>{item.texto}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MAPA */}
+      <section style={{ padding: "20px 20px 60px" }}>
+        <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: "20px",
+              overflow: "hidden",
+              boxShadow: "0 10px 28px rgba(15, 23, 42, 0.07)",
+            }}
+          >
+            <div style={{ padding: "22px 22px 10px" }}>
+              <h3
+                style={{
+                  marginBottom: "8px",
+                  fontSize: "1.3rem",
+                  color: "#0f172a",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                }}
+              >
+                Como chegar
+              </h3>
+              <p style={{ color: "#475569", lineHeight: 1.7 }}>
+                Rua 10, Barra de Maricá
+              </p>
+            </div>
+
+            <iframe
+              src="https://www.google.com/maps?q=Rua%2010,%20Barra%20de%20Maric%C3%A1&output=embed"
+              width="100%"
+              height="420"
+              style={{ border: 0, display: "block" }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Mapa do Quiosque da Ritinha"
+            />
           </div>
         </div>
       </section>
@@ -607,7 +622,7 @@ const galeria = [
         </div>
       </section>
 
-      {/* BOTAO FLUTUANTE */}
+      {/* BOTÃO FLUTUANTE */}
       <a
         href={`https://wa.me/${whatsapp}`}
         target="_blank"
