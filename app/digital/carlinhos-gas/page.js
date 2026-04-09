@@ -149,91 +149,220 @@ export default function LandingPageCarlinhosGas() {
               </a>
             </div>
 
-{/* COMPARTILHAR */}
-<div style={{ marginTop: "22px" }}>
-  <p
-    style={{
-      fontSize: "13px",
-      marginBottom: "8px",
-      color: "#64748b",
-      fontWeight: "500",
-    }}
-  >
-    Compartilhar:
-  </p>
+      {/* HERO NOVO */}
+      <section
+        style={{
+          padding: "60px 20px",
+          background: "#f8fafc",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1120px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "30px",
+            alignItems: "center",
+          }}
+        >
+          {/* TEXTO */}
+          <div>
+            <p
+              style={{
+                color: "#ef4444",
+                fontWeight: "bold",
+                marginBottom: "10px",
+              }}
+            >
+              🔥 Entrega rápida em Maricá
+            </p>
 
-  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <h1
+              style={{
+                fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
+                fontWeight: "800",
+                color: "#0f172a",
+                marginBottom: "16px",
+                lineHeight: 1.1,
+              }}
+            >
+              Peça seu gás com rapidez e segurança
+            </h1>
 
-    {/* WHATSAPP */}
-    <a
-      href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "38px",
-        height: "38px",
-        borderRadius: "50%",
-        background: "#f1f5f9",
-        transition: "0.2s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-    >
-      <img
-        src="/icons/whatsapp.png"
-        alt="WhatsApp"
-        style={{ width: "20px", height: "20px" }}
-      />
-    </a>
+            <p
+              style={{
+                color: "#475569",
+                marginBottom: "22px",
+                lineHeight: "1.6",
+                fontSize: "1.05rem",
+              }}
+            >
+              Há mais de 50 anos atendendo Maricá com qualidade, confiança e
+              entrega rápida direto na sua casa.
+            </p>
 
-    {/* FACEBOOK */}
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "38px",
-        height: "38px",
-        borderRadius: "50%",
-        background: "#f1f5f9",
-        transition: "0.2s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-    >
-      <img
-        src="/icons/facebook.png"
-        alt="Facebook"
-        style={{ width: "20px", height: "20px" }}
-      />
-    </a>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "#22c55e",
+                  color: "#fff",
+                  padding: "14px 22px",
+                  borderRadius: "999px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                }}
+              >
+                Pedir no WhatsApp
+              </a>
 
-    {/* COPIAR LINK */}
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(pageUrl);
-        alert("Link copiado!");
-      }}
-      style={{
-        background: "transparent",
-        border: "none",
-        fontSize: "13px",
-        cursor: "pointer",
-        color: "#2563eb",
-        fontWeight: "600",
-      }}
-    >
-      Copiar link
-    </button>
+              <a
+                href="tel:08002822894"
+                style={{
+                  background: "#0f172a",
+                  color: "#fff",
+                  padding: "14px 22px",
+                  borderRadius: "999px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                }}
+              >
+                Ligar 0800
+              </a>
+            </div>
 
-  </div>
-</div>
+            {/* COMPARTILHAR */}
+            <div style={{ marginTop: "22px" }}>
+              <p
+                style={{
+                  fontSize: "13px",
+                  marginBottom: "8px",
+                  color: "#64748b",
+                  fontWeight: "500",
+                }}
+              >
+                Compartilhar:
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {/* WHATSAPP */}
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "999px",
+                    background: "#f1f5f9",
+                    border: "1px solid #e2e8f0",
+                    textDecoration: "none",
+                    transition: "transform 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  <img
+                    src="/icons/whatsapp.png"
+                    alt="Compartilhar no WhatsApp"
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      display: "block",
+                    }}
+                  />
+                </a>
+
+                {/* FACEBOOK */}
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "999px",
+                    background: "#f1f5f9",
+                    border: "1px solid #e2e8f0",
+                    textDecoration: "none",
+                    transition: "transform 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  <img
+                    src="/icons/facebook.png"
+                    alt="Compartilhar no Facebook"
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      display: "block",
+                    }}
+                  />
+                </a>
+
+                {/* COPIAR LINK */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(pageUrl);
+                    alert("Link copiado!");
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: "0",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    color: "#2563eb",
+                    fontWeight: "600",
+                  }}
+                >
+                  Copiar link
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* IMAGEM */}
+          <div>
+            <img
+              src="/digital/carlinhos-gas/entregador.webp"
+              alt="Entrega de gás"
+              style={{
+                width: "100%",
+                borderRadius: "20px",
+                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+                display: "block",
+              }}
+            />
+          </div>
+        </div>
+      </section>
 
           {/* IMAGEM */}
           <div>
