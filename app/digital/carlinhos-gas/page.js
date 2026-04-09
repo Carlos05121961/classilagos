@@ -148,114 +148,137 @@ export default function LandingPageCarlinhosGas() {
               </a>
             </div>
 
-            <div style={{ marginTop: "22px" }}>
-              <p
-                style={{
-                  fontSize: "13px",
-                  marginBottom: "8px",
-                  color: "#64748b",
-                  fontWeight: "500",
-                }}
-              >
-                Compartilhar:
-              </p>
+<div style={{ marginTop: "24px" }}>
+  <p
+    style={{
+      fontSize: "14px",
+      marginBottom: "10px",
+      color: "#64748b",
+      fontWeight: "600",
+      letterSpacing: "0.2px",
+    }}
+  >
+    Compartilhar:
+  </p>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "38px",
-                    height: "38px",
-                    borderRadius: "999px",
-                    background: "#f1f5f9",
-                    border: "1px solid #e2e8f0",
-                    textDecoration: "none",
-                    transition: "transform 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                  }}
-                >
-                  <img
-                    src="/icons/whatsapp.png"
-                    alt="Compartilhar no WhatsApp"
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      display: "block",
-                    }}
-                  />
-                </a>
+  <div
+    style={{
+      display: "flex",
+      gap: "14px",
+      alignItems: "center",
+      flexWrap: "wrap",
+    }}
+  >
+    {/* WHATSAPP */}
+    <a
+      href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "48px",
+        height: "48px",
+        borderRadius: "999px",
+        background: "#ffffff",
+        border: "1px solid #dbe4ee",
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.08)",
+        textDecoration: "none",
+        transition: "all 0.2s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+      }}
+    >
+      <img
+        src="/icons/whatsapp.png"
+        alt="Compartilhar no WhatsApp"
+        style={{
+          width: "24px",
+          height: "24px",
+          display: "block",
+          objectFit: "contain",
+        }}
+      />
+    </a>
 
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "38px",
-                    height: "38px",
-                    borderRadius: "999px",
-                    background: "#f1f5f9",
-                    border: "1px solid #e2e8f0",
-                    textDecoration: "none",
-                    transition: "transform 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                  }}
-                >
-                  <img
-                    src="/icons/facebook.png"
-                    alt="Compartilhar no Facebook"
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      display: "block",
-                    }}
-                  />
-                </a>
+    {/* FACEBOOK */}
+    <a
+      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "48px",
+        height: "48px",
+        borderRadius: "999px",
+        background: "#ffffff",
+        border: "1px solid #dbe4ee",
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.08)",
+        textDecoration: "none",
+        transition: "all 0.2s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+      }}
+    >
+      <img
+        src="/icons/facebook.png"
+        alt="Compartilhar no Facebook"
+        style={{
+          width: "22px",
+          height: "22px",
+          display: "block",
+          objectFit: "contain",
+        }}
+      />
+    </a>
 
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(pageUrl);
-                    alert("Link copiado!");
-                  }}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "0",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    color: "#2563eb",
-                    fontWeight: "600",
-                  }}
-                >
-                  Copiar link
-                </button>
-              </div>
-            </div>
-          </div>
+    {/* COPIAR LINK */}
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(pageUrl);
+        alert("Link copiado!");
+      }}
+      style={{
+        height: "48px",
+        padding: "0 18px",
+        borderRadius: "999px",
+        border: "1px solid #dbe4ee",
+        background: "#ffffff",
+        color: "#0f172a",
+        fontSize: "14px",
+        fontWeight: "700",
+        cursor: "pointer",
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.08)",
+        transition: "all 0.2s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+      }}
+    >
+      Copiar link
+    </button>
+  </div>
+</div>
 
           <div>
             <img
