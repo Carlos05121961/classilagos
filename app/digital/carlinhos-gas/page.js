@@ -90,7 +90,7 @@ export default function LandingPageCarlinhosGas() {
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <a
-          href="https://wa.me/5521996749356"
+          href="https://wa.me/5521996749365"
           target="_blank"
           style={{
             background: "#22c55e",
