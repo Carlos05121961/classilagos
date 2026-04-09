@@ -119,6 +119,70 @@ export default function LandingPageCarlinhosGas() {
       </div>
     </div>
 
+</div>  // ← fim dos botões
+
+{/* COMPARTILHAR */}
+<div style={{ marginTop: "20px" }}>
+  <p style={{ fontSize: "14px", marginBottom: "8px", color: "#64748b" }}>
+    Compartilhar:
+  </p>
+
+  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+    
+    <a
+      href={`https://wa.me/?text=${encodeURIComponent("https://classilagos.shop/digital/carlinhos-gas")}`}
+      target="_blank"
+      style={{
+        background: "#25D366",
+        color: "#fff",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        fontSize: "14px",
+        textDecoration: "none",
+        fontWeight: "bold",
+      }}
+    >
+      WhatsApp
+    </a>
+
+    <a
+      href={`https://www.facebook.com/sharer/sharer.php?u=https://classilagos.shop/digital/carlinhos-gas`}
+      target="_blank"
+      style={{
+        background: "#1877F2",
+        color: "#fff",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        fontSize: "14px",
+        textDecoration: "none",
+        fontWeight: "bold",
+      }}
+    >
+      Facebook
+    </a>
+
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText("https://classilagos.shop/digital/carlinhos-gas");
+        alert("Link copiado!");
+      }}
+      style={{
+        background: "#0f172a",
+        color: "#fff",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        fontSize: "14px",
+        border: "none",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Copiar link
+    </button>
+
+  </div>
+</div>
+
     {/* IMAGEM */}
     <div>
       <img
