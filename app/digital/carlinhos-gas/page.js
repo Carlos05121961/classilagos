@@ -63,7 +63,7 @@ export default function LandingPageCarlinhosGas() {
         }
       `}</style>
 
-      {/* HERO NOVO */}
+      {/* HERO */}
       <section
         style={{
           padding: "60px 20px",
@@ -80,7 +80,6 @@ export default function LandingPageCarlinhosGas() {
             alignItems: "center",
           }}
         >
-          {/* TEXTO */}
           <div>
             <p
               style={{
@@ -149,93 +148,6 @@ export default function LandingPageCarlinhosGas() {
               </a>
             </div>
 
-      {/* HERO NOVO */}
-      <section
-        style={{
-          padding: "60px 20px",
-          background: "#f8fafc",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1120px",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "30px",
-            alignItems: "center",
-          }}
-        >
-          {/* TEXTO */}
-          <div>
-            <p
-              style={{
-                color: "#ef4444",
-                fontWeight: "bold",
-                marginBottom: "10px",
-              }}
-            >
-              🔥 Entrega rápida em Maricá
-            </p>
-
-            <h1
-              style={{
-                fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
-                fontWeight: "800",
-                color: "#0f172a",
-                marginBottom: "16px",
-                lineHeight: 1.1,
-              }}
-            >
-              Peça seu gás com rapidez e segurança
-            </h1>
-
-            <p
-              style={{
-                color: "#475569",
-                marginBottom: "22px",
-                lineHeight: "1.6",
-                fontSize: "1.05rem",
-              }}
-            >
-              Há mais de 50 anos atendendo Maricá com qualidade, confiança e
-              entrega rápida direto na sua casa.
-            </p>
-
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: "#22c55e",
-                  color: "#fff",
-                  padding: "14px 22px",
-                  borderRadius: "999px",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                }}
-              >
-                Pedir no WhatsApp
-              </a>
-
-              <a
-                href="tel:08002822894"
-                style={{
-                  background: "#0f172a",
-                  color: "#fff",
-                  padding: "14px 22px",
-                  borderRadius: "999px",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
-              >
-                Ligar 0800
-              </a>
-            </div>
-
-            {/* COMPARTILHAR */}
             <div style={{ marginTop: "22px" }}>
               <p
                 style={{
@@ -256,7 +168,6 @@ export default function LandingPageCarlinhosGas() {
                   flexWrap: "wrap",
                 }}
               >
-                {/* WHATSAPP */}
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
                   target="_blank"
@@ -291,7 +202,6 @@ export default function LandingPageCarlinhosGas() {
                   />
                 </a>
 
-                {/* FACEBOOK */}
                 <a
                   href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
                   target="_blank"
@@ -326,7 +236,6 @@ export default function LandingPageCarlinhosGas() {
                   />
                 </a>
 
-                {/* COPIAR LINK */}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(pageUrl);
@@ -348,23 +257,6 @@ export default function LandingPageCarlinhosGas() {
             </div>
           </div>
 
-          {/* IMAGEM */}
-          <div>
-            <img
-              src="/digital/carlinhos-gas/entregador.webp"
-              alt="Entrega de gás"
-              style={{
-                width: "100%",
-                borderRadius: "20px",
-                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-                display: "block",
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-          {/* IMAGEM */}
           <div>
             <img
               src="/digital/carlinhos-gas/entregador.webp"
