@@ -1,6 +1,10 @@
+export const dynamic = "force-dynamic";
+
 export default function LandingPageCarlinhosGas() {
   const whatsappLink =
-  "https://wa.me/5521996749365?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20do%20g%C3%A1s%20no%20site%20e%20gostaria%20de%20fazer%20um%20pedido.";
+    "https://wa.me/5521996749365?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20do%20g%C3%A1s%20no%20site%20e%20gostaria%20de%20fazer%20um%20pedido.";
+
+  const pageUrl = "https://classilagos.shop/digital/carlinhos-gas";
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
@@ -34,169 +38,201 @@ export default function LandingPageCarlinhosGas() {
         </div>
       </header>
 
-<section className="border-b border-red-100 bg-gradient-to-r from-blue-900 via-red-600 via-orange-500 to-yellow-300 px-4 py-4 text-center text-sm font-bold text-white md:text-base shadow-md">        Atendimento rápido em Maricá • Ligue 0800-282-2894 ou peça agora no WhatsApp
+      <section
+        style={{
+          padding: "14px",
+          textAlign: "center",
+          fontWeight: "bold",
+          color: "#fff",
+          background:
+            "linear-gradient(90deg, #0f172a, #dc2626, #f97316, #fde047)",
+          backgroundSize: "300% 100%",
+          animation: "fireMove 6s linear infinite",
+        }}
+      >
+        🔥 ENTREGA RÁPIDA EM MARICÁ • LIGUE 0800-282-2894 OU PEÇA AGORA NO
+        WHATSAPP
       </section>
 
-{/* HERO NOVO */}
-<section
-  style={{
-    padding: "60px 20px",
-    background: "#f8fafc",
-  }}
->
-  <div
-    style={{
-      maxWidth: "1120px",
-      margin: "0 auto",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-      gap: "30px",
-      alignItems: "center",
-    }}
-  >
-    {/* TEXTO */}
-    <div>
-      <p
+      <style>{`
+        @keyframes fireMove {
+          0% { background-position: 0% 0%; }
+          100% { background-position: 300% 0%; }
+        }
+      `}</style>
+
+      {/* HERO NOVO */}
+      <section
         style={{
-          color: "#ef4444",
-          fontWeight: "bold",
-          marginBottom: "10px",
+          padding: "60px 20px",
+          background: "#f8fafc",
         }}
       >
-        🔥 Entrega rápida em Maricá
-      </p>
-
-      <h1
-        style={{
-          fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
-          fontWeight: "800",
-          color: "#0f172a",
-          marginBottom: "16px",
-        }}
-      >
-        Peça seu gás com rapidez e segurança
-      </h1>
-
-      <p
-        style={{
-          color: "#475569",
-          marginBottom: "22px",
-          lineHeight: "1.6",
-        }}
-      >
-        Há mais de 50 anos atendendo Maricá com qualidade, confiança e entrega rápida direto na sua casa.
-      </p>
-
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-        <a
-          href="https://wa.me/5521996749365"
-          target="_blank"
+        <div
           style={{
-            background: "#22c55e",
-            color: "#fff",
-            padding: "14px 22px",
-            borderRadius: "999px",
-            fontWeight: "bold",
-            textDecoration: "none",
+            maxWidth: "1120px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "30px",
+            alignItems: "center",
           }}
         >
-          Pedir no WhatsApp
-        </a>
+          {/* TEXTO */}
+          <div>
+            <p
+              style={{
+                color: "#ef4444",
+                fontWeight: "bold",
+                marginBottom: "10px",
+              }}
+            >
+              🔥 Entrega rápida em Maricá
+            </p>
 
-        <a
-          href="tel:08002822894"
-          style={{
-            background: "#0f172a",
-            color: "#fff",
-            padding: "14px 22px",
-            borderRadius: "999px",
-            fontWeight: "bold",
-            textDecoration: "none",
-          }}
-        >
-          Ligar 0800
-        </a>
-      </div>
-    </div>
+            <h1
+              style={{
+                fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
+                fontWeight: "800",
+                color: "#0f172a",
+                marginBottom: "16px",
+                lineHeight: 1.1,
+              }}
+            >
+              Peça seu gás com rapidez e segurança
+            </h1>
 
-</div>  // ← fim dos botões
+            <p
+              style={{
+                color: "#475569",
+                marginBottom: "22px",
+                lineHeight: "1.6",
+                fontSize: "1.05rem",
+              }}
+            >
+              Há mais de 50 anos atendendo Maricá com qualidade, confiança e
+              entrega rápida direto na sua casa.
+            </p>
 
-{/* COMPARTILHAR */}
-<div style={{ marginTop: "20px" }}>
-  <p style={{ fontSize: "14px", marginBottom: "8px", color: "#64748b" }}>
-    Compartilhar:
-  </p>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "#22c55e",
+                  color: "#fff",
+                  padding: "14px 22px",
+                  borderRadius: "999px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                }}
+              >
+                Pedir no WhatsApp
+              </a>
 
-  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-    
-    <a
-      href={`https://wa.me/?text=${encodeURIComponent("https://classilagos.shop/digital/carlinhos-gas")}`}
-      target="_blank"
-      style={{
-        background: "#25D366",
-        color: "#fff",
-        padding: "8px 14px",
-        borderRadius: "999px",
-        fontSize: "14px",
-        textDecoration: "none",
-        fontWeight: "bold",
-      }}
-    >
-      WhatsApp
-    </a>
+              <a
+                href="tel:08002822894"
+                style={{
+                  background: "#0f172a",
+                  color: "#fff",
+                  padding: "14px 22px",
+                  borderRadius: "999px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                }}
+              >
+                Ligar 0800
+              </a>
+            </div>
 
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=https://classilagos.shop/digital/carlinhos-gas`}
-      target="_blank"
-      style={{
-        background: "#1877F2",
-        color: "#fff",
-        padding: "8px 14px",
-        borderRadius: "999px",
-        fontSize: "14px",
-        textDecoration: "none",
-        fontWeight: "bold",
-      }}
-    >
-      Facebook
-    </a>
+            {/* COMPARTILHAR */}
+            <div style={{ marginTop: "20px" }}>
+              <p
+                style={{
+                  fontSize: "14px",
+                  marginBottom: "8px",
+                  color: "#64748b",
+                }}
+              >
+                Compartilhar:
+              </p>
 
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText("https://classilagos.shop/digital/carlinhos-gas");
-        alert("Link copiado!");
-      }}
-      style={{
-        background: "#0f172a",
-        color: "#fff",
-        padding: "8px 14px",
-        borderRadius: "999px",
-        fontSize: "14px",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: "bold",
-      }}
-    >
-      Copiar link
-    </button>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: "#25D366",
+                    color: "#fff",
+                    padding: "8px 14px",
+                    borderRadius: "999px",
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  WhatsApp
+                </a>
 
-  </div>
-</div>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                    pageUrl
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: "#1877F2",
+                    color: "#fff",
+                    padding: "8px 14px",
+                    borderRadius: "999px",
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Facebook
+                </a>
 
-    {/* IMAGEM */}
-    <div>
-      <img
-        src="/digital/carlinhos-gas/entregador.webp"
-        alt="Entrega de gás"
-        style={{
-          width: "100%",
-          borderRadius: "20px",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-        }}
-      />
-    </div>
-  </div>
-</section>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(pageUrl);
+                    alert("Link copiado!");
+                  }}
+                  style={{
+                    background: "#0f172a",
+                    color: "#fff",
+                    padding: "8px 14px",
+                    borderRadius: "999px",
+                    fontSize: "14px",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Copiar link
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* IMAGEM */}
+          <div>
+            <img
+              src="/digital/carlinhos-gas/entregador.webp"
+              alt="Entrega de gás"
+              style={{
+                width: "100%",
+                borderRadius: "20px",
+                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+                display: "block",
+              }}
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
@@ -232,7 +268,9 @@ export default function LandingPageCarlinhosGas() {
                 className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm"
               >
                 <div className="mb-4 h-12 w-12 rounded-2xl bg-red-100" />
-                <h3 className="text-xl font-black text-slate-900">{item.title}</h3>
+                <h3 className="text-xl font-black text-slate-900">
+                  {item.title}
+                </h3>
                 <p className="mt-3 leading-7 text-slate-600">{item.text}</p>
               </article>
             ))}
@@ -258,9 +296,9 @@ export default function LandingPageCarlinhosGas() {
               Gás com qualidade, cuidado e confiança.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
-              Trabalhamos com foco em segurança, atendimento responsável e qualidade
-              para o seu dia a dia. Quando você escolhe experiência, escolhe
-              tranquilidade.
+              Trabalhamos com foco em segurança, atendimento responsável e
+              qualidade para o seu dia a dia. Quando você escolhe experiência,
+              escolhe tranquilidade.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -270,7 +308,10 @@ export default function LandingPageCarlinhosGas() {
                 "Loja conhecida na cidade",
                 "Facilidade no pedido",
               ].map((item) => (
-                <div key={item} className="rounded-2xl bg-slate-100 px-4 py-3 font-bold text-slate-800">
+                <div
+                  key={item}
+                  className="rounded-2xl bg-slate-100 px-4 py-3 font-bold text-slate-800"
+                >
                   {item}
                 </div>
               ))}
@@ -289,13 +330,16 @@ export default function LandingPageCarlinhosGas() {
               Mais praticidade para fazer seu pedido.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
-              Você pode deixar esta área pronta para informar as formas de pagamento
-              aceitas pela loja, ajudando o cliente a decidir mais rápido.
+              Você pode pagar com Pix, cartão ou dinheiro, conforme a opção
+              disponível no atendimento da loja.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {['Pix', 'Cartão', 'Dinheiro', 'Consulte opções'].map((item) => (
-                <div key={item} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-center font-black text-slate-900 shadow-sm">
+              {["Pix", "Cartão", "Dinheiro", "Consulte opções"].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-center font-black text-slate-900 shadow-sm"
+                >
                   {item}
                 </div>
               ))}
@@ -323,7 +367,8 @@ export default function LandingPageCarlinhosGas() {
                 Atendimento rápido em Maricá com quem já é tradição na cidade.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-8 text-white/90">
-                Fale agora com a loja e faça seu pedido pelo WhatsApp ou pelo telefone.
+                Fale agora com a loja e faça seu pedido pelo WhatsApp ou pelo
+                telefone.
               </p>
             </div>
 
@@ -350,7 +395,9 @@ export default function LandingPageCarlinhosGas() {
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between md:px-6">
           <div>
-            <p className="text-lg font-black text-slate-900">Carlinhos do Gás</p>
+            <p className="text-lg font-black text-slate-900">
+              Carlinhos do Gás
+            </p>
             <p>Há 50 anos em Maricá</p>
             <p>Telefone: 0800-282-2894</p>
             <p>WhatsApp: (21) 99674-9365</p>
