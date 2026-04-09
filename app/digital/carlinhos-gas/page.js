@@ -38,74 +38,102 @@ export default function LandingPageCarlinhosGas() {
         Atendimento rápido em Maricá • Ligue 0800-282-2894 ou peça agora no WhatsApp
       </section>
 
-      <section className="bg-[linear-gradient(180deg,#fff_0%,#fff8f6_100%)]">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-2 md:px-6 md:py-20">
-          <div>
-            <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-600 shadow-sm">
-              Tradição, confiança e atendimento local
-            </span>
+{/* HERO NOVO */}
+<section
+  style={{
+    padding: "60px 20px",
+    background: "#f8fafc",
+  }}
+>
+  <div
+    style={{
+      maxWidth: "1120px",
+      margin: "0 auto",
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+      gap: "30px",
+      alignItems: "center",
+    }}
+  >
+    {/* TEXTO */}
+    <div>
+      <p
+        style={{
+          color: "#ef4444",
+          fontWeight: "bold",
+          marginBottom: "10px",
+        }}
+      >
+        🔥 Entrega rápida em Maricá
+      </p>
 
-            <h1 className="mt-5 max-w-xl text-5xl font-black leading-[0.95] tracking-tight text-slate-950 md:text-7xl">
-              O gás de Maricá há 50 anos.
-            </h1>
+      <h1
+        style={{
+          fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
+          fontWeight: "800",
+          color: "#0f172a",
+          marginBottom: "16px",
+        }}
+      >
+        Peça seu gás com rapidez e segurança
+      </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700 md:text-xl">
-              Peça seu gás com quem é referência na cidade. Atendimento rápido,
-              segurança e confiança de muitos anos para sua casa e sua família.
-            </p>
+      <p
+        style={{
+          color: "#475569",
+          marginBottom: "22px",
+          lineHeight: "1.6",
+        }}
+      >
+        Há mais de 50 anos atendendo Maricá com qualidade, confiança e entrega rápida direto na sua casa.
+      </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-2xl bg-emerald-600 px-7 py-4 text-center text-base font-extrabold text-white shadow-lg transition hover:scale-[1.01] hover:opacity-95"
-              >
-                Peça no WhatsApp
-              </a>
-              <a
-                href="tel:08002822894"
-                className="rounded-2xl border-2 border-slate-900 px-7 py-4 text-center text-base font-extrabold text-slate-900 transition hover:bg-slate-900 hover:text-white"
-              >
-                Ligar: 0800-282-2894
-              </a>
-            </div>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        <a
+          href="https://wa.me/5521996749356"
+          target="_blank"
+          style={{
+            background: "#22c55e",
+            color: "#fff",
+            padding: "14px 22px",
+            borderRadius: "999px",
+            fontWeight: "bold",
+            textDecoration: "none",
+          }}
+        >
+          Pedir no WhatsApp
+        </a>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {[
-                ["50 anos em Maricá", "Tradição que passa confiança"],
-                ["Atendimento rápido", "Mais agilidade para o seu pedido"],
-                ["Segurança", "Qualidade e cuidado para sua família"],
-              ].map(([title, text]) => (
-                <div key={title} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <p className="text-base font-black text-slate-900">{title}</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <a
+          href="tel:08002822894"
+          style={{
+            background: "#0f172a",
+            color: "#fff",
+            padding: "14px 22px",
+            borderRadius: "999px",
+            fontWeight: "bold",
+            textDecoration: "none",
+          }}
+        >
+          Ligar 0800
+        </a>
+      </div>
+    </div>
 
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-[2rem] border border-orange-100 bg-white shadow-2xl">
-              <img
-                src="/digital/carlinhos-gas/entregador.webp"
-                alt="Entregador de gás em Maricá"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <div className="rounded-[2rem] bg-gradient-to-r from-red-600 via-red-500 to-orange-500 p-6 text-white shadow-xl">
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-white/80">
-                Faça seu pedido
-              </p>
-              <p className="mt-2 text-3xl font-black md:text-4xl">0800-282-2894</p>
-              <p className="mt-2 text-base text-white/90">
-                WhatsApp da loja: (21) 99674-9365
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    {/* IMAGEM */}
+    <div>
+      <img
+        src="/carlinhos/banner-gas.webp"
+        alt="Entrega de gás"
+        style={{
+          width: "100%",
+          borderRadius: "20px",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+        }}
+      />
+    </div>
+  </div>
+</section>
 
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
