@@ -189,11 +189,13 @@ export default function LandingPageCarlinhosGas() {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 24px rgba(15, 23, 42, 0.14)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+        e.currentTarget.style.boxShadow =
+          "0 6px 18px rgba(15, 23, 42, 0.08)";
       }}
     >
       <img
@@ -228,11 +230,13 @@ export default function LandingPageCarlinhosGas() {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 24px rgba(15, 23, 42, 0.14)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+        e.currentTarget.style.boxShadow =
+          "0 6px 18px rgba(15, 23, 42, 0.08)";
       }}
     >
       <img
@@ -268,11 +272,13 @@ export default function LandingPageCarlinhosGas() {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.14)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 24px rgba(15, 23, 42, 0.14)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.08)";
+        e.currentTarget.style.boxShadow =
+          "0 6px 18px rgba(15, 23, 42, 0.08)";
       }}
     >
       Copiar link
@@ -280,20 +286,22 @@ export default function LandingPageCarlinhosGas() {
   </div>
 </div>
 
-          <div>
-            <img
-              src="/digital/carlinhos-gas/entregador.webp"
-              alt="Entrega de gás"
-              style={{
-                width: "100%",
-                borderRadius: "20px",
-                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-                display: "block",
-              }}
-            />
-          </div>
-        </div>
-      </section>
+</div>
+
+<div>
+  <img
+    src="/digital/carlinhos-gas/entregador.webp"
+    alt="Entrega de gás"
+    style={{
+      width: "100%",
+      borderRadius: "20px",
+      boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+      display: "block",
+    }}
+  />
+</div>
+</div>
+</section>
 
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
