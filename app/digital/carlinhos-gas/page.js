@@ -149,76 +149,78 @@ export default function LandingPageCarlinhosGas() {
               </a>
             </div>
 
-            {/* COMPARTILHAR */}
-            <div style={{ marginTop: "20px" }}>
-              <p
-                style={{
-                  fontSize: "14px",
-                  marginBottom: "8px",
-                  color: "#64748b",
-                }}
-              >
-                Compartilhar:
-              </p>
+{/* COMPARTILHAR */}
+<div style={{ marginTop: "18px" }}>
+  <p
+    style={{
+      fontSize: "13px",
+      marginBottom: "6px",
+      color: "#64748b",
+    }}
+  >
+    Compartilhar:
+  </p>
 
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: "#25D366",
-                    color: "#fff",
-                    padding: "8px 14px",
-                    borderRadius: "999px",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  WhatsApp
-                </a>
+  <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
 
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                    pageUrl
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: "#1877F2",
-                    color: "#fff",
-                    padding: "8px 14px",
-                    borderRadius: "999px",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Facebook
-                </a>
+    {/* WHATSAPP */}
+    <a
+      href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ transition: "0.2s" }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="#25D366"
+      >
+        <path d="M20.52 3.48A11.91 11.91 0 0 0 12.05 0C5.48 0 .13 5.35.13 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.29-1.65a11.86 11.86 0 0 0 5.76 1.47h.01c6.57 0 11.92-5.35 11.92-11.92 0-3.18-1.24-6.17-3.46-8.4zM12.06 21.3a9.34 9.34 0 0 1-4.76-1.3l-.34-.2-3.73.98.99-3.63-.22-.37a9.31 9.31 0 0 1-1.43-4.96c0-5.14 4.18-9.32 9.33-9.32 2.49 0 4.83.97 6.6 2.73a9.27 9.27 0 0 1 2.73 6.6c0 5.14-4.18 9.32-9.33 9.32zm5.16-6.98c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.17.19-.33.21-.61.07-.28-.14-1.19-.44-2.27-1.4-.84-.75-1.4-1.68-1.57-1.96-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.49.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.55-.88-2.12-.23-.55-.47-.47-.64-.48h-.55c-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34 0 1.38 1 2.71 1.14 2.9.14.19 1.97 3.01 4.78 4.21.67.29 1.2.46 1.61.59.68.22 1.3.19 1.79.12.55-.08 1.66-.68 1.9-1.34.23-.66.23-1.23.16-1.34-.07-.1-.26-.16-.54-.3z"/>
+      </svg>
+    </a>
 
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(pageUrl);
-                    alert("Link copiado!");
-                  }}
-                  style={{
-                    background: "#0f172a",
-                    color: "#fff",
-                    padding: "8px 14px",
-                    borderRadius: "999px",
-                    fontSize: "14px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Copiar link
-                </button>
-              </div>
-            </div>
-          </div>
+    {/* FACEBOOK */}
+    <a
+      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ transition: "0.2s" }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="#1877F2"
+      >
+        <path d="M22 12a10 10 0 1 0-11.5 9.87v-6.99H7.9V12h2.6V9.8c0-2.57 1.54-3.99 3.9-3.99 1.13 0 2.31.2 2.31.2v2.54h-1.3c-1.28 0-1.67.8-1.67 1.62V12h2.84l-.45 2.88h-2.39v6.99A10 10 0 0 0 22 12z"/>
+      </svg>
+    </a>
+
+    {/* COPIAR LINK */}
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(pageUrl);
+        alert("Link copiado!");
+      }}
+      style={{
+        background: "transparent",
+        border: "1px solid #cbd5e1",
+        borderRadius: "999px",
+        padding: "6px 12px",
+        fontSize: "12px",
+        cursor: "pointer",
+        color: "#334155",
+        fontWeight: "bold",
+      }}
+    >
+      Copiar link
+    </button>
+
+  </div>
+</div>
 
           {/* IMAGEM */}
           <div>
