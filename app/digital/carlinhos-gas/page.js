@@ -34,8 +34,7 @@ export default function LandingPageCarlinhosGas() {
         </div>
       </header>
 
-      <section className="border-b border-red-100 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 px-4 py-3 text-center text-sm font-bold text-white md:text-base">
-        Atendimento rápido em Maricá • Ligue 0800-282-2894 ou peça agora no WhatsApp
+<section className="border-b border-red-100 bg-gradient-to-r from-blue-900 via-red-600 via-orange-500 to-yellow-300 px-4 py-4 text-center text-sm font-bold text-white md:text-base shadow-md">        Atendimento rápido em Maricá • Ligue 0800-282-2894 ou peça agora no WhatsApp
       </section>
 
 {/* HERO NOVO */}
