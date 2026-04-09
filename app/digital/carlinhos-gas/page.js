@@ -1,6 +1,7 @@
 export default function LandingPageCarlinhosGas() {
   const whatsappLink =
-    "https://wa.me/5521996749365?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20do%20g%C3%A1s%20no%20site%20e%20gostaria%20de%20fazer%20um%20pedido.";
+const whatsappLink =
+  "https://wa.me/5521996749365?text=Ol%C3%A1!%20Vi%20a%20promo%C3%A7%C3%A3o%20do%20g%C3%A1s%20no%20site%20e%20gostaria%20de%20fazer%20um%20pedido.";
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
