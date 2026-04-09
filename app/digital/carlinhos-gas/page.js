@@ -123,7 +123,7 @@ export default function LandingPageCarlinhosGas() {
     {/* IMAGEM */}
     <div>
       <img
-        src="/carlinhos/banner-gas.webp"
+        src="/digital/carlinhos-gas/entregador.webp"
         alt="Entrega de gás"
         style={{
           width: "100%",
