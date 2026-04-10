@@ -641,7 +641,7 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
               </div>
             </div>
 
-            {/* DIREITA — GUIA GASTRONÔMICO (fixo, sem dependência) */}
+            {/* DIREITA — GUIA GASTRONÔMICO (dinâmico) */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
               <div className="p-5 pb-3">
                 <div className="flex items-center justify-between">
@@ -651,62 +651,85 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
                   </Link>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-600">
-                  Bares e restaurantes com pratos incríveis na Região dos Lagos.
+                  Bares, quiosques, restaurantes e sabores incríveis da Região dos Lagos.
                 </p>
               </div>
 
-              <div className="px-5 pb-5 flex-1 flex items-center">
-                <Link
-                  href={guiaGastroHref}
-                  className="group w-full rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
-                >
-                  <div className="relative h-36 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-200 via-rose-100 to-cyan-100" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.85),transparent_55%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.65),transparent_60%)]" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent" />
-
-                    <div className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-800">
-                      <span>🍤</span>
-                      <span>Onde comer</span>
-                    </div>
-
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <p className="text-sm font-extrabold text-slate-900 [text-shadow:0_1px_10px_rgba(255,255,255,0.65)]">
-                        Descubra sabores da região
-                      </p>
-                      <p className="mt-1 text-[11px] text-slate-700">
-                        Frutos do mar • Comida caseira • Quiosques • Pizzarias
-                      </p>
-                    </div>
+              <div className="px-5 pb-5 flex-1 overflow-auto">
+                {loadingGuiaGastro ? (
+                  <div className="rounded-2xl bg-white border border-slate-200 p-4">
+                    <p className="text-[12px] text-slate-600">Carregando guia gastronômico...</p>
                   </div>
-
-                  <div className="p-4">
-                    <p className="text-sm font-extrabold text-slate-900 line-clamp-2">
-                      Guia de Bares e Restaurantes
+                ) : guiaGastroItems.length === 0 ? (
+                  <div className="rounded-2xl bg-white border border-slate-200 p-4">
+                    <p className="text-[12px] text-slate-600">
+                      Ainda não há anúncios em Onde comer.
                     </p>
-                    <p className="mt-1 text-[12px] text-slate-600">
-                      Veja opções por cidade e seja encontrado.
-                    </p>
-
-                    <span className="mt-3 inline-flex text-[11px] font-semibold text-cyan-700">
-                      Abrir agora →
-                    </span>
                   </div>
-                </Link>
+                ) : (
+                  <div className="space-y-3">
+                    {guiaGastroItems.map((item) => {
+                      const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+                      const thumb =
+                        item.capa_url ||
+                        (imagensValidas.length > 0 ? String(imagensValidas[0] || "") : "") ||
+                        "/banners/anuncio-01.png";
+
+                      const local = [item.cidade, item.bairro].filter(Boolean).join(" • ");
+                      const tipo = item.subcategoria_turismo
+                        ? String(item.subcategoria_turismo).replaceAll("_", " ")
+                        : "Onde comer";
+
+                      return (
+                        <Link
+                          key={item.id}
+                          href={`/anuncios/${item.id}`}
+                          className="block rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-md transition"
+                        >
+                          <div className="flex gap-3 p-3">
+                            <div className="w-28 h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100">
+                              <img
+                                src={thumb}
+                                alt={item.titulo}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700 border border-amber-100">
+                                <span>🍤</span>
+                                <span>{tipo}</span>
+                              </div>
+
+                              <p className="mt-2 text-sm font-extrabold text-slate-900 line-clamp-2">
+                                {item.titulo}
+                              </p>
+
+                              <p className="mt-1 text-[12px] text-slate-600 line-clamp-1">
+                                {local || "Região dos Lagos"}
+                              </p>
+
+                              <span className="mt-2 inline-flex text-[11px] font-semibold text-cyan-700">
+                                Ver anúncio →
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="px-5 pb-5 flex items-center justify-between gap-3">
                 <Link href={guiaGastroHref} className="text-[11px] font-semibold text-cyan-700">
                   Quero ver o guia →
                 </Link>
-                <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+                <Link href="/anunciar/turismo" className="text-[11px] font-semibold text-cyan-700">
                   Cadastrar restaurante →
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
       {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
       <section className="bg-white py-10">
