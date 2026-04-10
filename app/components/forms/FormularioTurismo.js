@@ -180,14 +180,6 @@ export default function FormularioTurismo() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // garante login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
-    });
-  }, [router]);
 
   // quando muda o pilar, resetar subcategoria e faixa de preço
   useEffect(() => {
@@ -250,11 +242,27 @@ export default function FormularioTurismo() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
 
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
-      return;
-    }
+if (!user) {
+  if (!email) {
+    setErro("Informe seu e-mail para publicar o anúncio.");
+    return;
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+    },
+  });
+
+  if (signInError) {
+    setErro("Erro ao iniciar cadastro automático.");
+    return;
+  }
+
+  setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+  return;
+}
 
     if (!pilar || !subcategoria) {
       setErro("Selecione o tipo de lugar/serviço e a categoria.");
