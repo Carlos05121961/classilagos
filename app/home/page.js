@@ -130,8 +130,11 @@ export default function Home() {
   const tvEmbedUrl = "https://www.youtube.com/embed/videoseries?list=PL2kE-amExmabP5AbWRs7IU8mGIu-HZF5n";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
 
-  // GASTRONOMIA (fixo, sem dependência)
+  // GASTRONOMIA
   const guiaGastroHref = "/turismo?secao=onde_comer";
+
+  const [guiaGastroItems, setGuiaGastroItems] = useState([]);
+  const [loadingGuiaGastro, setLoadingGuiaGastro] = useState(true);
 
   // BUSCA
   const [q, setQ] = useState("");
