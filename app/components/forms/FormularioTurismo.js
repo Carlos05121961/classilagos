@@ -257,10 +257,11 @@ const { error: signInError } = await supabase.auth.signInWithOtp({
   },
 });
 
-  if (signInError) {
-    setErro("Erro ao iniciar cadastro automático.");
-    return;
-  }
+if (signInError) {
+  console.error("signInError:", signInError);
+  setErro("Erro ao iniciar cadastro automático: " + (signInError.message || ""));
+  return;
+}
 
   setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
   return;
