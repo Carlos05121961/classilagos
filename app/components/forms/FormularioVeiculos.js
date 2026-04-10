@@ -199,11 +199,27 @@ export default function FormularioVeiculos() {
   origem: "anuncio_veiculos",
 });
 
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
-      return;
-    }
+if (!user) {
+  if (!email) {
+    setErro("Informe seu e-mail para publicar o anúncio.");
+    return;
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+    },
+  });
+
+  if (signInError) {
+    setErro("Erro ao iniciar cadastro automático.");
+    return;
+  }
+
+  setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+  return;
+}
 
     const contatoPrincipal = whatsapp || telefone || email;
 
