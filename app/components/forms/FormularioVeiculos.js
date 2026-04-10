@@ -195,6 +195,16 @@ export default function FormularioVeiculos() {
       data: { user },
     } = await supabase.auth.getUser();
 
+    await syncUserMetadataFromForm(user, {
+  nome: nomeContato,
+  cidade,
+  whatsapp,
+  telefone,
+  endereco,
+  email,
+  origem: "anuncio_veiculos",
+});
+
     if (!user) {
       setErro("Você precisa estar logado para anunciar.");
       router.push("/login");
