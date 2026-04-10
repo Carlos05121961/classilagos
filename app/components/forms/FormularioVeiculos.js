@@ -37,12 +37,6 @@ function isYoutubeUrl(url) {
 export default function FormularioVeiculos() {
   const router = useRouter();
 
-  // ===== Login =====
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
 
   // ===== Uploads (PADRÃO PREMIUM) =====
   const [capaFile, setCapaFile] = useState(null); // obrigatória
