@@ -731,6 +731,12 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
+
       {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
       <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4">
