@@ -182,6 +182,106 @@ export default function RitinhaPage() {
               Ver Instagram
             </a>
           </div>
+
+          <div style={{ marginTop: "22px" }}>
+            <p
+              style={{
+                fontSize: "14px",
+                marginBottom: "10px",
+                color: "#e5e7eb",
+                fontWeight: "600",
+                textShadow: "0 1px 4px rgba(0,0,0,0.25)",
+              }}
+            >
+              Compartilhar:
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "14px",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent("https://classilagos.shop/digital/ritinha")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "46px",
+                  height: "46px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.32)",
+                  backdropFilter: "blur(4px)",
+                  textDecoration: "none",
+                }}
+              >
+                <img
+                  src="/icons/whatsapp.png"
+                  alt="Compartilhar no WhatsApp"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    display: "block",
+                    objectFit: "contain",
+                  }}
+                />
+              </a>
+
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://classilagos.shop/digital/ritinha")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "46px",
+                  height: "46px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.32)",
+                  backdropFilter: "blur(4px)",
+                  textDecoration: "none",
+                }}
+              >
+                <img
+                  src="/icons/facebook.png"
+                  alt="Compartilhar no Facebook"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    display: "block",
+                    objectFit: "contain",
+                  }}
+                />
+              </a>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText("https://classilagos.shop/digital/ritinha");
+                  alert("Link copiado!");
+                }}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(255,255,255,0.32)",
+                  background: "rgba(255,255,255,0.18)",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Copiar link
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
