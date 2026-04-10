@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../lib/syncUserMetadata";
 
 function onlyDigits(v) {
   return String(v || "").replace(/\D+/g, "");
