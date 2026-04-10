@@ -249,12 +249,13 @@ if (!user) {
     return;
   }
 
-  const { error: signInError } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-    },
-  });
+const { error: signInError } = await supabase.auth.signInWithOtp({
+  email,
+  options: {
+    shouldCreateUser: true,
+    emailRedirectTo: "https://classilagos.shop/home",
+  },
+});
 
   if (signInError) {
     setErro("Erro ao iniciar cadastro automático.");
