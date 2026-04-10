@@ -258,6 +258,35 @@ export default function Home() {
     return () => { ativo = false; };
   }, []);
 
+    // ✅ GUIA GASTRONÔMICO — todos os anúncios de turismo / onde_comer
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarGuiaGastronomico() {
+      setLoadingGuiaGastro(true);
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .select("id, titulo, cidade, bairro, imagens, capa_url, created_at, subcategoria_turismo, pilar_turismo, categoria, status")
+        .eq("categoria", "turismo")
+        .eq("pilar_turismo", "onde_comer")
+        .eq("status", "ativo")
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (!ativo) return;
+      if (error) console.error("Erro guia gastronômico:", error);
+
+      setGuiaGastroItems(data || []);
+      setLoadingGuiaGastro(false);
+    }
+
+    carregarGuiaGastronomico();
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
   return (
     <main className="bg-white">
       {/* BANNER TOPO (rotator) */}
