@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 export default function RitinhaPage() {
   const whatsapp = "5521991147233";
+  const pageUrl = "https://classilagos.shop/digital/ritinha";
 
   const galeria = [
     "/ritinha/1.jpg.webp",
@@ -43,8 +44,7 @@ export default function RitinhaPage() {
         style={{
           position: "relative",
           width: "100%",
-          height: "800px",
-          minHeight: "520px",
+          minHeight: "800px",
           overflow: "hidden",
           display: "flex",
           alignItems: "center",
@@ -71,7 +71,7 @@ export default function RitinhaPage() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to right, rgba(0,0,0,0.42), rgba(0,0,0,0.10))",
+              "linear-gradient(to right, rgba(0,0,0,0.52), rgba(0,0,0,0.16) 45%, rgba(0,0,0,0.05) 75%)",
           }}
         />
 
@@ -80,7 +80,7 @@ export default function RitinhaPage() {
             position: "relative",
             zIndex: 2,
             maxWidth: "760px",
-            padding: "0 20px",
+            padding: "100px 20px 80px",
             marginLeft: "80px",
           }}
         >
@@ -90,7 +90,7 @@ export default function RitinhaPage() {
               fontWeight: "bold",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              fontSize: "0.9rem",
+              fontSize: "0.92rem",
               marginBottom: "12px",
               textShadow: "0 1px 6px rgba(0,0,0,0.28)",
             }}
@@ -101,13 +101,13 @@ export default function RitinhaPage() {
           <div
             style={{
               display: "inline-block",
-              background: "rgba(245, 158, 11, 0.95)",
+              background: "rgba(245, 158, 11, 0.96)",
               color: "#ffffff",
-              padding: "7px 14px",
+              padding: "8px 15px",
               borderRadius: "999px",
               fontSize: "12px",
               fontWeight: "bold",
-              marginBottom: "18px",
+              marginBottom: "20px",
               boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
             }}
           >
@@ -117,8 +117,8 @@ export default function RitinhaPage() {
           <h1
             style={{
               fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontSize: "clamp(2.6rem, 5vw, 4.6rem)",
-              lineHeight: 1.05,
+              fontSize: "clamp(2.8rem, 5vw, 4.8rem)",
+              lineHeight: 1.02,
               color: "#ffffff",
               marginBottom: "18px",
               textShadow: "0 3px 14px rgba(0,0,0,0.30)",
@@ -131,8 +131,8 @@ export default function RitinhaPage() {
             style={{
               fontSize: "clamp(1rem, 2vw, 1.3rem)",
               color: "#ffffff",
-              marginBottom: "26px",
-              lineHeight: 1.6,
+              marginBottom: "28px",
+              lineHeight: 1.65,
               textShadow: "0 2px 10px rgba(0,0,0,0.28)",
               maxWidth: "620px",
             }}
@@ -146,6 +146,7 @@ export default function RitinhaPage() {
               display: "flex",
               gap: "12px",
               flexWrap: "wrap",
+              marginBottom: "22px",
             }}
           >
             <a
@@ -177,6 +178,7 @@ export default function RitinhaPage() {
                 padding: "14px 24px",
                 borderRadius: "999px",
                 border: "1px solid rgba(255,255,255,0.35)",
+                backdropFilter: "blur(4px)",
               }}
             >
               Ver Instagram
@@ -187,9 +189,10 @@ export default function RitinhaPage() {
             <p
               style={{
                 fontSize: "14px",
-                marginBottom: "10px",
+                marginBottom: "12px",
                 color: "#e5e7eb",
                 fontWeight: "600",
+                letterSpacing: "0.3px",
                 textShadow: "0 1px 4px rgba(0,0,0,0.25)",
               }}
             >
@@ -199,83 +202,119 @@ export default function RitinhaPage() {
             <div
               style={{
                 display: "flex",
-                gap: "14px",
+                gap: "16px",
                 alignItems: "center",
                 flexWrap: "wrap",
               }}
             >
               <a
-                href={`https://wa.me/?text=${encodeURIComponent("https://classilagos.shop/digital/ritinha")}`}
+                href={`https://wa.me/?text=${encodeURIComponent(pageUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "46px",
-                  height: "46px",
+                  width: "54px",
+                  height: "54px",
                   borderRadius: "999px",
                   background: "rgba(255,255,255,0.18)",
                   border: "1px solid rgba(255,255,255,0.32)",
-                  backdropFilter: "blur(4px)",
+                  backdropFilter: "blur(6px)",
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
+                  transition: "all 0.2s ease",
                   textDecoration: "none",
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 12px 28px rgba(0,0,0,0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 22px rgba(0,0,0,0.18)";
+                }}
               >
-                <img
-                  src="/icons/whatsapp.png"
-                  alt="Compartilhar no WhatsApp"
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    display: "block",
-                    objectFit: "contain",
-                  }}
-                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="#25D366"
+                >
+                  <path d="M20.52 3.48A11.91 11.91 0 0 0 12.05 0C5.48 0 .13 5.35.13 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.29-1.65a11.86 11.86 0 0 0 5.76 1.47h.01c6.57 0 11.92-5.35 11.92-11.92 0-3.18-1.24-6.17-3.46-8.4zM12.06 21.3a9.34 9.34 0 0 1-4.76-1.3l-.34-.2-3.73.98.99-3.63-.22-.37a9.31 9.31 0 0 1-1.43-4.96c0-5.14 4.18-9.32 9.33-9.32 2.49 0 4.83.97 6.6 2.73a9.27 9.27 0 0 1 2.73 6.6c0 5.14-4.18 9.32-9.33 9.32zm5.16-6.98c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.17.19-.33.21-.61.07-.28-.14-1.19-.44-2.27-1.4-.84-.75-1.4-1.68-1.57-1.96-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.49.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.55-.88-2.12-.23-.55-.47-.47-.64-.48h-.55c-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34 0 1.38 1 2.71 1.14 2.9.14.19 1.97 3.01 4.78 4.21.67.29 1.2.46 1.61.59.68.22 1.3.19 1.79.12.55-.08 1.66-.68 1.9-1.34.23-.66.23-1.23.16-1.34-.07-.1-.26-.16-.54-.3z" />
+                </svg>
               </a>
 
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://classilagos.shop/digital/ritinha")}`}
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "46px",
-                  height: "46px",
+                  width: "54px",
+                  height: "54px",
                   borderRadius: "999px",
                   background: "rgba(255,255,255,0.18)",
                   border: "1px solid rgba(255,255,255,0.32)",
-                  backdropFilter: "blur(4px)",
+                  backdropFilter: "blur(6px)",
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
+                  transition: "all 0.2s ease",
                   textDecoration: "none",
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 12px 28px rgba(0,0,0,0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 22px rgba(0,0,0,0.18)";
+                }}
               >
-                <img
-                  src="/icons/facebook.png"
-                  alt="Compartilhar no Facebook"
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    display: "block",
-                    objectFit: "contain",
-                  }}
-                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="#1877F2"
+                >
+                  <path d="M22 12a10 10 0 1 0-11.5 9.87v-6.99H7.9V12h2.6V9.8c0-2.57 1.54-3.99 3.9-3.99 1.13 0 2.31.2 2.31.2v2.54h-1.3c-1.28 0-1.67.8-1.67 1.62V12h2.84l-.45 2.88h-2.39v6.99A10 10 0 0 0 22 12z" />
+                </svg>
               </a>
 
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText("https://classilagos.shop/digital/ritinha");
+                  navigator.clipboard.writeText(pageUrl);
                   alert("Link copiado!");
                 }}
                 style={{
-                  padding: "10px 16px",
+                  height: "54px",
+                  padding: "0 20px",
                   borderRadius: "999px",
                   border: "1px solid rgba(255,255,255,0.32)",
                   background: "rgba(255,255,255,0.18)",
                   color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "700",
                   cursor: "pointer",
-                  fontWeight: "600",
-                  backdropFilter: "blur(4px)",
+                  backdropFilter: "blur(6px)",
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 12px 28px rgba(0,0,0,0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 22px rgba(0,0,0,0.18)";
                 }}
               >
                 Copiar link
@@ -664,16 +703,16 @@ export default function RitinhaPage() {
               </p>
             </div>
 
-<iframe
-  src="https://www.google.com/maps?q=Quiosque+da+Ritinha,+Barra+de+Maricá,+RJ&z=17&output=embed"
-  width="100%"
-  height="420"
-  style={{ border: 0, display: "block" }}
-  allowFullScreen=""
-  loading="lazy"
-  referrerPolicy="no-referrer-when-downgrade"
-  title="Mapa do Quiosque da Ritinha"
-/>
+            <iframe
+              src="https://www.google.com/maps?q=Quiosque+da+Ritinha,+Barra+de+Maricá,+RJ&z=17&output=embed"
+              width="100%"
+              height="420"
+              style={{ border: 0, display: "block" }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Mapa do Quiosque da Ritinha"
+            />
           </div>
         </div>
       </section>
