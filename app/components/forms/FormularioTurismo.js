@@ -264,6 +264,15 @@ if (!user) {
   setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
   return;
 }
+    await syncUserMetadataFromForm(user, {
+  nome: nomeContato,
+  cidade,
+  whatsapp,
+  telefone,
+  endereco,
+  email,
+  origem: "anuncio_turismo",
+});
 
     if (!pilar || !subcategoria) {
       setErro("Selecione o tipo de lugar/serviço e a categoria.");
