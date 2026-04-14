@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
 export default function FormularioImoveis() {
   const router = useRouter();
@@ -34,11 +35,11 @@ export default function FormularioImoveis() {
   const [mobiliado, setMobiliado] = useState("nao"); // sim / nao
   const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao"); // sim / nao
 
-  // ✅ Corretor / imobiliária + logo
+  // Corretor / imobiliária + logo
   const [isImobiliaria, setIsImobiliaria] = useState(false);
   const [logoArquivo, setLogoArquivo] = useState(null);
 
-  // ✅ NOVO PADRÃO: CAPA + GALERIA (separados)
+  // CAPA + GALERIA
   const [capaArquivo, setCapaArquivo] = useState(null); // obrigatória
   const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 8
 
@@ -87,17 +88,9 @@ export default function FormularioImoveis() {
   const finalidades = [
     { label: "Venda", value: "venda" },
     { label: "Aluguel", value: "aluguel" },
-    { label: "Aluguel por temporada", value: "temporada" }
+    { label: "Aluguel por temporada", value: "temporada" },
   ];
 
-  // Garante login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
-
-  // ✅ handlers novos
   const handleCapaChange = (e) => {
     const file = (e.target.files || [])[0] || null;
     setCapaArquivo(file);
@@ -118,16 +111,6 @@ export default function FormularioImoveis() {
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
-      return;
-    }
-
     // Pelo menos um meio de contato
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
@@ -141,13 +124,13 @@ export default function FormularioImoveis() {
       return;
     }
 
-    // ✅ CAPA obrigatória (padrão único)
+    // CAPA obrigatória
     if (!capaArquivo) {
       setErro("Envie 1 foto de capa do imóvel (obrigatória).");
       return;
     }
 
-    // ✅ Se marcou corretor/imobiliária, exige logo
+    // Se marcou corretor/imobiliária, exige logo
     if (isImobiliaria && !logoArquivo) {
       setErro("Você marcou corretor/imobiliária. Envie a logomarca (1 imagem).");
       return;
@@ -159,23 +142,67 @@ export default function FormularioImoveis() {
       return;
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    await syncUserMetadataFromForm(user, {
+      nome: nomeContato,
+      cidade,
+      whatsapp,
+      telefone,
+      endereco,
+      email,
+      origem: "anuncio_imoveis",
+    });
+
+    if (!user) {
+      if (!email) {
+        setErro("Informe seu e-mail para publicar o anúncio.");
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (signInError) {
+        setErro("Erro ao iniciar cadastro automático.");
+        return;
+      }
+
+      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+      return;
+    }
+
     const bucketName = "anuncios";
 
-    // helper upload (com pastas)
     const uploadUmArquivo = async (file, pasta) => {
       const ext = file.name.split(".").pop();
       const safeExt = ext ? ext.toLowerCase() : "jpg";
-      const random = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2);
+      const random =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : String(Math.random()).slice(2);
+
       const filePath = `${user.id}/${pasta}/${Date.now()}-${random}.${safeExt}`;
 
-      const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file);
 
       if (uploadError) {
         console.error("Erro upload:", uploadError);
         throw uploadError;
       }
 
-      const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+      const { data: publicData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
       return publicData.publicUrl;
     };
 
@@ -189,12 +216,12 @@ export default function FormularioImoveis() {
       // 1) CAPA
       capaUrl = await uploadUmArquivo(capaArquivo, "capas");
 
-      // 2) LOGO (se houver)
+      // 2) LOGO
       if (isImobiliaria && logoArquivo) {
         logoUrl = await uploadUmArquivo(logoArquivo, "logos");
       }
 
-      // 3) GALERIA (até 8)
+      // 3) GALERIA
       if (galeriaArquivos.length > 0) {
         galeriaUrls = await Promise.all(
           galeriaArquivos.slice(0, 8).map((file) => uploadUmArquivo(file, "galeria"))
@@ -209,7 +236,6 @@ export default function FormularioImoveis() {
       setUploading(false);
     }
 
-    // ✅ compatibilidade total: imagens[0] = capa
     const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
 
     const { error } = await supabase.from("anuncios").insert({
@@ -222,7 +248,6 @@ export default function FormularioImoveis() {
       endereco,
       preco,
 
-      // ✅ padrão novo
       capa_url: capaUrl,
       logo_url: logoUrl,
       imagens,
@@ -280,7 +305,6 @@ export default function FormularioImoveis() {
     setMobiliado("nao");
     setAceitaFinanciamento("nao");
 
-    // ✅ limpa capa/galeria
     setCapaArquivo(null);
     setGaleriaArquivos([]);
 
@@ -291,7 +315,6 @@ export default function FormularioImoveis() {
     setEmail("");
     setAceitoTermos(false);
 
-    // ✅ limpa logo
     setIsImobiliaria(false);
     setLogoArquivo(null);
 
@@ -313,7 +336,6 @@ export default function FormularioImoveis() {
         </p>
       )}
 
-      {/* BLOCO: TIPO DO ANÚNCIO */}
       <div className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900">Tipo de anúncio</h2>
 
@@ -354,11 +376,9 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: CAPA + GALERIA (PADRÃO ÚNICO) */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Fotos do imóvel</h2>
 
-        {/* CAPA */}
         <div>
           <label className="block text-xs font-medium text-slate-700">
             Foto de capa (obrigatória) *
@@ -389,7 +409,6 @@ export default function FormularioImoveis() {
           )}
         </div>
 
-        {/* GALERIA */}
         <div>
           <label className="block text-xs font-medium text-slate-700">
             Galeria (opcional) – até 8 imagens
@@ -418,7 +437,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* LOGOMARCA */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Corretor / Imobiliária</h2>
 
@@ -467,7 +485,6 @@ export default function FormularioImoveis() {
         )}
       </div>
 
-      {/* BLOCO: INFORMAÇÕES DO IMÓVEL */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Informações do imóvel</h2>
 
@@ -498,7 +515,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: LOCALIZAÇÃO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
 
@@ -556,7 +572,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: DETALHES DO IMÓVEL */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Detalhes do imóvel</h2>
 
@@ -636,7 +651,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: VALORES */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Valores</h2>
 
@@ -649,7 +663,7 @@ export default function FormularioImoveis() {
               placeholder={
                 finalidade === "aluguel"
                   ? "Ex: R$ 2.500 / mês"
-                  : finalidade === "aluguel temporada"
+                  : finalidade === "temporada"
                   ? "Ex: R$ 500 / diária"
                   : "Ex: R$ 450.000"
               }
@@ -693,7 +707,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: VÍDEO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Vídeo do imóvel (opcional)</h2>
 
@@ -709,7 +722,6 @@ export default function FormularioImoveis() {
         </div>
       </div>
 
-      {/* BLOCO: CONTATO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
 
@@ -764,7 +776,6 @@ export default function FormularioImoveis() {
         </p>
       </div>
 
-      {/* BLOCO: TERMOS */}
       <div className="space-y-2 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Termos de responsabilidade</h2>
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
