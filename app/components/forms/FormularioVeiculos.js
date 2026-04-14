@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
 import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
@@ -24,7 +24,7 @@ function formatBRLInput(v) {
 }
 
 function isYoutubeUrl(url) {
-  if (!url) return true; // opcional
+  if (!url) return true;
   try {
     const u = new URL(url);
     const host = u.hostname.replace("www.", "");
@@ -37,17 +37,16 @@ function isYoutubeUrl(url) {
 export default function FormularioVeiculos() {
   const router = useRouter();
 
-
   // ===== Uploads (PADRÃO PREMIUM) =====
-  const [capaFile, setCapaFile] = useState(null); // obrigatória
-  const [galeriaFiles, setGaleriaFiles] = useState([]); // opcional até 8
+  const [capaFile, setCapaFile] = useState(null);
+  const [galeriaFiles, setGaleriaFiles] = useState([]);
 
   // ===== Agência + Logomarca =====
   const [isAgencia, setIsAgencia] = useState(false);
   const [logoArquivo, setLogoArquivo] = useState(null);
 
   // ===== Classificação do anúncio =====
-  const [condicaoVeiculo, setCondicaoVeiculo] = useState(""); // usado / seminovo / 0km
+  const [condicaoVeiculo, setCondicaoVeiculo] = useState("");
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
 
@@ -62,8 +61,8 @@ export default function FormularioVeiculos() {
   const [cep, setCep] = useState("");
 
   // ===== Tipo / finalidade =====
-  const [finalidade, setFinalidade] = useState(""); // Venda / Troca / Aluguel
-  const [tipoVeiculo, setTipoVeiculo] = useState(""); // Carro / Moto / etc.
+  const [finalidade, setFinalidade] = useState("");
+  const [tipoVeiculo, setTipoVeiculo] = useState("");
 
   // ===== Detalhes do veículo =====
   const [marca, setMarca] = useState("");
@@ -127,7 +126,6 @@ export default function FormularioVeiculos() {
   const combustiveis = ["Gasolina", "Etanol", "Flex", "Diesel", "GNV", "Elétrico"];
   const cambios = ["Manual", "Automático", "CVT", "Outros"];
 
-  // ===== handlers upload =====
   const handleCapaChange = (e) => {
     const f = (e.target.files && e.target.files[0]) || null;
     setCapaFile(f || null);
@@ -143,10 +141,10 @@ export default function FormularioVeiculos() {
     setLogoArquivo(f || null);
   };
 
-  // ===== helper upload =====
-  async function uploadToPublicUrl(bucketName, userId, file, folder, prefix) {
+  async function uploadToPublicUrl(bucketName, ownerKey, file, folder, prefix) {
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const filePath = `${folder}/${userId}/${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
+    const rand = Math.random().toString(16).slice(2);
+    const filePath = `${folder}/${ownerKey}/${prefix}-${Date.now()}-${rand}.${ext}`;
 
     const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
     if (uploadError) throw uploadError;
@@ -160,17 +158,16 @@ export default function FormularioVeiculos() {
 
     if (!capaFile) return "Envie a foto de capa (obrigatória).";
     if (!contatoPrincipal) return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    if (!email.trim()) return "Informe seu e-mail para publicar o anúncio.";
     if (!finalidade || !tipoVeiculo) return "Selecione a finalidade e o tipo de veículo.";
     if (!condicaoVeiculo) return "Informe a condição do veículo (usado, seminovo ou 0 km).";
     if (!titulo.trim() || !descricao.trim()) return "Preencha o título e a descrição do anúncio.";
     if (!cidade) return "Selecione a cidade do anúncio.";
     if (!preco.trim()) return "Informe o preço do veículo.";
     if (!isYoutubeUrl(videoUrl.trim())) return "A URL do vídeo deve ser do YouTube (youtube.com ou youtu.be).";
-
-    // ✅ Agência => exige logo
     if (isAgencia && !logoArquivo) return "Você marcou Agência de veículos. Envie a logomarca (1 imagem).";
-
     if (!aceitoTermos) return "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio.";
+
     return "";
   }
 
@@ -185,69 +182,42 @@ export default function FormularioVeiculos() {
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      if (!email) {
-        setErro("Informe seu e-mail para publicar o anúncio.");
-        return;
-      }
-
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-
-      if (signInError) {
-        console.error("Erro ao iniciar cadastro automático:", signInError);
-
-        const msg = String(signInError.message || "").toLowerCase();
-
-        if (msg.includes("security purposes") || msg.includes("only request this after")) {
-          setErro("Aguarde cerca de 1 minuto antes de solicitar um novo link por e-mail.");
-        } else {
-          setErro(signInError.message || "Erro ao iniciar cadastro automático.");
-        }
-
-        return;
-      }
-
-      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
-      return;
-    }
-
-    await syncUserMetadataFromForm(user, {
-      nome: nomeContato,
-      cidade,
-      whatsapp,
-      telefone,
-      endereco,
-      email,
-      origem: "anuncio_veiculos",
-    });
-
-    const contatoPrincipal = whatsapp || telefone || email;
-
-    let capaUrl = null;
-    let galeriaUrls = [];
-    let logoUrl = null;
+    const contatoPrincipal = whatsapp.trim() || telefone.trim() || email.trim();
 
     try {
       setUploading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const ownerKey =
+        user?.id ||
+        `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeContato,
+          cidade,
+          whatsapp,
+          telefone,
+          endereco,
+          email,
+          origem: "anuncio_veiculos",
+        });
+      }
+
       const bucketName = "anuncios";
 
-      // ✅ 1) CAPA (obrigatória)
-      capaUrl = await uploadToPublicUrl(bucketName, user.id, capaFile, "veiculos", "capa");
+      // 1) CAPA
+      const capaUrl = await uploadToPublicUrl(bucketName, ownerKey, capaFile, "veiculos", "capa");
 
-      // ✅ 2) GALERIA (opcional, até 8) - mantém ordem
+      // 2) GALERIA
+      let galeriaUrls = [];
       if (galeriaFiles.length > 0) {
         const uploads = await Promise.all(
           galeriaFiles.map(async (file, idx) => {
-            const url = await uploadToPublicUrl(bucketName, user.id, file, "veiculos", `galeria-${idx}`);
+            const url = await uploadToPublicUrl(bucketName, ownerKey, file, "veiculos", `galeria-${idx}`);
             return { idx, url };
           })
         );
@@ -255,23 +225,15 @@ export default function FormularioVeiculos() {
         galeriaUrls = uploads.map((u) => u.url);
       }
 
-      // ✅ 3) LOGO (se Agência)
+      // 3) LOGO
+      let logoUrl = null;
       if (isAgencia && logoArquivo) {
-        logoUrl = await uploadToPublicUrl(bucketName, user.id, logoArquivo, "veiculos", "logo");
+        logoUrl = await uploadToPublicUrl(bucketName, ownerKey, logoArquivo, "veiculos", "logo");
       }
-    } catch (err) {
-      console.error(err);
-      setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
-      setUploading(false);
-      return;
-    } finally {
-      setUploading(false);
-    }
 
-    // ✅ imagens: capa primeiro + galeria depois
-    const imagens = [capaUrl, ...(galeriaUrls || [])];
+      const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
 
-    const detalhesVeiculoTexto = `
+      const detalhesVeiculoTexto = `
 === Detalhes do veículo ===
 Condição: ${condicaoVeiculo || "-"}
 Finalidade: ${finalidade || "-"}
@@ -292,15 +254,13 @@ Agência de veículos: ${isAgencia ? "Sim" : "Não"}
 Aceita troca: ${aceitaTroca === "sim" ? "Sim" : "Não"}
 `.trim();
 
-    const descricaoFinal = `${descricao.trim()}
+      const descricaoFinal = `${descricao.trim()}
 
 ${detalhesVeiculoTexto}
 `.trim();
 
-    const { data, error } = await supabase
-      .from("anuncios")
-      .insert({
-        user_id: user.id,
+      const payload = {
+        user_id: user?.id || null,
         categoria: "veiculos",
         titulo: titulo.trim(),
         descricao: descricaoFinal,
@@ -310,11 +270,8 @@ ${detalhesVeiculoTexto}
         cep: cep.trim(),
         preco: preco.trim(),
 
-        // ✅ padrão premium de imagens
         capa_url: capaUrl,
         imagens,
-
-        // ✅ logo separada (selo)
         logo_url: logoUrl,
 
         video_url: videoUrl.trim(),
@@ -323,84 +280,124 @@ ${detalhesVeiculoTexto}
         email: email.trim(),
         contato: contatoPrincipal,
 
-        // reutilizados
         tipo_imovel: tipoVeiculo,
         finalidade: finalidade.toLowerCase(),
         nome_contato: nomeContato.trim(),
 
-        // usados nos cards / filtros
         condicao_veiculo: condicaoVeiculo,
         zero_km: condicaoVeiculo === "0km",
         financiado: isFinanciado,
         consignado: isConsignado,
-        loja_revenda: isAgencia, // ✅ agência marca como loja/revenda
+        loja_revenda: isAgencia,
 
         status: "ativo",
         destaque: false,
-      })
-      .select("id")
-      .single();
 
-    if (error) {
-      console.error(error);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
-      return;
+        email_confirmado: !!user,
+        criado_sem_login: !user,
+      };
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error(error);
+        setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
+        return;
+      }
+
+      // Se não estiver logado, publica e depois envia o e-mail de confirmação
+      if (!user) {
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio foi publicado com sucesso. Aguarde cerca de 1 minuto para solicitar um novo link de confirmação por e-mail."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio foi publicado com sucesso. Houve apenas um problema ao enviar o e-mail de confirmação agora. Tente acessar sua caixa mais tarde."
+            );
+          }
+        } else {
+          setSucesso(
+            "Seu anúncio foi publicado com sucesso. Verifique sua caixa de e-mail para confirmar seu endereço."
+          );
+        }
+      } else {
+        setSucesso("Anúncio enviado com sucesso! Redirecionando…");
+      }
+
+      // limpa form
+      setCapaFile(null);
+      setGaleriaFiles([]);
+      setIsAgencia(false);
+      setLogoArquivo(null);
+
+      setCondicaoVeiculo("");
+      setIsFinanciado(false);
+      setIsConsignado(false);
+
+      setTitulo("");
+      setDescricao("");
+
+      setCidade("");
+      setBairro("");
+      setEndereco("");
+      setCep("");
+
+      setFinalidade("");
+      setTipoVeiculo("");
+
+      setMarca("");
+      setModelo("");
+      setAno("");
+      setKm("");
+      setCor("");
+      setCombustivel("");
+      setCambio("");
+      setPortas("");
+      setIpvaPago("nao");
+      setLicenciado("nao");
+      setAceitaTroca("nao");
+
+      setPreco("");
+
+      setVideoUrl("");
+
+      setNomeContato("");
+      setTelefone("");
+      setWhatsapp("");
+      setEmail("");
+
+      setAceitoTermos(false);
+
+      setTimeout(() => {
+        router.push(`/anuncios/${data.id}`);
+      }, 1200);
+    } catch (err) {
+      console.error(err);
+      setErro("Ocorreu um erro ao enviar o anúncio. Tente novamente em alguns instantes.");
+    } finally {
+      setUploading(false);
     }
-
-    setSucesso("Anúncio enviado com sucesso! Redirecionando…");
-
-    // limpa form
-    setCapaFile(null);
-    setGaleriaFiles([]);
-    setIsAgencia(false);
-    setLogoArquivo(null);
-
-    setCondicaoVeiculo("");
-    setIsFinanciado(false);
-    setIsConsignado(false);
-
-    setTitulo("");
-    setDescricao("");
-
-    setCidade("");
-    setBairro("");
-    setEndereco("");
-    setCep("");
-
-    setFinalidade("");
-    setTipoVeiculo("");
-
-    setMarca("");
-    setModelo("");
-    setAno("");
-    setKm("");
-    setCor("");
-    setCombustivel("");
-    setCambio("");
-    setPortas("");
-    setIpvaPago("nao");
-    setLicenciado("nao");
-    setAceitaTroca("nao");
-
-    setPreco("");
-
-    setVideoUrl("");
-
-    setNomeContato("");
-    setTelefone("");
-    setWhatsapp("");
-    setEmail("");
-
-    setAceitoTermos(false);
-
-    setTimeout(() => {
-      router.push(`/anuncios/${data.id}`);
-    }, 1200);
   };
 
   return (
     <form onSubmit={enviarAnuncio} className="space-y-5">
-      {/* ALERTAS */}
       {erro && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
           <p className="text-xs md:text-sm font-semibold text-red-700">⚠️ Atenção</p>
@@ -415,14 +412,12 @@ ${detalhesVeiculoTexto}
         </div>
       )}
 
-      {/* ✅ 0) UPLOADS NO TOPO (PADRÃO PREMIUM) */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Fotos (capa + galeria)</h3>
         <p className="mt-1 text-[11px] text-slate-500">
           A <b>capa</b> é a foto principal do card. A <b>galeria</b> são fotos extras do veículo.
         </p>
 
-        {/* CAPA */}
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-[11px] font-semibold text-slate-900">
             Foto de capa (obrigatória) <span className="text-red-600">*</span>
@@ -445,7 +440,6 @@ ${detalhesVeiculoTexto}
           )}
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4">
           <label className="block text-[11px] font-semibold text-slate-700">
             Galeria (opcional) — até 8 fotos
@@ -478,7 +472,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* ✅ 0.1) AGÊNCIA + LOGO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Agência de veículos</h3>
         <p className="mt-1 text-[11px] text-slate-500">
@@ -526,7 +519,6 @@ ${detalhesVeiculoTexto}
         )}
       </div>
 
-      {/* 1) CLASSIFICAÇÃO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Classificação do anúncio</h3>
         <p className="mt-1 text-[11px] text-slate-500">
@@ -569,7 +561,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 2) TIPO DO ANÚNCIO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Tipo de anúncio</h3>
 
@@ -625,7 +616,6 @@ ${detalhesVeiculoTexto}
         )}
       </div>
 
-      {/* 3) INFORMAÇÕES PRINCIPAIS */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Informações principais</h3>
 
@@ -657,7 +647,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 4) LOCALIZAÇÃO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Localização</h3>
 
@@ -718,7 +707,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 5) DETALHES DO VEÍCULO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Detalhes do veículo</h3>
 
@@ -866,7 +854,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 6) VALORES */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Valores</h3>
 
@@ -891,7 +878,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 7) VÍDEO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Vídeo do veículo (opcional)</h3>
 
@@ -910,7 +896,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 8) CONTATO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Dados de contato</h3>
         <p className="mt-1 text-[11px] text-slate-500">
@@ -964,7 +949,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* 9) TERMOS */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Termos e responsabilidade</h3>
 
@@ -987,7 +971,6 @@ ${detalhesVeiculoTexto}
         </div>
       </div>
 
-      {/* BOTÃO FINAL */}
       <button
         type="submit"
         className="w-full rounded-full bg-blue-600 text-white py-3 text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
