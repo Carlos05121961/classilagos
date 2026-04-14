@@ -17,7 +17,7 @@ export default function FormularioImoveis() {
   const [cep, setCep] = useState("");
 
   // Tipo de anúncio / imóvel
-  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / aluguel temporada
+  const [finalidade, setFinalidade] = useState("");
   const [tipoImovel, setTipoImovel] = useState("");
 
   // Detalhes numéricos
@@ -32,16 +32,16 @@ export default function FormularioImoveis() {
   const [preco, setPreco] = useState("");
   const [condominio, setCondominio] = useState("");
   const [iptu, setIptu] = useState("");
-  const [mobiliado, setMobiliado] = useState("nao"); // sim / nao
-  const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao"); // sim / nao
+  const [mobiliado, setMobiliado] = useState("nao");
+  const [aceitaFinanciamento, setAceitaFinanciamento] = useState("nao");
 
   // Corretor / imobiliária + logo
   const [isImobiliaria, setIsImobiliaria] = useState(false);
   const [logoArquivo, setLogoArquivo] = useState(null);
 
-  // CAPA + GALERIA
-  const [capaArquivo, setCapaArquivo] = useState(null); // obrigatória
-  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 8
+  // Capa + galeria
+  const [capaArquivo, setCapaArquivo] = useState(null);
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]);
 
   const [uploading, setUploading] = useState(false);
 
@@ -111,221 +111,217 @@ export default function FormularioImoveis() {
     setErro("");
     setSucesso("");
 
-    // Pelo menos um meio de contato
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
-      return;
-    }
-
-    // Finalidade e tipo
-    if (!finalidade || !tipoImovel) {
-      setErro("Selecione a finalidade e o tipo de imóvel.");
-      return;
-    }
-
-    // CAPA obrigatória
-    if (!capaArquivo) {
-      setErro("Envie 1 foto de capa do imóvel (obrigatória).");
-      return;
-    }
-
-    // Se marcou corretor/imobiliária, exige logo
-    if (isImobiliaria && !logoArquivo) {
-      setErro("Você marcou corretor/imobiliária. Envie a logomarca (1 imagem).");
-      return;
-    }
-
-    // Termos
-    if (!aceitoTermos) {
-      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
-      return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      if (!email) {
-        setErro("Informe seu e-mail para publicar o anúncio.");
+    try {
+      // Pelo menos um meio de contato
+      const contatoPrincipal = whatsapp || telefone || email;
+      if (!contatoPrincipal) {
+        setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithOtp({
+      // Finalidade e tipo
+      if (!finalidade || !tipoImovel) {
+        setErro("Selecione a finalidade e o tipo de imóvel.");
+        return;
+      }
+
+      // Capa obrigatória
+      if (!capaArquivo) {
+        setErro("Envie 1 foto de capa do imóvel (obrigatória).");
+        return;
+      }
+
+      // Se marcou corretor/imobiliária, exige logo
+      if (isImobiliaria && !logoArquivo) {
+        setErro("Você marcou corretor/imobiliária. Envie a logomarca (1 imagem).");
+        return;
+      }
+
+      // Termos
+      if (!aceitoTermos) {
+        setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!email) {
+          setErro("Informe seu e-mail para publicar o anúncio.");
+          return;
+        }
+
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: true,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao iniciar cadastro automático:", signInError);
+          setErro(signInError.message || "Erro ao iniciar cadastro automático.");
+          return;
+        }
+
+        setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+        return;
+      }
+
+      await syncUserMetadataFromForm(user, {
+        nome: nomeContato,
+        cidade,
+        whatsapp,
+        telefone,
+        endereco,
         email,
-        options: {
-          shouldCreateUser: true,
-        },
+        origem: "anuncio_imoveis",
       });
 
-      if (signInError) {
-        console.error("Erro ao iniciar cadastro automático:", signInError);
-        setErro(signInError.message || "Erro ao iniciar cadastro automático.");
+      const bucketName = "anuncios";
+
+      const uploadUmArquivo = async (file, pasta) => {
+        const ext = file.name.split(".").pop();
+        const safeExt = ext ? ext.toLowerCase() : "jpg";
+        const random =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Math.random()).slice(2);
+
+        const filePath = `${user.id}/${pasta}/${Date.now()}-${random}.${safeExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error("Erro upload:", uploadError);
+          throw uploadError;
+        }
+
+        const { data: publicData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+
+        return publicData.publicUrl;
+      };
+
+      let capaUrl = null;
+      let logoUrl = null;
+      let galeriaUrls = [];
+
+      try {
+        setUploading(true);
+
+        // 1) CAPA
+        capaUrl = await uploadUmArquivo(capaArquivo, "capas");
+
+        // 2) LOGO
+        if (isImobiliaria && logoArquivo) {
+          logoUrl = await uploadUmArquivo(logoArquivo, "logos");
+        }
+
+        // 3) GALERIA
+        if (galeriaArquivos.length > 0) {
+          galeriaUrls = await Promise.all(
+            galeriaArquivos.slice(0, 8).map((file) => uploadUmArquivo(file, "galeria"))
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+
+      const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
+
+      const { error } = await supabase.from("anuncios").insert({
+        user_id: user.id,
+        categoria: "imoveis",
+        titulo,
+        descricao,
+        cidade,
+        bairro,
+        endereco,
+        preco,
+        capa_url: capaUrl,
+        logo_url: logoUrl,
+        imagens,
+        video_url: videoUrl,
+        telefone,
+        whatsapp,
+        email,
+        contato: contatoPrincipal,
+        tipo_imovel: tipoImovel,
+        finalidade,
+        area: areaConstruida || areaTerreno,
+        quartos,
+        banheiros,
+        vagas,
+        mobiliado,
+        condominio,
+        iptu,
+        aceita_financiamento: aceitaFinanciamento,
+        status: "ativo",
+        destaque: false,
+        cep,
+        suites,
+        area_construida: areaConstruida,
+        area_terreno: areaTerreno,
+        nome_contato: nomeContato,
+      });
+
+      if (error) {
+        console.error(error);
+        setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
         return;
       }
 
-      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
-      return;
-    }
+      setSucesso("Anúncio enviado com sucesso! Seu imóvel aparecerá em breve.");
 
-    await syncUserMetadataFromForm(user, {
-      nome: nomeContato,
-      cidade,
-      whatsapp,
-      telefone,
-      endereco,
-      email,
-      origem: "anuncio_imoveis",
-    });
+      // Limpa formulário
+      setTitulo("");
+      setDescricao("");
+      setCidade("");
+      setBairro("");
+      setEndereco("");
+      setCep("");
+      setFinalidade("");
+      setTipoImovel("");
+      setQuartos("");
+      setSuites("");
+      setBanheiros("");
+      setVagas("");
+      setAreaConstruida("");
+      setAreaTerreno("");
+      setPreco("");
+      setCondominio("");
+      setIptu("");
+      setMobiliado("nao");
+      setAceitaFinanciamento("nao");
+      setCapaArquivo(null);
+      setGaleriaArquivos([]);
+      setVideoUrl("");
+      setNomeContato("");
+      setTelefone("");
+      setWhatsapp("");
+      setEmail("");
+      setAceitoTermos(false);
+      setIsImobiliaria(false);
+      setLogoArquivo(null);
 
-      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
-      return;
-    }
-
-    const bucketName = "anuncios";
-
-    const uploadUmArquivo = async (file, pasta) => {
-      const ext = file.name.split(".").pop();
-      const safeExt = ext ? ext.toLowerCase() : "jpg";
-      const random =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : String(Math.random()).slice(2);
-
-      const filePath = `${user.id}/${pasta}/${Date.now()}-${random}.${safeExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error("Erro upload:", uploadError);
-        throw uploadError;
-      }
-
-      const { data: publicData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
-
-      return publicData.publicUrl;
-    };
-
-    let capaUrl = null;
-    let logoUrl = null;
-    let galeriaUrls = [];
-
-    try {
-      setUploading(true);
-
-      // 1) CAPA
-      capaUrl = await uploadUmArquivo(capaArquivo, "capas");
-
-      // 2) LOGO
-      if (isImobiliaria && logoArquivo) {
-        logoUrl = await uploadUmArquivo(logoArquivo, "logos");
-      }
-
-      // 3) GALERIA
-      if (galeriaArquivos.length > 0) {
-        galeriaUrls = await Promise.all(
-          galeriaArquivos.slice(0, 8).map((file) => uploadUmArquivo(file, "galeria"))
-        );
-      }
+      setTimeout(() => {
+        router.push("/painel/meus-anuncios");
+      }, 2000);
     } catch (err) {
-      console.error(err);
-      setErro("Ocorreu um erro ao enviar as imagens. Tente novamente em alguns instantes.");
-      setUploading(false);
-      return;
-    } finally {
-      setUploading(false);
+      console.error("Erro geral ao enviar imóvel:", err);
+      setErro(err?.message || "Ocorreu um erro inesperado ao enviar o anúncio.");
     }
-
-    const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
-
-    const { error } = await supabase.from("anuncios").insert({
-      user_id: user.id,
-      categoria: "imoveis",
-      titulo,
-      descricao,
-      cidade,
-      bairro,
-      endereco,
-      preco,
-
-      capa_url: capaUrl,
-      logo_url: logoUrl,
-      imagens,
-
-      video_url: videoUrl,
-      telefone,
-      whatsapp,
-      email,
-      contato: contatoPrincipal,
-      tipo_imovel: tipoImovel,
-      finalidade,
-      area: areaConstruida || areaTerreno,
-      quartos,
-      banheiros,
-      vagas,
-      mobiliado,
-      condominio,
-      iptu,
-      aceita_financiamento: aceitaFinanciamento,
-      status: "ativo",
-      destaque: false,
-      cep,
-      suites,
-      area_construida: areaConstruida,
-      area_terreno: areaTerreno,
-      nome_contato: nomeContato,
-    });
-
-    if (error) {
-      console.error(error);
-      setErro("Ocorreu um erro ao salvar o anúncio. Tente novamente.");
-      return;
-    }
-
-    setSucesso("Anúncio enviado com sucesso! Seu imóvel aparecerá em breve.");
-
-    // Limpa formulário
-    setTitulo("");
-    setDescricao("");
-    setCidade("");
-    setBairro("");
-    setEndereco("");
-    setCep("");
-    setFinalidade("");
-    setTipoImovel("");
-    setQuartos("");
-    setSuites("");
-    setBanheiros("");
-    setVagas("");
-    setAreaConstruida("");
-    setAreaTerreno("");
-    setPreco("");
-    setCondominio("");
-    setIptu("");
-    setMobiliado("nao");
-    setAceitaFinanciamento("nao");
-
-    setCapaArquivo(null);
-    setGaleriaArquivos([]);
-
-    setVideoUrl("");
-    setNomeContato("");
-    setTelefone("");
-    setWhatsapp("");
-    setEmail("");
-    setAceitoTermos(false);
-
-    setIsImobiliaria(false);
-    setLogoArquivo(null);
-
-    setTimeout(() => {
-      router.push("/painel/meus-anuncios");
-    }, 2000);
   };
 
   return (
@@ -335,6 +331,7 @@ export default function FormularioImoveis() {
           {erro}
         </p>
       )}
+
       {sucesso && (
         <p className="text-green-600 text-xs md:text-sm border border-emerald-100 rounded-md px-3 py-2 bg-emerald-50">
           {sucesso}
@@ -418,7 +415,7 @@ export default function FormularioImoveis() {
           <label className="block text-xs font-medium text-slate-700">
             Galeria (opcional) – até 8 imagens
             <span className="block text-[11px] text-slate-500">
-              Fotos extras do imóvel (quartos, área externa, vista, etc.).
+              Fotos extras do imóvel.
             </span>
           </label>
 
@@ -437,7 +434,7 @@ export default function FormularioImoveis() {
           )}
 
           <p className="mt-1 text-[11px] text-slate-500">
-            Formatos recomendados: JPG ou PNG, até 2MB cada.
+            Se escolher mais de 8, o sistema usa somente as 8 primeiras.
           </p>
         </div>
       </div>
@@ -455,7 +452,7 @@ export default function FormularioImoveis() {
           <span>
             Sou corretor/imobiliária e quero exibir minha <b>logomarca</b> no anúncio.
             <span className="block text-[11px] text-slate-500">
-              (A capa é sempre a foto do imóvel. A logomarca é um selo separado.)
+              A capa é a foto do imóvel. A logo é um selo separado.
             </span>
           </span>
         </label>
@@ -483,9 +480,6 @@ export default function FormularioImoveis() {
                 </button>
               </p>
             )}
-            <p className="mt-1 text-[11px] text-slate-500">
-              Recomendado: PNG com fundo transparente (ou JPG). Até ~2MB.
-            </p>
           </div>
         )}
       </div>
@@ -509,14 +503,11 @@ export default function FormularioImoveis() {
           <label className="block text-xs font-medium text-slate-700">Descrição detalhada *</label>
           <textarea
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
-            placeholder="Descreva os principais detalhes do imóvel, vista, estado de conservação, proximidade da praia, lagoa, comércio, escolas etc."
+            placeholder="Descreva os detalhes do imóvel..."
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
             required
           />
-          <p className="mt-1 text-[11px] text-slate-500">
-            Dica: um bom texto com detalhes honestos aumenta muito as chances de contato.
-          </p>
         </div>
       </div>
 
@@ -546,7 +537,6 @@ export default function FormularioImoveis() {
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Ex: Centro, Itaipuaçu, Ponta Negra..."
               value={bairro}
               onChange={(e) => setBairro(e.target.value)}
             />
@@ -559,7 +549,6 @@ export default function FormularioImoveis() {
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Rua, número, complemento..."
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
             />
@@ -591,6 +580,7 @@ export default function FormularioImoveis() {
               onChange={(e) => setQuartos(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700">Suítes</label>
             <input
@@ -601,6 +591,7 @@ export default function FormularioImoveis() {
               onChange={(e) => setSuites(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700">Banheiros</label>
             <input
@@ -611,6 +602,7 @@ export default function FormularioImoveis() {
               onChange={(e) => setBanheiros(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700">Vagas de garagem</label>
             <input
@@ -633,6 +625,7 @@ export default function FormularioImoveis() {
               onChange={(e) => setAreaConstruida(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700">Área total / terreno (m²)</label>
             <input
@@ -642,6 +635,7 @@ export default function FormularioImoveis() {
               onChange={(e) => setAreaTerreno(e.target.value)}
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-700">Imóvel mobiliado?</label>
             <select
@@ -720,7 +714,6 @@ export default function FormularioImoveis() {
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
           />
@@ -735,7 +728,6 @@ export default function FormularioImoveis() {
           <input
             type="text"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Nome do proprietário, corretor ou imobiliária"
             value={nomeContato}
             onChange={(e) => setNomeContato(e.target.value)}
           />
@@ -747,7 +739,6 @@ export default function FormularioImoveis() {
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="Telefone para contato"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
             />
@@ -758,7 +749,6 @@ export default function FormularioImoveis() {
             <input
               type="text"
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder="DDD + número"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
             />
@@ -770,19 +760,15 @@ export default function FormularioImoveis() {
           <input
             type="email"
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Seu e-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-
-        <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para as pessoas entrarem em contato com você.
-        </p>
       </div>
 
       <div className="space-y-2 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Termos de responsabilidade</h2>
+
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
             type="checkbox"
