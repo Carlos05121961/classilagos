@@ -189,37 +189,46 @@ export default function FormularioVeiculos() {
       data: { user },
     } = await supabase.auth.getUser();
 
+    if (!user) {
+      if (!email) {
+        setErro("Informe seu e-mail para publicar o anúncio.");
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (signInError) {
+        console.error("Erro ao iniciar cadastro automático:", signInError);
+
+        const msg = String(signInError.message || "").toLowerCase();
+
+        if (msg.includes("security purposes") || msg.includes("only request this after")) {
+          setErro("Aguarde cerca de 1 minuto antes de solicitar um novo link por e-mail.");
+        } else {
+          setErro(signInError.message || "Erro ao iniciar cadastro automático.");
+        }
+
+        return;
+      }
+
+      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+      return;
+    }
+
     await syncUserMetadataFromForm(user, {
-  nome: nomeContato,
-  cidade,
-  whatsapp,
-  telefone,
-  endereco,
-  email,
-  origem: "anuncio_veiculos",
-});
-
-if (!user) {
-  if (!email) {
-    setErro("Informe seu e-mail para publicar o anúncio.");
-    return;
-  }
-
-  const { error: signInError } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-    },
-  });
-
-  if (signInError) {
-    setErro("Erro ao iniciar cadastro automático.");
-    return;
-  }
-
-  setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
-  return;
-}
+      nome: nomeContato,
+      cidade,
+      whatsapp,
+      telefone,
+      endereco,
+      email,
+      origem: "anuncio_veiculos",
+    });
 
     const contatoPrincipal = whatsapp || telefone || email;
 
