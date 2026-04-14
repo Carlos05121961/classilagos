@@ -157,7 +157,6 @@ export default function NauticaPage() {
         )
         .eq("categoria", "nautica")
         .eq("status", "ativo")
-        // ✅ ordem premium (DB)
         .order("destaque", { ascending: false })
         .order("prioridade", { ascending: false })
         .order("created_at", { ascending: false });
@@ -166,7 +165,6 @@ export default function NauticaPage() {
         console.error("Erro ao carregar anúncios de náutica:", error);
         setAnuncios([]);
       } else {
-        // ✅ reforço local (consistência)
         setAnuncios(sortPremiumLocal(data || []));
       }
 
@@ -278,7 +276,6 @@ export default function NauticaPage() {
 
     if (filtrados.length === 0) return null;
 
-    // ✅ já está ordenado premium, mas mantém a preferência por destaque
     const emDestaque = filtrados.find((a) => isDestaqueTruthy(a.destaque));
     return emDestaque || filtrados[0];
   }
@@ -351,7 +348,7 @@ export default function NauticaPage() {
         </div>
       </section>
 
-      {/* CAIXA DE BUSCA (✅ ligada + SmartSelect no mobile) */}
+      {/* CAIXA DE BUSCA */}
       <section className="bg-white">
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10">
           <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -405,8 +402,122 @@ export default function NauticaPage() {
 
       <div className="h-4 sm:h-6" />
 
+      {/* ANÚNCIOS RECENTES DE NÁUTICA */}
+      <section className="bg-white pb-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base md:text-lg font-semibold text-slate-900">
+                Anúncios recém publicados na Região dos Lagos
+              </h2>
+              <p className="text-[11px] md:text-xs text-slate-500 mt-1">
+                Veja o que acabou de entrar na Náutica do Classilagos.
+              </p>
+            </div>
+
+            <span className="text-[11px] text-slate-500">
+              {loadingAnuncios
+                ? "Carregando anúncios..."
+                : destaques.length === 0
+                ? "Nenhum anúncio cadastrado ainda."
+                : `${destaques.length} anúncio(s)`}
+            </span>
+          </div>
+
+          {loadingAnuncios && <p className="text-xs text-slate-500">Buscando anúncios…</p>}
+
+          {!loadingAnuncios && destaques.length === 0 && (
+            <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-8 text-center">
+              <p className="text-sm md:text-base font-semibold text-slate-800">
+                Seja um dos primeiros a anunciar na Náutica do Classilagos 🚤
+              </p>
+
+              <p className="text-[11px] text-slate-500 mt-2">
+                Publique grátis e apareça para pessoas da Região dos Lagos.
+              </p>
+
+              <Link
+                href="/anunciar?tipo=nautica"
+                className="inline-flex items-center justify-center mt-4 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 text-sm md:text-base font-bold text-white shadow-lg hover:scale-105 hover:from-orange-600 hover:to-orange-700 transition"
+              >
+                🚀 Anunciar grátis agora
+              </Link>
+            </div>
+          )}
+
+          {!loadingAnuncios && destaques.length > 0 && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+                {destaques.map((item) => {
+                  const img = Array.isArray(item.imagens) && item.imagens.length > 0 ? item.imagens[0] : null;
+                  const finalidadeLabel = item.finalidade_nautica || "";
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/anuncios/${item.id}`}
+                      className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
+                    >
+                      {img ? (
+                        <div className="w-full h-28 md:h-32 overflow-hidden bg-slate-200">
+                          <img
+                            src={img}
+                            alt={item.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full h-28 md:h-32 bg-gradient-to-br from-sky-900 to-slate-900 flex items-center justify-center text-[11px] text-sky-100">
+                          Sem foto
+                        </div>
+                      )}
+
+                      <div className="px-3 py-2 space-y-1">
+                        <p className="font-semibold leading-snug line-clamp-2 text-slate-900">{item.titulo}</p>
+                        <p className="text-[11px] text-slate-600">
+                          {item.subcategoria_nautica ? `${item.subcategoria_nautica} · ` : ""}
+                          {item.cidade}
+                          {item.bairro ? ` • ${item.bairro}` : ""}
+                        </p>
+                        {item.preco && <p className="text-[11px] font-semibold text-emerald-700">{item.preco}</p>}
+                        {finalidadeLabel && (
+                          <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm md:text-base font-semibold text-slate-800">
+                  Quer vender também na Náutica do Classilagos?
+                </p>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Publique grátis em minutos e apareça para compradores da região.
+                </p>
+
+                <Link
+                  href="/anunciar?tipo=nautica"
+                  className="inline-flex items-center justify-center mt-4 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 text-sm md:text-base font-bold text-white shadow-lg hover:scale-105 hover:from-orange-600 hover:to-orange-700 transition"
+                >
+                  🚀 Publicar meu anúncio agora
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
       {/* CATEGORIAS – CARDS */}
-      <section className="max-w-6xl mx-auto px-4 pb-8">
+      <section className="max-w-6xl mx-auto px-4 pb-10">
+        <div className="mb-4">
+          <h2 className="text-base md:text-lg font-semibold text-slate-900">Explore por categoria</h2>
+          <p className="text-[11px] md:text-xs text-slate-500 mt-1">
+            Navegue por lanchas, jetski, peças, serviços e muito mais.
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
           {categoriasLinha1.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
@@ -421,15 +532,14 @@ export default function NauticaPage() {
               >
                 <div className="relative h-24 md:h-28 w-full bg-slate-300 overflow-hidden">
                   {capa ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={capa}
                       alt={anuncio?.titulo || cat.nome}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600">
-                      Em breve, anúncios aqui
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-600 text-center px-3">
+                      Seja o primeiro a anunciar aqui
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
@@ -437,10 +547,12 @@ export default function NauticaPage() {
 
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
-                  {anuncio && (
+                  {anuncio ? (
                     <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
                       {anuncio.titulo} • {anuncio.cidade}
                     </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-slate-400">Clique para ver oportunidades desta categoria</p>
                   )}
                 </div>
               </Link>
@@ -448,7 +560,7 @@ export default function NauticaPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
           {categoriasLinha2.map((cat) => {
             const anuncio = escolherAnuncioParaCard(cat.slug);
             const imagensValidas = Array.isArray(anuncio?.imagens) ? anuncio.imagens : [];
@@ -462,15 +574,14 @@ export default function NauticaPage() {
               >
                 <div className="relative h-24 md:h-28 w-full bg-slate-400 overflow-hidden">
                   {capa ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={capa}
                       alt={anuncio?.titulo || cat.nome}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-700">
-                      Em breve, anúncios aqui
+                    <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-700 text-center px-3">
+                      Seja o primeiro a anunciar aqui
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent" />
@@ -478,91 +589,17 @@ export default function NauticaPage() {
 
                 <div className="bg-slate-900 text-white px-3 py-2">
                   <p className="text-xs md:text-sm font-semibold">{cat.nome}</p>
-                  {anuncio && (
+                  {anuncio ? (
                     <p className="mt-1 text-[11px] text-slate-300 line-clamp-2">
                       {anuncio.titulo} • {anuncio.cidade}
                     </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-slate-400">Clique para ver oportunidades desta categoria</p>
                   )}
                 </div>
               </Link>
             );
           })}
-        </div>
-      </section>
-
-      {/* ANÚNCIOS RECENTES DE NÁUTICA */}
-      <section className="bg-white pb-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base md:text-lg font-semibold text-slate-900">Anúncios recentes de náutica</h2>
-            <span className="text-[11px] text-slate-500">
-              {loadingAnuncios
-                ? "Carregando anúncios..."
-                : destaques.length === 0
-                ? "Nenhum anúncio cadastrado ainda."
-                : `${destaques.length} anúncio(s)`}
-            </span>
-          </div>
-
-          {loadingAnuncios && <p className="text-xs text-slate-500">Buscando anúncios…</p>}
-
-          {!loadingAnuncios && destaques.length === 0 && (
-            <div className="border border-dashed border-slate-300 rounded-2xl px-4 py-6 text-xs text-slate-500 text-center">
-              Ainda não há anúncios de náutica cadastrados.
-              <br />
-              <Link
-                href="/anunciar?tipo=nautica"
-                className="inline-flex mt-3 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700"
-              >
-                Seja o primeiro a anunciar sua embarcação
-              </Link>
-            </div>
-          )}
-
-          {!loadingAnuncios && destaques.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
-              {destaques.map((item) => {
-                const img = Array.isArray(item.imagens) && item.imagens.length > 0 ? item.imagens[0] : null;
-                const finalidadeLabel = item.finalidade_nautica || "";
-
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/anuncios/${item.id}`}
-                    className="group rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition overflow-hidden flex flex-col"
-                  >
-                    {img ? (
-                      <div className="w-full h-28 md:h-32 overflow-hidden bg-slate-200">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img}
-                          alt={item.titulo}
-                          className="w-full h-full object-cover group-hover:scale-105 transition"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-28 md:h-32 bg-gradient-to-br from-sky-900 to-slate-900 flex items-center justify-center text-[11px] text-sky-100">
-                        Sem foto
-                      </div>
-                    )}
-
-                    <div className="px-3 py-2 space-y-1">
-                      <p className="font-semibold leading-snug line-clamp-2 text-slate-900">{item.titulo}</p>
-                      <p className="text-[11px] text-slate-600">
-                        {item.subcategoria_nautica ? `${item.subcategoria_nautica} · ` : ""}
-                        {item.cidade}
-                        {item.bairro ? ` • ${item.bairro}` : ""}
-                      </p>
-                      {item.preco && <p className="text-[11px] font-semibold text-emerald-700">{item.preco}</p>}
-                      {finalidadeLabel && (
-                        <p className="text-[10px] uppercase tracking-wide text-slate-500">{finalidadeLabel}</p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
         </div>
       </section>
 
@@ -573,72 +610,63 @@ export default function NauticaPage() {
         </div>
       </section>
 
-{/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA */}
-<section className="bg-slate-950 text-white py-10">
-  <div className="max-w-6xl mx-auto px-4">
-    <h2 className="text-base md:text-lg font-semibold mb-2">
-      Serviços e informações para náutica
-    </h2>
+      {/* SERVIÇOS E INFORMAÇÕES PARA NÁUTICA */}
+      <section className="bg-slate-950 text-white py-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-base md:text-lg font-semibold mb-2">
+            Serviços e informações para náutica
+          </h2>
 
-    <p className="text-xs md:text-sm text-slate-300 mb-6 max-w-3xl">
-      Use o Classilagos como guia para navegar dentro da lei, entender documentação,
-      habilitação e encontrar serviços náuticos na Região dos Lagos.
-    </p>
+          <p className="text-xs md:text-sm text-slate-300 mb-6 max-w-3xl">
+            Use o Classilagos como guia para navegar dentro da lei, entender documentação,
+            habilitação e encontrar serviços náuticos na Região dos Lagos.
+          </p>
 
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs md:text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs md:text-sm">
+            <a
+              href="https://www.marinha.mil.br/com1dn/sites/www.marinha.mil.br.com1dn/files/CSU---DelCFrio.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
+            >
+              <p className="font-semibold mb-1">Documentação da embarcação</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Inscrição, transferência, registro e normas oficiais da Capitania dos Portos
+                (Delegacia de Cabo Frio).
+              </p>
+            </a>
 
-      {/* CARD 1 – DOCUMENTAÇÃO */}
-      <a
-        href="https://www.marinha.mil.br/com1dn/sites/www.marinha.mil.br.com1dn/files/CSU---DelCFrio.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
-      >
-        <p className="font-semibold mb-1">Documentação da embarcação</p>
-        <p className="text-slate-300 text-[12px] leading-snug">
-          Inscrição, transferência, registro e normas oficiais da Capitania dos Portos
-          (Delegacia de Cabo Frio).
-        </p>
-      </a>
+            <a
+              href="https://www.marinha.mil.br/delcfrio/habilitacao_amadores"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
+            >
+              <p className="font-semibold mb-1">Habilitação náutica</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Informações oficiais sobre Arrais, Motonauta e Mestre,
+                categorias e limites de navegação.
+              </p>
+            </a>
 
-      {/* CARD 2 – HABILITAÇÃO */}
-      <a
-        href="https://www.marinha.mil.br/delcfrio/habilitacao_amadores"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-lente rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm transition block"
-      >
-        <p className="font-semibold mb-1">Habilitação náutica</p>
-        <p className="text-slate-300 text-[12px] leading-snug">
-          Informações oficiais sobre Arrais, Motonauta e Mestre,
-          categorias e limites de navegação.
-        </p>
-      </a>
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
+              <p className="font-semibold mb-1">Marinas e iate clubes</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Em breve, integração com o LagoListas para encontrar marinas,
+                guardarias, vagas secas e molhadas na região.
+              </p>
+            </div>
 
-      {/* CARD 3 – MARINAS */}
-      <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
-        <p className="font-semibold mb-1">Marinas e iate clubes</p>
-        <p className="text-slate-300 text-[12px] leading-snug">
-          Em breve, integração com o LagoListas para encontrar marinas,
-          guardarias, vagas secas e molhadas na região.
-        </p>
-      </div>
-
-      {/* CARD 4 – SERVIÇOS */}
-      <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
-        <p className="font-semibold mb-1">Serviços para sua embarcação</p>
-        <p className="text-slate-300 text-[12px] leading-snug">
-          Oficinas mecânicas, elétrica náutica, pintura, limpeza,
-          guincho e manutenção especializada (em breve).
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-      {/* Daqui pra baixo entra só o footer global */}
+            <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-4 py-4 shadow-sm">
+              <p className="font-semibold mb-1">Serviços para sua embarcação</p>
+              <p className="text-slate-300 text-[12px] leading-snug">
+                Oficinas mecânicas, elétrica náutica, pintura, limpeza,
+                guincho e manutenção especializada (em breve).
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
