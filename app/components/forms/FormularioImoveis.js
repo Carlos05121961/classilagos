@@ -146,16 +146,6 @@ export default function FormularioImoveis() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    await syncUserMetadataFromForm(user, {
-      nome: nomeContato,
-      cidade,
-      whatsapp,
-      telefone,
-      endereco,
-      email,
-      origem: "anuncio_imoveis",
-    });
-
     if (!user) {
       if (!email) {
         setErro("Informe seu e-mail para publicar o anúncio.");
@@ -170,9 +160,24 @@ export default function FormularioImoveis() {
       });
 
       if (signInError) {
-        setErro("Erro ao iniciar cadastro automático.");
+        console.error("Erro ao iniciar cadastro automático:", signInError);
+        setErro(signInError.message || "Erro ao iniciar cadastro automático.");
         return;
       }
+
+      setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
+      return;
+    }
+
+    await syncUserMetadataFromForm(user, {
+      nome: nomeContato,
+      cidade,
+      whatsapp,
+      telefone,
+      endereco,
+      email,
+      origem: "anuncio_imoveis",
+    });
 
       setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
       return;
