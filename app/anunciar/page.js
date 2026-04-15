@@ -300,7 +300,7 @@ export default function AnunciarPage() {
                 href={s.href}
                 className="group overflow-hidden rounded-[28px] border border-white/55 bg-white/80 backdrop-blur-xl shadow-[0_8px_26px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.14)]"
               >
-                <div className="relative h-44 md:h-48 overflow-hidden">
+                <div className="relative h-28 sm:h-32 md:h-40 overflow-hidden">
                   <Image
                     src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
                     alt={s.title}
