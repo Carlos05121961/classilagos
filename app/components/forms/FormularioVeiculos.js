@@ -334,14 +334,14 @@ ${detalhesVeiculoTexto}
               "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde para confirmar seu cadastro."
             );
           }
-        } else {
-          setSucesso(
-            "Seu anúncio foi enviado com sucesso e está pendente. Verifique seu e-mail para confirmar seu cadastro e ativar o anúncio."
-          );
-        }
-      } else {
-        setSucesso("Anúncio enviado com sucesso! Redirecionando…");
-      }
+
+} else {
+  setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+
+  setTimeout(() => {
+    router.push("/auth/check-email");
+  }, 1500);
+}
 
       // limpa form
       setCapaFile(null);
