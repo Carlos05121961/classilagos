@@ -320,27 +320,34 @@ ${detalhesVeiculoTexto}
           },
         });
 
-if (signInError) {
-  console.error("Erro ao enviar confirmação por e-mail:", signInError);
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
 
-  const msg = String(signInError.message || "").toLowerCase();
+          const msg = String(signInError.message || "").toLowerCase();
 
-  if (msg.includes("security purposes") || msg.includes("only request this after")) {
-    setSucesso(
-      "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
-    );
-  } else {
-    setSucesso(
-      "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
-    );
-  }
-} else {
-  setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+        } else {
+          setSucesso("Anúncio enviado com sucesso! Redirecionando...");
 
-  setTimeout(() => {
-    router.push("/auth/check-email");
-  }, 1500);
-}
+          setTimeout(() => {
+            router.push("/auth/check-email");
+          }, 1500);
+        }
+      } else {
+        setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
 
       // limpa form
       setCapaFile(null);
