@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
-// validação simples de URL youtube (opcional)
 function isValidYoutubeUrl(url) {
   if (!url) return true;
   const u = String(url).trim();
@@ -16,7 +16,6 @@ function isValidYoutubeUrl(url) {
   );
 }
 
-/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
 function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -36,19 +35,14 @@ function Card({ title, subtitle, children }) {
 export default function FormularioPets() {
   const router = useRouter();
 
-  // Campos básicos
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Tipo de anúncio
-  const [subcategoria, setSubcategoria] = useState(""); // Animais / Adoção / Achados / Serviços
-
-  // Valor
+  const [subcategoria, setSubcategoria] = useState("");
   const [preco, setPreco] = useState("");
 
-  // ✅ UPLOAD PREMIUM: logo (opcional p/ serviços) + capa (obrigatória) + galeria
   const [souServicoPet, setSouServicoPet] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
   const [capaFile, setCapaFile] = useState(null);
@@ -56,16 +50,13 @@ export default function FormularioPets() {
 
   const [uploading, setUploading] = useState(false);
 
-  // Vídeo (opcional)
   const [videoUrl, setVideoUrl] = useState("");
 
-  // Contato
   const [nomeContato, setNomeContato] = useState("");
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Termos e mensagens
   const [aceitoTermos, setAceitoTermos] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -89,24 +80,14 @@ export default function FormularioPets() {
     "Serviços pet & acessórios",
   ];
 
-  // Garante login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
-
-  // ✅ Se escolheu "Serviços pet & acessórios", habilita opção de logo
   useEffect(() => {
     const isServicos = subcategoria === "Serviços pet & acessórios";
     setSouServicoPet(isServicos);
 
-    // se saiu de serviços, zera logo pra não “carregar sem querer”
     if (!isServicos) setLogoFile(null);
   }, [subcategoria]);
 
-  // ✅ limite dinâmico: total em imagens <= 8
-  const maxGaleria = logoFile ? 6 : 7; // (logo + capa + 6) = 8 | (capa + 7) = 8
+  const maxGaleria = logoFile ? 6 : 7;
 
   const handleLogoChange = (e) => {
     const f = e.target.files?.[0] || null;
@@ -136,7 +117,6 @@ export default function FormularioPets() {
     setGaleriaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Preview
   const previewLogo = useMemo(() => {
     if (!logoFile) return null;
     return URL.createObjectURL(logoFile);
@@ -158,7 +138,6 @@ export default function FormularioPets() {
       if (previewCapa) URL.revokeObjectURL(previewCapa);
       previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewLogo, previewCapa, previewsGaleria]);
 
   const limparFormulario = () => {
@@ -181,6 +160,14 @@ export default function FormularioPets() {
     setAceitoTermos(false);
   };
 
+  async function uploadArquivo({ bucket, path, file }) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
@@ -190,10 +177,15 @@ export default function FormularioPets() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
-      return;
+    if (user) {
+      await syncUserMetadataFromForm(user, {
+        nome: nomeContato,
+        cidade,
+        whatsapp,
+        telefone,
+        email,
+        origem: "anuncio_pets",
+      });
     }
 
     if (!subcategoria) {
@@ -201,7 +193,16 @@ export default function FormularioPets() {
       return;
     }
 
-    // ✅ capa obrigatória (Padrão Premium)
+    if (!titulo.trim() || !descricao.trim() || !cidade) {
+      setErro("Preencha pelo menos título, descrição e cidade.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setErro("Informe seu e-mail para publicar o anúncio.");
+      return;
+    }
+
     if (!capaFile) {
       setErro("Envie uma foto de capa (obrigatória). Ela será a foto principal do anúncio.");
       return;
@@ -223,7 +224,6 @@ export default function FormularioPets() {
       return;
     }
 
-    // Upload (logo opcional p/ serviços) + capa + galeria
     let logoUrl = null;
     let capaUrl = null;
     const galeriaUrls = [];
@@ -232,81 +232,59 @@ export default function FormularioPets() {
       setUploading(true);
 
       const bucket = "anuncios";
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const baseTime = Date.now();
 
-      // ✅ LOGO (opcional) — só se for serviços
       if (souServicoPet && logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `pets/${user.id}/pets-logo-${baseTime}.${ext}`;
-
-        const { error: uploadLogoError } = await supabase.storage
-          .from(bucket)
-          .upload(path, logoFile);
-
-        if (uploadLogoError) throw uploadLogoError;
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        logoUrl = data.publicUrl;
+        const ext = (logoFile.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `pets/${ownerKey}/pets-logo-${baseTime}.${ext}`;
+        logoUrl = await uploadArquivo({ bucket, path, file: logoFile });
       }
 
-      // ✅ CAPA (obrigatória)
       {
-        const ext = capaFile.name.split(".").pop();
-        const path = `pets/${user.id}/pets-capa-${baseTime}.${ext}`;
-
-        const { error: uploadCapaError } = await supabase.storage
-          .from(bucket)
-          .upload(path, capaFile);
-
-        if (uploadCapaError) throw uploadCapaError;
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        capaUrl = data.publicUrl;
+        const ext = (capaFile.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `pets/${ownerKey}/pets-capa-${baseTime}.${ext}`;
+        capaUrl = await uploadArquivo({ bucket, path, file: capaFile });
       }
 
-      // ✅ GALERIA (opcional)
       if (galeriaFiles && galeriaFiles.length > 0) {
         const arquivos = Array.from(galeriaFiles).slice(0, maxGaleria);
 
         for (let i = 0; i < arquivos.length; i++) {
           const file = arquivos[i];
-          const ext = file.name.split(".").pop();
-          const path = `pets/${user.id}/pets-galeria-${baseTime}-${i}.${ext}`;
-
-          const { error: uploadGalError } = await supabase.storage
-            .from(bucket)
-            .upload(path, file);
-
-          if (uploadGalError) throw uploadGalError;
-
-          const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-          galeriaUrls.push(data.publicUrl);
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+          const path = `pets/${ownerKey}/pets-galeria-${baseTime}-${i}.${ext}`;
+          const url = await uploadArquivo({ bucket, path, file });
+          if (url) galeriaUrls.push(url);
         }
       }
     } catch (err) {
       console.error(err);
       setErro("Erro ao enviar as imagens. Tente novamente em instantes.");
-      setUploading(false);
       return;
     } finally {
       setUploading(false);
     }
 
-    // ✅ Monta imagens no padrão:
-    // - capa SEMPRE é a foto principal do card
-    // - se tiver logo, ela entra antes (pra UI usar como selo, se você quiser)
-    // - total <= 8 garantido pelo maxGaleria
     const imagens = logoUrl ? [logoUrl, capaUrl, ...galeriaUrls] : [capaUrl, ...galeriaUrls];
 
-    // INSERT no Supabase
+    const descricaoFinal = `${descricao}
+
+=== Informações complementares ===
+Categoria pet: ${subcategoria || "-"}
+Preço: ${preco || "-"}
+Tipo de anunciante: ${souServicoPet ? "Serviço pet / acessório" : "Pessoa / anúncio geral"}
+`.trim();
+
     const { data, error } = await supabase
       .from("anuncios")
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         categoria: "pets",
 
         titulo,
-        descricao,
+        descricao: descricaoFinal,
         cidade,
         bairro,
         preco,
@@ -319,14 +297,15 @@ export default function FormularioPets() {
         contato: contatoPrincipal,
         nome_contato: nomeContato || null,
 
-        // específicos de pets
         subcategoria_pet: subcategoria,
-
-        // compatibilidade com motores/buscas existentes
         tipo_imovel: subcategoria,
 
-        status: "ativo",
+        status: user ? "ativo" : "pendente",
         destaque: false,
+
+        email_confirmado: !!user,
+        email_confirmado_em: user ? new Date().toISOString() : null,
+        criado_sem_login: !user,
       })
       .select("id")
       .single();
@@ -340,18 +319,59 @@ export default function FormularioPets() {
       return;
     }
 
-    setSucesso("Anúncio de pets enviado com sucesso! Redirecionando…");
+    if (!user) {
+      const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
 
-    setTimeout(() => {
-      router.push(`/anuncios/${data.id}`);
-    }, 1200);
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (signInError) {
+        console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+        const msg = String(signInError.message || "").toLowerCase();
+
+        if (msg.includes("security purposes") || msg.includes("only request this after")) {
+          setSucesso(
+            "Seu anúncio de pets foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+          );
+        } else {
+          setSucesso(
+            "Seu anúncio de pets foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+          );
+        }
+
+        setTimeout(() => {
+          router.push(
+            `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+          );
+        }, 1500);
+      } else {
+        setSucesso("Anúncio de pets enviado com sucesso! Redirecionando…");
+
+        setTimeout(() => {
+          router.push(
+            `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+          );
+        }, 1500);
+      }
+    } else {
+      setSucesso("Anúncio de pets enviado com sucesso! Redirecionando…");
+
+      setTimeout(() => {
+        router.push("/painel/meus-anuncios");
+      }, 1200);
+    }
 
     limparFormulario();
   };
 
   return (
     <form onSubmit={enviarAnuncio} className="space-y-4">
-      {/* Mensagens */}
       {erro && (
         <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-700">
           {erro}
@@ -363,7 +383,6 @@ export default function FormularioPets() {
         </div>
       )}
 
-      {/* TIPO */}
       <Card
         title="Tipo de anúncio para Pets"
         subtitle="Escolha o tipo correto para o anúncio aparecer nas listas certas."
@@ -402,7 +421,6 @@ export default function FormularioPets() {
         )}
       </Card>
 
-      {/* PRINCIPAL */}
       <Card
         title="Informações do anúncio"
         subtitle="Título bom + descrição clara = mais contatos no WhatsApp."
@@ -437,7 +455,6 @@ export default function FormularioPets() {
         </div>
       </Card>
 
-      {/* LOCALIZAÇÃO */}
       <Card title="Localização" subtitle="Isso ajuda muito na busca por cidade.">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -474,7 +491,6 @@ export default function FormularioPets() {
         </div>
       </Card>
 
-      {/* VALOR */}
       <Card title="Valor" subtitle="Se for adoção, pode deixar vazio ou colocar “taxa simbólica”.">
         <label className="block text-[11px] font-semibold text-slate-700">Preço (R$)</label>
         <input
@@ -486,7 +502,6 @@ export default function FormularioPets() {
         />
       </Card>
 
-      {/* ✅ UPLOAD PREMIUM (NO TOPO): Logo (serviços) + Capa + Galeria */}
       <Card
         title="Fotos (capa + galeria) — no topo"
         subtitle={`Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. ${
@@ -494,7 +509,6 @@ export default function FormularioPets() {
         }`}
       >
         <div className="grid gap-4 md:grid-cols-2">
-          {/* LOGO (só para serviços) */}
           {souServicoPet ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional)</p>
@@ -511,7 +525,6 @@ export default function FormularioPets() {
 
               {previewLogo && (
                 <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewLogo} alt="Preview logo" className="h-full w-full object-contain p-2" />
                 </div>
               )}
@@ -526,7 +539,6 @@ export default function FormularioPets() {
             <div className="hidden md:block" />
           )}
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">
               Foto de capa (obrigatória) <span className="text-red-500">*</span>
@@ -545,7 +557,6 @@ export default function FormularioPets() {
 
             {previewCapa && (
               <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
               </div>
             )}
@@ -558,7 +569,6 @@ export default function FormularioPets() {
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4">
           <p className="text-[11px] font-semibold text-slate-700">
             Galeria (opcional) — até {maxGaleria} foto(s)
@@ -590,7 +600,6 @@ export default function FormularioPets() {
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
 
                     <button
@@ -613,7 +622,6 @@ export default function FormularioPets() {
         </div>
       </Card>
 
-      {/* VÍDEO */}
       <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
         <label className="block text-[11px] font-semibold text-slate-700">
           URL do vídeo (YouTube)
@@ -627,7 +635,6 @@ export default function FormularioPets() {
         />
       </Card>
 
-      {/* CONTATO */}
       <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
         <div className="space-y-3">
           <div>
@@ -680,7 +687,6 @@ export default function FormularioPets() {
         </div>
       </Card>
 
-      {/* TERMOS + BOTÃO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
