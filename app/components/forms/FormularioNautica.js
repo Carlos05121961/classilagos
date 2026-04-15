@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
-// Converte campo de texto para número ou null (para colunas numeric do Supabase)
 function parseNumberOrNull(value) {
   if (!value) return null;
   const trimmed = String(value).trim();
@@ -13,7 +13,6 @@ function parseNumberOrNull(value) {
   return Number.isNaN(n) ? null : n;
 }
 
-// validação simples de URL youtube (opcional)
 function isValidYoutubeUrl(url) {
   if (!url) return true;
   const u = String(url).trim();
@@ -25,7 +24,6 @@ function isValidYoutubeUrl(url) {
   );
 }
 
-/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
 function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -43,7 +41,6 @@ function Card({ title, subtitle, children }) {
 export default function FormularioNautica() {
   const router = useRouter();
 
-  // Campos básicos
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
 
@@ -51,62 +48,50 @@ export default function FormularioNautica() {
   const [bairro, setBairro] = useState("");
   const [pontoEmbarque, setPontoEmbarque] = useState("");
 
-  // Categoria / finalidade
-  const [subcategoria, setSubcategoria] = useState(""); // Lancha, Veleiro, Jetski...
-  const [finalidade, setFinalidade] = useState(""); // venda / aluguel / passeio / servico / vaga_marina
+  const [subcategoria, setSubcategoria] = useState("");
+  const [finalidade, setFinalidade] = useState("");
 
-  // Informações técnicas básicas
   const [marcaEmbarcacao, setMarcaEmbarcacao] = useState("");
   const [modeloEmbarcacao, setModeloEmbarcacao] = useState("");
   const [anoEmbarcacao, setAnoEmbarcacao] = useState("");
   const [comprimentoPes, setComprimentoPes] = useState("");
   const [materialCasco, setMaterialCasco] = useState("");
 
-  // Motor
   const [marcaMotor, setMarcaMotor] = useState("");
   const [potenciaMotorHp, setPotenciaMotorHp] = useState("");
   const [qtdMotores, setQtdMotores] = useState("");
   const [horasMotor, setHorasMotor] = useState("");
   const [combustivel, setCombustivel] = useState("");
 
-  // Capacidade
   const [capacidadePessoas, setCapacidadePessoas] = useState("");
   const [qtdCabines, setQtdCabines] = useState("");
   const [qtdBanheiros, setQtdBanheiros] = useState("");
 
-  // Passeios
   const [tipoPasseio, setTipoPasseio] = useState("");
   const [duracaoPasseio, setDuracaoPasseio] = useState("");
   const [valorPessoa, setValorPessoa] = useState("");
   const [valorFechado, setValorFechado] = useState("");
   const [itensInclusos, setItensInclusos] = useState("");
 
-  // Vaga em marina
   const [tipoVaga, setTipoVaga] = useState("");
   const [comprimentoMaximoPes, setComprimentoMaximoPes] = useState("");
   const [estruturaDisponivel, setEstruturaDisponivel] = useState("");
 
-  // Valor geral
   const [preco, setPreco] = useState("");
 
-  // ✅ UPLOAD PREMIUM (CAPA + GALERIA)
-  const [capaArquivo, setCapaArquivo] = useState(null); // 1 arquivo
-  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 7
+  const [capaArquivo, setCapaArquivo] = useState(null);
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // Vídeo
   const [videoUrl, setVideoUrl] = useState("");
 
-  // Contato
   const [nomeContato, setNomeContato] = useState("");
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Termos
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
-  // Mensagens
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -143,13 +128,6 @@ export default function FormularioNautica() {
     { value: "vaga_marina", label: "Vaga em marina / guardaria" },
   ];
 
-  // Garante login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
-
   const handleCapaChange = (e) => {
     const file = e.target.files?.[0] || null;
     setCapaArquivo(file);
@@ -160,7 +138,6 @@ export default function FormularioNautica() {
     setGaleriaArquivos(files.slice(0, 7));
   };
 
-  // Previews (capa + galeria)
   const capaPreview = useMemo(() => {
     if (!capaArquivo) return null;
     return URL.createObjectURL(capaArquivo);
@@ -176,171 +153,297 @@ export default function FormularioNautica() {
       if (capaPreview) URL.revokeObjectURL(capaPreview);
       galeriaPreviews.forEach((p) => URL.revokeObjectURL(p));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [capaPreview, galeriaPreviews]);
+
+  async function uploadImagem({ bucket, path, file }) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
+  function validarAntesDeEnviar() {
+    if (!subcategoria || !finalidade) {
+      return "Selecione a subcategoria e a finalidade do anúncio.";
+    }
+
+    if (!titulo.trim() || !descricao.trim() || !cidade) {
+      return "Preencha pelo menos título, descrição e cidade.";
+    }
+
+    if (!email.trim()) {
+      return "Informe seu e-mail para publicar o anúncio.";
+    }
+
+    const contatoPrincipal = whatsapp || telefone || email;
+    if (!contatoPrincipal) {
+      return "Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!aceitoTermos) {
+      return "Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.";
+    }
+
+    if (!isValidYoutubeUrl(videoUrl)) {
+      return "O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).";
+    }
+
+    return "";
+  }
 
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
+    const valid = validarAntesDeEnviar();
+    if (valid) {
+      setErro(valid);
       return;
     }
 
-    if (!subcategoria || !finalidade) {
-      setErro("Selecione a subcategoria e a finalidade do anúncio.");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe ao menos um meio de contato (WhatsApp, telefone ou e-mail).");
-      return;
-    }
-
-    if (!aceitoTermos) {
-      setErro("Para publicar o anúncio, você precisa aceitar os termos de responsabilidade.");
-      return;
-    }
-
-    if (!isValidYoutubeUrl(videoUrl)) {
-      setErro("O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).");
-      return;
-    }
-
-    // Converte campos numéricos vazios para null (evita erro no Supabase)
     const qtdMotoresNumber = parseNumberOrNull(qtdMotores);
     const capacidadePessoasNumber = parseNumberOrNull(capacidadePessoas);
     const qtdCabinesNumber = parseNumberOrNull(qtdCabines);
     const qtdBanheirosNumber = parseNumberOrNull(qtdBanheiros);
 
-    // ✅ UPLOAD PREMIUM: capa + galeria (total até 8)
-    let capaUrl = null;
-    const galeriaUrls = [];
+    const contatoPrincipal = whatsapp.trim() || telefone.trim() || email.trim();
 
     try {
-      const bucket = "anuncios";
       setUploading(true);
 
-      // 1) CAPA (opcional/recomendada)
-      if (capaArquivo) {
-        const ext = capaArquivo.name.split(".").pop();
-        const path = `nautica/${user.id}/nautica-capa-${Date.now()}.${ext}`;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, capaArquivo);
-        if (upErr) throw upErr;
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-        capaUrl = pub.publicUrl;
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeContato,
+          cidade,
+          whatsapp,
+          telefone,
+          email,
+          origem: "anuncio_nautica",
+        });
       }
 
-      // 2) GALERIA (até 7)
+      const bucket = "anuncios";
+
+      let capaUrl = null;
+      const galeriaUrls = [];
+
+      if (capaArquivo) {
+        const ext = (capaArquivo.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `nautica/${ownerKey}/nautica-capa-${Date.now()}.${ext}`;
+        capaUrl = await uploadImagem({ bucket, path, file: capaArquivo });
+      }
+
       if (galeriaArquivos?.length) {
         for (let i = 0; i < galeriaArquivos.length; i++) {
           const file = galeriaArquivos[i];
-          const ext = file.name.split(".").pop();
-          const path = `nautica/${user.id}/nautica-galeria-${Date.now()}-${i}.${ext}`;
-
-          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
-          if (upErr) throw upErr;
-
-          const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-          galeriaUrls.push(pub.publicUrl);
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+          const path = `nautica/${ownerKey}/nautica-galeria-${Date.now()}-${i}.${ext}`;
+          const url = await uploadImagem({ bucket, path, file });
+          if (url) galeriaUrls.push(url);
         }
       }
+
+      let imagens = [];
+      if (capaUrl && galeriaUrls.length) imagens = [capaUrl, ...galeriaUrls];
+      else if (capaUrl && !galeriaUrls.length) imagens = [capaUrl];
+      else if (!capaUrl && galeriaUrls.length) imagens = galeriaUrls;
+
+      const descricaoFinal = `${descricao}
+
+=== Informações complementares náuticas ===
+Subcategoria: ${subcategoria || "-"}
+Finalidade: ${finalidade || "-"}
+Ponto de embarque: ${pontoEmbarque || "-"}
+Marca da embarcação: ${marcaEmbarcacao || "-"}
+Modelo da embarcação: ${modeloEmbarcacao || "-"}
+Ano: ${anoEmbarcacao || "-"}
+Comprimento (pés): ${comprimentoPes || "-"}
+Material do casco: ${materialCasco || "-"}
+Marca do motor: ${marcaMotor || "-"}
+Potência do motor (HP): ${potenciaMotorHp || "-"}
+Qtde. motores: ${qtdMotores || "-"}
+Horas de motor: ${horasMotor || "-"}
+Combustível: ${combustivel || "-"}
+Capacidade de pessoas: ${capacidadePessoas || "-"}
+Cabines: ${qtdCabines || "-"}
+Banheiros: ${qtdBanheiros || "-"}
+Tipo de passeio: ${tipoPasseio || "-"}
+Duração do passeio: ${duracaoPasseio || "-"}
+Valor por pessoa: ${valorPessoa || "-"}
+Valor fechado: ${valorFechado || "-"}
+Itens inclusos: ${itensInclusos || "-"}
+Tipo de vaga: ${tipoVaga || "-"}
+Comprimento máximo (pés): ${comprimentoMaximoPes || "-"}
+Estrutura disponível: ${estruturaDisponivel || "-"}
+`.trim();
+
+      const { data, error } = await supabase
+        .from("anuncios")
+        .insert({
+          user_id: user?.id || null,
+          categoria: "nautica",
+          titulo: titulo.trim(),
+          descricao: descricaoFinal,
+          cidade,
+          bairro: bairro.trim(),
+          ponto_embarque: pontoEmbarque.trim(),
+          preco: preco.trim(),
+          imagens,
+          video_url: videoUrl.trim(),
+          telefone: telefone.trim(),
+          whatsapp: whatsapp.trim(),
+          email: email.trim(),
+          contato: contatoPrincipal,
+
+          subcategoria_nautica: subcategoria,
+          finalidade_nautica: finalidade,
+
+          tipo_imovel: subcategoria,
+          finalidade,
+
+          marca_embarcacao: marcaEmbarcacao.trim(),
+          modelo_embarcacao: modeloEmbarcacao.trim(),
+          ano_embarcacao: anoEmbarcacao.trim(),
+          comprimento_pes: comprimentoPes.trim(),
+          material_casco: materialCasco.trim(),
+
+          marca_motor: marcaMotor.trim(),
+          potencia_motor_hp: potenciaMotorHp.trim(),
+          qtd_motores: qtdMotoresNumber,
+          horas_motor: horasMotor.trim(),
+          combustivel: combustivel.trim(),
+
+          capacidade_pessoas: capacidadePessoasNumber,
+          qtd_cabines: qtdCabinesNumber,
+          qtd_banheiros: qtdBanheirosNumber,
+
+          tipo_passeio: tipoPasseio.trim(),
+          duracao_passeio: duracaoPasseio.trim(),
+          valor_passeio_pessoa: valorPessoa.trim(),
+          valor_passeio_fechado: valorFechado.trim(),
+          itens_inclusos: itensInclusos.trim(),
+
+          tipo_vaga: tipoVaga.trim(),
+          comprimento_maximo_pes: comprimentoMaximoPes.trim(),
+          estrutura_disponivel: estruturaDisponivel.trim(),
+
+          status: user ? "ativo" : "pendente",
+          destaque: false,
+          nome_contato: nomeContato.trim(),
+
+          email_confirmado: !!user,
+          email_confirmado_em: user ? new Date().toISOString() : null,
+          criado_sem_login: !user,
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error("Erro ao salvar anúncio de náutica:", error);
+        setErro(`Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`);
+        return;
+      }
+
+      if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
+
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio náutico foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio náutico foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        } else {
+          setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        }
+      } else {
+        setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
+
+      setTitulo("");
+      setDescricao("");
+      setCidade("");
+      setBairro("");
+      setPontoEmbarque("");
+      setSubcategoria("");
+      setFinalidade("");
+      setMarcaEmbarcacao("");
+      setModeloEmbarcacao("");
+      setAnoEmbarcacao("");
+      setComprimentoPes("");
+      setMaterialCasco("");
+      setMarcaMotor("");
+      setPotenciaMotorHp("");
+      setQtdMotores("");
+      setHorasMotor("");
+      setCombustivel("");
+      setCapacidadePessoas("");
+      setQtdCabines("");
+      setQtdBanheiros("");
+      setTipoPasseio("");
+      setDuracaoPasseio("");
+      setValorPessoa("");
+      setValorFechado("");
+      setItensInclusos("");
+      setTipoVaga("");
+      setComprimentoMaximoPes("");
+      setEstruturaDisponivel("");
+      setPreco("");
+      setCapaArquivo(null);
+      setGaleriaArquivos([]);
+      setVideoUrl("");
+      setNomeContato("");
+      setTelefone("");
+      setWhatsapp("");
+      setEmail("");
+      setAceitoTermos(false);
     } catch (err) {
-      console.error("Erro ao enviar imagens de náutica:", err);
-      setErro("Erro ao enviar as imagens. Tente fotos menores (até ~2MB) em JPG/PNG.");
-      setUploading(false);
-      return;
+      console.error("Erro ao enviar anúncio náutico:", err);
+      setErro(err?.message || "Erro ao salvar anúncio. Tente novamente.");
     } finally {
       setUploading(false);
     }
-
-    // Monta imagens: capa primeiro, depois galeria
-    let imagens = null;
-    if (capaUrl && galeriaUrls.length) imagens = [capaUrl, ...galeriaUrls];
-    else if (capaUrl && !galeriaUrls.length) imagens = [capaUrl];
-    else if (!capaUrl && galeriaUrls.length) imagens = galeriaUrls;
-    else imagens = [];
-
-    // INSERT no Supabase
-    const { data, error } = await supabase
-      .from("anuncios")
-      .insert({
-        user_id: user.id,
-        categoria: "nautica",
-        titulo,
-        descricao,
-        cidade,
-        bairro,
-        ponto_embarque: pontoEmbarque,
-        preco,
-        imagens,
-        video_url: videoUrl,
-        telefone,
-        whatsapp,
-        email,
-        contato: contatoPrincipal,
-
-        // Campos específicos
-        subcategoria_nautica: subcategoria,
-        finalidade_nautica: finalidade,
-
-        // Campo genérico do site
-        tipo_imovel: subcategoria,
-        finalidade,
-
-        marca_embarcacao: marcaEmbarcacao,
-        modelo_embarcacao: modeloEmbarcacao,
-        ano_embarcacao: anoEmbarcacao,
-        comprimento_pes: comprimentoPes,
-        material_casco: materialCasco,
-
-        marca_motor: marcaMotor,
-        potencia_motor_hp: potenciaMotorHp,
-        qtd_motores: qtdMotoresNumber,
-        horas_motor: horasMotor,
-        combustivel,
-
-        capacidade_pessoas: capacidadePessoasNumber,
-        qtd_cabines: qtdCabinesNumber,
-        qtd_banheiros: qtdBanheirosNumber,
-
-        tipo_passeio: tipoPasseio,
-        duracao_passeio: duracaoPasseio,
-        valor_passeio_pessoa: valorPessoa,
-        valor_passeio_fechado: valorFechado,
-        itens_inclusos: itensInclusos,
-
-        tipo_vaga: tipoVaga,
-        comprimento_maximo_pes: comprimentoMaximoPes,
-        estrutura_disponivel: estruturaDisponivel,
-
-        status: "ativo",
-        destaque: false,
-        nome_contato: nomeContato,
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      console.error("Erro ao salvar anúncio de náutica:", error);
-      setErro(`Erro ao salvar anúncio: ${error.message || "Tente novamente em instantes."}`);
-      return;
-    }
-
-    setSucesso("Anúncio náutico enviado com sucesso! Redirecionando…");
-
-    setTimeout(() => {
-      router.push(`/anuncios/${data.id}`);
-    }, 1200);
   };
 
   return (
@@ -356,20 +459,18 @@ export default function FormularioNautica() {
         </div>
       )}
 
-      {/* ✅ UPLOAD PREMIUM NO TOPO (CAPA + GALERIA) */}
       <Card
         title="Fotos (capa + galeria) — no topo"
-        subtitle="A capa vira a foto principal do card. A galeria são fotos extras (interior, motor, detalhes, passeio...)."
+        subtitle="A capa vira a foto principal do card. A galeria são fotos extras."
       >
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {/* CAPA */}
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="text-[11px] font-semibold text-slate-900">
                 Foto de capa (recomendada)
               </p>
               <p className="mt-1 text-[11px] text-slate-600">
-                Escolha a foto mais bonita (lateral / cockpit / marina / passeio).
+                Escolha a foto mais bonita da embarcação ou do serviço.
               </p>
 
               <input
@@ -381,7 +482,6 @@ export default function FormularioNautica() {
 
               {capaPreview && (
                 <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={capaPreview}
                     alt="Preview capa"
@@ -401,13 +501,12 @@ export default function FormularioNautica() {
               )}
             </div>
 
-            {/* GALERIA */}
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="text-[11px] font-semibold text-slate-900">
                 Galeria (opcional) — até 7 fotos
               </p>
               <p className="mt-1 text-[11px] text-slate-600">
-                Fotos extras: interior, painel, motor, documentos, detalhes...
+                Fotos extras: interior, motor, detalhes, passeio...
               </p>
 
               <input
@@ -433,7 +532,6 @@ export default function FormularioNautica() {
                         key={idx}
                         className="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={src}
                           alt={`Preview galeria ${idx + 1}`}
@@ -457,10 +555,9 @@ export default function FormularioNautica() {
         </div>
       </Card>
 
-      {/* TIPO */}
       <Card
         title="Tipo de anúncio náutico"
-        subtitle="Escolha a categoria e a finalidade para o formulário se adaptar automaticamente."
+        subtitle="Escolha a categoria e a finalidade para o formulário se adaptar."
       >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -503,10 +600,9 @@ export default function FormularioNautica() {
         </div>
       </Card>
 
-      {/* PRINCIPAL */}
       <Card
         title="Informações principais"
-        subtitle="Título e descrição caprichados fazem o anúncio aparecer melhor na busca e nos cards."
+        subtitle="Título e descrição caprichados fazem o anúncio aparecer melhor."
       >
         <div className="space-y-3">
           <div>
@@ -534,14 +630,10 @@ export default function FormularioNautica() {
               onChange={(e) => setDescricao(e.target.value)}
               required
             />
-            <p className="mt-1 text-[11px] text-slate-500">
-              Dica: informe cidade, ponto de embarque, e o que está incluso.
-            </p>
           </div>
         </div>
       </Card>
 
-      {/* LOCALIZAÇÃO */}
       <Card title="Localização e ponto de embarque" subtitle="Ajuda muito quem está filtrando por cidade.">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -587,7 +679,6 @@ export default function FormularioNautica() {
         </div>
       </Card>
 
-      {/* DETALHES (venda/aluguel) */}
       {(finalidade === "venda" || finalidade === "aluguel") && (
         <Card title="Detalhes da embarcação" subtitle="Preencha o que tiver — quanto mais completo, melhor.">
           <div className="grid gap-4 md:grid-cols-2">
@@ -724,7 +815,6 @@ export default function FormularioNautica() {
         </Card>
       )}
 
-      {/* PASSEIOS */}
       {finalidade === "passeio" && (
         <Card title="Informações do passeio" subtitle="Conteúdo claro aqui vira vendas rápido.">
           <div className="space-y-3">
@@ -784,9 +874,8 @@ export default function FormularioNautica() {
         </Card>
       )}
 
-      {/* VAGA EM MARINA */}
       {finalidade === "vaga_marina" && (
-        <Card title="Informações da vaga em marina / guardaria" subtitle="Quanto mais claro, menos perguntas no WhatsApp.">
+        <Card title="Informações da vaga em marina / guardaria" subtitle="Quanto mais claro, menos perguntas.">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700">Tipo de vaga</label>
@@ -821,7 +910,6 @@ export default function FormularioNautica() {
         </Card>
       )}
 
-      {/* VALOR */}
       <Card title="Valor" subtitle="Se for passeio, você pode colocar “a partir de…” também.">
         <div>
           <label className="block text-[11px] font-semibold text-slate-700">Preço (R$)</label>
@@ -835,19 +923,17 @@ export default function FormularioNautica() {
         </div>
       </Card>
 
-      {/* VÍDEO */}
-      <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube (youtube.com ou youtu.be).">
+      <Card title="Vídeo (opcional)" subtitle="Somente links do YouTube.">
         <label className="block text-[11px] font-semibold text-slate-700">URL do vídeo</label>
         <input
           type="text"
           className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-          placeholder="Cole aqui o link do vídeo no YouTube (se tiver)"
+          placeholder="Cole aqui o link do vídeo no YouTube"
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
         />
       </Card>
 
-      {/* CONTATO */}
       <Card title="Dados de contato" subtitle="Pelo menos um canal (WhatsApp, telefone ou e-mail).">
         <div className="space-y-3">
           <div>
@@ -898,7 +984,6 @@ export default function FormularioNautica() {
         </div>
       </Card>
 
-      {/* TERMOS + BOTÃO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
