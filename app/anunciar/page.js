@@ -311,13 +311,13 @@ export default function AnunciarPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-900/10 to-transparent" />
                 </div>
 
-                <div className="p-4">
+              <div className="p-3 md:p-4">
                   <h2 className="text-xl font-extrabold text-slate-900">
                     {s.title}
                   </h2>
 
                   <div className="mt-4">
-                    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-md shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.02] group-hover:shadow-lg">
+<span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-md shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.02] group-hover:shadow-lg">
                       Anunciar
                     </span>
                   </div>
