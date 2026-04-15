@@ -3,61 +3,44 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
 export default function FormularioLagolistas() {
   const router = useRouter();
 
-  // Campos principais
   const [titulo, setTitulo] = useState("");
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [endereco, setEndereco] = useState("");
 
-  // Segmento / categoria do negócio (vai para area_profissional)
   const [segmento, setSegmento] = useState("");
 
-  // ✅ Tipo de organização (novo - opcional)
-  // empresa | profissional | associacao | institucional
   const [tipoOrganizacao, setTipoOrganizacao] = useState("");
-  // subtipo (novo - opcional, aparece se tipoOrganizacao === "associacao")
   const [subTipoOrganizacao, setSubTipoOrganizacao] = useState("");
 
-  // Dados da empresa / comércio
   const [nomeNegocio, setNomeNegocio] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [inscricaoMunicipal, setInscricaoMunicipal] = useState("");
   const [registroProfissional, setRegistroProfissional] = useState("");
 
-  // Descrição
   const [descricao, setDescricao] = useState("");
 
-  // Links
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // Contatos
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // Imagens (Padrão Premium: logo + capa + galeria)
-  const [logoFile, setLogoFile] = useState(null); // opcional
-  const [capaFile, setCapaFile] = useState(null); // recomendado
-  const [fotosFiles, setFotosFiles] = useState([]); // galeria (até 4) -> total fotos = capa + 4 = 5
+  const [logoFile, setLogoFile] = useState(null);
+  const [capaFile, setCapaFile] = useState(null);
+  const [fotosFiles, setFotosFiles] = useState([]);
 
-  // Estados gerais
   const [aceitoTermos, setAceitoTermos] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
-  // Verificar login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
 
   const cidades = [
     "Maricá",
@@ -71,7 +54,6 @@ export default function FormularioLagolistas() {
     "Rio das Ostras",
   ];
 
-  // ✅ Opções do novo seletor (Tipo de anunciante)
   const tiposOrganizacao = [
     { label: "Empresa / Comércio", value: "empresa" },
     { label: "Profissional Liberal", value: "profissional" },
@@ -79,7 +61,6 @@ export default function FormularioLagolistas() {
     { label: "Institucional / Órgão / Projeto", value: "institucional" },
   ];
 
-  // ✅ Opções do novo seletor (Tipo de associação)
   const subTiposAssociacao = [
     { label: "Associação Comercial", value: "associacao_comercial" },
     { label: "Associação de Moradores", value: "associacao_de_moradores" },
@@ -93,7 +74,6 @@ export default function FormularioLagolistas() {
     { label: "Outros", value: "outros" },
   ];
 
-  // Mesma lista de segmentos usada na página /lagolistas (ordem alfabética)
   const segmentosLagolistas = [
     "Academias, pilates & estúdios de treino",
     "Advogados & serviços jurídicos",
@@ -158,7 +138,6 @@ export default function FormularioLagolistas() {
     "Óticas & relojoarias",
   ];
 
-  // ===== Previews =====
   const logoPreview = useMemo(() => {
     if (!logoFile) return null;
     return { name: logoFile.name, url: URL.createObjectURL(logoFile) };
@@ -195,13 +174,11 @@ export default function FormularioLagolistas() {
         } catch {}
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logoFile, capaFile, fotosFiles]);
+  }, [logoFile, capaFile, fotosFiles, logoPreview, capaPreview, fotosPreviews]);
 
-  // ===== Helpers de upload =====
-  async function uploadToPublicUrl(bucket, userId, file, prefix) {
+  async function uploadToPublicUrl(bucket, ownerKey, file, prefix) {
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const path = `lagolistas/${userId}/${prefix}-${Date.now()}-${Math.random()
+    const path = `lagolistas/${ownerKey}/${prefix}-${Date.now()}-${Math.random()
       .toString(16)
       .slice(2)}.${ext}`;
 
@@ -216,11 +193,18 @@ export default function FormularioLagolistas() {
     if (!titulo || !cidade || !descricao) {
       return "Preencha pelo menos o título, a cidade e a descrição do seu comércio/serviço.";
     }
-    if (!segmento) return "Selecione a categoria/segmento do seu negócio.";
+
+    if (!segmento) {
+      return "Selecione a categoria/segmento do seu negócio.";
+    }
 
     const contatoPrincipal = whatsapp || telefone || email;
     if (!contatoPrincipal) {
       return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!email.trim()) {
+      return "Informe seu e-mail para publicar o anúncio.";
     }
 
     if (!aceitoTermos) {
@@ -232,7 +216,7 @@ export default function FormularioLagolistas() {
 
   const handleFotosChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setFotosFiles(files.slice(0, 4)); // galeria até 4 (total fotos = capa + 4 = 5)
+    setFotosFiles(files.slice(0, 4));
   };
 
   const handleSubmit = async (e) => {
@@ -246,16 +230,6 @@ export default function FormularioLagolistas() {
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
-      return;
-    }
-
     setUploading(true);
 
     let logoUrl = null;
@@ -263,23 +237,39 @@ export default function FormularioLagolistas() {
     let galeriaUrls = [];
 
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeNegocio || titulo,
+          cidade,
+          whatsapp,
+          telefone,
+          endereco,
+          email,
+          origem: "anuncio_lagolistas",
+        });
+      }
+
       const bucket = "anuncios";
 
-      // 1) Logo (opcional)
       if (logoFile) {
-        logoUrl = await uploadToPublicUrl(bucket, user.id, logoFile, "lagolistas-logo");
+        logoUrl = await uploadToPublicUrl(bucket, ownerKey, logoFile, "lagolistas-logo");
       }
 
-      // 2) Capa (recomendada)
       if (capaFile) {
-        capaUrl = await uploadToPublicUrl(bucket, user.id, capaFile, "lagolistas-capa");
+        capaUrl = await uploadToPublicUrl(bucket, ownerKey, capaFile, "lagolistas-capa");
       }
 
-      // 3) Galeria (até 4) - ordem garantida
       if (fotosFiles && fotosFiles.length > 0) {
         const uploads = await Promise.all(
           fotosFiles.map(async (file, index) => {
-            const url = await uploadToPublicUrl(bucket, user.id, file, `lagolistas-foto-${index}`);
+            const url = await uploadToPublicUrl(bucket, ownerKey, file, `lagolistas-foto-${index}`);
             return { index, url };
           })
         );
@@ -287,8 +277,6 @@ export default function FormularioLagolistas() {
         galeriaUrls = uploads.map((u) => u.url);
       }
 
-      // Montar imagens (compatível com seu banco):
-      // logo primeiro, depois capa, depois galeria (máximo 6 itens)
       const imagens = [
         ...(logoUrl ? [logoUrl] : []),
         ...(capaUrl ? [capaUrl] : []),
@@ -297,58 +285,104 @@ export default function FormularioLagolistas() {
 
       const contatoPrincipal = whatsapp || telefone || email;
 
-      const { error: insertError } = await supabase.from("anuncios").insert({
-        user_id: user.id,
+      const { data, error: insertError } = await supabase
+        .from("anuncios")
+        .insert({
+          user_id: user?.id || null,
 
-        // Categoria fixada para o Lagolistas
-        categoria: "lagolistas",
+          categoria: "lagolistas",
 
-        titulo,
-        descricao,
-        cidade,
-        bairro,
-        endereco,
+          titulo,
+          descricao,
+          cidade,
+          bairro,
+          endereco,
 
-        // segmento do negócio → area_profissional
-        area_profissional: segmento,
+          area_profissional: segmento,
 
-        // ✅ novos campos (opcionais)
-        tipo_organizacao: tipoOrganizacao || null,
-        sub_tipo_organizacao: subTipoOrganizacao || null,
+          tipo_organizacao: tipoOrganizacao || null,
+          sub_tipo_organizacao: subTipoOrganizacao || null,
 
-        // dados da empresa
-        nome_negocio: nomeNegocio || null,
-        razao_social: razaoSocial || null,
-        cnpj: cnpj || null,
-        inscricao_municipal: inscricaoMunicipal || null,
-        registro_profissional: registroProfissional || null,
+          nome_negocio: nomeNegocio || null,
+          razao_social: razaoSocial || null,
+          cnpj: cnpj || null,
+          inscricao_municipal: inscricaoMunicipal || null,
+          registro_profissional: registroProfissional || null,
 
-        // links
-        site_url: siteUrl || null,
-        instagram: instagram || null,
+          site_url: siteUrl || null,
+          instagram: instagram || null,
 
-        // contatos
-        telefone: telefone || null,
-        whatsapp: whatsapp || null,
-        email: email || null,
-        contato: contatoPrincipal,
+          telefone: telefone || null,
+          whatsapp: whatsapp || null,
+          email: email || null,
+          contato: contatoPrincipal,
 
-        // imagens (logo + capa + galeria)
-        imagens: imagens.length ? imagens : null,
+          imagens: imagens.length ? imagens : null,
 
-        status: "ativo",
-      });
+          status: user ? "ativo" : "pendente",
+          destaque: false,
+
+          email_confirmado: !!user,
+          email_confirmado_em: user ? new Date().toISOString() : null,
+          criado_sem_login: !user,
+        })
+        .select("id")
+        .single();
 
       if (insertError) {
         console.error("Erro ao salvar anúncio Lagolistas:", insertError);
         setErro(`Erro ao salvar seu anúncio. Tente novamente: ${insertError.message || ""}`);
-        setUploading(false);
         return;
       }
 
-      setSucesso("Anúncio publicado com sucesso no Lagolistas! 🎉");
+      if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
 
-      // Limpar formulário
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio no Lagolistas foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio no Lagolistas foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        } else {
+          setSucesso("Anúncio publicado com sucesso no Lagolistas! Redirecionando…");
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        }
+      } else {
+        setSucesso("Anúncio publicado com sucesso no Lagolistas! 🎉");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
+
       setTitulo("");
       setCidade("");
       setBairro("");
@@ -373,22 +407,16 @@ export default function FormularioLagolistas() {
       setCapaFile(null);
       setFotosFiles([]);
       setAceitoTermos(false);
-
-      setUploading(false);
-
-      setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1800);
     } catch (err) {
       console.error(err);
       setErro(`Erro ao salvar seu anúncio. Tente novamente: ${err?.message || "Erro inesperado."}`);
+    } finally {
       setUploading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* ALERTAS */}
       {erro && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
           <p className="text-xs md:text-sm font-semibold text-red-700">⚠️ Atenção</p>
@@ -403,7 +431,6 @@ export default function FormularioLagolistas() {
         </div>
       )}
 
-      {/* CABEÇALHO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
@@ -430,15 +457,13 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* ✅ UPLOADS NO TOPO (PADRÃO PREMIUM) */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Fotos e logomarca (no topo)</h3>
         <p className="mt-1 text-[11px] text-slate-500">
-          Recomendado: JPG/PNG até ~2MB. Você já tem esquema de reduzir/WEBP também 🔥
+          Recomendado: JPG/PNG até ~2MB.
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {/* LOGO */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">
               Logomarca (opcional, mas recomendado)
@@ -456,7 +481,6 @@ export default function FormularioLagolistas() {
 
             {logoPreview && (
               <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logoPreview.url}
                   alt={logoPreview.name}
@@ -479,7 +503,6 @@ export default function FormularioLagolistas() {
             )}
           </div>
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">Foto de capa (recomendada)</p>
             <p className="mt-1 text-[11px] text-slate-600">
@@ -495,7 +518,6 @@ export default function FormularioLagolistas() {
 
             {capaPreview && (
               <div className="mt-3 max-w-xs rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={capaPreview.url}
                   alt={capaPreview.name}
@@ -519,7 +541,6 @@ export default function FormularioLagolistas() {
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4">
           <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 4 fotos</p>
           <p className="mt-1 text-[11px] text-slate-600">Fotos extras (interior, produtos, equipe, detalhes).</p>
@@ -539,7 +560,6 @@ export default function FormularioLagolistas() {
               <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {fotosPreviews.map((p) => (
                   <div key={p.url} className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.url} alt={p.name} className="w-full h-28 object-cover" />
                     <div className="px-2 py-2">
                       <p className="text-[10px] text-slate-600 line-clamp-1">{p.name}</p>
@@ -564,7 +584,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* TÍTULO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between gap-2">
           <label className="text-[11px] font-semibold text-slate-700">
@@ -589,7 +608,6 @@ export default function FormularioLagolistas() {
         />
       </div>
 
-      {/* LOCALIZAÇÃO + SEGMENTO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Localização e segmento</h3>
 
@@ -653,7 +671,6 @@ export default function FormularioLagolistas() {
           </div>
         </div>
 
-        {/* ✅ NOVO BLOCO: Tipo de anunciante / associação */}
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-[11px] font-semibold text-slate-700">
@@ -712,7 +729,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* DADOS DA EMPRESA */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Dados da empresa / comércio</h3>
 
@@ -780,7 +796,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* DESCRIÇÃO */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between gap-2">
           <label className="text-[11px] font-semibold text-slate-700">
@@ -805,7 +820,6 @@ export default function FormularioLagolistas() {
         />
       </div>
 
-      {/* LINKS */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Links (opcional)</h3>
 
@@ -833,7 +847,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* CONTATOS */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Contatos</h3>
         <p className="mt-1 text-[11px] text-slate-500">
@@ -873,7 +886,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* TERMOS */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Termos e responsabilidade</h3>
 
@@ -893,7 +905,6 @@ export default function FormularioLagolistas() {
         </div>
       </div>
 
-      {/* BOTÃO */}
       <button
         type="submit"
         disabled={uploading}
@@ -904,4 +915,3 @@ export default function FormularioLagolistas() {
     </form>
   );
 }
-
