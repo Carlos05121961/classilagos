@@ -1,26 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
+
+function isValidUrl(url) {
+  if (!url) return true;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export default function FormularioClassimed() {
   const router = useRouter();
 
-  // Título do anúncio
   const [titulo, setTitulo] = useState("");
-
-  // Localização
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
 
-  // Especialidade / área de atuação
   const [especialidade, setEspecialidade] = useState("");
-
-  // Descrição geral
   const [descricao, setDescricao] = useState("");
 
-  // Profissional / clínica
   const [nomeProfissional, setNomeProfissional] = useState("");
   const [nomeClinica, setNomeClinica] = useState("");
   const [horarioAtendimento, setHorarioAtendimento] = useState("");
@@ -29,30 +33,18 @@ export default function FormularioClassimed() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // Contatos
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // ✅ PREMIUM UPLOADS (logo opcional, capa obrigatória, galeria opcional)
   const [logoFile, setLogoFile] = useState(null);
   const [capaFile, setCapaFile] = useState(null);
-  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
+  const [galeriaFiles, setGaleriaFiles] = useState([]);
 
-  // Estados gerais
   const [aceitoTermos, setAceitoTermos] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
-  // Verificar login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/login");
-      }
-    });
-  }, [router]);
 
   const cidades = [
     "Maricá",
@@ -83,9 +75,6 @@ export default function FormularioClassimed() {
     "Outras especialidades",
   ];
 
-  // =========================
-  // Helpers upload (Premium)
-  // =========================
   async function uploadOne({ bucket, file, path }) {
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
     if (upErr) throw upErr;
@@ -109,137 +98,213 @@ export default function FormularioClassimed() {
     setGaleriaFiles(files.slice(0, 7));
   };
 
+  function validarAntesDeEnviar() {
+    const contatoPrincipal = whatsapp || telefone || email;
+
+    if (!titulo || !cidade || !especialidade || !descricao) {
+      return "Preencha pelo menos o título, cidade, especialidade e a descrição do serviço.";
+    }
+
+    if (!contatoPrincipal) {
+      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!email.trim()) {
+      return "Informe seu e-mail para publicar o anúncio.";
+    }
+
+    if (!aceitoTermos) {
+      return "Para publicar no Classimed, marque a opção confirmando que as informações são verdadeiras.";
+    }
+
+    if (!capaFile) {
+      return "Envie a FOTO DE CAPA (obrigatória). Ela será a imagem principal do seu anúncio.";
+    }
+
+    if (!isValidUrl(siteUrl.trim())) {
+      return "O link do site parece inválido.";
+    }
+
+    return "";
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar.");
-      router.push("/login");
+    const valid = validarAntesDeEnviar();
+    if (valid) {
+      setErro(valid);
       return;
     }
 
-    // Validações principais
-    if (!titulo || !cidade || !especialidade || !descricao) {
-      setErro("Preencha pelo menos o título, cidade, especialidade e a descrição do serviço.");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
-      return;
-    }
-
-    if (!aceitoTermos) {
-      setErro("Para publicar no Classimed, marque a opção confirmando que as informações são verdadeiras.");
-      return;
-    }
-
-    // ✅ Premium: capa obrigatória (vitrine)
-    if (!capaFile) {
-      setErro("Envie a FOTO DE CAPA (obrigatória). Ela será a imagem principal do seu anúncio.");
-      return;
-    }
-
-    setUploading(true);
+    const contatoPrincipal = whatsapp.trim() || telefone.trim() || email.trim();
 
     try {
+      setUploading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeProfissional || nomeClinica,
+          cidade,
+          whatsapp,
+          telefone,
+          email,
+          origem: "anuncio_classimed",
+        });
+      }
+
       const bucket = "anuncios";
       const now = Date.now();
 
-      // 1) Logo (opcional)
       let logoUrl = null;
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `servicos/${user.id}/classimed/logo-${now}.${ext}`;
+        const ext = (logoFile.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `servicos/${ownerKey}/classimed/logo-${now}.${ext}`;
         logoUrl = await uploadOne({ bucket, file: logoFile, path });
       }
 
-      // 2) Capa (obrigatória) -> vai primeiro em imagens[]
       let capaUrl = null;
       {
-        const ext = capaFile.name.split(".").pop();
-        const path = `servicos/${user.id}/classimed/capa-${now}.${ext}`;
+        const ext = (capaFile.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `servicos/${ownerKey}/classimed/capa-${now}.${ext}`;
         capaUrl = await uploadOne({ bucket, file: capaFile, path });
       }
 
       if (!capaUrl) {
         setErro("Não foi possível gerar a URL pública da capa. Tente novamente.");
-        setUploading(false);
         return;
       }
 
-      // 3) Galeria (opcional) -> até 7
       let galeriaUrls = [];
       if (galeriaFiles.length > 0) {
         const uploads = await Promise.all(
           galeriaFiles.map(async (file, i) => {
-            const ext = file.name.split(".").pop();
-            const path = `servicos/${user.id}/classimed/galeria-${now}-${i}.${ext}`;
+            const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+            const path = `servicos/${ownerKey}/classimed/galeria-${now}-${i}.${ext}`;
             return await uploadOne({ bucket, file, path });
           })
         );
         galeriaUrls = uploads.filter(Boolean);
       }
 
-      // ✅ imagens: [capa, ...galeria] (logo fica separado)
       const imagens = [capaUrl, ...galeriaUrls];
 
-      // INSERT no Supabase
+      const descricaoFinal = `${descricao}
+
+=== Informações complementares ===
+Especialidade: ${especialidade || "-"}
+Profissional / responsável: ${nomeProfissional || "-"}
+Clínica / consultório: ${nomeClinica || "-"}
+Horário de atendimento: ${horarioAtendimento || "-"}
+Atende em domicílio: ${atendeDomicilio ? "Sim" : "Não"}
+Faixa de preço: ${faixaPreco || "-"}
+Site: ${siteUrl || "-"}
+Instagram: ${instagram || "-"}
+`.trim();
+
       const payload = {
-        user_id: user.id,
+        user_id: user?.id || null,
         categoria: "servico",
         subcategoria_servico: "classimed",
-        titulo,
-        descricao,
+        titulo: titulo.trim(),
+        descricao: descricaoFinal,
         cidade,
-        bairro,
+        bairro: bairro.trim(),
 
-        // profissional / clínica
-        nome_contato: nomeProfissional,
-        nome_negocio: nomeClinica,
+        nome_contato: nomeProfissional.trim(),
+        nome_negocio: nomeClinica.trim(),
         area_profissional: especialidade,
-        horario_atendimento: horarioAtendimento,
+        horario_atendimento: horarioAtendimento.trim(),
         atende_domicilio: atendeDomicilio,
-        faixa_preco: faixaPreco,
-        site_url: siteUrl,
-        instagram,
+        faixa_preco: faixaPreco.trim(),
+        site_url: siteUrl.trim(),
+        instagram: instagram.trim(),
 
-        // contatos
-        telefone,
-        whatsapp,
-        email,
+        telefone: telefone.trim(),
+        whatsapp: whatsapp.trim(),
+        email: email.trim(),
         contato: contatoPrincipal,
 
-        // imagens
         imagens,
-
-        // ✅ logo separado (se sua tabela tiver esse campo, ótimo.
-        // Se não tiver, comente esta linha OU me diga qual campo você quer usar.)
         logo_url: logoUrl || null,
 
-        status: "ativo",
+        status: user ? "ativo" : "pendente",
         destaque: false,
+
+        email_confirmado: !!user,
+        email_confirmado_em: user ? new Date().toISOString() : null,
+        criado_sem_login: !user,
       };
 
-      const { error: insertError } = await supabase.from("anuncios").insert(payload);
+      const { data, error: insertError } = await supabase
+        .from("anuncios")
+        .insert(payload)
+        .select("id")
+        .single();
 
       if (insertError) {
         console.error("Erro ao salvar anúncio Classimed:", insertError);
         setErro(`Erro ao salvar seu anúncio. Tente novamente: ${insertError.message || ""}`);
-        setUploading(false);
         return;
       }
 
-      setSucesso("Anúncio Classimed publicado com sucesso!");
+      if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
 
-      // Limpar formulário
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        } else {
+          setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        }
+      } else {
+        setSucesso("Anúncio Classimed publicado com sucesso! Redirecionando...");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
+
       setTitulo("");
       setCidade("");
       setBairro("");
@@ -255,21 +320,14 @@ export default function FormularioClassimed() {
       setTelefone("");
       setWhatsapp("");
       setEmail("");
-
       setLogoFile(null);
       setCapaFile(null);
       setGaleriaFiles([]);
-
       setAceitoTermos(false);
-
-      setUploading(false);
-
-      setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1800);
     } catch (err) {
       console.error(err);
       setErro(`Erro ao salvar seu anúncio. Tente novamente: ${err.message || "Erro inesperado."}`);
+    } finally {
       setUploading(false);
     }
   };
@@ -287,12 +345,9 @@ export default function FormularioClassimed() {
         </p>
       )}
 
-      {/* TÍTULO DO ANÚNCIO */}
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs font-medium text-slate-800">Título do anúncio *</label>
-
-          {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
@@ -313,7 +368,6 @@ export default function FormularioClassimed() {
         />
       </div>
 
-      {/* LOCALIZAÇÃO */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
 
@@ -347,12 +401,9 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
-      {/* ESPECIALIDADE */}
       <div className="space-y-1 border-t border-slate-100 pt-4">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs font-medium text-slate-800">Especialidade / área de atuação *</label>
-
-          {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-64 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
@@ -376,17 +427,13 @@ export default function FormularioClassimed() {
         </select>
       </div>
 
-      {/* DESCRIÇÃO DO SERVIÇO */}
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs font-medium text-slate-800">Descrição do serviço *</label>
-
-          {/* Tooltip */}
           <div className="relative group text-[11px] text-slate-500 cursor-help">
             <span>ℹ</span>
             <div className="absolute right-0 top-5 hidden w-72 rounded-md bg-slate-900 text-white text-[11px] px-3 py-2 group-hover:block z-20 shadow-lg">
               Explique sua forma de atendimento, público-alvo, convênios (se houver), cidades atendidas e diferenciais.
-              Quanto mais claro, mais fácil para o paciente escolher.
             </div>
           </div>
         </div>
@@ -395,12 +442,11 @@ export default function FormularioClassimed() {
           className="w-full border rounded-lg px-3 py-2 text-sm h-32"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
-          placeholder="Ex.: Atendo adultos e adolescentes, presencial em Maricá e online para todo o Brasil..."
+          placeholder="Ex.: Atendo adultos e adolescentes, presencial em Maricá e online..."
           required
         />
       </div>
 
-      {/* PROFISSIONAL / CLÍNICA */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Profissional / clínica</h2>
 
@@ -436,7 +482,7 @@ export default function FormularioClassimed() {
                 className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={horarioAtendimento}
                 onChange={(e) => setHorarioAtendimento(e.target.value)}
-                placeholder="Ex.: Seg a sex, 9h às 18h / Sábados até 13h"
+                placeholder="Ex.: Seg a sex, 9h às 18h"
               />
             </div>
 
@@ -487,19 +533,17 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
-      {/* ✅ FOTOS PREMIUM (logo + capa + galeria) */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Fotos e logomarca (no topo)</h2>
         <p className="text-[11px] text-slate-500">
-          Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa.
+          Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. A logomarca é opcional.
         </p>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {/* LOGO */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional, mas recomendado)</p>
+            <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional)</p>
             <p className="mt-1 text-[11px] text-slate-500">
-              Sua logo aparece junto com as fotos (não vira capa).
+              Sua logo aparece junto com as fotos.
             </p>
             <input
               type="file"
@@ -509,11 +553,10 @@ export default function FormularioClassimed() {
             />
           </div>
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">Foto de capa (obrigatória) *</p>
             <p className="mt-1 text-[11px] text-slate-500">
-              Essa deve ser a foto mais bonita (fachada / consultório / ambiente).
+              Essa deve ser a foto mais bonita do ambiente, consultório ou fachada.
             </p>
             <input
               type="file"
@@ -525,7 +568,6 @@ export default function FormularioClassimed() {
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
           <p className="mt-1 text-[11px] text-slate-500">
@@ -546,7 +588,6 @@ export default function FormularioClassimed() {
         </div>
       </div>
 
-      {/* CONTATOS */}
       <div className="space-y-4 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Contatos</h2>
 
@@ -583,11 +624,10 @@ export default function FormularioClassimed() {
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para contato dos pacientes.
+          Pelo menos um desses canais será exibido para contato dos pacientes.
         </p>
       </div>
 
-      {/* CONFIRMAÇÃO */}
       <div className="border-t border-slate-100 pt-4">
         <label className="flex items-start gap-2 text-[11px] text-slate-700">
           <input
@@ -597,8 +637,7 @@ export default function FormularioClassimed() {
             onChange={(e) => setAceitoTermos(e.target.checked)}
           />
           <span>
-            Declaro que as informações preenchidas são verdadeiras e autorizo que este anúncio seja exibido no Classimed
-            / Classilagos para pacientes da Região dos Lagos.
+            Declaro que as informações preenchidas são verdadeiras e autorizo que este anúncio seja exibido no Classimed / Classilagos para pacientes da Região dos Lagos.
           </span>
         </label>
       </div>
