@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
 function isValidEmail(v) {
   const s = String(v || "").trim();
@@ -21,7 +22,6 @@ function isValidUrl(v) {
   }
 }
 
-/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
 function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -56,22 +56,14 @@ export default function FormularioProfissionais() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // ✅ UPLOAD PREMIUM (logo + capa + galeria)
   const [logoFile, setLogoFile] = useState(null);
   const [capaFile, setCapaFile] = useState(null);
-  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
+  const [galeriaFiles, setGaleriaFiles] = useState([]);
 
   const [uploading, setUploading] = useState(false);
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
-  // login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
 
   const cidades = [
     "Maricá",
@@ -127,12 +119,11 @@ export default function FormularioProfissionais() {
     "Outros serviços profissionais",
   ];
 
-  // ✅ Galeria: acumula até 7, valida imagem e tamanho
   const handleGaleriaChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const maxBytes = 2 * 1024 * 1024; // 2MB
+    const maxBytes = 2 * 1024 * 1024;
     const onlyImages = files.filter((f) => f?.type?.startsWith("image/"));
 
     const valid = [];
@@ -161,7 +152,6 @@ export default function FormularioProfissionais() {
     setGaleriaFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // ✅ previews
   const previewLogo = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : ""), [logoFile]);
   const previewCapa = useMemo(() => (capaFile ? URL.createObjectURL(capaFile) : ""), [capaFile]);
   const previewsGaleria = useMemo(
@@ -175,7 +165,6 @@ export default function FormularioProfissionais() {
       if (previewCapa) URL.revokeObjectURL(previewCapa);
       previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewLogo, previewCapa, previewsGaleria]);
 
   async function uploadUmaImagem({ bucket, path, file }) {
@@ -186,80 +175,100 @@ export default function FormularioProfissionais() {
     return data?.publicUrl || "";
   }
 
+  function validarAntesDeEnviar() {
+    const contatoPrincipal = whatsapp || telefone || email;
+
+    if (!titulo || !cidade || !areaProfissional) {
+      return "Preencha Título, Cidade e o Tipo de serviço profissional.";
+    }
+
+    if (!descricao.trim()) {
+      return "Preencha a descrição do serviço.";
+    }
+
+    if (!capaFile) {
+      return "Envie a foto de capa (obrigatória).";
+    }
+
+    if (!contatoPrincipal) {
+      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!email.trim()) {
+      return "Informe seu e-mail para publicar o anúncio.";
+    }
+
+    if (!isValidEmail(email)) {
+      return "Digite um e-mail válido.";
+    }
+
+    if (!isValidUrl(siteUrl)) {
+      return "O site informado parece inválido. Ex.: meusite.com.br ou https://meusite.com.br";
+    }
+
+    if (!aceitoResponsabilidade) {
+      return "Para publicar, marque a declaração de responsabilidade.";
+    }
+
+    return "";
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar um serviço.");
-      router.push("/login");
+    const valid = validarAntesDeEnviar();
+    if (valid) {
+      setErro(valid);
       return;
     }
 
-    if (!titulo || !cidade || !areaProfissional) {
-      setErro("Preencha Título, Cidade e o Tipo de serviço profissional.");
-      return;
-    }
-
-    // ✅ CAPA obrigatória (padrão Premium)
-    if (!capaFile) {
-      setErro("Envie a foto de capa (obrigatória).");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      setErro("Digite um e-mail válido (ou deixe em branco).");
-      return;
-    }
-
-    if (!isValidUrl(siteUrl)) {
-      setErro("O site informado parece inválido. Ex.: meusite.com.br ou https://meusite.com.br");
-      return;
-    }
-
-    if (!aceitoResponsabilidade) {
-      setErro("Para publicar, marque a declaração de responsabilidade.");
-      return;
-    }
-
-    setUploading(true);
+    const contatoPrincipal = whatsapp.trim() || telefone.trim() || email.trim();
 
     try {
-      const bucket = "anuncios";
-      const base = `servicos/${user.id}/profissionais-${Date.now()}`;
+      setUploading(true);
 
-      // 1) Logo (opcional)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeProfissional || nomeNegocio,
+          cidade,
+          whatsapp,
+          telefone,
+          email,
+          origem: "anuncio_profissionais",
+        });
+      }
+
+      const bucket = "anuncios";
+      const base = `servicos/${ownerKey}/profissionais-${Date.now()}`;
+
       let logoUrl = "";
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
+        const ext = (logoFile.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${base}-logo.${ext}`;
         logoUrl = await uploadUmaImagem({ bucket, path, file: logoFile });
       }
 
-      // 2) Capa (obrigatória)
       let capaUrl = "";
       {
-        const ext = capaFile.name.split(".").pop();
+        const ext = (capaFile.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${base}-capa.${ext}`;
         capaUrl = await uploadUmaImagem({ bucket, path, file: capaFile });
       }
 
-      // 3) Galeria (opcional até 7)
       const galeriaUrls = [];
       if (galeriaFiles.length) {
         let idx = 0;
         for (const file of galeriaFiles.slice(0, 7)) {
-          const ext = file.name.split(".").pop();
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
           const path = `${base}-galeria-${idx}.${ext}`;
           idx++;
           const url = await uploadUmaImagem({ bucket, path, file });
@@ -267,27 +276,38 @@ export default function FormularioProfissionais() {
         }
       }
 
-      // ✅ Ordem Premium: capa primeiro (vira a foto principal do card)
       const imagens = [capaUrl, ...galeriaUrls, ...(logoUrl ? [logoUrl] : [])];
 
-      // normaliza siteUrl (se veio sem http)
       const siteUrlFinal = siteUrl?.trim()
         ? siteUrl.trim().startsWith("http")
           ? siteUrl.trim()
           : `https://${siteUrl.trim()}`
         : null;
 
+      const descricaoFinal = `${descricao}
+
+=== Informações complementares ===
+Tipo de serviço: ${areaProfissional || "-"}
+Profissional / responsável: ${nomeProfissional || "-"}
+Empresa / negócio: ${nomeNegocio || "-"}
+Atende em domicílio: ${atendeDomicilio ? "Sim" : "Não"}
+Horário de atendimento: ${horarioAtendimento || "-"}
+Faixa de preço: ${faixaPreco || "-"}
+Site: ${siteUrlFinal || "-"}
+Instagram: ${instagram || "-"}
+`.trim();
+
       const { data: inserted, error: insertError } = await supabase
         .from("anuncios")
         .insert({
-          user_id: user.id,
+          user_id: user?.id || null,
           categoria: "servico",
           subcategoria_servico: "profissionais",
 
-          titulo,
-          descricao,
+          titulo: titulo.trim(),
+          descricao: descricaoFinal,
           cidade,
-          bairro,
+          bairro: bairro.trim(),
 
           nome_contato: nomeProfissional || null,
           nome_negocio: nomeNegocio || null,
@@ -306,8 +326,14 @@ export default function FormularioProfissionais() {
           instagram: instagram || null,
 
           imagens,
-          status: "ativo",
+          logo_url: logoUrl || null,
+
+          status: user ? "ativo" : "pendente",
           destaque: false,
+
+          email_confirmado: !!user,
+          email_confirmado_em: user ? new Date().toISOString() : null,
+          criado_sem_login: !user,
         })
         .select("id")
         .single();
@@ -318,9 +344,54 @@ export default function FormularioProfissionais() {
         return;
       }
 
-      setSucesso("Serviço profissional cadastrado com sucesso! Redirecionando…");
+      if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${inserted.id}`;
 
-      // limpa
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${inserted.id}`
+            );
+          }, 1500);
+        } else {
+          setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${inserted.id}`
+            );
+          }, 1500);
+        }
+      } else {
+        setSucesso("Serviço profissional cadastrado com sucesso! Redirecionando…");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
+
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -336,16 +407,10 @@ export default function FormularioProfissionais() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-
       setLogoFile(null);
       setCapaFile(null);
       setGaleriaFiles([]);
-
       setAceitoResponsabilidade(false);
-
-      setTimeout(() => {
-        router.push(`/anuncios/${inserted.id}`);
-      }, 1200);
     } catch (err) {
       console.error(err);
       setErro(`Erro ao salvar seu anúncio de serviço: ${err?.message || "tente novamente."}`);
@@ -577,13 +642,11 @@ export default function FormularioProfissionais() {
         </div>
       </Card>
 
-      {/* ✅ UPLOADS PREMIUM */}
       <Card
         title="Fotos e logomarca (no topo)"
         subtitle="Recomendado: JPG/PNG até 2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa."
       >
         <div className="grid gap-4 md:grid-cols-2">
-          {/* LOGO */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional)</p>
             <p className="mt-1 text-[11px] text-slate-500">
@@ -599,13 +662,11 @@ export default function FormularioProfissionais() {
 
             {previewLogo && (
               <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewLogo} alt="Preview logo" className="h-full w-full object-cover" />
               </div>
             )}
           </div>
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">
               Foto de capa (obrigatória) <span className="text-red-500">*</span>
@@ -624,14 +685,12 @@ export default function FormularioProfissionais() {
 
             {previewCapa && (
               <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
               </div>
             )}
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
           <p className="mt-1 text-[11px] text-slate-500">
@@ -659,7 +718,6 @@ export default function FormularioProfissionais() {
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
 
                     <button
@@ -707,4 +765,3 @@ export default function FormularioProfissionais() {
     </form>
   );
 }
-
