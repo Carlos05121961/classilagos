@@ -192,8 +192,7 @@ export default function FormularioVeiculos() {
       } = await supabase.auth.getUser();
 
       const ownerKey =
-        user?.id ||
-        `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       if (user) {
         await syncUserMetadataFromForm(user, {
@@ -290,10 +289,11 @@ ${detalhesVeiculoTexto}
         consignado: isConsignado,
         loja_revenda: isAgencia,
 
-        status: "ativo",
+        status: user ? "ativo" : "pendente",
         destaque: false,
 
         email_confirmado: !!user,
+        email_confirmado_em: user ? new Date().toISOString() : null,
         criado_sem_login: !user,
       };
 
@@ -309,12 +309,14 @@ ${detalhesVeiculoTexto}
         return;
       }
 
-      // Se não estiver logado, publica e depois envia o e-mail de confirmação
       if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
+
         const { error: signInError } = await supabase.auth.signInWithOtp({
           email: email.trim(),
           options: {
             shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
           },
         });
 
@@ -325,16 +327,16 @@ ${detalhesVeiculoTexto}
 
           if (msg.includes("security purposes") || msg.includes("only request this after")) {
             setSucesso(
-              "Seu anúncio foi publicado com sucesso. Aguarde cerca de 1 minuto para solicitar um novo link de confirmação por e-mail."
+              "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro e ativar o anúncio."
             );
           } else {
             setSucesso(
-              "Seu anúncio foi publicado com sucesso. Houve apenas um problema ao enviar o e-mail de confirmação agora. Tente acessar sua caixa mais tarde."
+              "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde para confirmar seu cadastro."
             );
           }
         } else {
           setSucesso(
-            "Seu anúncio foi publicado com sucesso. Verifique sua caixa de e-mail para confirmar seu endereço."
+            "Seu anúncio foi enviado com sucesso e está pendente. Verifique seu e-mail para confirmar seu cadastro e ativar o anúncio."
           );
         }
       } else {
@@ -385,9 +387,11 @@ ${detalhesVeiculoTexto}
 
       setAceitoTermos(false);
 
-      setTimeout(() => {
-        router.push(`/anuncios/${data.id}`);
-      }, 1200);
+      if (user) {
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao enviar o anúncio. Tente novamente em alguns instantes.");
