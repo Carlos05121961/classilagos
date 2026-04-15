@@ -226,41 +226,41 @@ export default function AnunciarPage() {
         </section>
 
         {/* GRID DE CATEGORIAS - ULTRA COMPACTA */}
-        <section id="categorias" className="max-w-5xl mx-auto px-4 pb-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {t.sections.map((s) => (
-              <Link
-                key={s.title}
-                href={s.href}
-                className="group overflow-hidden rounded-[18px] md:rounded-[20px] border border-white/60 bg-white/82 backdrop-blur-xl shadow-[0_6px_18px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.10)]"
-              >
-<div className="px-2 pt-2">
-  <div className="relative h-20 sm:h-24 md:h-28 rounded-[12px] bg-slate-50 overflow-hidden">
-    <Image
-      src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
-      alt={s.title}
-      fill
-      className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.02]"
-      sizes="(max-width: 1024px) 50vw, 25vw"
-    />
-  </div>
-</div>
-
-<div className="px-2 pb-2 pt-1.5">
-  <h2 className="text-[12px] md:text-[14px] font-bold text-slate-900 leading-tight">
-    {s.title}
-  </h2>
-
-  <div className="mt-1">
-    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-2 py-1 text-[9px] md:text-[11px] font-bold text-slate-950 shadow-sm shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.01]">
-      {t.cardBtn}
-    </span>
-  </div>
-</div>
-              </Link>
-            ))}
+<section id="categorias" className="max-w-6xl mx-auto px-4 pb-12">
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+    {t.sections.map((s) => (
+      <Link
+        key={s.title}
+        href={s.href}
+        className="group overflow-hidden rounded-[22px] md:rounded-[24px] border border-white/60 bg-white/82 backdrop-blur-xl shadow-[0_8px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.10)]"
+      >
+        <div className="px-3 pt-3">
+          <div className="relative h-28 sm:h-32 md:h-36 rounded-[14px] bg-slate-50 overflow-hidden">
+            <Image
+              src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
+              alt={s.title}
+              fill
+              className="object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+              sizes="(max-width: 1024px) 50vw, 25vw"
+            />
           </div>
-        </section>
+        </div>
+
+        <div className="px-3 pb-3 pt-2">
+          <h2 className="text-[14px] md:text-[17px] font-bold text-slate-900 leading-tight">
+            {s.title}
+          </h2>
+
+          <div className="mt-2">
+            <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-3 py-2 text-[11px] md:text-sm font-bold text-slate-950 shadow-sm shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.01]">
+              {t.cardBtn}
+            </span>
+          </div>
+        </div>
+      </Link>
+    ))}
+  </div>
+</section>
       </div>
     </main>
   );
