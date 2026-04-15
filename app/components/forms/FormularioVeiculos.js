@@ -360,11 +360,19 @@ ${detalhesVeiculoTexto}
               "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
             );
           }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
         } else {
           setSucesso("Anúncio enviado com sucesso! Redirecionando...");
 
           setTimeout(() => {
-            router.push("/auth/check-email");
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
           }, 1500);
         }
       } else {
