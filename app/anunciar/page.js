@@ -98,7 +98,7 @@ const TEXT = {
 
 function Badge({ text }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/85 px-3 py-1.5 text-[11px] md:text-xs font-semibold text-slate-800 shadow-sm backdrop-blur">
+    <div className="inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/85 px-3 py-1 text-[10px] md:text-xs font-semibold text-slate-800 shadow-sm backdrop-blur">
       <span className="text-amber-500">✦</span>
       <span>{text}</span>
     </div>
@@ -129,24 +129,21 @@ export default function AnunciarPage() {
   }, []);
 
   const t = TEXT[lang];
-
-  const bannerAtual = useMemo(() => {
-    return BANNERS_TOPO[bannerIndex];
-  }, [bannerIndex]);
+  const bannerAtual = useMemo(() => BANNERS_TOPO[bannerIndex], [bannerIndex]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-100">
-      {/* FUNDO PREMIUM CLASSILAGOS */}
+      {/* FUNDO */}
       <div className="pointer-events-none absolute inset-0">
         <Image
           src="/backgrounds/fundo-mar.webp"
           alt="Fundo do mar"
           fill
           priority
-          className="object-cover opacity-22"
+          className="object-cover opacity-20"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.10),transparent_26%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.08),transparent_26%)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50/92 via-white/72 to-slate-100/92" />
       </div>
 
@@ -154,7 +151,7 @@ export default function AnunciarPage() {
         {/* BANNER TOPO */}
         <section className="w-full flex justify-center border-b border-white/30 bg-white/55 backdrop-blur-sm py-3">
           <div className="w-full max-w-[980px] px-4">
-            <div className="relative h-[88px] sm:h-[102px] md:h-[120px] rounded-2xl md:rounded-3xl bg-white/85 border border-white/50 shadow-sm overflow-hidden">
+            <div className="relative h-[82px] sm:h-[95px] md:h-[110px] rounded-2xl bg-white/85 border border-white/50 shadow-sm overflow-hidden">
               <Link
                 href={bannerAtual.href}
                 target="_blank"
@@ -179,47 +176,47 @@ export default function AnunciarPage() {
           </div>
         </section>
 
-        {/* HERO CURTO */}
-        <section className="max-w-6xl mx-auto px-4 pt-6 md:pt-8 pb-6">
-          <div className="relative overflow-hidden rounded-[24px] md:rounded-[30px] border border-white/50 bg-white/65 backdrop-blur-xl shadow-[0_12px_36px_rgba(15,23,42,0.07)]">
+        {/* HERO */}
+        <section className="max-w-5xl mx-auto px-4 pt-5 md:pt-7 pb-5">
+          <div className="relative overflow-hidden rounded-[20px] md:rounded-[28px] border border-white/50 bg-white/65 backdrop-blur-xl shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
             <div className="absolute inset-0 bg-gradient-to-r from-sky-100/55 via-white/25 to-amber-50/45" />
-            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-200/30 blur-3xl" />
-            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-amber-200/25 blur-3xl" />
+            <div className="absolute -top-16 -right-16 h-36 w-36 rounded-full bg-sky-200/30 blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-amber-200/25 blur-3xl" />
 
-            <div className="relative px-4 md:px-8 py-6 md:py-8">
+            <div className="relative px-4 md:px-7 py-5 md:py-7">
               <div className="flex items-start justify-between gap-3 flex-wrap">
-                <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
+                <p className="text-[10px] md:text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
                   {t.breadcrumb}
                 </p>
 
                 <button
                   onClick={toggleLang}
-                  className="rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-[11px] md:text-xs font-semibold text-slate-800 shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md active:scale-95"
+                  className="rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-[10px] md:text-xs font-semibold text-slate-800 shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md active:scale-95"
                 >
                   🌎 {t.toggle}
                 </button>
               </div>
 
               <div className="mt-3">
-                <h1 className="text-2xl md:text-5xl font-extrabold tracking-tight text-slate-950 leading-[1.05]">
+                <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold tracking-tight text-slate-950 leading-[1.05]">
                   {t.heroTitle}
                 </h1>
 
-                <p className="mt-2 text-sm md:text-xl font-semibold text-slate-700">
+                <p className="mt-2 text-sm md:text-lg font-semibold text-slate-700">
                   {t.heroSubtitle}
                 </p>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-2.5">
                 <a
                   href="#categorias"
-                  className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-600 via-cyan-600 to-sky-700 px-5 py-2.5 text-sm md:text-base font-bold text-white shadow-lg shadow-sky-700/20 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                  className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-600 via-cyan-600 to-sky-700 px-4 py-2 text-sm md:text-base font-bold text-white shadow-lg shadow-sky-700/20 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-xl active:scale-95"
                 >
                   {t.heroBtn}
                 </a>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2.5">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {t.heroBadges.map((badge) => (
                   <Badge key={badge} text={badge} />
                 ))}
@@ -228,33 +225,33 @@ export default function AnunciarPage() {
           </div>
         </section>
 
-        {/* GRID DE CATEGORIAS */}
-        <section id="categorias" className="max-w-6xl mx-auto px-4 pb-12">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {/* GRID DE CATEGORIAS - ULTRA COMPACTA */}
+        <section id="categorias" className="max-w-5xl mx-auto px-4 pb-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {t.sections.map((s) => (
               <Link
                 key={s.title}
                 href={s.href}
-                className="group overflow-hidden rounded-[22px] md:rounded-[26px] border border-white/55 bg-white/80 backdrop-blur-xl shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_34px_rgba(15,23,42,0.12)]"
+                className="group overflow-hidden rounded-[18px] md:rounded-[20px] border border-white/60 bg-white/82 backdrop-blur-xl shadow-[0_6px_18px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.10)]"
               >
-                <div className="relative h-20 sm:h-22 md:h-28 overflow-hidden">
+                <div className="relative h-16 sm:h-20 md:h-24 overflow-hidden">
                   <Image
                     src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
                     alt={s.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                    sizes="(max-width: 1024px) 50vw, 25vw"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-slate-900/5 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent" />
                 </div>
 
-                <div className="p-2.5 md:p-3">
-                  <h2 className="text-[15px] md:text-lg font-bold text-slate-900">
+                <div className="p-2">
+                  <h2 className="text-[13px] md:text-[15px] font-bold text-slate-900 leading-tight">
                     {s.title}
                   </h2>
 
-                  <div className="mt-2">
-                    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-3 py-2 text-xs md:text-sm font-bold text-slate-950 shadow-md shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.02] group-hover:shadow-lg">
+                  <div className="mt-1.5">
+                    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-2.5 py-1.5 text-[10px] md:text-xs font-bold text-slate-950 shadow-sm shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.01]">
                       {t.cardBtn}
                     </span>
                   </div>
