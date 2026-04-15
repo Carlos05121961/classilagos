@@ -29,7 +29,7 @@ const PILARES_TURISMO = [
   { value: "outros", label: "Outros / geral" },
 ];
 
-// subcategorias por pilar (usadas em subcategoria_turismo)
+// subcategorias por pilar
 const SUBCATEGORIAS_POR_PILAR = {
   onde_ficar: [
     { value: "pousada_hotel_hostel", label: "Pousada / Hotel / Hostel" },
@@ -47,8 +47,6 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "comida_por_kilo_delivery", label: "Comida a quilo / delivery" },
     { value: "outros_gastronomia", label: "Outros tipos de gastronomia" },
   ],
-
-  // ✅ ATUALIZADO (inclui Teatro/Cinema, Cultura, Museus)
   onde_se_divertir: [
     { value: "casa_show_musica_ao_vivo", label: "Casa de show / música ao vivo" },
     { value: "pub_balada", label: "Pub / balada" },
@@ -59,8 +57,6 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "museu", label: "Museus" },
     { value: "outros_diversao", label: "Outros locais para se divertir" },
   ],
-
-  // ✅ ATUALIZADO (inclui Teatro/Cinema, Cultura, Museus)
   onde_passear: [
     { value: "passeio_escuna_barco", label: "Passeio de escuna / barco" },
     { value: "passeio_lancha_taxi_lancha", label: "Passeio de lancha / táxi lancha" },
@@ -74,7 +70,6 @@ const SUBCATEGORIAS_POR_PILAR = {
     { value: "museu", label: "Museus" },
     { value: "outros_passeios", label: "Outros tipos de passeios" },
   ],
-
   servicos_turismo: [
     { value: "agencia_turismo", label: "Agência de turismo / receptivo" },
     { value: "guia_turistico_credenciado", label: "Guia de turismo credenciado" },
@@ -93,7 +88,6 @@ const SUBCATEGORIAS_POR_PILAR = {
   outros: [{ value: "turismo_geral", label: "Turismo / serviços gerais" }],
 };
 
-// faixas de preço por pilar (gravadas em faixa_preco)
 const FAIXA_PRECO_POR_PILAR = {
   onde_ficar: ["Diária até R$ 200", "Diária de R$ 200 a R$ 400", "Diária acima de R$ 400", "Consultar valores"],
   onde_comer: ["Economia / popular", "Intermediário", "Gastronomia refinada", "Consultar valores"],
@@ -104,7 +98,6 @@ const FAIXA_PRECO_POR_PILAR = {
   outros: ["Valores sob consulta"],
 };
 
-// comodidades para hospedagem (vamos jogar isso para dentro da descrição final)
 const COMODIDADES_HOSPEDAGEM = [
   "Wi-Fi",
   "Estacionamento",
@@ -116,7 +109,6 @@ const COMODIDADES_HOSPEDAGEM = [
   "Ar condicionado",
 ];
 
-// facilidades para bares/restaurantes
 const FACILIDADES_GASTRONOMIA = [
   "Música ao vivo",
   "Frente mar / lagoa",
@@ -127,24 +119,31 @@ const FACILIDADES_GASTRONOMIA = [
   "Aceita reservas",
 ];
 
+function isValidYoutubeUrl(url) {
+  if (!url) return true;
+  const u = String(url).trim();
+  if (!u) return true;
+  return (
+    u.includes("youtube.com/watch") ||
+    u.includes("youtu.be/") ||
+    u.includes("youtube.com/shorts/")
+  );
+}
+
 export default function FormularioTurismo() {
   const router = useRouter();
 
-  // pilar + subcategoria
   const [pilar, setPilar] = useState("onde_ficar");
   const [subcategoria, setSubcategoria] = useState("");
 
-  // principais
   const [titulo, setTitulo] = useState("");
   const [nomeNegocio, setNomeNegocio] = useState("");
   const [descricao, setDescricao] = useState("");
 
-  // localização
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [endereco, setEndereco] = useState("");
 
-  // detalhes extras por tipo (vão ser combinados na descrição final)
   const [faixaPreco, setFaixaPreco] = useState("");
   const [tipoCozinha, setTipoCozinha] = useState("");
   const [horarioFuncionamento, setHorarioFuncionamento] = useState("");
@@ -155,40 +154,31 @@ export default function FormularioTurismo() {
   const [tipoPasseio, setTipoPasseio] = useState("");
   const [publicoAlvo, setPublicoAlvo] = useState("");
 
-  // online / redes
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // ✅ UPLOAD (Padrão Premium: logo + capa + galeria)
-  const [logoArquivo, setLogoArquivo] = useState(null); // opcional
-  const [capaArquivo, setCapaArquivo] = useState(null); // recomendado
-  const [galeriaArquivos, setGaleriaArquivos] = useState([]); // até 7
+  const [logoArquivo, setLogoArquivo] = useState(null);
+  const [capaArquivo, setCapaArquivo] = useState(null);
+  const [galeriaArquivos, setGaleriaArquivos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // vídeo
   const [videoUrl, setVideoUrl] = useState("");
 
-  // contato
   const [nomeContato, setNomeContato] = useState("");
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // termos
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
-  // mensagens
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-
-  // quando muda o pilar, resetar subcategoria e faixa de preço
   useEffect(() => {
     setSubcategoria("");
     setFaixaPreco("");
   }, [pilar]);
 
-  // ✅ handlers uploads
   const handleLogoChange = (e) => {
     const file = e.target.files?.[0] || null;
     setLogoArquivo(file);
@@ -201,10 +191,9 @@ export default function FormularioTurismo() {
 
   const handleGaleriaChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setGaleriaArquivos(files.slice(0, 7)); // até 7 (capa + 7 = 8 total)
+    setGaleriaArquivos(files.slice(0, 7));
   };
 
-  // ✅ previews (Padrão Premium)
   const logoPreview = useMemo(() => (logoArquivo ? URL.createObjectURL(logoArquivo) : null), [logoArquivo]);
   const capaPreview = useMemo(() => (capaArquivo ? URL.createObjectURL(capaArquivo) : null), [capaArquivo]);
   const galeriaPreviews = useMemo(() => {
@@ -218,63 +207,48 @@ export default function FormularioTurismo() {
       if (capaPreview) URL.revokeObjectURL(capaPreview);
       galeriaPreviews.forEach((p) => URL.revokeObjectURL(p));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logoPreview, capaPreview, galeriaPreviews]);
 
-  // checkbox comodidades hospedagem
   const toggleComodidadeHospedagem = (item) => {
     setComodidadesHospedagem((prev) =>
       prev.includes(item) ? prev.filter((c) => c !== item) : [...prev, item]
     );
   };
 
-  // checkbox facilidades gastronomia
   const toggleFacilidadeGastronomia = (item) => {
     setFacilidadesGastronomia((prev) =>
       prev.includes(item) ? prev.filter((c) => c !== item) : [...prev, item]
     );
   };
 
+  async function uploadArquivo({ bucket, path, file }) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
   const enviarAnuncio = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-if (!user) {
-  if (!email) {
-    setErro("Informe seu e-mail para publicar o anúncio.");
-    return;
-  }
-
-const { error: signInError } = await supabase.auth.signInWithOtp({
-  email,
-  options: {
-    shouldCreateUser: true,
-    emailRedirectTo: "https://classilagos.shop/home",
-  },
-});
-
-if (signInError) {
-  console.error("signInError:", signInError);
-  setErro("Erro ao iniciar cadastro automático: " + (signInError.message || ""));
-  return;
-}
-
-  setSucesso("Enviamos um link para seu e-mail para confirmar seu anúncio.");
-  return;
-}
-    await syncUserMetadataFromForm(user, {
-  nome: nomeContato,
-  cidade,
-  whatsapp,
-  telefone,
-  endereco,
-  email,
-  origem: "anuncio_turismo",
-});
+    if (user) {
+      await syncUserMetadataFromForm(user, {
+        nome: nomeContato,
+        cidade,
+        whatsapp,
+        telefone,
+        endereco,
+        email,
+        origem: "anuncio_turismo",
+      });
+    }
 
     if (!pilar || !subcategoria) {
       setErro("Selecione o tipo de lugar/serviço e a categoria.");
@@ -283,6 +257,11 @@ if (signInError) {
 
     if (!titulo || !cidade || !descricao) {
       setErro("Preencha pelo menos o título, a cidade e a descrição.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setErro("Informe seu e-mail para publicar o anúncio.");
       return;
     }
 
@@ -297,7 +276,11 @@ if (signInError) {
       return;
     }
 
-    // monta bloco de detalhes extras para enriquecer a descrição automaticamente
+    if (!isValidYoutubeUrl(videoUrl)) {
+      setErro("O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).");
+      return;
+    }
+
     const detalhesExtras = [];
 
     if (faixaPreco) detalhesExtras.push(`Faixa de preço: ${faixaPreco}.`);
@@ -328,82 +311,56 @@ if (signInError) {
       .filter(Boolean)
       .join("\n\n");
 
-    // ✅ UPLOAD PREMIUM: logo (opcional) + capa (recomendada) + galeria (opcional)
-    // regra: imagens[] sempre começa pela CAPA (se existir). Assim o card fica bonito.
     let logoUrl = null;
     let capaUrl = null;
     const galeriaUrls = [];
 
     try {
       const bucket = "anuncios";
+      setUploading(true);
 
-      // LOGO (opcional)
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
       if (logoArquivo) {
-        setUploading(true);
-        const ext = logoArquivo.name.split(".").pop();
-        const path = `turismo/${user.id}/turismo-logo-${Date.now()}.${ext}`;
-
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, logoArquivo);
-        if (upErr) throw upErr;
-
-        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-        logoUrl = pub.publicUrl;
+        const ext = (logoArquivo.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `turismo/${ownerKey}/turismo-logo-${Date.now()}.${ext}`;
+        logoUrl = await uploadArquivo({ bucket, path, file: logoArquivo });
       }
 
-      // CAPA (recomendada)
       if (capaArquivo) {
-        setUploading(true);
-        const ext = capaArquivo.name.split(".").pop();
-        const path = `turismo/${user.id}/turismo-capa-${Date.now()}.${ext}`;
-
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, capaArquivo);
-        if (upErr) throw upErr;
-
-        const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-        capaUrl = pub.publicUrl;
+        const ext = (capaArquivo.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `turismo/${ownerKey}/turismo-capa-${Date.now()}.${ext}`;
+        capaUrl = await uploadArquivo({ bucket, path, file: capaArquivo });
       }
 
-      // GALERIA (até 7)
       if (galeriaArquivos && galeriaArquivos.length > 0) {
-        setUploading(true);
-
         for (let i = 0; i < galeriaArquivos.length; i++) {
           const file = galeriaArquivos[i];
-          const ext = file.name.split(".").pop();
-          const path = `turismo/${user.id}/turismo-galeria-${Date.now()}-${i}.${ext}`;
-
-          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
-          if (upErr) throw upErr;
-
-          const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
-          galeriaUrls.push(pub.publicUrl);
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+          const path = `turismo/${ownerKey}/turismo-galeria-${Date.now()}-${i}.${ext}`;
+          const url = await uploadArquivo({ bucket, path, file });
+          if (url) galeriaUrls.push(url);
         }
       }
     } catch (err) {
       console.error("Erro ao enviar imagens de turismo:", err);
       setErro("Erro ao enviar as imagens. Tente novamente.");
-      setUploading(false);
       return;
     } finally {
       setUploading(false);
     }
 
-    // ✅ monta imagens (CAPA sempre primeiro)
-    // - capaUrl (se existir) entra primeiro
-    // - depois galeria
-    // - logo entra por último (para não virar capa do card)
     let imagens = [];
     if (capaUrl) imagens.push(capaUrl);
     if (galeriaUrls.length) imagens = imagens.concat(galeriaUrls);
     if (logoUrl) imagens.push(logoUrl);
-
     if (imagens.length === 0) imagens = null;
 
-    // INSERT no Supabase
     const { data, error } = await supabase
       .from("anuncios")
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         categoria: "turismo",
         titulo,
         descricao: descricaoFinal,
@@ -423,9 +380,13 @@ if (signInError) {
         pilar_turismo: pilar,
         subcategoria_turismo: subcategoria,
         horario_atendimento: horarioFuncionamento || null,
-        status: "ativo",
+        status: user ? "ativo" : "pendente",
         destaque: false,
         nome_contato: nomeContato || null,
+
+        email_confirmado: !!user,
+        email_confirmado_em: user ? new Date().toISOString() : null,
+        criado_sem_login: !user,
       })
       .select("id")
       .single();
@@ -436,9 +397,54 @@ if (signInError) {
       return;
     }
 
-    setSucesso("Anúncio de turismo enviado com sucesso! Redirecionando…");
+    if (!user) {
+      const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
 
-    // limpa formulário
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (signInError) {
+        console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+        const msg = String(signInError.message || "").toLowerCase();
+
+        if (msg.includes("security purposes") || msg.includes("only request this after")) {
+          setSucesso(
+            "Seu anúncio de turismo foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+          );
+        } else {
+          setSucesso(
+            "Seu anúncio de turismo foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+          );
+        }
+
+        setTimeout(() => {
+          router.push(
+            `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+          );
+        }, 1500);
+      } else {
+        setSucesso("Anúncio de turismo enviado com sucesso! Redirecionando…");
+
+        setTimeout(() => {
+          router.push(
+            `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+          );
+        }, 1500);
+      }
+    } else {
+      setSucesso("Anúncio de turismo enviado com sucesso! Redirecionando…");
+
+      setTimeout(() => {
+        router.push("/painel/meus-anuncios");
+      }, 1200);
+    }
+
     setTitulo("");
     setNomeNegocio("");
     setDescricao("");
@@ -456,29 +462,17 @@ if (signInError) {
     setPublicoAlvo("");
     setSiteUrl("");
     setInstagram("");
-
-    // ✅ reset upload
     setLogoArquivo(null);
     setCapaArquivo(null);
     setGaleriaArquivos([]);
-
     setVideoUrl("");
     setNomeContato("");
     setTelefone("");
     setWhatsapp("");
     setEmail("");
     setAceitoTermos(false);
-
-    setTimeout(() => {
-      if (data && data.id) {
-        router.push(`/turismo/anuncio/${data.id}`);
-      } else {
-        router.push("/painel/meus-anuncios");
-      }
-    }, 1500);
   };
 
-  // opções da subcategoria de acordo com o pilar selecionado
   const subcategoriasAtuais = SUBCATEGORIAS_POR_PILAR[pilar] || [];
   const faixasPrecoAtuais = FAIXA_PRECO_POR_PILAR[pilar] || [];
 
@@ -495,7 +489,6 @@ if (signInError) {
         </p>
       )}
 
-      {/* ✅ BLOCO PREMIUM: FOTOS + LOGOMARCA (NO TOPO) */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
         <h3 className="text-sm font-bold text-slate-900">Fotos e logomarca (no topo)</h3>
         <p className="mt-1 text-[11px] text-slate-600">
@@ -503,7 +496,6 @@ if (signInError) {
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {/* LOGO */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-900">Logomarca (opcional, mas recomendado)</p>
             <p className="mt-1 text-[11px] text-slate-600">
@@ -519,13 +511,11 @@ if (signInError) {
 
             {logoPreview && (
               <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={logoPreview} alt="Preview logo" className="h-32 w-full object-contain" />
               </div>
             )}
           </div>
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-900">Foto de capa (recomendada)</p>
             <p className="mt-1 text-[11px] text-slate-600">
@@ -541,14 +531,12 @@ if (signInError) {
 
             {capaPreview && (
               <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={capaPreview} alt="Preview capa" className="h-32 w-full object-cover" />
               </div>
             )}
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4">
           <p className="text-[11px] font-semibold text-slate-900">Galeria (opcional) — até 7 fotos</p>
           <p className="mt-1 text-[11px] text-slate-600">
@@ -575,7 +563,6 @@ if (signInError) {
                     key={idx}
                     className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
                   </div>
                 ))}
@@ -589,7 +576,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: TIPO DE LUGAR / SERVIÇO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">
           Tipo de lugar / serviço de turismo
@@ -599,12 +585,6 @@ if (signInError) {
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
               Onde seu anúncio se encaixa? *
-              <span
-                className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-                title="Isso define em qual seção do Guia ONDE (Onde ficar, Onde comer, Onde passear, etc.) o seu anúncio vai aparecer."
-              >
-                i
-              </span>
             </label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -623,12 +603,6 @@ if (signInError) {
           <div>
             <label className="block text-[11px] font-medium text-slate-700">
               Categoria / subcategoria *
-              <span
-                className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-                title="Escolha o tipo que melhor representa seu negócio, passeio ou serviço."
-              >
-                i
-              </span>
             </label>
             <select
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
@@ -647,7 +621,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: PRINCIPAIS */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Informações principais</h2>
 
@@ -668,12 +641,6 @@ if (signInError) {
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Nome do negócio (opcional)
-            <span
-              className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-              title="Use se o nome fantasia for diferente do título do anúncio."
-            >
-              i
-            </span>
           </label>
           <input
             type="text"
@@ -687,12 +654,6 @@ if (signInError) {
         <div>
           <label className="block text-[11px] font-medium text-slate-700">
             Descrição detalhada *
-            <span
-              className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-              title="Use este espaço para destacar os principais diferenciais. Os campos abaixo vão complementar automaticamente a descrição."
-            >
-              i
-            </span>
           </label>
           <textarea
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-28"
@@ -704,7 +665,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: LOCALIZAÇÃO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Localização</h2>
 
@@ -750,7 +710,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: DETALHES ESPECÍFICOS POR TIPO */}
       {faixasPrecoAtuais.length > 0 && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">Faixa de preço</h2>
@@ -774,21 +733,12 @@ if (signInError) {
         </div>
       )}
 
-      {/* Hospedagem */}
       {pilar === "onde_ficar" && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">Detalhes da hospedagem</h2>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-700">
-              Comodidades
-              <span
-                className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-[10px] text-sky-700"
-                title="Marque os principais itens que o hóspede encontra no seu espaço."
-              >
-                i
-              </span>
-            </label>
+            <label className="block text-[11px] font-medium text-slate-700">Comodidades</label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {COMODIDADES_HOSPEDAGEM.map((item) => (
                 <label key={item} className="flex items-center gap-2 text-[11px] text-slate-700">
@@ -823,7 +773,6 @@ if (signInError) {
         </div>
       )}
 
-      {/* Gastronomia */}
       {pilar === "onde_comer" && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">
@@ -887,7 +836,6 @@ if (signInError) {
         </div>
       )}
 
-      {/* Passeios */}
       {pilar === "onde_passear" && (
         <div className="space-y-3 border-t border-slate-100 pt-4">
           <h2 className="text-sm font-semibold text-slate-900">Informações do passeio</h2>
@@ -939,7 +887,6 @@ if (signInError) {
         </div>
       )}
 
-      {/* BLOCO: ONLINE / REDES */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Site, reservas e redes sociais</h2>
 
@@ -970,7 +917,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: VÍDEO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Vídeo (opcional)</h2>
         <div>
@@ -985,7 +931,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: CONTATO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Dados de contato</h2>
 
@@ -1036,7 +981,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: HORÁRIO */}
       <div className="space-y-3 border-t border-slate-100 pt-4">
         <h2 className="text-sm font-semibold text-slate-900">Horário de funcionamento</h2>
         <div>
@@ -1053,7 +997,6 @@ if (signInError) {
         </div>
       </div>
 
-      {/* BLOCO: TERMOS */}
       <div className="space-y-2 border-t border-slate-100 pt-4">
         <label className="flex items-start gap-2 text-[11px] text-slate-600">
           <input
