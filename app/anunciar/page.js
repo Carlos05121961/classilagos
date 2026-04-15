@@ -234,28 +234,29 @@ export default function AnunciarPage() {
                 href={s.href}
                 className="group overflow-hidden rounded-[18px] md:rounded-[20px] border border-white/60 bg-white/82 backdrop-blur-xl shadow-[0_6px_18px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.10)]"
               >
-                <div className="relative h-16 sm:h-20 md:h-24 overflow-hidden">
-                  <Image
-                    src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
-                    alt={s.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent" />
-                </div>
+<div className="px-2 pt-2">
+  <div className="relative h-20 sm:h-24 md:h-28 rounded-[12px] bg-slate-50 overflow-hidden">
+    <Image
+      src={CARD_IMAGES[s.key] || "/images/anunciar/default.webp"}
+      alt={s.title}
+      fill
+      className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.02]"
+      sizes="(max-width: 1024px) 50vw, 25vw"
+    />
+  </div>
+</div>
 
-                <div className="p-2">
-                  <h2 className="text-[13px] md:text-[15px] font-bold text-slate-900 leading-tight">
-                    {s.title}
-                  </h2>
+<div className="px-2 pb-2 pt-1.5">
+  <h2 className="text-[12px] md:text-[14px] font-bold text-slate-900 leading-tight">
+    {s.title}
+  </h2>
 
-                  <div className="mt-1.5">
-                    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-2.5 py-1.5 text-[10px] md:text-xs font-bold text-slate-950 shadow-sm shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.01]">
-                      {t.cardBtn}
-                    </span>
-                  </div>
-                </div>
+  <div className="mt-1">
+    <span className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-2 py-1 text-[9px] md:text-[11px] font-bold text-slate-950 shadow-sm shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.01]">
+      {t.cardBtn}
+    </span>
+  </div>
+</div>
               </Link>
             ))}
           </div>
