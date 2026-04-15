@@ -3,8 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import { syncUserMetadataFromForm } from "../../../lib/syncUserMetadata";
 
-/** ✅ PREMIUM FIX: Card fora do componente (senão perde foco ao digitar) */
+/** Card fora do componente principal */
 function Card({ title, subtitle, children }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -15,6 +16,16 @@ function Card({ title, subtitle, children }) {
       {children}
     </div>
   );
+}
+
+function isValidUrl(url) {
+  if (!url) return true;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export default function FormularioEventos() {
@@ -39,21 +50,14 @@ export default function FormularioEventos() {
   const [siteUrl, setSiteUrl] = useState("");
   const [instagram, setInstagram] = useState("");
 
-  // ✅ UPLOAD PREMIUM (logo + capa + galeria)
   const [logoFile, setLogoFile] = useState(null);
   const [capaFile, setCapaFile] = useState(null);
-  const [galeriaFiles, setGaleriaFiles] = useState([]); // até 7
+  const [galeriaFiles, setGaleriaFiles] = useState([]);
 
   const [aceitoResponsabilidade, setAceitoResponsabilidade] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) router.push("/login");
-    });
-  }, [router]);
 
   const cidades = [
     "Maricá",
@@ -89,7 +93,6 @@ export default function FormularioEventos() {
     "Outros serviços para eventos",
   ];
 
-  // ✅ Galeria: acumula até 7 e permite escolher o mesmo arquivo de novo
   const handleGaleriaChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -106,7 +109,6 @@ export default function FormularioEventos() {
     setGaleriaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ✅ Previews (para UX Premium)
   const previewLogo = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : ""), [logoFile]);
   const previewCapa = useMemo(() => (capaFile ? URL.createObjectURL(capaFile) : ""), [capaFile]);
   const previewsGaleria = useMemo(() => galeriaFiles.map((f) => URL.createObjectURL(f)), [galeriaFiles]);
@@ -117,7 +119,6 @@ export default function FormularioEventos() {
       if (previewCapa) URL.revokeObjectURL(previewCapa);
       previewsGaleria.forEach((p) => URL.revokeObjectURL(p));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewLogo, previewCapa, previewsGaleria]);
 
   async function uploadUmaImagem({ bucket, path, file }) {
@@ -128,71 +129,96 @@ export default function FormularioEventos() {
     return data?.publicUrl || "";
   }
 
+  function validarAntesDeEnviar() {
+    const contatoPrincipal = whatsapp || telefone || email;
+
+    if (!titulo || !cidade || !areaProfissional) {
+      return "Preencha título, cidade e tipo de serviço para eventos.";
+    }
+
+    if (!descricao.trim()) {
+      return "Preencha a descrição do serviço.";
+    }
+
+    if (!email.trim()) {
+      return "Informe seu e-mail para publicar o anúncio.";
+    }
+
+    if (!capaFile) {
+      return "Envie a foto de capa (obrigatória).";
+    }
+
+    if (!contatoPrincipal) {
+      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
+
+    if (!aceitoResponsabilidade) {
+      return "Para publicar o anúncio, marque a declaração de responsabilidade pelas informações.";
+    }
+
+    if (!isValidUrl(siteUrl.trim())) {
+      return "O link do site parece inválido.";
+    }
+
+    return "";
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
     setSucesso("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setErro("Você precisa estar logado para anunciar um serviço.");
-      router.push("/login");
+    const valid = validarAntesDeEnviar();
+    if (valid) {
+      setErro(valid);
       return;
     }
 
-    if (!titulo || !cidade || !areaProfissional) {
-      setErro("Preencha título, cidade e tipo de serviço para eventos.");
-      return;
-    }
-
-    // ✅ CAPA obrigatória (padrão Premium)
-    if (!capaFile) {
-      setErro("Envie a foto de capa (obrigatória).");
-      return;
-    }
-
-    const contatoPrincipal = whatsapp || telefone || email;
-    if (!contatoPrincipal) {
-      setErro("Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).");
-      return;
-    }
-
-    if (!aceitoResponsabilidade) {
-      setErro("Para publicar o anúncio, marque a declaração de responsabilidade pelas informações.");
-      return;
-    }
-
-    setUploading(true);
+    const contatoPrincipal = whatsapp.trim() || telefone.trim() || email.trim();
 
     try {
-      const bucket = "anuncios";
-      const base = `servicos/${user.id}/eventos-${Date.now()}`;
+      setUploading(true);
 
-      // 1) Logo (opcional)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const ownerKey =
+        user?.id || `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      if (user) {
+        await syncUserMetadataFromForm(user, {
+          nome: nomeProfissional || nomeNegocio,
+          cidade,
+          whatsapp,
+          telefone,
+          email,
+          origem: "anuncio_eventos",
+        });
+      }
+
+      const bucket = "anuncios";
+      const base = `servicos/${ownerKey}/eventos-${Date.now()}`;
+
       let logoUrl = "";
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
+        const ext = (logoFile.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${base}-logo.${ext}`;
         logoUrl = await uploadUmaImagem({ bucket, path, file: logoFile });
       }
 
-      // 2) Capa (obrigatória)
       let capaUrl = "";
       {
-        const ext = capaFile.name.split(".").pop();
+        const ext = (capaFile.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${base}-capa.${ext}`;
         capaUrl = await uploadUmaImagem({ bucket, path, file: capaFile });
       }
 
-      // 3) Galeria (opcional até 7)
       const galeriaUrls = [];
       if (galeriaFiles.length) {
         let idx = 0;
         for (const file of galeriaFiles) {
-          const ext = file.name.split(".").pop();
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
           const path = `${base}-galeria-${idx}.${ext}`;
           idx++;
           const url = await uploadUmaImagem({ bucket, path, file });
@@ -200,37 +226,62 @@ export default function FormularioEventos() {
         }
       }
 
-      // ✅ Ordem Premium: capa primeiro (vira foto principal do card)
       const imagens = [capaUrl, ...galeriaUrls, ...(logoUrl ? [logoUrl] : [])];
 
-      const { error: insertError } = await supabase.from("anuncios").insert({
-        user_id: user.id,
+      const descricaoFinal = `${descricao}
+
+=== Informações complementares ===
+Tipo de serviço: ${areaProfissional || "-"}
+Responsável: ${nomeProfissional || "-"}
+Empresa / negócio: ${nomeNegocio || "-"}
+Atende no local do evento: ${atendeDomicilio ? "Sim" : "Não"}
+Horário de atendimento: ${horarioAtendimento || "-"}
+Faixa de preço: ${faixaPreco || "-"}
+Site: ${siteUrl || "-"}
+Instagram: ${instagram || "-"}
+`.trim();
+
+      const payload = {
+        user_id: user?.id || null,
         categoria: "servico",
         subcategoria_servico: "eventos",
 
-        titulo,
-        descricao,
+        titulo: titulo.trim(),
+        descricao: descricaoFinal,
         cidade,
-        bairro,
+        bairro: bairro.trim(),
 
-        nome_contato: nomeProfissional,
-        nome_negocio: nomeNegocio,
+        nome_contato: nomeProfissional.trim(),
+        nome_negocio: nomeNegocio.trim(),
         area_profissional: areaProfissional,
 
         atende_domicilio: atendeDomicilio,
-        horario_atendimento: horarioAtendimento,
-        faixa_preco: faixaPreco,
+        horario_atendimento: horarioAtendimento.trim(),
+        faixa_preco: faixaPreco.trim(),
 
-        telefone,
-        whatsapp,
-        email,
+        telefone: telefone.trim(),
+        whatsapp: whatsapp.trim(),
+        email: email.trim(),
         contato: contatoPrincipal,
-        site_url: siteUrl,
-        instagram,
+        site_url: siteUrl.trim(),
+        instagram: instagram.trim(),
 
         imagens,
-        status: "ativo",
-      });
+        logo_url: logoUrl || null,
+
+        status: user ? "ativo" : "pendente",
+        destaque: false,
+
+        email_confirmado: !!user,
+        email_confirmado_em: user ? new Date().toISOString() : null,
+        criado_sem_login: !user,
+      };
+
+      const { data, error: insertError } = await supabase
+        .from("anuncios")
+        .insert(payload)
+        .select("id")
+        .single();
 
       if (insertError) {
         console.error("Erro ao salvar serviço:", insertError);
@@ -238,9 +289,54 @@ export default function FormularioEventos() {
         return;
       }
 
-      setSucesso("Serviço para festas e eventos cadastrado com sucesso!");
+      if (!user) {
+        const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
 
-      // limpar
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: redirectTo,
+          },
+        });
+
+        if (signInError) {
+          console.error("Erro ao enviar confirmação por e-mail:", signInError);
+
+          const msg = String(signInError.message || "").toLowerCase();
+
+          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+            setSucesso(
+              "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
+            );
+          } else {
+            setSucesso(
+              "Seu anúncio foi enviado e está pendente. Houve um problema ao enviar o e-mail de confirmação agora. Tente entrar novamente mais tarde."
+            );
+          }
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        } else {
+          setSucesso("Anúncio enviado com sucesso! Redirecionando...");
+
+          setTimeout(() => {
+            router.push(
+              `/auth/check-email?email=${encodeURIComponent(email.trim())}&anuncio=${data.id}`
+            );
+          }, 1500);
+        }
+      } else {
+        setSucesso("Serviço para festas e eventos cadastrado com sucesso! Redirecionando...");
+
+        setTimeout(() => {
+          router.push("/painel/meus-anuncios");
+        }, 1200);
+      }
+
       setTitulo("");
       setDescricao("");
       setCidade("");
@@ -256,16 +352,10 @@ export default function FormularioEventos() {
       setEmail("");
       setSiteUrl("");
       setInstagram("");
-
       setLogoFile(null);
       setCapaFile(null);
       setGaleriaFiles([]);
-
       setAceitoResponsabilidade(false);
-
-      setTimeout(() => {
-        router.push("/painel/meus-anuncios");
-      }, 1800);
     } catch (err) {
       console.error(err);
       setErro(`Erro ao salvar seu anúncio de serviço: ${err?.message || "tente novamente."}`);
@@ -434,13 +524,11 @@ export default function FormularioEventos() {
         </div>
       </Card>
 
-      {/* ✅ UPLOADS NO TOPO (PREMIUM PADRÃO) */}
       <Card
         title="Fotos e logomarca (no topo)"
         subtitle="Recomendado: JPG/PNG até ~2MB. A capa vira a foto principal do card. A logomarca (opcional) não vira capa."
       >
         <div className="grid gap-4 md:grid-cols-2">
-          {/* LOGO */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">Logomarca (opcional, mas recomendado)</p>
             <p className="mt-1 text-[11px] text-slate-500">
@@ -456,13 +544,11 @@ export default function FormularioEventos() {
 
             {previewLogo && (
               <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewLogo} alt="Preview logo" className="h-full w-full object-cover" />
               </div>
             )}
           </div>
 
-          {/* CAPA */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold text-slate-700">
               Foto de capa (obrigatória) <span className="text-red-500">*</span>
@@ -481,14 +567,12 @@ export default function FormularioEventos() {
 
             {previewCapa && (
               <div className="mt-3 aspect-video rounded-xl overflow-hidden border border-slate-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewCapa} alt="Preview capa" className="h-full w-full object-cover" />
               </div>
             )}
           </div>
         </div>
 
-        {/* GALERIA */}
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-[11px] font-semibold text-slate-700">Galeria (opcional) — até 7 fotos</p>
           <p className="mt-1 text-[11px] text-slate-500">
@@ -516,7 +600,6 @@ export default function FormularioEventos() {
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Galeria ${idx + 1}`} className="h-full w-full object-cover" />
 
                     <button
@@ -596,7 +679,7 @@ export default function FormularioEventos() {
         </div>
 
         <p className="mt-2 text-[11px] text-slate-500">
-          Pelo menos um desses canais (telefone, WhatsApp ou e-mail) será exibido para contato.
+          Pelo menos um desses canais será exibido para contato.
         </p>
       </Card>
 
@@ -609,8 +692,7 @@ export default function FormularioEventos() {
             onChange={(e) => setAceitoResponsabilidade(e.target.checked)}
           />
           <span>
-            Declaro que as informações deste anúncio são verdadeiras e que sou responsável por qualquer
-            negociação realizada a partir deste serviço. Estou de acordo com os termos de uso do Classilagos.
+            Declaro que as informações deste anúncio são verdadeiras e que sou responsável por qualquer negociação realizada a partir deste serviço. Estou de acordo com os termos de uso do Classilagos.
           </span>
         </label>
 
