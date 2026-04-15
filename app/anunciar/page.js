@@ -230,7 +230,7 @@ export default function AnunciarPage() {
 
         {/* GRID DE CATEGORIAS */}
         <section id="categorias" className="max-w-6xl mx-auto px-4 pb-12">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {t.sections.map((s) => (
               <Link
                 key={s.title}
