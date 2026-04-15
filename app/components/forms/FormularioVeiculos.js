@@ -37,34 +37,27 @@ function isYoutubeUrl(url) {
 export default function FormularioVeiculos() {
   const router = useRouter();
 
-  // ===== Uploads (PADRÃO PREMIUM) =====
   const [capaFile, setCapaFile] = useState(null);
   const [galeriaFiles, setGaleriaFiles] = useState([]);
 
-  // ===== Agência + Logomarca =====
   const [isAgencia, setIsAgencia] = useState(false);
   const [logoArquivo, setLogoArquivo] = useState(null);
 
-  // ===== Classificação do anúncio =====
   const [condicaoVeiculo, setCondicaoVeiculo] = useState("");
   const [isFinanciado, setIsFinanciado] = useState(false);
   const [isConsignado, setIsConsignado] = useState(false);
 
-  // ===== Campos básicos =====
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
 
-  // ===== Localização =====
   const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [endereco, setEndereco] = useState("");
   const [cep, setCep] = useState("");
 
-  // ===== Tipo / finalidade =====
   const [finalidade, setFinalidade] = useState("");
   const [tipoVeiculo, setTipoVeiculo] = useState("");
 
-  // ===== Detalhes do veículo =====
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
   const [ano, setAno] = useState("");
@@ -77,22 +70,16 @@ export default function FormularioVeiculos() {
   const [licenciado, setLicenciado] = useState("nao");
   const [aceitaTroca, setAceitaTroca] = useState("nao");
 
-  // ===== Valores =====
   const [preco, setPreco] = useState("");
-
-  // ===== Vídeo =====
   const [videoUrl, setVideoUrl] = useState("");
 
-  // ===== Contatos =====
   const [nomeContato, setNomeContato] = useState("");
   const [telefone, setTelefone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
-  // ===== Termos =====
   const [aceitoTermos, setAceitoTermos] = useState(false);
 
-  // ===== Estados gerais =====
   const [uploading, setUploading] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
@@ -146,10 +133,16 @@ export default function FormularioVeiculos() {
     const rand = Math.random().toString(16).slice(2);
     const filePath = `${folder}/${ownerKey}/${prefix}-${Date.now()}-${rand}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file);
+
     if (uploadError) throw uploadError;
 
-    const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+    const { data: publicData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+
     return publicData.publicUrl;
   }
 
@@ -157,16 +150,30 @@ export default function FormularioVeiculos() {
     const contatoPrincipal = whatsapp || telefone || email;
 
     if (!capaFile) return "Envie a foto de capa (obrigatória).";
-    if (!contatoPrincipal) return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    if (!contatoPrincipal) {
+      return "Informe pelo menos um meio de contato (WhatsApp, telefone ou e-mail).";
+    }
     if (!email.trim()) return "Informe seu e-mail para publicar o anúncio.";
-    if (!finalidade || !tipoVeiculo) return "Selecione a finalidade e o tipo de veículo.";
-    if (!condicaoVeiculo) return "Informe a condição do veículo (usado, seminovo ou 0 km).";
-    if (!titulo.trim() || !descricao.trim()) return "Preencha o título e a descrição do anúncio.";
+    if (!finalidade || !tipoVeiculo) {
+      return "Selecione a finalidade e o tipo de veículo.";
+    }
+    if (!condicaoVeiculo) {
+      return "Informe a condição do veículo (usado, seminovo ou 0 km).";
+    }
+    if (!titulo.trim() || !descricao.trim()) {
+      return "Preencha o título e a descrição do anúncio.";
+    }
     if (!cidade) return "Selecione a cidade do anúncio.";
     if (!preco.trim()) return "Informe o preço do veículo.";
-    if (!isYoutubeUrl(videoUrl.trim())) return "A URL do vídeo deve ser do YouTube (youtube.com ou youtu.be).";
-    if (isAgencia && !logoArquivo) return "Você marcou Agência de veículos. Envie a logomarca (1 imagem).";
-    if (!aceitoTermos) return "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio.";
+    if (!isYoutubeUrl(videoUrl.trim())) {
+      return "A URL do vídeo deve ser do YouTube (youtube.com ou youtu.be).";
+    }
+    if (isAgencia && !logoArquivo) {
+      return "Você marcou Agência de veículos. Envie a logomarca (1 imagem).";
+    }
+    if (!aceitoTermos) {
+      return "Você precisa declarar que está de acordo com os termos e responsabilidade do anúncio.";
+    }
 
     return "";
   }
@@ -208,26 +215,42 @@ export default function FormularioVeiculos() {
 
       const bucketName = "anuncios";
 
-      // 1) CAPA
-      const capaUrl = await uploadToPublicUrl(bucketName, ownerKey, capaFile, "veiculos", "capa");
+      const capaUrl = await uploadToPublicUrl(
+        bucketName,
+        ownerKey,
+        capaFile,
+        "veiculos",
+        "capa"
+      );
 
-      // 2) GALERIA
       let galeriaUrls = [];
       if (galeriaFiles.length > 0) {
         const uploads = await Promise.all(
           galeriaFiles.map(async (file, idx) => {
-            const url = await uploadToPublicUrl(bucketName, ownerKey, file, "veiculos", `galeria-${idx}`);
+            const url = await uploadToPublicUrl(
+              bucketName,
+              ownerKey,
+              file,
+              "veiculos",
+              `galeria-${idx}`
+            );
             return { idx, url };
           })
         );
+
         uploads.sort((a, b) => a.idx - b.idx);
         galeriaUrls = uploads.map((u) => u.url);
       }
 
-      // 3) LOGO
       let logoUrl = null;
       if (isAgencia && logoArquivo) {
-        logoUrl = await uploadToPublicUrl(bucketName, ownerKey, logoArquivo, "veiculos", "logo");
+        logoUrl = await uploadToPublicUrl(
+          bucketName,
+          ownerKey,
+          logoArquivo,
+          "veiculos",
+          "logo"
+        );
       }
 
       const imagens = [capaUrl, ...galeriaUrls].filter(Boolean);
@@ -325,7 +348,10 @@ ${detalhesVeiculoTexto}
 
           const msg = String(signInError.message || "").toLowerCase();
 
-          if (msg.includes("security purposes") || msg.includes("only request this after")) {
+          if (
+            msg.includes("security purposes") ||
+            msg.includes("only request this after")
+          ) {
             setSucesso(
               "Seu anúncio foi enviado com sucesso e está pendente. Aguarde cerca de 1 minuto e verifique seu e-mail para confirmar o cadastro."
             );
@@ -349,7 +375,6 @@ ${detalhesVeiculoTexto}
         }, 1200);
       }
 
-      // limpa form
       setCapaFile(null);
       setGaleriaFiles([]);
       setIsAgencia(false);
@@ -383,7 +408,6 @@ ${detalhesVeiculoTexto}
       setAceitaTroca("nao");
 
       setPreco("");
-
       setVideoUrl("");
 
       setNomeContato("");
@@ -392,12 +416,6 @@ ${detalhesVeiculoTexto}
       setEmail("");
 
       setAceitoTermos(false);
-
-      if (user) {
-        setTimeout(() => {
-          router.push("/painel/meus-anuncios");
-        }, 1200);
-      }
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao enviar o anúncio. Tente novamente em alguns instantes.");
@@ -432,9 +450,16 @@ ${detalhesVeiculoTexto}
           <p className="text-[11px] font-semibold text-slate-900">
             Foto de capa (obrigatória) <span className="text-red-600">*</span>
           </p>
-          <p className="mt-1 text-[11px] text-slate-600">Esta será a <b>foto principal</b> do seu anúncio.</p>
+          <p className="mt-1 text-[11px] text-slate-600">
+            Esta será a <b>foto principal</b> do seu anúncio.
+          </p>
 
-          <input type="file" accept="image/*" onChange={handleCapaChange} className="mt-3 w-full text-xs" />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleCapaChange}
+            className="mt-3 w-full text-xs"
+          />
 
           {capaFile?.name && (
             <p className="mt-2 text-[11px] text-slate-600">
@@ -477,7 +502,7 @@ ${detalhesVeiculoTexto}
             </p>
           )}
           <p className="mt-2 text-[11px] text-slate-500">
-            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG. (Você já tem o esquema de reduzir/WEBP também 🔥)
+            Se der erro no upload: tente fotos menores (até ~2MB) e em JPG.
           </p>
         </div>
       </div>
@@ -485,7 +510,7 @@ ${detalhesVeiculoTexto}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Agência de veículos</h3>
         <p className="mt-1 text-[11px] text-slate-500">
-          Se você marcar, sua <b>logomarca</b> aparece como um <b>selo</b> no anúncio. A capa continua sendo a foto do veículo.
+          Se você marcar, sua <b>logomarca</b> aparece como um <b>selo</b> no anúncio.
         </p>
 
         <label className="mt-3 inline-flex items-start gap-2 text-xs text-slate-700">
@@ -509,7 +534,12 @@ ${detalhesVeiculoTexto}
             <label className="block text-[11px] font-semibold text-slate-700">
               Enviar logomarca (1 imagem) <span className="text-red-600">*</span>
             </label>
-            <input type="file" accept="image/*" onChange={handleLogoChange} className="mt-2 w-full text-xs" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="mt-2 w-full text-xs"
+            />
             {logoArquivo?.name && (
               <p className="mt-2 text-[11px] text-slate-600">
                 Logomarca selecionada: <b>{logoArquivo.name}</b>{" "}
@@ -522,18 +552,12 @@ ${detalhesVeiculoTexto}
                 </button>
               </p>
             )}
-            <p className="mt-2 text-[11px] text-slate-500">
-              Recomendado: PNG com fundo transparente (ou JPG). Até ~2MB.
-            </p>
           </div>
         )}
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Classificação do anúncio</h3>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Esses campos alimentam os cards: 0 km, Seminovos, Financiados, Consignados.
-        </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
@@ -549,7 +573,7 @@ ${detalhesVeiculoTexto}
               <option value="">Selecione…</option>
               <option value="usado">Usado</option>
               <option value="seminovo">Seminovo</option>
-              <option value="0km">0 km (zero quilômetro)</option>
+              <option value="0km">0 km</option>
             </select>
           </div>
 
@@ -558,12 +582,20 @@ ${detalhesVeiculoTexto}
 
             <div className="grid gap-2 text-xs text-slate-700">
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={isFinanciado} onChange={(e) => setIsFinanciado(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isFinanciado}
+                  onChange={(e) => setIsFinanciado(e.target.checked)}
+                />
                 <span>Financiado</span>
               </label>
 
               <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={isConsignado} onChange={(e) => setIsConsignado(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isConsignado}
+                  onChange={(e) => setIsConsignado(e.target.checked)}
+                />
                 <span>Consignado</span>
               </label>
             </div>
@@ -592,9 +624,6 @@ ${detalhesVeiculoTexto}
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] text-slate-500">
-              Isso vira <b>venda</b>, <b>troca</b> ou <b>aluguel</b> no banco.
-            </p>
           </div>
 
           <div>
@@ -616,14 +645,6 @@ ${detalhesVeiculoTexto}
             </select>
           </div>
         </div>
-
-        {finalidade === "Troca" && (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <p className="text-xs text-amber-800">
-              ℹ️ Você marcou <b>Troca</b>. Lembre de reforçar no texto o que aceita (carro, moto, volta em dinheiro, etc.).
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
@@ -883,7 +904,6 @@ ${detalhesVeiculoTexto}
                 required
               />
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">Digite números. Ex: 75000 → vira 75.000.</p>
           </div>
         </div>
       </div>
@@ -896,21 +916,15 @@ ${detalhesVeiculoTexto}
           <input
             type="text"
             className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Cole aqui o link do YouTube (youtube.com / youtu.be)"
+            placeholder="Cole aqui o link do YouTube"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
           />
-          {!isYoutubeUrl(videoUrl.trim()) && (
-            <p className="mt-2 text-[11px] text-red-600">A URL parece não ser do YouTube.</p>
-          )}
         </div>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-4 md:p-6">
         <h3 className="text-sm font-bold text-slate-900">Dados de contato</h3>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Pelo menos um canal (telefone, WhatsApp ou e-mail) precisa estar preenchido.
-        </p>
 
         <div className="mt-4">
           <label className="block text-[11px] font-semibold text-slate-700">Nome de contato</label>
@@ -972,7 +986,12 @@ ${detalhesVeiculoTexto}
             />
             <span>
               Declaro que todas as informações deste anúncio são verdadeiras e estou de acordo com os{" "}
-              <a href="/termos-de-uso" target="_blank" rel="noreferrer" className="underline font-semibold">
+              <a
+                href="/termos-de-uso"
+                target="_blank"
+                rel="noreferrer"
+                className="underline font-semibold"
+              >
                 Termos de Uso do Classilagos
               </a>
               .
