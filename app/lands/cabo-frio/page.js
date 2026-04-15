@@ -30,16 +30,39 @@ export default function CaboFrioPage() {
           O que você quer anunciar?
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div className="grid grid-cols-2 md:grid-cols-3 gap-5">
 
-          <Link href="/anunciar/imoveis" className="card">🏠 Imóveis</Link>
-          <Link href="/anunciar/veiculos" className="card">🚗 Veículos</Link>
-          <Link href="/anunciar/servicos" className="card">🧑‍🔧 Serviços</Link>
-          <Link href="/anunciar/empregos" className="card">💼 Empregos</Link>
-          <Link href="/anunciar/pets" className="card">🐶 Pets</Link>
-          <Link href="/anunciar/turismo" className="card">🌴 Turismo</Link>
+  <Link href="/anunciar/imoveis" className="card flex flex-col items-center">
+    <span className="text-3xl">🏠</span>
+    <span className="mt-2">Imóveis</span>
+  </Link>
 
-        </div>
+  <Link href="/anunciar/veiculos" className="card flex flex-col items-center">
+    <span className="text-3xl">🚗</span>
+    <span className="mt-2">Veículos</span>
+  </Link>
+
+  <Link href="/anunciar/servicos" className="card flex flex-col items-center">
+    <span className="text-3xl">🧑‍🔧</span>
+    <span className="mt-2">Serviços</span>
+  </Link>
+
+  <Link href="/anunciar/empregos" className="card flex flex-col items-center">
+    <span className="text-3xl">💼</span>
+    <span className="mt-2">Empregos</span>
+  </Link>
+
+  <Link href="/anunciar/pets" className="card flex flex-col items-center">
+    <span className="text-3xl">🐶</span>
+    <span className="mt-2">Pets</span>
+  </Link>
+
+  <Link href="/anunciar/turismo" className="card flex flex-col items-center">
+    <span className="text-3xl">🌴</span>
+    <span className="mt-2">Turismo</span>
+  </Link>
+
+</div>
       </section>
 
       {/* BENEFÍCIOS */}
