@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../../supabaseClient";
 import FormularioProfissionais from "../../../components/forms/FormularioProfissionais";
-
-function isPerfilCompleto(user) {
-  const meta = user?.user_metadata || {};
-  const nome = String(meta.nome || "").trim();
-  const cidade = String(meta.cidade || "").trim();
-  const whatsapp = String(meta.whatsapp || "").trim();
-  return Boolean(nome && cidade && whatsapp);
-}
 
 function getSrc() {
   try {
@@ -23,64 +13,14 @@ function getSrc() {
 }
 
 export default function AnunciarProfissionaisPage() {
-  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [isCampanha, setIsCampanha] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-
-    async function guard() {
-      try {
-        // ✅ decide campanha de forma síncrona (sem corrida)
-        const campanhaNow = getSrc() === "campanha";
-        if (alive) setIsCampanha(campanhaNow);
-
-        // ✅ next correto calculado com campanhaNow
-        const nextDestNow = campanhaNow
-          ? "/anunciar/servicos/profissionais?src=campanha"
-          : "/anunciar/servicos/profissionais";
-
-        const { data } = await supabase.auth.getUser();
-        const user = data?.user;
-
-        // ✅ não logado -> cadastro com next (e src só se for campanha)
-        if (!user) {
-          const url =
-            `/cadastro?next=${encodeURIComponent(nextDestNow)}` +
-            (campanhaNow ? `&src=campanha` : "");
-          router.replace(url);
-          return;
-        }
-
-        // ✅ CAMPANHA: libera sem exigir perfil completo
-        if (campanhaNow) {
-          if (!alive) return;
-          setReady(true);
-          return;
-        }
-
-        // 🔵 NORMAL: exige perfil completo
-        if (!isPerfilCompleto(user)) {
-          router.replace(`/perfil?next=${encodeURIComponent(nextDestNow)}`);
-          return;
-        }
-
-        if (!alive) return;
-        setReady(true);
-      } catch (e) {
-        console.error(e);
-        router.replace(
-          `/cadastro?next=${encodeURIComponent("/anunciar/servicos/profissionais")}`
-        );
-      }
-    }
-
-    guard();
-    return () => {
-      alive = false;
-    };
-  }, [router]);
+    const campanhaNow = getSrc() === "campanha";
+    setIsCampanha(campanhaNow);
+    setReady(true);
+  }, []);
 
   if (!ready) {
     return (
