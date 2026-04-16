@@ -53,8 +53,8 @@ export default function CaboFrioPage() {
             { nome: "Veículos", img: "/icons/veiculos.webp", link: "/anunciar/veiculos" },
             { nome: "Náutica", img: "/icons/nautica.webp", link: "/anunciar/nautica" },
             { nome: "Pets", img: "/icons/pets.webp", link: "/anunciar/pets" },
-            { nome: "Empregos", img: "/icons/empregos.webp", link: "/anunciar/empregos" },
-            { nome: "Serviços", img: "/icons/servicos.webp", link: "/anunciar/servicos" },
+            { nome: "Empregos", img: "/icons/empregos.webp", link: "/empregos" },
+            { nome: "Serviços", img: "/icons/servicos.webp", link: "/servicos" },
           ].map((item, index) => (
             <div
               key={index}
