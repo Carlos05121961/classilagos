@@ -392,6 +392,13 @@ export default function FormularioCurriculo() {
         return;
       }
 
+       // 🔥 CONVERSÃO GOOGLE ADS
+if (typeof window !== "undefined" && window.gtag) {
+  window.gtag('event', 'conversion', {
+    'send_to': 'AW-17865509628/j9HeCPy0w50cEPyV-MZC'
+  });
+}
+
       if (!user) {
         const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${inserted.id}`;
 
