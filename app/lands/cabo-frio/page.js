@@ -45,31 +45,32 @@ export default function CaboFrioPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* HERO */}
-      <section className="relative min-h-[78vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[82vh] flex items-center justify-center overflow-hidden">
         <img
           src="/images/cabo-frio-hero.jpg"
-          alt="Praia em Cabo Frio"
+          alt="Praia do Forte em Cabo Frio"
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-slate-950/35" />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/10 via-slate-900/20 to-slate-950/50" />
+        <div className="absolute inset-0 bg-slate-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/10 via-slate-950/25 to-slate-950/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-transparent to-slate-950/20" />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
           <div className="mx-auto max-w-4xl text-center text-white">
             <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs md:text-sm font-medium backdrop-blur-sm">
-              Cabo Frio • anúncios grátis para moradores, turistas e negócios locais
+              Praia do Forte • Cabo Frio
             </span>
 
-            <h1 className="mt-5 text-4xl md:text-6xl font-extrabold leading-tight">
-              Cabo Frio está cheio de oportunidades.
+            <h1 className="mt-5 text-4xl md:text-6xl font-extrabold leading-tight tracking-tight">
+              Cabo Frio merece
               <br className="hidden md:block" />
-              <span className="text-yellow-300">Seu anúncio também precisa aparecer.</span>
+              <span className="text-yellow-300">mais movimento, mais negócios e mais oportunidades.</span>
             </h1>
 
-            <p className="mt-5 text-base md:text-xl text-slate-100 max-w-3xl mx-auto">
-              Divulgue imóveis, veículos, serviços, vagas, currículos, pets e muito mais
-              em uma plataforma pensada para a Região dos Lagos.
+            <p className="mt-5 text-base md:text-xl text-slate-100 max-w-3xl mx-auto leading-relaxed">
+              Se você tem algo para vender, alugar, divulgar ou oferecer em Cabo Frio,
+              este é o momento de colocar sua oportunidade na vitrine certa.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -84,24 +85,19 @@ export default function CaboFrioPage() {
                 href="/home"
                 className="inline-flex min-w-[220px] items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
               >
-                Ver o Classilagos
+                Ver a plataforma
               </Link>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-3xl mx-auto">
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-sm font-semibold text-white">100% gratuito</p>
-                <p className="mt-1 text-xs text-slate-200">Cadastre seu anúncio sem custo.</p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:gap-4 text-[11px] md:text-sm text-slate-100">
+              <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-sm">
+                100% gratuito
               </div>
-
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-sm font-semibold text-white">Foco local</p>
-                <p className="mt-1 text-xs text-slate-200">Cabo Frio e toda a Região dos Lagos.</p>
+              <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-sm">
+                Publicação simples
               </div>
-
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-sm font-semibold text-white">Rápido de publicar</p>
-                <p className="mt-1 text-xs text-slate-200">Escolha a categoria e anuncie em minutos.</p>
+              <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-sm">
+                Foco em Cabo Frio
               </div>
             </div>
           </div>
@@ -113,16 +109,16 @@ export default function CaboFrioPage() {
         <div className="mx-auto max-w-6xl">
           <div className="text-center max-w-3xl mx-auto">
             <span className="inline-flex rounded-full bg-sky-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
-              Escolha o seu caminho
+              Escolha por onde começar
             </span>
 
-            <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-slate-900">
+            <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
               O que você quer anunciar em Cabo Frio?
             </h2>
 
-            <p className="mt-3 text-sm md:text-base text-slate-600">
-              Selecione a categoria ideal e publique seu anúncio de forma simples,
-              rápida e gratuita.
+            <p className="mt-3 text-sm md:text-base text-slate-600 leading-relaxed">
+              Imóveis, veículos, empregos, serviços, pets, náutica e muito mais.
+              Escolha sua categoria e publique de forma rápida e gratuita.
             </p>
           </div>
 
@@ -170,45 +166,46 @@ export default function CaboFrioPage() {
           <div className="grid gap-6 md:grid-cols-2 md:items-center">
             <div>
               <span className="inline-flex rounded-full bg-emerald-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                Mais visibilidade para sua cidade
+                Cabo Frio em evidência
               </span>
 
-              <h2 className="mt-4 text-2xl md:text-3xl font-extrabold text-slate-900">
-                Tem algo para vender, divulgar ou oferecer em Cabo Frio?
+              <h2 className="mt-4 text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Uma cidade forte merece oportunidades bem apresentadas
               </h2>
 
-              <p className="mt-3 text-sm md:text-base text-slate-600 max-w-2xl">
-                O Classilagos nasceu para aproximar negócios, profissionais, moradores
-                e visitantes da Região dos Lagos. Seu anúncio precisa estar onde as pessoas procuram.
+              <p className="mt-3 text-sm md:text-base text-slate-600 max-w-2xl leading-relaxed">
+                Cabo Frio tem turismo, comércio, serviços, imóveis, temporada,
+                circulação de pessoas e negócios o ano inteiro. Quando sua oferta aparece
+                do jeito certo, a chance de contato cresce.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                <p className="font-bold text-slate-900">Anúncio grátis</p>
+                <p className="font-bold text-slate-900">Mais visibilidade local</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Publique sem custo e comece a aparecer.
+                  Sua oportunidade aparece com foco na cidade.
                 </p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                <p className="font-bold text-slate-900">Cidade em foco</p>
+                <p className="font-bold text-slate-900">Entrada sem custo</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Mensagem local, mais conexão com o público.
+                  Comece anunciando grátis.
                 </p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                <p className="font-bold text-slate-900">Fluxo simples</p>
+                <p className="font-bold text-slate-900">Fluxo direto</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Escolha a categoria e vá direto ao anúncio.
+                  Escolha a categoria e vá direto ao formulário.
                 </p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                <p className="font-bold text-slate-900">Pensado para converter</p>
+                <p className="font-bold text-slate-900">Momento de crescimento</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Menos barreira, mais chances de publicar.
+                  Aproveite o começo para ganhar espaço primeiro.
                 </p>
               </div>
             </div>
@@ -220,16 +217,16 @@ export default function CaboFrioPage() {
       <section className="px-4 py-12 md:py-16">
         <div className="mx-auto max-w-5xl rounded-[2rem] bg-slate-900 px-6 py-10 md:px-10 md:py-14 text-center text-white shadow-xl">
           <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-200">
-            Lançamento Classilagos
+            Cabo Frio em movimento
           </span>
 
-          <h2 className="mt-4 text-3xl md:text-4xl font-extrabold">
-            Faça parte do começo em Cabo Frio
+          <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight">
+            Coloque sua oportunidade para aparecer
           </h2>
 
-          <p className="mt-3 max-w-2xl mx-auto text-sm md:text-base text-slate-300">
-            Seja um dos primeiros a anunciar gratuitamente e aproveite o momento
-            de crescimento da nova plataforma da Região dos Lagos.
+          <p className="mt-3 max-w-2xl mx-auto text-sm md:text-base text-slate-300 leading-relaxed">
+            Se a cidade está viva, seu anúncio também precisa estar.
+            Escolha uma categoria e publique agora, de forma simples e gratuita.
           </p>
 
           <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
