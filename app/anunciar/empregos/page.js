@@ -1,17 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import FormularioEmpregos from "../../components/forms/FormularioEmpregos";
-import { supabase } from "../../supabaseClient";
-
-function isPerfilCompleto(user) {
-  const meta = user?.user_metadata || {};
-  const nome = String(meta.nome || "").trim();
-  const cidade = String(meta.cidade || "").trim();
-  const whatsapp = String(meta.whatsapp || "").trim();
-  return Boolean(nome && cidade && whatsapp);
-}
 
 function getSrcFromUrl() {
   try {
@@ -23,56 +13,14 @@ function getSrcFromUrl() {
 }
 
 export default function AnunciarEmpregosPage() {
-  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [isLand, setIsLand] = useState(false);
 
-  const nextDest = useMemo(() => {
-    return isLand ? "/anunciar/empregos?src=land" : "/anunciar/empregos";
-  }, [isLand]);
-
   useEffect(() => {
-    let alive = true;
-
-    async function guard() {
-      try {
-        const isLandNow = getSrcFromUrl() === "land";
-        if (alive) setIsLand(isLandNow);
-
-        const { data } = await supabase.auth.getUser();
-        const user = data?.user;
-
-        // ✅ MODO LAND: libera
-        if (isLandNow) {
-          if (!alive) return;
-          setReady(true);
-          return;
-        }
-
-        // 🔵 MODO NORMAL
-        if (!user) {
-          router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
-          return;
-        }
-
-        if (!isPerfilCompleto(user)) {
-          router.replace(`/perfil?next=${encodeURIComponent(nextDest)}`);
-          return;
-        }
-
-        if (!alive) return;
-        setReady(true);
-      } catch (e) {
-        console.error(e);
-        router.replace(`/cadastro?next=${encodeURIComponent(nextDest)}`);
-      }
-    }
-
-    guard();
-    return () => {
-      alive = false;
-    };
-  }, [router, nextDest]);
+    const isLandNow = getSrcFromUrl() === "land";
+    setIsLand(isLandNow);
+    setReady(true);
+  }, []);
 
   if (!ready) {
     return (
