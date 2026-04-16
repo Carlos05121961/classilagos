@@ -52,8 +52,8 @@ export default function CaboFrioPage() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-slate-950/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/20 via-slate-900/30 to-slate-950/70" />
+        <div className="absolute inset-0 bg-slate-950/35" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/10 via-slate-900/20 to-slate-950/50" />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
           <div className="mx-auto max-w-4xl text-center text-white">
