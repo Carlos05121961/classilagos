@@ -7,14 +7,13 @@ import HeroCarousel from "../components/HeroCarousel";
 import BannerRotator from "../components/BannerRotator";
 import SmartSelect from "../components/SmartSelect";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../supabaseClient";
 
 export default function Home() {
   const router = useRouter();
 
-  // HERO (WEBP em /public/hero)
   const heroImages = [
     "/hero/home-01.webp",
     "/hero/home-02.webp",
@@ -22,7 +21,6 @@ export default function Home() {
     "/hero/home-04.webp",
   ];
 
-  // BANNERS
   const bannersTopo = [
     {
       src: "/banners/topo/banner-topo-01.webp",
@@ -79,7 +77,6 @@ export default function Home() {
     },
   ];
 
-  // ORDEM DOS ÍCONES
   const categorias = [
     { label: "Turismo", value: "turismo", href: "/turismo", icon: "/icons/turismo.webp" },
     { label: "Imóveis", value: "imoveis", href: "/imoveis", icon: "/icons/imoveis.webp" },
@@ -105,16 +102,26 @@ export default function Home() {
 
   const formatCategoria = (cat) => {
     switch (cat) {
-      case "imoveis": return "Imóveis";
-      case "veiculos": return "Veículos";
-      case "nautica": return "Náutica";
-      case "pets": return "Pets";
-      case "emprego": return "Empregos";
-      case "curriculo": return "Currículos";
-      case "servico": return "Serviços";
-      case "turismo": return "Turismo";
-      case "lagolistas": return "LagoListas";
-      default: return "Classificados";
+      case "imoveis":
+        return "Imóveis";
+      case "veiculos":
+        return "Veículos";
+      case "nautica":
+        return "Náutica";
+      case "pets":
+        return "Pets";
+      case "emprego":
+        return "Empregos";
+      case "curriculo":
+        return "Currículos";
+      case "servico":
+        return "Serviços";
+      case "turismo":
+        return "Turismo";
+      case "lagolistas":
+        return "LagoListas";
+      default:
+        return "Classificados";
     }
   };
 
@@ -126,17 +133,14 @@ export default function Home() {
     }
   };
 
-  // TV
-  const tvEmbedUrl = "https://www.youtube.com/embed/videoseries?list=PL2kE-amExmabP5AbWRs7IU8mGIu-HZF5n";
+  const tvEmbedUrl =
+    "https://www.youtube.com/embed/videoseries?list=PL2kE-amExmabP5AbWRs7IU8mGIu-HZF5n";
   const tvChannelUrl = "https://www.youtube.com/@classilagostv1370";
-
-  // GASTRONOMIA
   const guiaGastroHref = "/turismo?secao=onde_comer";
 
   const [guiaGastroItems, setGuiaGastroItems] = useState([]);
   const [loadingGuiaGastro, setLoadingGuiaGastro] = useState(true);
 
-  // BUSCA
   const [q, setQ] = useState("");
   const [categoria, setCategoria] = useState("");
   const [cidade, setCidade] = useState("");
@@ -156,7 +160,6 @@ export default function Home() {
     }
   };
 
-  // ✅ DESTAQUES — primeiro tenta destaque=true; se vazio, cai em recentes
   const [destaques, setDestaques] = useState([]);
   const [loadingDestaques, setLoadingDestaques] = useState(true);
 
@@ -197,10 +200,11 @@ export default function Home() {
     }
 
     carregarDestaques();
-    return () => { ativo = false; };
+    return () => {
+      ativo = false;
+    };
   }, []);
 
-  // ✅ NOTÍCIAS (texto puro)
   const [ultimasNoticias, setUltimasNoticias] = useState([]);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
 
@@ -218,7 +222,6 @@ export default function Home() {
         .limit(10);
 
       if (!ativo) return;
-
       if (errLista) console.error("Erro últimas notícias:", errLista);
 
       setUltimasNoticias(lista || []);
@@ -226,10 +229,11 @@ export default function Home() {
     }
 
     carregarNoticias();
-    return () => { ativo = false; };
+    return () => {
+      ativo = false;
+    };
   }, []);
 
-  // ✅ VITRINE PREMIUM — somente vitrine=true (curadoria manual)
   const [vitrineItems, setVitrineItems] = useState([]);
   const [loadingVitrine, setLoadingVitrine] = useState(true);
 
@@ -255,10 +259,11 @@ export default function Home() {
     }
 
     carregarVitrine();
-    return () => { ativo = false; };
+    return () => {
+      ativo = false;
+    };
   }, []);
 
-    // ✅ GUIA GASTRONÔMICO — todos os anúncios de turismo / onde_comer
   useEffect(() => {
     let ativo = true;
 
@@ -267,7 +272,9 @@ export default function Home() {
 
       const { data, error } = await supabase
         .from("anuncios")
-        .select("id, titulo, cidade, bairro, imagens, capa_url, created_at, subcategoria_turismo, pilar_turismo, categoria, status")
+        .select(
+          "id, titulo, cidade, bairro, imagens, capa_url, created_at, subcategoria_turismo, pilar_turismo, categoria, status"
+        )
         .eq("categoria", "turismo")
         .eq("pilar_turismo", "onde_comer")
         .eq("status", "ativo")
@@ -289,36 +296,21 @@ export default function Home() {
 
   return (
     <main className="bg-white">
-      {/* BANNER TOPO (rotator) */}
       <div className="py-4">
         <BannerRotator images={bannersTopo} interval={6000} height={120} maxWidth={720} />
       </div>
 
-      {/* HERO */}
       <section className="relative w-full">
         <HeroCarousel images={heroImages} interval={6000}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/35 via-slate-950/10 to-slate-950/45" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-10">
             <div className="text-center drop-shadow max-w-3xl">
-              <p
-                className="
-                  text-xs sm:text-sm md:text-base mb-3
-                  text-white/95
-                  [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]
-                "
-              >
+              <p className="text-xs sm:text-sm md:text-base mb-3 text-white/95 [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
                 O seu guia de compras, serviços, turismo e oportunidades em toda a Região dos Lagos.
               </p>
 
-              <h1
-                className="
-                  text-2xl sm:text-3xl md:text-4xl font-extrabold
-                  tracking-[0.08em] uppercase
-                  text-amber-400
-                  [text-shadow:0_6px_20px_rgba(0,0,0,0.85)]
-                "
-              >
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-[0.08em] uppercase text-amber-400 [text-shadow:0_6px_20px_rgba(0,0,0,0.85)]">
                 Classilagos – Região dos Lagos <br />
                 em um só lugar
               </h1>
@@ -327,9 +319,8 @@ export default function Home() {
         </HeroCarousel>
       </section>
 
-      {/* CAIXA DE BUSCA */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-700">
-        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-5">
+        <div className="max-w-5xl mx-auto px-4 -mt-6 sm:-mt-8 relative z-10 pb-5">
           <div className="rounded-3xl bg-slate-950/92 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.65)] px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,1fr,auto] gap-4 items-end text-xs md:text-sm">
               <div className="flex flex-col">
@@ -370,39 +361,121 @@ export default function Home() {
             </div>
           </div>
 
-          <p className="mt-2 text-[11px] text-center text-white/85">
+          <div className="mt-4">
+            <div className="rounded-[28px] bg-white border border-slate-200 shadow-lg px-3 py-4 sm:px-5 sm:py-5">
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 sm:gap-3">
+                {categorias.map((cat) => (
+                  <Link
+                    key={cat.href}
+                    href={cat.href}
+                    className="group flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-center transition hover:bg-slate-50"
+                  >
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-[68px] md:h-[68px]">
+                      <Image src={cat.icon} alt={cat.label} fill className="object-contain" />
+                    </div>
+
+                    <p className="mt-1.5 text-[11px] sm:text-[12px] md:text-[13px] font-semibold text-slate-700 leading-tight">
+                      {cat.label}
+                    </p>
+
+                    <span className="mt-0.5 text-[10px] font-medium text-cyan-700 group-hover:text-cyan-900">
+                      Abrir
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-3 text-[11px] text-center text-white/85">
             Agora a busca já direciona para a página de resultados.
           </p>
         </div>
       </section>
 
-      {/* PILARES */}
-      <section className="py-12 bg-[url('/fundobotoes.jpg')] bg-cover bg-center">
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {categorias.map((cat) => (
-              <Link
-                key={cat.href}
-                href={cat.href}
-                className="max-w-[150px] w-full mx-auto rounded-2xl bg-white border border-slate-200/80 shadow-md hover:shadow-lg hover:-translate-y-1 transition flex flex-col items-center justify-between py-3 px-2"
-              >
-                <div className="relative w-24 h-24 mb-1">
-                  <Image src={cat.icon} alt={cat.label} fill className="object-contain" />
-                </div>
-                <p className="text-center text-[13px] font-semibold text-slate-700">
-                  {cat.label}
-                </p>
-                <span className="text-[11px] text-cyan-700 font-medium hover:text-cyan-900">
-                  Abrir
-                </span>
-              </Link>
-            ))}
+      <section className="bg-white pt-7 pb-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
+              <p className="text-[11px] text-slate-500">
+                Lançamento: por um período, todos aparecem aqui e vão renovando automaticamente.
+              </p>
+            </div>
+
+            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
+              Anunciar →
+            </Link>
+          </div>
+
+          {loadingDestaques ? (
+            <p className="text-center text-slate-500">Carregando...</p>
+          ) : destaques.length === 0 ? (
+            <p className="text-center text-slate-500">
+              Ainda não há anúncios. Seja o primeiro a anunciar!
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {destaques.map((item) => {
+                const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
+                const primeiraImagem =
+                  imagensValidas.length > 0 ? String(imagensValidas[0] || "") : "";
+
+                const cat = String(item.categoria || "").toLowerCase();
+                const isCurriculo = cat === "curriculo";
+                const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png" : "");
+
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/anuncios/${item.id}`}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
+                  >
+                    <div className="relative w-full h-32 bg-slate-900/85 flex items-center justify-center">
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt={item.titulo}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const categoriaAtual = String(item.categoria || "").toLowerCase();
+                            if (categoriaAtual === "curriculo") {
+                              e.currentTarget.src = "/curriculos/avatar-curriculo.png";
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
+                      )}
+                    </div>
+
+                    <div className="p-3 space-y-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
+                        • Destaque
+                      </span>
+                      <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
+                      <p className="text-[11px] text-slate-600">
+                        {formatCategoria(item.categoria)} • {item.cidade}
+                      </p>
+                      {item.preco && (
+                        <p className="text-[11px] font-semibold text-slate-900">R$ {item.preco}</p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 text-center sm:hidden">
+            <Link href="/anunciar" className="text-[11px] font-semibold text-cyan-700">
+              Anunciar →
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* VITRINE PREMIUM */}
-      <section className="bg-white -mt-2 pb-8">
+      <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-3">
             <div>
@@ -472,88 +545,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DESTAQUES (LANÇAMENTO) */}
       <section className="bg-white pb-10">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Anúncios em destaque</h2>
-              <p className="text-[11px] text-slate-500">
-                Lançamento: por um período, todos aparecem aqui e vão renovando automaticamente.
-              </p>
-            </div>
-
-            <Link href="/anunciar" className="hidden sm:inline-block text-[11px] font-semibold text-cyan-700">
-              Anunciar →
-            </Link>
-          </div>
-
-          {loadingDestaques ? (
-            <p className="text-center text-slate-500">Carregando...</p>
-          ) : destaques.length === 0 ? (
-            <p className="text-center text-slate-500">
-              Ainda não há anúncios. Seja o primeiro a anunciar!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {destaques.map((item) => {
-          const imagensValidas = Array.isArray(item.imagens) ? item.imagens : [];
-const primeiraImagem = imagensValidas.length > 0 ? String(imagensValidas[0] || "") : "";
-
-const cat = String(item.categoria || "").toLowerCase();
-const isCurriculo = cat === "curriculo"; // ✅ só currículos
-
-const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png" : "");
-
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/anuncios/${item.id}`}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition overflow-hidden flex flex-col"
-                  >
-                    <div className="relative w-full h-28 bg-slate-900/85 flex items-center justify-center">
-                      {thumb ? (
-<img
-  src={thumb}
-  alt={item.titulo}
-  className="w-full h-full object-cover"
-  onError={(e) => {
-    const cat = String(item.categoria || "").toLowerCase();
-    if (cat === "curriculo") {
-      e.currentTarget.src = "/curriculos/avatar-curriculo.png";
-    }
-  }}
-/>
-                      ) : (
-                        <span className="text-[11px] text-slate-200">Imagem do anúncio</span>
-                      )}
-                    </div>
-
-                    <div className="p-3 space-y-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
-                        • Destaque
-                      </span>
-                      <h3 className="text-sm font-semibold line-clamp-2">{item.titulo}</h3>
-                      <p className="text-[11px] text-slate-600">
-                        {formatCategoria(item.categoria)} • {item.cidade}
-                      </p>
-                      {item.preco && (
-                        <p className="text-[11px] font-semibold text-slate-900">R$ {item.preco}</p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ✅ HOME – BLOCO 3 COLUNAS (ALTURA CONTROLADA / PROFISSIONAL) */}
-      <section className="bg-white pb-10 -mt-4">
-        <div className="max-w-7xl mx-auto px-4">
           <div className="grid gap-4 md:grid-cols-3 items-stretch">
-            {/* ESQUERDA — ÚLTIMAS NOTÍCIAS (texto / rolagem interna) */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
               <div className="p-5 pb-3">
                 <div className="flex items-center justify-between">
@@ -563,11 +557,10 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
                   </Link>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-600">
-                  O que saiu agora na Região dos Lagos (últimas publicações).
+                  O que saiu agora na Região dos Lagos.
                 </p>
               </div>
 
-              {/* área rolável */}
               <div className="px-5 pb-5 flex-1 overflow-auto">
                 <div className="space-y-3">
                   {loadingNoticias ? (
@@ -599,7 +592,6 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
               </div>
             </div>
 
-            {/* MEIO — TV (altura controlada, vídeo centralizado) */}
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-[430px] flex flex-col">
               <div className="p-5 pb-3">
                 <div className="flex items-center justify-between">
@@ -641,7 +633,6 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
               </div>
             </div>
 
-            {/* DIREITA — GUIA GASTRONÔMICO (dinâmico) */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 shadow-sm overflow-hidden h-[430px] flex flex-col">
               <div className="p-5 pb-3">
                 <div className="flex items-center justify-between">
@@ -730,14 +721,10 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
-
-      {/* ✅ BANNER RODAPÉ (HOME) — acima da tarja */}
       <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4">
           <BannerRotator
@@ -749,7 +736,6 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
         </div>
       </section>
 
-      {/* TARJA PREMIUM – Empregos e Currículos */}
       <section className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between gap-4 mb-4">
@@ -819,4 +805,3 @@ const thumb = primeiraImagem || (isCurriculo ? "/curriculos/avatar-curriculo.png
     </main>
   );
 }
-
