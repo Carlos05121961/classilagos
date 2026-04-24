@@ -28,7 +28,7 @@ export default function CarlosSoaresPage() {
 
             <div className="flex flex-col gap-4 sm:flex-row">
               <a
-                href="https://wa.me/5521967463576"
+                href="https://wa.me/5521967463576?text=Olá%20Carlos,%20gostaria%20de%20contratar%20um%20show."
                 target="_blank"
                 className="rounded-full bg-green-500 px-7 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-green-600"
               >
