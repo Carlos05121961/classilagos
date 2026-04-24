@@ -236,7 +236,7 @@ export default function CarlosSoaresPage() {
           </h2>
 
           <div className="grid gap-5 md:grid-cols-3">
-            {[1, 2, 3, 4].map((foto) => (
+            [1, 2, 3, 4, 5, 6].map((foto) => (
               <div
                 key={foto}
                 className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-xl"
