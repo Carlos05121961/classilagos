@@ -273,6 +273,50 @@ export default function CarlosSoaresPage() {
           </a>
         </div>
       </section>
+              
+{/* RODAPÉ */}
+<footer className="bg-[#050505] border-t border-white/10 px-6 py-10">
+  <div className="mx-auto max-w-6xl flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h3 className="text-2xl font-black text-white">
+        Carlos Soares
+      </h3>
+
+      <p className="mt-2 text-sm text-zinc-400">
+        Música, cultura e emoção inspiradas em Maricá.
+      </p>
+    </div>
+
+    <div className="flex flex-col gap-2 text-sm text-zinc-400 md:text-right">
+      <p>
+        Projeto artístico: <span className="text-white">Maricá em Canção</span>
+      </p>
+
+      <p>
+        Contato:{" "}
+        <a
+          href="https://wa.me/5521967463576"
+          target="_blank"
+          className="text-green-400 hover:text-green-300"
+        >
+          WhatsApp
+        </a>
+      </p>
+
+      <p className="text-zinc-500">
+        © {new Date().getFullYear()} Carlos Soares
+      </p>
+
+      <p className="text-zinc-600">
+        Produzido por Classilagos Digital
+      </p>
+    </div>
+  </div>
+</footer>
+
+276 </main>
+277 );
+278 }
     </main>
   );
 }
