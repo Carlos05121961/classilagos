@@ -313,10 +313,7 @@ export default function CarlosSoaresPage() {
     </div>
   </div>
 </footer>
-
-276 </main>
-277 );
-278 }
-    </main>
-  );
+</main>
+);
 }
+
