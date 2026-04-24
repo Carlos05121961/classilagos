@@ -253,26 +253,29 @@ export default function CarlosSoaresPage() {
 </section>
 
       {/* CTA FINAL */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 px-6 py-20 text-center">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-5 text-4xl font-black md:text-5xl">
-            Leve Carlos Soares para o seu evento
-          </h2>
+<section className="relative overflow-hidden bg-gradient-to-r from-black via-zinc-900 to-black px-6 py-20 text-center">
+  
+  {/* efeito de luz suave */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,200,100,0.15),transparent_70%)]"></div>
 
-          <p className="mb-8 text-xl text-white/90">
-            Shows, eventos culturais, apresentações especiais, escolas, projetos
-            e ações institucionais.
-          </p>
+  <div className="relative z-10 mx-auto max-w-4xl">
+    <h2 className="mb-5 text-4xl font-black md:text-5xl text-white">
+      Leve Carlos Soares para o seu evento
+    </h2>
 
-          <a
-            href="https://wa.me/5521967463576"
-            target="_blank"
-            className="inline-flex rounded-full bg-white px-9 py-4 text-xl font-black text-green-700 shadow-xl transition hover:scale-105"
-          >
-            📲 Falar no WhatsApp
-          </a>
-        </div>
-      </section>
+    <p className="mb-8 text-xl text-zinc-300">
+      Shows, eventos culturais, apresentações especiais, escolas, projetos e ações institucionais.
+    </p>
+
+    <a
+      href="https://wa.me/5521967463576"
+      target="_blank"
+      className="inline-flex rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 px-9 py-4 text-xl font-black text-black shadow-xl transition hover:scale-105"
+    >
+      📲 Falar no WhatsApp
+    </a>
+  </div>
+</section>
               
 {/* RODAPÉ */}
 <footer className="bg-[#050505] border-t border-white/10 px-6 py-10">
