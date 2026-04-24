@@ -224,33 +224,33 @@ export default function CarlosSoaresPage() {
         </div>
       </section>
 
-      {/* GALERIA */}
-      <section className="bg-black px-6 py-20">
-        <div className="mx-auto max-w-6xl">
-          <p className="mb-3 text-center text-sm font-bold uppercase tracking-[0.3em] text-green-400">
-            Memória visual
-          </p>
+{/* GALERIA */}
+<section className="bg-black px-6 py-20">
+  <div className="mx-auto max-w-6xl">
+    <p className="mb-3 text-center text-sm font-bold uppercase tracking-[0.3em] text-green-400">
+      Memória visual
+    </p>
 
-          <h2 className="mb-10 text-center text-4xl font-black">
-            Galeria
-          </h2>
+    <h2 className="mb-10 text-center text-4xl font-black">
+      Galeria
+    </h2>
 
-          <div className="grid gap-5 md:grid-cols-3">
-            [1, 2, 3, 4, 5, 6].map((foto) => (
-              <div
-                key={foto}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-xl"
-              >
-                <img
-                  src={`/digital/carlos-soares/galeria/${foto}.jpg`}
-                  alt={`Carlos Soares galeria ${foto}`}
-                  className="h-80 w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            ))}
-          </div>
+    <div className="grid gap-5 md:grid-cols-3">
+      {[1, 2, 3, 4, 5, 6].map((foto) => (
+        <div
+          key={foto}
+          className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-xl"
+        >
+          <img
+            src={`/digital/carlos-soares/galeria/${foto}.jpg`}
+            alt={`Carlos Soares galeria ${foto}`}
+            className="h-72 w-full object-cover transition duration-500 hover:scale-105 md:h-80"
+          />
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* CTA FINAL */}
       <section className="relative overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 px-6 py-20 text-center">
