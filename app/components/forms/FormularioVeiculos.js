@@ -332,10 +332,10 @@ ${detalhesVeiculoTexto}
         return;
       }
 
-      // 🔥 CONVERSÃO GOOGLE ADS
+// 🔥 CONVERSÃO GOOGLE ADS - ENVIO DE ANÚNCIO
 if (typeof window !== "undefined" && window.gtag) {
-  window.gtag('event', 'conversion', {
-    'send_to': 'AW-17865509628/j9HeCPy0w50cEPyV-MZC'
+  window.gtag("event", "conversion", {
+    send_to: "AW-17865509628/7DbwCP6zhaQcEPyV-MZC",
   });
 }
 
