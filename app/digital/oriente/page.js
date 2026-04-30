@@ -4,8 +4,7 @@ export const metadata = {
     "Armazém Oriente. Mercado completo com ofertas, hortifruti, padaria, frios, carnes, bebidas e economia para sua casa.",
   openGraph: {
     title: "Armazém Oriente",
-    description:
-      "Qualidade, variedade e economia no seu mercado de confiança.",
+    description: "Qualidade, variedade e economia no seu mercado de confiança.",
     images: ["/digital/oriente/oriente-hero.webp"],
   },
 };
@@ -34,7 +33,7 @@ export default function OrientePage() {
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/25 to-transparent" />
 
         <div className="relative z-10 mx-auto flex min-h-[76vh] max-w-6xl flex-col justify-center px-5 py-20 text-white">
           <span className="mb-4 w-fit rounded-full bg-yellow-400 px-5 py-2 text-sm font-black text-red-700 shadow-lg">
@@ -71,74 +70,73 @@ export default function OrientePage() {
       {/* TARJA */}
       <section className="bg-red-700 px-5 py-6 text-center text-white">
         <p className="text-lg font-black md:text-xl">
-          <p className="text-lg font-black md:text-xl">
-  🛒 Ofertas, produtos frescos e atendimento de bairro, com a confiança que{" "}
-  <span className="text-yellow-300">Cajú</span>,{" "}
-  <span className="text-yellow-300">Jacaroá</span> e{" "}
-  <span className="text-yellow-300">Amizade</span> já conhecem.
+          🛒 Ofertas, produtos frescos e atendimento de bairro, com a confiança que{" "}
+          <span className="text-yellow-300">Cajú</span>,{" "}
+          <span className="text-yellow-300">Jacaroá</span> e{" "}
+          <span className="text-yellow-300">Amizade</span> já conhecem.
         </p>
       </section>
 
-      {/* SETORES */}
-      <section className="bg-white px-5 py-12">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {setores.map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="text-4xl">{item.icon}</div>
-              <h3 className="mt-3 text-lg font-black text-red-700">
-                {item.title}
-              </h3>
-              <p className="font-bold text-slate-700">{item.text}</p>
-            </div>
-          ))}
+      {/* SETORES COMPACTOS */}
+      <section className="bg-slate-50 px-5 py-8">
+        <div className="mx-auto max-w-6xl overflow-x-auto">
+          <div className="flex gap-4 pb-2">
+            {setores.map((item) => (
+              <div
+                key={item.title}
+                className="min-w-[160px] flex-shrink-0 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <div className="text-2xl">{item.icon}</div>
+                <h3 className="mt-2 text-sm font-black text-red-700">
+                  {item.title}
+                </h3>
+                <p className="text-xs font-bold text-slate-600">{item.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-{/* BLOCO PREMIUM CARRINHO */}
-<section className="bg-white px-5 py-20">
-  <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
-    
-    {/* IMAGEM */}
-    <div className="flex justify-center">
-      <img
-        src="/digital/oriente/oriente-carrinho.webp"
-        alt="Carrinho de compras cheio"
-        className="w-full max-w-md drop-shadow-2xl"
-      />
-    </div>
+      {/* BLOCO PREMIUM CARRINHO */}
+      <section className="bg-white px-5 py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
+          <div className="flex justify-center">
+            <img
+              src="/digital/oriente/oriente-carrinho.webp"
+              alt="Carrinho de compras cheio"
+              className="w-full max-w-md drop-shadow-2xl"
+            />
+          </div>
 
-    {/* TEXTO */}
-    <div>
-      <span className="text-sm font-black uppercase tracking-widest text-red-700">
-        Seu mercado completo
-      </span>
+          <div>
+            <span className="text-sm font-black uppercase tracking-widest text-red-700">
+              Seu mercado completo
+            </span>
 
-      <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">
-        Mais qualidade e economia no seu bolso
-      </h2>
+            <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">
+              Mais qualidade e economia no seu bolso
+            </h2>
 
-      <p className="mt-5 text-lg leading-relaxed text-slate-700">
-        Aqui você encontra tudo que precisa para sua casa: alimentos, bebidas,
-        produtos de limpeza, higiene pessoal, padaria, frios, hortifruti e muito mais.
-      </p>
+            <p className="mt-5 text-lg leading-relaxed text-slate-700">
+              Aqui você encontra tudo que precisa para sua casa: alimentos,
+              bebidas, produtos de limpeza, higiene pessoal, padaria, frios,
+              hortifruti e muito mais.
+            </p>
 
-      <p className="mt-3 text-lg font-bold text-slate-800">
-        Tudo com preços justos e aquele atendimento próximo que você merece.
-      </p>
+            <p className="mt-3 text-lg font-bold text-slate-800">
+              Tudo com preços justos e aquele atendimento próximo que você merece.
+            </p>
 
-      <a
-        href="https://wa.me/5521980149773"
-        target="_blank"
-        className="mt-6 inline-block rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-xl transition hover:bg-green-600"
-      >
-        Fazer pedido no WhatsApp
-      </a>
-    </div>
-  </div>
-</section>
+            <a
+              href={whatsapp}
+              target="_blank"
+              className="mt-6 inline-block rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-xl transition hover:bg-green-600"
+            >
+              Fazer pedido no WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* GALERIA */}
       <section className="bg-slate-50 px-5 py-16">
