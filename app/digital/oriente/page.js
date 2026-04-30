@@ -34,7 +34,7 @@ export default function OrientePage() {
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
+  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
 
         <div className="relative z-10 mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-center px-5 py-20 text-white">
           <span className="mb-4 w-fit rounded-full bg-yellow-400 px-4 py-2 text-sm font-bold text-red-700 shadow-lg">
