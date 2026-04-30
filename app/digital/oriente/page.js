@@ -93,33 +93,48 @@ export default function OrientePage() {
         </div>
       </section>
 
-      {/* CARRINHO */}
-      <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:items-center">
-        <div className="relative rounded-[2rem] bg-gradient-to-br from-yellow-100 to-white p-8 shadow-xl">
-          <div className="text-center text-8xl">🛒</div>
-          <div className="mt-4 text-center text-4xl">🍎 🥖 🧀 🥩 🥤</div>
-        </div>
+{/* BLOCO PREMIUM CARRINHO */}
+<section className="bg-white px-5 py-20">
+  <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
+    
+    {/* IMAGEM */}
+    <div className="flex justify-center">
+      <img
+        src="/digital/oriente/oriente-carrinho.webp"
+        alt="Carrinho de compras cheio"
+        className="w-full max-w-md drop-shadow-2xl"
+      />
+    </div>
 
-        <div>
-          <span className="text-sm font-black uppercase tracking-widest text-red-700">
-            Seu mercado completo
-          </span>
+    {/* TEXTO */}
+    <div>
+      <span className="text-sm font-black uppercase tracking-widest text-red-700">
+        Seu mercado completo
+      </span>
 
-          <h2 className="mt-3 text-3xl font-black md:text-4xl">
-            Mais qualidade e economia no seu bolso
-          </h2>
+      <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">
+        Mais qualidade e economia no seu bolso
+      </h2>
 
-          <p className="mt-5 text-lg leading-relaxed text-slate-700">
-            Aqui você encontra tudo que precisa para sua casa: alimentos,
-            bebidas, produtos de limpeza, higiene pessoal, padaria, frios,
-            hortifruti e muito mais.
-          </p>
+      <p className="mt-5 text-lg leading-relaxed text-slate-700">
+        Aqui você encontra tudo que precisa para sua casa: alimentos, bebidas,
+        produtos de limpeza, higiene pessoal, padaria, frios, hortifruti e muito mais.
+      </p>
 
-          <p className="mt-3 text-lg font-bold text-slate-800">
-            Tudo com preços justos e aquele atendimento próximo que você merece.
-          </p>
-        </div>
-      </section>
+      <p className="mt-3 text-lg font-bold text-slate-800">
+        Tudo com preços justos e aquele atendimento próximo que você merece.
+      </p>
+
+      <a
+        href="https://wa.me/5521980149773"
+        target="_blank"
+        className="mt-6 inline-block rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-xl transition hover:bg-green-600"
+      >
+        Fazer pedido no WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
 
       {/* GALERIA */}
       <section className="bg-slate-50 px-5 py-16">
