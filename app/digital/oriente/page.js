@@ -71,7 +71,11 @@ export default function OrientePage() {
       {/* TARJA */}
       <section className="bg-red-700 px-5 py-6 text-center text-white">
         <p className="text-lg font-black md:text-xl">
-          🛒 Ofertas, produtos frescos e atendimento de bairro, com a confiança que o Cajú, Jacaroá e Amizade já conhecem.
+          <p className="text-lg font-black md:text-xl">
+  🛒 Ofertas, produtos frescos e atendimento de bairro, com a confiança que{" "}
+  <span className="text-yellow-300">Cajú</span>,{" "}
+  <span className="text-yellow-300">Jacaroá</span> e{" "}
+  <span className="text-yellow-300">Amizade</span> já conhecem.
         </p>
       </section>
 
