@@ -4,7 +4,7 @@ export const metadata = {
   openGraph: {
     title: "Armazém Oriente",
     description: "Qualidade, variedade e preço baixo em Jacaroá.",
-    images: ["/oriente/oriente-hero.webp"],
+    images: ["/digital/oriente/oriente-hero.webp"],
   },
 };
 
@@ -15,7 +15,7 @@ export default function OrientePage() {
       {/* HERO */}
       <section className="relative h-[60vh] w-full">
         <img
-          src="/oriente/oriente-hero.webp"
+          src="/digital/oriente/oriente-hero.webp"
           alt="Armazém Oriente"
           className="w-full h-full object-cover"
         />
@@ -60,7 +60,7 @@ export default function OrientePage() {
           {Array.from({ length: 12 }).map((_, i) => (
             <img
               key={i}
-              src={`/oriente/oriente-galeria-${i + 1}.webp`}
+              src={`/digital/oriente/oriente-galeria-${i + 1}.webp`}
               alt="Armazém Oriente"
               className="rounded-lg shadow"
             />
