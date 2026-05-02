@@ -257,12 +257,21 @@ Instagram: ${instagram || "-"}
         return;
       }
 
-// 🔥 CONVERSÃO GOOGLE ADS - ENVIO DE ANÚNCIO
-if (typeof window !== "undefined" && window.gtag) {
-  window.gtag("event", "conversion", {
-    send_to: "AW-17865509628/7DbwCP6zhaQcEPyV-MZC",
-  });
-}
+      // 🔥 FUNÇÃO DE CONVERSÃO (SEGURA)
+      function dispararConversaoGoogleAds() {
+        if (typeof window !== "undefined" && typeof window.gtag === "function") {
+          window.gtag("event", "conversion", {
+            send_to: "AW-17865509628/7DbwCP6zhaQcEPyV-MZC",
+          });
+
+          console.log("✅ Conversão Google Ads disparada");
+        } else {
+          console.warn("⚠️ gtag não encontrado. Conversão não disparada.");
+        }
+      }
+
+      // 🔥 DISPARA CONVERSÃO
+      dispararConversaoGoogleAds();
 
       if (!user) {
         const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
