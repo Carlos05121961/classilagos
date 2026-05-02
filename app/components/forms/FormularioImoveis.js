@@ -336,12 +336,16 @@ ${detalhesImovelTexto}
         return;
       }
 
-// 🔥 CONVERSÃO GOOGLE ADS - ENVIO DE ANÚNCIO
-if (typeof window !== "undefined" && window.gtag) {
-  window.gtag("event", "conversion", {
-    send_to: "AW-17865509628/7DbwCP6zhaQcEPyV-MZC",
-  });
-}
+      // 🔥 CONVERSÃO GOOGLE ADS - ENVIO REAL DE IMÓVEL
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", "conversion", {
+          send_to: "AW-17865509628/7DbwCP6zhaQcEPyV-MZC",
+        });
+
+        console.log("✅ Conversão disparada - imóveis");
+      } else {
+        console.warn("⚠️ gtag não encontrado");
+      }
 
       if (!user) {
         const redirectTo = `${window.location.origin}/auth/confirmar-anuncio?anuncio=${data.id}`;
