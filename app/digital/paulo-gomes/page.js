@@ -24,13 +24,13 @@ export default function PauloGomesPage() {
   return (
     <main className="bg-[#f8f5ef] text-slate-900">
       {/* HERO */}
-      <section className="relative min-h-[85vh] w-full overflow-hidden">
+      <section className="relative min-h-[78vh] w-full overflow-hidden md:min-h-[85vh]">
         <Image
           src="/digital/paulo-gomes/hero-paulo.webp"
           alt="Paulo Gomes pintando aquarela em Paraty"
           fill
           priority
-          className="object-cover"
+         className="object-cover object-[58%_center] md:object-center"
         />
 
         <div className="absolute inset-0 bg-black/55" />
@@ -41,7 +41,7 @@ export default function PauloGomesPage() {
               Paraty • Aquarela • Plein Air
             </p>
 
-            <h1 className="text-5xl font-bold text-white md:text-7xl">
+           <h1 className="text-4xl font-bold leading-tight text-white md:text-7xl">
               Paulo Gomes
             </h1>
 
@@ -54,7 +54,7 @@ export default function PauloGomesPage() {
               as paisagens, o casario, as marinhas e a alma histórica de Paraty.
             </p>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#galeria"
                 className="rounded-full bg-white px-8 py-3 text-sm font-bold text-black transition hover:bg-amber-100"
