@@ -339,8 +339,9 @@ ${detalhesVeiculoTexto}
         });
 
         console.log("✅ Conversão disparada - veículos");
-      } else {
-        console.warn("⚠️ gtag não encontrado");
+} else {
+  console.warn("⚠️ gtag não encontrado");
+}
      
 
       if (!user) {
