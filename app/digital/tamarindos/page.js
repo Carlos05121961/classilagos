@@ -135,9 +135,9 @@ E-mail: ${form.email || "não informado"}`;
             Maricá • Lagoa de Araçatiba
           </p>
 
-          <h1 className="max-w-3xl text-2xl font-extrabold leading-tight md:text-4xl"
-            Hospede-se de frente para a lagoa
-          </h1>
+<h1 className="max-w-3xl text-2xl font-extrabold leading-tight md:text-4xl">
+  Hospede-se de frente para a lagoa
+</h1>
 
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 md:mt-5 md:text-xl">
             Conforto, café da manhã incluso e localização privilegiada em uma
