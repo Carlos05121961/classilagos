@@ -139,7 +139,7 @@ Dados da pré-reserva:
   <img
     src="/digital/tamarindos/tamarindos-logo-premium.png"
     alt="Pousada Tamarindos Maricá"
-    className="mx-auto h-auto w-[175px] md:w-[320px]"
+   className="mx-auto mb-6 h-auto w-[210px] -translate-y-6 drop-shadow-[0_0_18px_rgba(255,255,255,0.45)] md:w-[360px]"
   />
 </div>
 
