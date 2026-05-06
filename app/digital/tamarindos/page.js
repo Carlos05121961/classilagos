@@ -99,7 +99,7 @@ E-mail: ${form.email || "não informado"}`;
       {/* HERO */}
       <section className="relative min-h-[82vh] overflow-hidden bg-black md:min-h-[90vh]">
         <img
-          src="/digital/tamarindos/hero-pousada.webp"
+        src="/digital/tamarindos/hero-lagoa.webp"
           alt="Pousada Tamarindos em Maricá"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
@@ -108,13 +108,13 @@ E-mail: ${form.email || "não informado"}`;
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/5 to-black/60" />
 
         <div className="relative z-10 mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-5 py-10 text-center text-white md:min-h-[90vh]">
-          <div className="mb-5 rounded-3xl bg-white px-6 py-4 shadow-2xl md:mb-7 md:px-10 md:py-5">
-            <img
-              src="/digital/tamarindos/tamarindos-logo.webp"
-              alt="Pousada Tamarindos Maricá"
-              className="mx-auto h-auto w-[230px] md:w-[360px]"
-            />
-          </div>
+<div className="mb-4 rounded-2xl bg-white/95 px-5 py-3 shadow-xl md:mb-6 md:rounded-3xl md:px-9 md:py-5">
+  <img
+    src="/digital/tamarindos/tamarindos-logo.webp"
+    alt="Pousada Tamarindos Maricá"
+    className="mx-auto h-auto w-[175px] md:w-[320px]"
+  />
+</div>
 
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.42em] text-yellow-200 md:text-sm">
             Maricá • Lagoa de Araçatiba
