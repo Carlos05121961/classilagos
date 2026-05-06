@@ -137,7 +137,7 @@ Dados da pré-reserva:
        <div className="relative z-10 mx-auto flex min-h-[62vh] max-w-6xl flex-col items-center justify-center px-5 py-10 text-center text-white md:min-h-[90vh]">
 <div className="mb-3 md:mb-5">
   <img
-    src="/digital/tamarindos/tamarindos-logo.webp"
+    src="/digital/tamarindos/tamarindos-logo-premium.png"
     alt="Pousada Tamarindos Maricá"
     className="mx-auto h-auto w-[175px] md:w-[320px]"
   />
