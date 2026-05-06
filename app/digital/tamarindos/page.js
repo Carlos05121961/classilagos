@@ -143,15 +143,15 @@ Dados da pré-reserva:
   />
 </div>
 
-<p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.42em] text-yellow-200 md:text-sm">
+<p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.42em] text-yellow-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)] md:text-sm">
   Maricá • Lagoa de Araçatiba
 </p>
 
-<h1 className="max-w-3xl text-2xl font-extrabold leading-tight text-white md:text-4xl">
+<h1 className="max-w-3xl text-2xl font-extrabold leading-tight text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.65)] md:text-4xl">
   Hospede-se de frente para a lagoa
 </h1>
 
-<p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 md:mt-5 md:text-xl">
+<p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] md:mt-5 md:text-xl">
   Conforto, café da manhã incluso e localização privilegiada em uma
   das paisagens mais bonitas de Maricá.
 </p>
