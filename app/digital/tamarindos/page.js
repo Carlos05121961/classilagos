@@ -67,6 +67,7 @@ E-mail: ${form.email || "não informado"}`;
     "Churrasqueira",
     "Salão para eventos",
     "Próximo ao centro",
+    "Praias e lagoas",
   ];
 
   const quartos = [
