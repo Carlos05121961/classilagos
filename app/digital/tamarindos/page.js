@@ -114,7 +114,7 @@ E-mail: ${form.email || "não informado"}`;
       {/* HERO */}
       <section className="relative min-h-[82vh] overflow-hidden bg-black md:min-h-[90vh]">
         <img
-        src="/digital/tamarindos/hero-lagoa.webp"
+        src={heroImages[heroAtual]}
           alt="Pousada Tamarindos em Maricá"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
