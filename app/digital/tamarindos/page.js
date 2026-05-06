@@ -33,15 +33,26 @@ useEffect(() => {
   }
 
   function enviarWhatsapp() {
-    const mensagem = `Olá! Gostaria de consultar disponibilidade na Pousada Tamarindos.
+function formatarData(data) {
+  if (!data) return "não informado";
 
-Check-in: ${form.checkin || "não informado"}
-Check-out: ${form.checkout || "não informado"}
-Hóspedes: ${form.hospedes}
-Acomodação: ${form.acomodacao}
-Nome: ${form.nome || "não informado"}
-WhatsApp: ${form.whatsapp || "não informado"}
-E-mail: ${form.email || "não informado"}`;
+  const [ano, mes, dia] = data.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+const mensagem = `Olá! Gostaria de consultar disponibilidade na Pousada Tamarindos.
+
+Dados da pré-reserva:
+
+📅 Check-in: ${formatarData(form.checkin)}
+📅 Check-out: ${formatarData(form.checkout)}
+
+👥 Hóspedes: ${form.hospedes}
+🛏️ Acomodação: ${form.acomodacao}
+
+🙍 Nome: ${form.nome || "não informado"}
+📱 WhatsApp: ${form.whatsapp || "não informado"}
+📧 E-mail: ${form.email || "não informado"}`;
 
     const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
       mensagem
