@@ -17,6 +17,16 @@ export default function TamarindosPage() {
     email: "",
   });
 
+  const [heroAtual, setHeroAtual] = useState(0);
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setHeroAtual((prev) => (prev === 0 ? 1 : 0));
+  }, 5000);
+
+  return () => clearInterval(timer);
+}, []);
+
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
