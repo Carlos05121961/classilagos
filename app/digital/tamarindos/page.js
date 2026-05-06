@@ -112,7 +112,7 @@ E-mail: ${form.email || "não informado"}`;
   return (
     <main className="bg-[#f6f1e8] text-slate-950">
       {/* HERO */}
-      <section className="relative min-h-[82vh] overflow-hidden bg-black md:min-h-[90vh]">
+     <section className="relative min-h-[62vh] overflow-hidden bg-black md:min-h-[72vh]">
         <img
         src={heroImages[heroAtual]}
           alt="Pousada Tamarindos em Maricá"
@@ -122,8 +122,8 @@ E-mail: ${form.email || "não informado"}`;
         <div className="absolute inset-0 bg-black/38" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/5 to-black/60" />
 
-        <div className="relative z-10 mx-auto flex min-h-[82vh] max-w-6xl flex-col items-center justify-center px-5 py-10 text-center text-white md:min-h-[90vh]">
-<div className="mb-4 rounded-2xl bg-white/95 px-5 py-3 shadow-xl md:mb-6 md:rounded-3xl md:px-9 md:py-5">
+       <div className="relative z-10 mx-auto flex min-h-[62vh] max-w-6xl flex-col items-center justify-center px-5 py-10 text-center text-white md:min-h-[90vh]">
+<div className="mb-3 md:mb-5">
   <img
     src="/digital/tamarindos/tamarindos-logo.webp"
     alt="Pousada Tamarindos Maricá"
