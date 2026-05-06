@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function TamarindosPage() {
   const WHATSAPP_NUMBER = "552126371983";
