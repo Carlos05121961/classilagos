@@ -94,6 +94,11 @@ E-mail: ${form.email || "não informado"}`;
     "/digital/tamarindos/galeria-11.webp",
   ];
 
+  const heroImages = [
+  "/digital/tamarindos/hero-lagoa.webp",
+  "/digital/tamarindos/hero-pousada.webp",
+];
+  
   return (
     <main className="bg-[#f6f1e8] text-slate-950">
       {/* HERO */}
