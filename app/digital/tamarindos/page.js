@@ -131,18 +131,18 @@ E-mail: ${form.email || "não informado"}`;
   />
 </div>
 
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.42em] text-yellow-200 md:text-sm">
-            Maricá • Lagoa de Araçatiba
-          </p>
+<p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.42em] text-yellow-200 md:text-sm">
+  Maricá • Lagoa de Araçatiba
+</p>
 
-<h1 className="max-w-3xl text-2xl font-extrabold leading-tight md:text-4xl">
+<h1 className="max-w-3xl text-2xl font-extrabold leading-tight text-white md:text-4xl">
   Hospede-se de frente para a lagoa
 </h1>
 
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 md:mt-5 md:text-xl">
-            Conforto, café da manhã incluso e localização privilegiada em uma
-            das paisagens mais bonitas de Maricá.
-          </p>
+<p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 md:mt-5 md:text-xl">
+  Conforto, café da manhã incluso e localização privilegiada em uma
+  das paisagens mais bonitas de Maricá.
+</p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-7">
             <a
