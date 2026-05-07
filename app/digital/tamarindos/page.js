@@ -182,6 +182,65 @@ Dados da pré-reserva:
         </div>
       </section>
 
+{/* COMPARTILHAMENTO */}
+<section className="bg-[#f6f1e8] px-5 py-6">
+  <div className="mx-auto max-w-6xl text-center">
+
+    <p
+      className="mb-4 text-sm font-semibold text-emerald-800"
+      style={{
+        textShadow: "0 1px 4px rgba(0,0,0,0.18)",
+      }}
+    >
+      Compartilhe a Pousada Tamarindos:
+    </p>
+
+    <div className="flex items-center justify-center gap-4 flex-wrap">
+
+      {/* WHATSAPP */}
+      <a
+        href={`https://wa.me/?text=${encodeURIComponent(
+          "https://classilagos.shop/digital/tamarindos"
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500 shadow-lg transition hover:scale-110"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="white"
+          viewBox="0 0 24 24"
+        >
+          <path d="M20.52 3.48A11.77 11.77 0 0012.05 0C5.5 0 .18 5.32.18 11.87c0 2.09.55 4.14 1.6 5.94L0 24l6.36-1.67a11.8 11.8 0 005.69 1.45h.01c6.55 0 11.87-5.32 11.87-11.87 0-3.17-1.23-6.15-3.41-8.43zM12.06 21.6a9.7 9.7 0 01-4.95-1.36l-.35-.21-3.78.99 1.01-3.68-.23-.38a9.69 9.69 0 01-1.5-5.09c0-5.37 4.37-9.74 9.75-9.74 2.6 0 5.05 1.01 6.89 2.85a9.68 9.68 0 012.85 6.89c0 5.38-4.37 9.75-9.69 9.75zm5.35-7.26c-.29-.14-1.72-.85-1.98-.95-.27-.1-.46-.14-.66.14-.19.29-.75.95-.92 1.14-.17.19-.33.22-.62.07-.29-.14-1.21-.45-2.3-1.44-.85-.76-1.42-1.7-1.58-1.99-.17-.29-.02-.44.12-.58.13-.13.29-.33.43-.5.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.14-.66-1.59-.9-2.18-.24-.57-.48-.5-.66-.5h-.57c-.19 0-.5.07-.76.36-.26.29-1 1-1 2.43s1.03 2.82 1.17 3.01c.14.19 2.01 3.07 4.87 4.3.68.29 1.22.46 1.63.58.68.22 1.3.19 1.79.12.55-.08 1.72-.7 1.96-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33z"/>
+        </svg>
+      </a>
+
+      {/* FACEBOOK */}
+      <a
+        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          "https://classilagos.shop/digital/tamarindos"
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-lg transition hover:scale-110"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          fill="white"
+          viewBox="0 0 24 24"
+        >
+          <path d="M22 12a10 10 0 10-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.5-3.88 3.78-3.88 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.62.77-1.62 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0022 12"/>
+        </svg>
+      </a>
+
+    </div>
+  </div>
+</section>
+
       {/* APRESENTAÇÃO */}
       <section className="px-5 py-16 md:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
