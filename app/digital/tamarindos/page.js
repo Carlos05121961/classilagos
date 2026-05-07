@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function TamarindosPage() {
-  const WHATSAPP_NUMBER = "5521967463576";
+  const WHATSAPP_NUMBER = "552126371983";
 
   const [showMarica, setShowMarica] = useState(false);
 
