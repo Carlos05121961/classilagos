@@ -654,25 +654,61 @@ Dados da pré-reserva:
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="bg-emerald-700 px-5 py-16 text-center text-white">
-        <h2 className="text-3xl font-extrabold md:text-5xl">
-          Pronto para reservar sua estadia?
-        </h2>
+{/* CTA FINAL */}
+<section className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 px-5 py-20 text-white">
 
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-          Fale com a Pousada Tamarindos pelo WhatsApp e consulte a melhor opção
-          para sua hospedagem.
-        </p>
+  <div className="absolute inset-0 opacity-10">
+    <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-white blur-3xl" />
+    <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-emerald-300 blur-3xl" />
+  </div>
 
-        <button
-          type="button"
-          onClick={enviarWhatsapp}
-          className="mt-8 rounded-full bg-white px-8 py-4 font-extrabold text-emerald-700 shadow-xl transition hover:bg-emerald-50"
-        >
-          Consultar agora pelo WhatsApp
-        </button>
-      </section>
+  <div className="relative mx-auto max-w-5xl text-center">
+
+    <p className="mb-4 text-xs font-bold uppercase tracking-[0.45em] text-emerald-200">
+      Tamarindos Maricá
+    </p>
+
+    <h2 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight md:text-6xl">
+      Sua hospedagem de frente para a Lagoa de Araçatiba
+    </h2>
+
+    <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-emerald-50/90 md:text-xl">
+      Conforto, tranquilidade, café da manhã incluso e uma localização privilegiada em uma das paisagens mais bonitas de Maricá.
+    </p>
+
+    <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+
+      <a
+        href="#reservas"
+        className="rounded-full bg-white px-10 py-5 text-lg font-bold text-emerald-800 shadow-2xl transition hover:scale-105 hover:bg-emerald-50"
+      >
+        Fazer consulta de hospedagem
+      </a>
+
+      <a
+        href="#acomodacoes"
+        className="rounded-full border border-white/50 px-10 py-5 text-lg font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+      >
+        Ver acomodações
+      </a>
+
+    </div>
+
+    <div className="mt-14 border-t border-white/15 pt-8 text-sm text-emerald-100/80">
+
+      <p>
+        Rua Álvares de Castro, 1385 · Araçatiba · Maricá/RJ
+      </p>
+
+      <p className="mt-2">
+        Produzido por Classilagos Digital
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
 
       {/* MODAL CONHEÇA MARICÁ */}
       {showMarica && (
