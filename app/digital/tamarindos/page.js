@@ -132,7 +132,7 @@ Dados da pré-reserva:
   return (
     <main className="bg-[#f6f1e8] text-slate-950">
       {/* HERO */}
-     <section className="relative min-h-[62vh] overflow-hidden bg-black md:min-h-[72vh]">
+    <section className="relative min-h-[52vh] overflow-hidden bg-black md:min-h-[60vh]">
         <img
         src={heroImages[heroAtual]}
           alt="Pousada Tamarindos em Maricá"
