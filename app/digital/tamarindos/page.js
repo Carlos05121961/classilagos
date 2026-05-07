@@ -458,6 +458,110 @@ Dados da pré-reserva:
         </div>
       </section>
 
+{/* EXPERIÊNCIA TAMARINDOS */}
+<section className="bg-[#f5f1e8] px-5 py-16 md:px-10">
+  <div className="mx-auto max-w-6xl">
+
+    {/* TÍTULO */}
+    <div className="mb-12 text-center">
+      <p className="mb-3 text-xs font-bold uppercase tracking-[0.45em] text-emerald-700">
+        Araçatiba • Maricá
+      </p>
+
+      <h2 className="text-3xl font-black text-slate-900 md:text-5xl">
+        Descubra o charme da Lagoa de Araçatiba
+      </h2>
+
+      <div className="mx-auto mt-5 h-[2px] w-24 bg-emerald-600" />
+
+      <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-slate-600 md:text-lg">
+        Hospede-se em uma das regiões mais bonitas de Maricá,
+        com vista para a lagoa, conforto, tranquilidade e fácil
+        acesso às praias e pontos turísticos da cidade.
+      </p>
+    </div>
+
+    {/* CARDS */}
+    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
+
+      <div className="rounded-3xl bg-white p-6 text-center shadow-lg">
+        <div className="mb-4 text-5xl">🌅</div>
+        <h3 className="mb-2 text-lg font-bold text-slate-900">
+          Vista privilegiada
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-600">
+          De frente para a Lagoa de Araçatiba.
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 text-center shadow-lg">
+        <div className="mb-4 text-5xl">☕</div>
+        <h3 className="mb-2 text-lg font-bold text-slate-900">
+          Café da manhã incluso
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-600">
+          Mais conforto para começar bem o dia.
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 text-center shadow-lg">
+        <div className="mb-4 text-5xl">🛏️</div>
+        <h3 className="mb-2 text-lg font-bold text-slate-900">
+          Quartos aconchegantes
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-600">
+          Ambientes tranquilos e climatizados.
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 text-center shadow-lg">
+        <div className="mb-4 text-5xl">🚴</div>
+        <h3 className="mb-2 text-lg font-bold text-slate-900">
+          Orla e ciclovia
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-600">
+          Perfeito para caminhadas e lazer.
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 text-center shadow-lg">
+        <div className="mb-4 text-5xl">📍</div>
+        <h3 className="mb-2 text-lg font-bold text-slate-900">
+          Localização especial
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-600">
+          Próxima ao centro e às praias de Maricá.
+        </p>
+      </div>
+
+    </div>
+
+    {/* MAPA */}
+    <div className="mt-14 overflow-hidden rounded-[2rem] shadow-2xl">
+      <iframe
+        src="https://www.google.com/maps?q=Rua%20Alvares%20de%20Castro%201385%20Araçatiba%20Maricá%20RJ&output=embed"
+        width="100%"
+        height="420"
+        style={{ border: 0 }}
+        allowFullScreen=""
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    </div>
+
+    {/* BOTÃO */}
+    <div className="mt-12 text-center">
+      <a
+        href="#reservas"
+        className="inline-flex rounded-full bg-emerald-600 px-10 py-5 text-lg font-bold text-white shadow-xl transition hover:scale-105 hover:bg-emerald-700"
+      >
+        Fazer consulta de hospedagem
+      </a>
+    </div>
+
+  </div>
+</section>
+
       {/* GALERIA DA POUSADA */}
       <section className="bg-[#f6f1e8] px-5 py-16 md:py-20">
         <div className="mx-auto max-w-6xl text-center">
