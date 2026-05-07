@@ -91,6 +91,14 @@ Dados da pré-reserva:
     "/digital/tamarindos/quarto-07.webp",
   ];
 
+  const experienciaTamarindos = [
+  { icon: "🌅", titulo: "Vista privilegiada", texto: "De frente para a Lagoa de Araçatiba." },
+  { icon: "☕", titulo: "Café da manhã incluso", texto: "Conforto para começar bem o dia." },
+  { icon: "🛏️", titulo: "Quartos aconchegantes", texto: "Ambientes tranquilos e climatizados." },
+  { icon: "🚴", titulo: "Orla e ciclovia", texto: "Perfeito para caminhar e aproveitar a região." },
+  { icon: "📍", titulo: "Localização especial", texto: "Perto dos principais pontos de Araçatiba." },
+];
+  
   const fotosPousada = [
 "/digital/tamarindos/recepcao.webp",
 "/digital/tamarindos/area-cafe-01.webp",
