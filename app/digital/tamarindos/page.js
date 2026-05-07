@@ -92,12 +92,12 @@ Dados da pré-reserva:
   ];
 
   const fotosPousada = [
-    "/digital/tamarindos/galeria-01.webp",
-    "/digital/tamarindos/galeria-02.webp",
-    "/digital/tamarindos/galeria-04.webp",
-    "/digital/tamarindos/recepcao.webp",
-    "/digital/tamarindos/area-cafe-01.webp",
-    "/digital/tamarindos/area-cafe-02.webp",
+"/digital/tamarindos/recepcao.webp",
+"/digital/tamarindos/area-cafe-01.webp",
+"/digital/tamarindos/area-cafe-02.webp",
+"/digital/tamarindos/galeria-13.webp",
+"/digital/tamarindos/galeria-14.webp",
+"/digital/tamarindos/galeria-15.webp",
   ];
 
   const maricaFotos = [
