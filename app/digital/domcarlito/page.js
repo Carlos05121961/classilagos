@@ -1,30 +1,12 @@
 import Image from "next/image";
 
 const produtos = [
-  {
-    nome: "Dom Carlito Burguer",
-    descricao: "Pão brioche, hambúrguer artesanal e queijo.",
-  },
-  {
-    nome: "Dom Carlito Clássico",
-    descricao: "Pão brioche, hambúrguer 130g, queijo, alface e tomate.",
-  },
-  {
-    nome: "Dom Carlito Bacon",
-    descricao: "Pão brioche, hambúrguer artesanal, queijo e bacon crocante.",
-  },
-  {
-    nome: "Dom Carlito BBQ",
-    descricao: "Pão brioche, hambúrguer artesanal, queijo e molho barbecue.",
-  },
-  {
-    nome: "Dom Carlito Duplo",
-    descricao: "Pão brioche, dois hambúrgueres artesanais e queijo duplo.",
-  },
-  {
-    nome: "Dom Carlito Kids",
-    descricao: "Versão infantil no pão brioche, com hambúrguer 50g e queijo.",
-  },
+  { nome: "Dom Carlito Burguer", descricao: "Pão brioche, hambúrguer artesanal e queijo." },
+  { nome: "Dom Carlito Clássico", descricao: "Pão brioche, hambúrguer 130g, queijo, alface e tomate." },
+  { nome: "Dom Carlito Bacon", descricao: "Pão brioche, hambúrguer artesanal, queijo e bacon crocante." },
+  { nome: "Dom Carlito BBQ", descricao: "Pão brioche, hambúrguer artesanal, queijo e molho barbecue." },
+  { nome: "Dom Carlito Duplo", descricao: "Pão brioche, dois hambúrgueres artesanais e queijo duplo." },
+  { nome: "Dom Carlito Kids", descricao: "Versão infantil no pão brioche, com hambúrguer 50g e queijo." },
 ];
 
 export default function DomcarlitoPage() {
@@ -33,54 +15,80 @@ export default function DomcarlitoPage() {
       <section className="relative overflow-hidden px-6 py-10 text-center">
         <Image
           src="/digital/domcarlito/grelha.jpeg"
-          alt="Dom Carlito na grelha"
+          alt="Grelha Dom Carlito"
           fill
           priority
-          className="object-cover opacity-20"
+          className="object-cover opacity-25"
         />
 
-        <div className="absolute inset-0 bg-black/80"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black"></div>
+        <div className="absolute inset-0 bg-black/75"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black"></div>
 
-        <div className="relative z-10 mx-auto max-w-6xl">
-          <div className="flex justify-center">
-            <Image
-              src="/digital/domcarlito/domcarlitologo.webp"
-              alt="Logo Dom Carlito"
-              width={420}
-              height={420}
-              priority
-              className="w-full max-w-[260px] md:max-w-[310px]"
-            />
-          </div>
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <Image
+            src="/digital/domcarlito/domcarlitologo.webp"
+            alt="Logo Dom Carlito"
+            width={360}
+            height={360}
+            priority
+            className="mx-auto w-full max-w-[230px] md:max-w-[280px]"
+          />
 
-          <p className="mt-4 text-sm uppercase tracking-[0.45em] text-yellow-500">
+          <p className="mt-3 text-sm uppercase tracking-[0.45em] text-yellow-500">
             Smoke Hamburguers
           </p>
 
-          <h1 className="mx-auto mt-8 max-w-4xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Receita Exclusiva Domcarlito
-          </h1>
+          <div className="mt-10 grid items-center gap-8 md:grid-cols-[1fr_1.15fr_1fr]">
+            <div className="hidden md:block">
+              <Image
+                src="/digital/domcarlito/hamburguer-pronto.jpeg"
+                alt="Hambúrguer Dom Carlito"
+                width={520}
+                height={520}
+                className="rounded-3xl border border-yellow-600/30 object-cover shadow-2xl"
+              />
+            </div>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-300">
-            Cada hambúrguer é preparado na hora para proporcionar uma
-            experiência marcante, com sabor, aroma e identidade própria.
-          </p>
+            <div>
+              <p className="text-sm uppercase tracking-[0.35em] text-yellow-500">
+                Receita Exclusiva Domcarlito
+              </p>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href="#cardapio"
-              className="rounded-full bg-yellow-500 px-8 py-4 font-bold text-black transition hover:bg-yellow-400"
-            >
-              Ver cardápio
-            </a>
+              <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight md:text-6xl">
+                Hambúrguer artesanal com presença de verdade.
+              </h1>
 
-            <a
-              href="#pedido"
-              className="rounded-full border border-yellow-500 px-8 py-4 font-bold text-yellow-500 transition hover:bg-yellow-500 hover:text-black"
-            >
-              Fazer pedido
-            </a>
+              <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-300">
+                Cada hambúrguer é preparado na hora para proporcionar uma
+                experiência marcante, com sabor, aroma e identidade própria.
+              </p>
+
+              <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
+                <a
+                  href="#cardapio"
+                  className="rounded-full bg-yellow-500 px-8 py-4 font-bold text-black transition hover:bg-yellow-400"
+                >
+                  Ver cardápio
+                </a>
+
+                <a
+                  href="#pedido"
+                  className="rounded-full border border-yellow-500 px-8 py-4 font-bold text-yellow-500 transition hover:bg-yellow-500 hover:text-black"
+                >
+                  Fazer pedido
+                </a>
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <Image
+                src="/digital/domcarlito/hamburguer-pronto2.jpeg"
+                alt="Hambúrguer artesanal Dom Carlito"
+                width={520}
+                height={520}
+                className="rounded-3xl border border-yellow-600/30 object-cover shadow-2xl"
+              />
+            </div>
           </div>
 
           <div className="mx-auto mt-14 grid max-w-4xl gap-4 md:grid-cols-3">
@@ -108,35 +116,6 @@ export default function DomcarlitoPage() {
         </div>
       </section>
 
-      <section className="bg-zinc-950 px-6 py-16">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
-          <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-yellow-500">
-              Experiência Dom Carlito
-            </p>
-
-            <h2 className="mt-4 text-3xl font-black md:text-5xl">
-              Hambúrguer artesanal com presença de verdade.
-            </h2>
-
-            <p className="mt-5 text-lg leading-relaxed text-zinc-300">
-              Um lanche preparado para quem valoriza sabor, qualidade e uma
-              identidade diferente do comum.
-            </p>
-          </div>
-
-          <div className="relative overflow-hidden rounded-3xl border border-yellow-600/30 shadow-2xl">
-            <Image
-              src="/digital/domcarlito/hamburguer-pronto.jpeg"
-              alt="Hambúrguer Dom Carlito"
-              width={700}
-              height={700}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
       <section id="cardapio" className="bg-black px-6 py-16">
         <div className="mx-auto max-w-6xl">
           <p className="text-center text-sm uppercase tracking-[0.35em] text-yellow-500">
@@ -156,7 +135,6 @@ export default function DomcarlitoPage() {
                 <h3 className="text-xl font-bold text-yellow-500">
                   {produto.nome}
                 </h3>
-
                 <p className="mt-3 text-zinc-300">{produto.descricao}</p>
               </div>
             ))}
@@ -169,14 +147,9 @@ export default function DomcarlitoPage() {
           <h2 className="text-3xl font-black text-yellow-500">
             Pedidos em breve
           </h2>
-
           <p className="mx-auto mt-4 max-w-2xl text-zinc-300">
             Em breve você poderá fazer seu pedido pelo cardápio digital do Dom
             Carlito.
-          </p>
-
-          <p className="mt-6 text-sm uppercase tracking-[0.3em] text-zinc-500">
-            Delivery e retirada no local • Maricá/RJ
           </p>
         </div>
       </section>
