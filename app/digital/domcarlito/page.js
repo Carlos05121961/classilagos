@@ -6,7 +6,7 @@ export default function DomcarlitoPage() {
       <section className="relative overflow-hidden px-6 py-10 text-center">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-yellow-500">
-            Em breve em Maricá
+          
           </p>
 
           <div className="flex justify-center">
