@@ -1,32 +1,37 @@
+import Image from "next/image";
+
 export default function DomcarlitoPage() {
   return (
     <main className="min-h-screen bg-black text-white">
-      <section className="relative overflow-hidden px-6 py-16 text-center">
+      <section className="relative overflow-hidden px-6 py-10 text-center">
         <div className="mx-auto max-w-5xl">
-          <p className="mb-4 text-sm uppercase tracking-[0.35em] text-yellow-500">
+          <p className="mb-3 text-sm uppercase tracking-[0.35em] text-yellow-500">
             Em breve em Maricá
           </p>
 
-          <h1 className="text-4xl font-black tracking-tight text-white md:text-6xl">
-            Domcarlito Smoke
-            <span className="block text-yellow-500">Hamburguers</span>
+          <div className="flex justify-center">
+            <Image
+              src="/digital/domcarlito/domcarlitologo.webp"
+              alt="Logo Dom Carlito"
+              width={420}
+              height={420}
+              priority
+              className="w-full max-w-xs md:max-w-sm"
+            />
+          </div>
+
+          <p className="mt-2 text-sm uppercase tracking-[0.35em] text-yellow-500">
+            Smoke Hamburguers
+          </p>
+
+          <h1 className="mt-6 text-3xl font-black tracking-tight text-white md:text-5xl">
+            Receita Exclusiva Domcarlito
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-300">
-            Hambúrguer artesanal feito na brasa, com sabor defumado,
-            receita exclusiva e preparo feito na hora.
+            Cada hambúrguer é preparado na hora para proporcionar uma
+            experiência marcante, com sabor, aroma e identidade própria.
           </p>
-
-          <div className="mt-10 rounded-3xl border border-yellow-600/40 bg-zinc-950 p-6 shadow-2xl">
-            <h2 className="text-2xl font-bold text-yellow-500">
-              O segredo está na brasa
-            </h2>
-
-            <p className="mt-4 text-zinc-300">
-              Nada de chapa. Aqui o hambúrguer ganha vida na grelha,
-              com aquele aroma especial de fumaça e sabor artesanal.
-            </p>
-          </div>
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl bg-zinc-900 p-5">
@@ -37,9 +42,9 @@ export default function DomcarlitoPage() {
             </div>
 
             <div className="rounded-2xl bg-zinc-900 p-5">
-              <h3 className="font-bold text-yellow-500">Na brasa</h3>
+              <h3 className="font-bold text-yellow-500">Feito na hora</h3>
               <p className="mt-2 text-sm text-zinc-300">
-                Hambúrguer grelhado, levemente defumado e feito na hora.
+                Cada pedido é preparado com atenção para entregar qualidade.
               </p>
             </div>
 
@@ -83,7 +88,7 @@ export default function DomcarlitoPage() {
               >
                 <h3 className="text-xl font-bold text-white">{item}</h3>
                 <p className="mt-2 text-sm text-zinc-400">
-                  Hambúrguer artesanal no pão brioche, preparado na brasa.
+                  Hambúrguer artesanal no pão brioche, feito na hora.
                 </p>
               </div>
             ))}
@@ -96,8 +101,7 @@ export default function DomcarlitoPage() {
       </section>
 
       <footer className="border-t border-zinc-800 px-6 py-8 text-center text-sm text-zinc-500">
-        Domcarlito Smoke Hamburguers • Maricá/RJ
+        Dom Carlito Smoke Hamburguers • Maricá/RJ
       </footer>
     </main>
   );
-}
