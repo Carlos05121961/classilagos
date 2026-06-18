@@ -16,7 +16,7 @@ export default function DomcarlitoPage() {
               width={420}
               height={420}
               priority
-              className="w-full max-w-xs md:max-w-sm"
+              className="w-full max-w-[280px] md:max-w-[320px]"
             />
           </div>
 
