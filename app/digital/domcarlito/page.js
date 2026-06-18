@@ -4,6 +4,17 @@ export default function DomcarlitoPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="relative overflow-hidden px-6 py-10 text-center">
+    <Image
+  src="/digital/domcarlito/grelha.jpeg"
+  alt="Grelha Dom Carlito"
+  fill
+  priority
+  className="object-cover opacity-20"
+/>
+
+<div className="absolute inset-0 bg-black/75"></div>
+
+<div className="relative z-10 mx-auto max-w-5xl">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-yellow-500">
           
