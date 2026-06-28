@@ -3,27 +3,50 @@ import Image from "next/image";
 const produtos = [
   {
     nome: "Dom Carlito Burguer",
-    descricao: "Pão brioche, hambúrguer artesanal e queijo.",
+    imagem: "/digital/domcarlito/domcarlito-burguer.webp",
+    descricao: "Carne 130g, queijo e pão Brioche 60g.",
+    preco: "R$ 19,90",
   },
   {
     nome: "Dom Carlito Clássico",
-    descricao: "Pão brioche, hambúrguer 130g, queijo, alface e tomate.",
+    imagem: "/digital/domcarlito/domcarlito-classico.webp",
+    descricao:
+      "Carne 130g, queijo, cebola, tomate, alface e pão Prime GB 60g.",
+    preco: "R$ 23,90",
   },
   {
     nome: "Dom Carlito Bacon",
-    descricao: "Pão brioche, hambúrguer artesanal, queijo e bacon crocante.",
+    imagem: "/digital/domcarlito/domcarlito-bacon.webp",
+    descricao:
+      "Carne 130g, queijo, bacon, cebola e pão Prime GB 60g.",
+    preco: "R$ 25,90",
   },
   {
-    nome: "Dom Carlito BBQ",
-    descricao: "Pão brioche, hambúrguer artesanal, queijo e molho barbecue.",
+    nome: "Dom Carlito Pimenta",
+    imagem: "/digital/domcarlito/domcarlito-pimenta.webp",
+    descricao:
+      "Carne 130g, queijo, cebola, tomate, alface e pão Brioche Pimenta Vermelha 60g.",
+    preco: "R$ 24,90",
   },
   {
     nome: "Dom Carlito Duplo",
-    descricao: "Pão brioche, dois hambúrgueres artesanais e queijo duplo.",
+    imagem: "/digital/domcarlito/domcarlito-duplo.webp",
+    descricao:
+      "2 carnes 130g, 2 queijos, cebola e pão Brioche Pimenta Vermelha 60g.",
+    preco: "R$ 33,90",
+  },
+];
+
+const bebidas = [
+  {
+    nome: "Coca-Cola Lata 350ml",
+    imagem: "/digital/domcarlito/coca-cola-350.webp",
+    preco: "R$ 9,00",
   },
   {
-    nome: "Dom Carlito Kids",
-    descricao: "Versão infantil no pão brioche, com hambúrguer 50g e queijo.",
+    nome: "Coca-Cola 200ml",
+    imagem: "/digital/domcarlito/coca-cola-200.webp",
+    preco: "R$ 5,00",
   },
 ];
 
@@ -43,16 +66,14 @@ export default function DomcarlitoPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black"></div>
 
         <div className="relative z-10 mx-auto max-w-6xl">
-          <div className="flex justify-center">
-            <Image
-              src="/digital/domcarlito/domcarlitologo.webp"
-              alt="Logo Dom Carlito"
-              width={420}
-              height={420}
-              priority
-              className="w-full max-w-[260px] md:max-w-[310px]"
-            />
-          </div>
+          <Image
+            src="/digital/domcarlito/domcarlitologo.webp"
+            alt="Logo Dom Carlito"
+            width={420}
+            height={420}
+            priority
+            className="mx-auto w-full max-w-[260px] md:max-w-[310px]"
+          />
 
           <p className="mt-4 text-sm uppercase tracking-[0.45em] text-yellow-500">
             Smoke Hamburguers
@@ -82,29 +103,6 @@ export default function DomcarlitoPage() {
               Fazer pedido
             </a>
           </div>
-
-          <div className="mx-auto mt-14 grid max-w-4xl gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-yellow-600/20 bg-black/60 p-5 backdrop-blur">
-              <h3 className="font-bold text-yellow-500">Artesanal</h3>
-              <p className="mt-2 text-sm text-zinc-300">
-                Preparado com cuidado, sabor e identidade própria.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-yellow-600/20 bg-black/60 p-5 backdrop-blur">
-              <h3 className="font-bold text-yellow-500">Feito na hora</h3>
-              <p className="mt-2 text-sm text-zinc-300">
-                Cada pedido recebe atenção especial do preparo à entrega.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-yellow-600/20 bg-black/60 p-5 backdrop-blur">
-              <h3 className="font-bold text-yellow-500">Sabor marcante</h3>
-              <p className="mt-2 text-sm text-zinc-300">
-                Uma experiência criada para ficar na memória.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -125,13 +123,13 @@ export default function DomcarlitoPage() {
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl border border-yellow-600/30 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl border border-yellow-600/30 bg-black p-8 shadow-2xl">
             <Image
-              src="/digital/domcarlito/hamburguer-pronto.jpeg"
-              alt="Hambúrguer Dom Carlito"
+              src="/digital/domcarlito/domcarlito-burguer.webp"
+              alt="Dom Carlito Burguer"
               width={700}
               height={700}
-              className="h-full w-full object-cover"
+              className="mx-auto max-h-[360px] w-full object-contain drop-shadow-2xl"
             />
           </div>
         </div>
@@ -144,28 +142,81 @@ export default function DomcarlitoPage() {
           </p>
 
           <h2 className="mt-4 text-center text-3xl font-black md:text-5xl">
-            Cardápio inicial
+            A Linha Dom Carlito
           </h2>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {produtos.map((produto) => (
               <div
                 key={produto.nome}
-                className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 transition hover:border-yellow-600/60"
+                className="group rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-center transition hover:border-yellow-600/70 hover:shadow-2xl"
               >
-                <h3 className="text-xl font-bold text-yellow-500">
+                <div className="flex h-56 items-center justify-center">
+                  <Image
+                    src={produto.imagem}
+                    alt={produto.nome}
+                    width={420}
+                    height={320}
+                    className="max-h-52 w-full object-contain transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-2xl font-black text-yellow-500">
                   {produto.nome}
                 </h3>
 
-                <p className="mt-3 text-zinc-300">{produto.descricao}</p>
+                <p className="mt-3 min-h-[72px] text-sm leading-relaxed text-zinc-300">
+                  {produto.descricao}
+                </p>
+
+                <p className="mt-5 text-3xl font-black text-white">
+                  {produto.preco}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="pedido" className="bg-zinc-950 px-6 py-16 text-center">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-yellow-600/30 bg-black p-8 shadow-2xl">
+      <section className="bg-zinc-950 px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-center text-sm uppercase tracking-[0.35em] text-yellow-500">
+            Bebidas
+          </p>
+
+          <h2 className="mt-4 text-center text-3xl font-black md:text-5xl">
+            Acompanhe seu pedido
+          </h2>
+
+          <div className="mx-auto mt-10 grid max-w-3xl gap-6 md:grid-cols-2">
+            {bebidas.map((bebida) => (
+              <div
+                key={bebida.nome}
+                className="rounded-3xl border border-zinc-800 bg-black p-6 text-center"
+              >
+                <Image
+                  src={bebida.imagem}
+                  alt={bebida.nome}
+                  width={220}
+                  height={220}
+                  className="mx-auto h-40 w-full object-contain"
+                />
+
+                <h3 className="mt-5 text-xl font-bold text-yellow-500">
+                  {bebida.nome}
+                </h3>
+
+                <p className="mt-3 text-3xl font-black text-white">
+                  {bebida.preco}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="pedido" className="bg-black px-6 py-16 text-center">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-yellow-600/30 bg-zinc-950 p-8 shadow-2xl">
           <h2 className="text-3xl font-black text-yellow-500">
             Pedidos em breve
           </h2>
@@ -176,7 +227,7 @@ export default function DomcarlitoPage() {
           </p>
 
           <p className="mt-6 text-sm uppercase tracking-[0.3em] text-zinc-500">
-            Delivery e retirada no local • Maricá/RJ
+            Entregas por Uber Flash ou Moto-Táxi • Maricá/RJ
           </p>
         </div>
       </section>
