@@ -93,7 +93,7 @@ const bebidas = [
     nome: "Coca-Cola Lata 350ml",
     imagem: "/digital/domcarlito/coca-cola-350.webp",
     descricao: "Coca-Cola lata 350ml gelada.",
-    preco: 9,
+    preco: 8,
   },
 ];
 
