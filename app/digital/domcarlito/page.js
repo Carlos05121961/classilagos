@@ -61,7 +61,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-classico.webp",
     descricao:
       "Pão Prime GB 60g, hambúrguer artesanal 130g, queijo, alface, tomate, cebola e Molho Artesanal Dom Carlito.",
-    preco: 26.9,
+    preco: 25.9,
   },
   {
     id: "duplo",
