@@ -12,21 +12,21 @@ const produtos = [
   {
     id: "kids",
     nome: "Dom Carlito Kids",
-    imagem: "/digital/domcarlito/domcarlito-burguer.webp",
+    imagem: "/digital/domcarlito/domcarlito-kids.webp",
     descricao: "Pão Brioche 50g, hambúrguer artesanal 90g e queijo.",
     preco: 14.9,
   },
   {
     id: "burger",
     nome: "Dom Carlito Burger",
-    imagem: "/digital/domcarlito/domcarlito-burguer.webp",
+    imagem: "/digital/domcarlito/domcarlito-burger.webp",
     descricao: "Pão Brioche 60g, hambúrguer artesanal 130g, queijo e cebola.",
     preco: 19.9,
   },
   {
     id: "salada",
     nome: "Dom Carlito Salada",
-    imagem: "/digital/domcarlito/domcarlito-classico.webp",
+    imagem: "/digital/domcarlito/domcarlito-salada.webp",
     descricao:
       "Pão Brioche 60g, hambúrguer artesanal 130g, queijo, alface, tomate e cebola.",
     preco: 23.9,
@@ -50,17 +50,9 @@ const produtos = [
   {
     id: "bbq",
     nome: "Dom Carlito BBQ",
-    imagem: "/digital/domcarlito/domcarlito-pimenta.webp",
+    imagem: "/digital/domcarlito/domcarlito-bbq.webp",
     descricao:
       "Pão Brioche Pimenta Vermelha 60g, hambúrguer artesanal defumado 130g, queijo, cebola e Molho Artesanal Dom Carlito.",
-    preco: 25.9,
-  },
-  {
-    id: "smoke",
-    nome: "Dom Carlito Smoke",
-    imagem: "/digital/domcarlito/domcarlito-classico.webp",
-    descricao:
-      "Pão Prime GB 60g, hambúrguer artesanal 130g, queijo, alface, tomate, cebola e Molho Artesanal Dom Carlito.",
     preco: 25.9,
   },
   {
