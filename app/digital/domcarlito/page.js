@@ -69,8 +69,8 @@ const bebidas = [
   {
     id: "agua",
     nome: "Água Mineral",
-    imagem: "/digital/domcarlito/coca-cola-200.webp",
-    descricao: "Água mineral gelada.",
+    imagem: "/digital/domcarlito/aguamineral.png",
+    descricao: "Água mineral 300ml gelada.",
     preco: 3,
   },
   {
