@@ -593,15 +593,15 @@ function CardItem({ item, quantidade, alterarQuantidade, pequeno = false }) {
           pequeno ? "h-40" : "h-56"
         }`}
       >
-        <Image
-          src={item.imagem}
-          alt={item.nome}
-          width={420}
-          height={320}
-          className={`w-full object-contain transition duration-300 group-hover:scale-105 ${
-            pequeno ? "max-h-36" : "max-h-52"
-          }`}
-        />
+<Image
+  src={item.imagem}
+  alt={item.nome}
+  width={420}
+  height={320}
+  className={`w-full object-contain transition duration-300 group-hover:scale-105 ${
+    pequeno ? "max-h-36" : "max-h-52"
+  }`}
+/>
       </div>
 
       <h3 className="mt-5 text-2xl font-black text-yellow-500">{item.nome}</h3>
