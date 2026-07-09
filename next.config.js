@@ -8,7 +8,33 @@ const nextConfig = {
       },
     ],
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "domcarlitobbq.com.br",
+          },
+        ],
+        destination: "/digital/domcarlito",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "www.domcarlitobbq.com.br",
+          },
+        ],
+        destination: "/digital/domcarlito",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
-
