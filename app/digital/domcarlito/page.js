@@ -5,14 +5,24 @@ import { useEffect, useMemo, useState } from "react";
 
 const WHATSAPP_PEDIDOS = "5521990581668";
 const PIX_CHAVE = "21967463576";
+const META_PIXEL_ID = "1973548500013587";
 
 function registrarEventoMeta(nomeEvento, parametros = {}) {
   if (
     typeof window !== "undefined" &&
     typeof window.fbq === "function"
   ) {
-    window.fbq("track", nomeEvento, parametros);
+    window.fbq(
+      "trackSingle",
+      META_PIXEL_ID,
+      nomeEvento,
+      parametros
+    );
+
+    return true;
   }
+
+  return false;
 }
 
 const bairrosAtendidos = [
@@ -116,13 +126,45 @@ export default function DomcarlitoPage() {
   const todosItens = [...produtos, ...bebidas];
 
   useEffect(() => {
-    registrarEventoMeta("ViewContent", {
+    const parametros = {
       content_name: "Landing Page Dom Carlito Smoke",
       content_category: "Hambúrgueres Artesanais",
       content_ids: produtos.map((produto) => produto.id),
       content_type: "product_group",
       currency: "BRL",
-    });
+    };
+
+    function dispararViewContent() {
+      return registrarEventoMeta("ViewContent", parametros);
+    }
+
+    if (dispararViewContent()) {
+      return;
+    }
+
+    window.addEventListener(
+      "domcarlito-pixel-ready",
+      dispararViewContent
+    );
+
+    let tentativas = 0;
+
+    const verificador = window.setInterval(() => {
+      tentativas += 1;
+
+      if (dispararViewContent() || tentativas >= 20) {
+        window.clearInterval(verificador);
+      }
+    }, 250);
+
+    return () => {
+      window.removeEventListener(
+        "domcarlito-pixel-ready",
+        dispararViewContent
+      );
+
+      window.clearInterval(verificador);
+    };
   }, []);
 
   const [quantidades, setQuantidades] = useState({});
