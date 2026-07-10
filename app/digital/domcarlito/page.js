@@ -1,12 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const WHATSAPP_PEDIDOS = "5521990581668";
 const PIX_CHAVE = "21967463576";
 
-const bairrosAtendidos = ["Jacaroá", "Caju", "Araçatiba", "Centro", "Flamengo"];
+function registrarEventoMeta(nomeEvento, parametros = {}) {
+  if (
+    typeof window !== "undefined" &&
+    typeof window.fbq === "function"
+  ) {
+    window.fbq("track", nomeEvento, parametros);
+  }
+}
+
+const bairrosAtendidos = [
+  "Jacaroá",
+  "Caju",
+  "Araçatiba",
+  "Centro",
+  "Flamengo",
+];
 
 const produtos = [
   {
@@ -20,7 +35,8 @@ const produtos = [
     id: "burger",
     nome: "Dom Carlito Burger",
     imagem: "/digital/domcarlito/domcarlito-burger.webp",
-    descricao: "Pão Brioche 60g, hambúrguer artesanal 130g, queijo e cebola.",
+    descricao:
+      "Pão Brioche 60g, hambúrguer artesanal 130g, queijo e cebola.",
     preco: 19.9,
   },
   {
@@ -99,6 +115,16 @@ function moeda(valor) {
 export default function DomcarlitoPage() {
   const todosItens = [...produtos, ...bebidas];
 
+  useEffect(() => {
+    registrarEventoMeta("ViewContent", {
+      content_name: "Landing Page Dom Carlito Smoke",
+      content_category: "Hambúrgueres Artesanais",
+      content_ids: produtos.map((produto) => produto.id),
+      content_type: "product_group",
+      currency: "BRL",
+    });
+  }, []);
+
   const [quantidades, setQuantidades] = useState({});
   const [recebimento, setRecebimento] = useState("entrega");
 
@@ -117,7 +143,11 @@ export default function DomcarlitoPage() {
   function alterarQuantidade(id, valor) {
     setQuantidades((atual) => {
       const novaQtd = Math.max(0, (atual[id] || 0) + valor);
-      return { ...atual, [id]: novaQtd };
+
+      return {
+        ...atual,
+        [id]: novaQtd,
+      };
     });
   }
 
@@ -154,13 +184,21 @@ export default function DomcarlitoPage() {
     }
 
     if (recebimento === "entrega") {
-      if (rua.trim() === "" || numero.trim() === "" || bairro.trim() === "") {
+      if (
+        rua.trim() === "" ||
+        numero.trim() === "" ||
+        bairro.trim() === ""
+      ) {
         alert("Informe rua, número e bairro para entrega.");
         return;
       }
     }
 
-    if (pagamento === "dinheiro" && troco === "sim" && trocoPara.trim() === "") {
+    if (
+      pagamento === "dinheiro" &&
+      troco === "sim" &&
+      trocoPara.trim() === ""
+    ) {
       alert("Informe para quanto precisa de troco.");
       return;
     }
@@ -190,7 +228,11 @@ Ponto de referência: ${referencia || "Não informado"}`
 Chave PIX: ${PIX_CHAVE}
 Após realizar o PIX, enviarei o comprovante por aqui.`
         : `Dinheiro na entrega
-Troco: ${troco === "sim" ? `Sim, para R$ ${trocoPara}` : "Não precisa"}`;
+Troco: ${
+            troco === "sim"
+              ? `Sim, para R$ ${trocoPara}`
+              : "Não precisa"
+          }`;
 
     const mensagem = `🍔 NOVO PEDIDO - DOM CARLITO
 
@@ -218,6 +260,32 @@ ${observacoes || "Nenhuma observação."}`;
       mensagem
     )}`;
 
+    registrarEventoMeta("InitiateCheckout", {
+      content_ids: itensPedido.map((item) => item.id),
+
+      contents: itensPedido.map((item) => ({
+        id: item.id,
+        quantity: item.quantidade,
+        item_price: item.preco,
+      })),
+
+      content_type: "product",
+
+      num_items: itensPedido.reduce(
+        (soma, item) => soma + item.quantidade,
+        0
+      ),
+
+      value: total,
+      currency: "BRL",
+    });
+
+    registrarEventoMeta("Contact", {
+      content_name: "Pedido enviado para o WhatsApp",
+      value: total,
+      currency: "BRL",
+    });
+
     window.open(url, "_blank");
   }
 
@@ -233,6 +301,7 @@ ${observacoes || "Nenhuma observação."}`;
         />
 
         <div className="absolute inset-0 bg-black/80"></div>
+
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black"></div>
 
         <div className="relative z-10 mx-auto max-w-6xl">
@@ -254,8 +323,8 @@ ${observacoes || "Nenhuma observação."}`;
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-300">
-            Preparados na hora, com ingredientes selecionados e uma identidade
-            de sabor própria.
+            Preparados na hora, com ingredientes selecionados e uma
+            identidade de sabor própria.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -343,13 +412,19 @@ ${observacoes || "Nenhuma observação."}`;
                   <span>
                     {item.quantidade}x {item.nome}
                   </span>
-                  <strong>{moeda(item.preco * item.quantidade)}</strong>
+
+                  <strong>
+                    {moeda(item.preco * item.quantidade)}
+                  </strong>
                 </div>
               ))}
 
               <div className="flex justify-between pt-4 text-2xl font-black">
                 <span>Total</span>
-                <span className="text-yellow-500">{moeda(total)}</span>
+
+                <span className="text-yellow-500">
+                  {moeda(total)}
+                </span>
               </div>
             </div>
           )}
@@ -358,6 +433,7 @@ ${observacoes || "Nenhuma observação."}`;
             <label className="mb-2 block font-bold text-yellow-500">
               Seu nome
             </label>
+
             <input
               value={nomeCliente}
               onChange={(e) => setNomeCliente(e.target.value)}
@@ -403,8 +479,8 @@ ${observacoes || "Nenhuma observação."}`;
               </h3>
 
               <p className="mt-3 text-sm text-zinc-400">
-                Atendemos inicialmente: Jacaroá, Caju, Araçatiba, Centro e
-                Flamengo.
+                Atendemos inicialmente: Jacaroá, Caju, Araçatiba,
+                Centro e Flamengo.
               </p>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -428,8 +504,12 @@ ${observacoes || "Nenhuma observação."}`;
                   className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4 text-white outline-none focus:border-yellow-500"
                 >
                   <option value="">Selecione o bairro</option>
+
                   {bairrosAtendidos.map((bairroItem) => (
-                    <option key={bairroItem} value={bairroItem}>
+                    <option
+                      key={bairroItem}
+                      value={bairroItem}
+                    >
                       {bairroItem}
                     </option>
                   ))}
@@ -471,8 +551,8 @@ ${observacoes || "Nenhuma observação."}`;
             </h3>
 
             <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-zinc-400">
-              Recomendamos o pagamento via PIX. É rápido, seguro e agiliza a
-              confirmação e a preparação do seu pedido.
+              Recomendamos o pagamento via PIX. É rápido, seguro e
+              agiliza a confirmação e a preparação do seu pedido.
             </p>
 
             <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -517,7 +597,8 @@ ${observacoes || "Nenhuma observação."}`;
                 </button>
 
                 <p className="mt-4 text-sm text-zinc-400">
-                  Após realizar o pagamento, envie o comprovante pelo WhatsApp.
+                  Após realizar o pagamento, envie o comprovante pelo
+                  WhatsApp.
                 </p>
               </div>
             )}
@@ -572,20 +653,26 @@ ${observacoes || "Nenhuma observação."}`;
           </button>
 
           <p className="mt-5 text-center text-sm text-zinc-500">
-            Seu pedido será enviado para o WhatsApp Business oficial do Dom
-            Carlito.
+            Seu pedido será enviado para o WhatsApp Business oficial
+            do Dom Carlito.
           </p>
         </div>
       </section>
 
       <footer className="border-t border-zinc-800 bg-black px-6 py-8 text-center text-sm text-zinc-500">
-        Dom Carlito Smoke Burgers • Maricá/RJ • WhatsApp: (21) 99058-1668
+        Dom Carlito Smoke Burgers • Maricá/RJ • WhatsApp:
+        (21) 99058-1668
       </footer>
     </main>
   );
 }
 
-function CardItem({ item, quantidade, alterarQuantidade, pequeno = false }) {
+function CardItem({
+  item,
+  quantidade,
+  alterarQuantidade,
+  pequeno = false,
+}) {
   return (
     <div className="group rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-center transition hover:border-yellow-600/70 hover:shadow-2xl">
       <div
@@ -593,18 +680,20 @@ function CardItem({ item, quantidade, alterarQuantidade, pequeno = false }) {
           pequeno ? "h-40" : "h-56"
         }`}
       >
-<Image
-  src={item.imagem}
-  alt={item.nome}
-  width={420}
-  height={320}
-  className={`w-full object-contain transition duration-300 group-hover:scale-105 ${
-    pequeno ? "max-h-36" : "max-h-52"
-  }`}
-/>
+        <Image
+          src={item.imagem}
+          alt={item.nome}
+          width={420}
+          height={320}
+          className={`w-full object-contain transition duration-300 group-hover:scale-105 ${
+            pequeno ? "max-h-36" : "max-h-52"
+          }`}
+        />
       </div>
 
-      <h3 className="mt-5 text-2xl font-black text-yellow-500">{item.nome}</h3>
+      <h3 className="mt-5 text-2xl font-black text-yellow-500">
+        {item.nome}
+      </h3>
 
       {item.descricao && (
         <p className="mt-3 min-h-[72px] text-sm leading-relaxed text-zinc-300">
@@ -624,7 +713,9 @@ function CardItem({ item, quantidade, alterarQuantidade, pequeno = false }) {
           -
         </button>
 
-        <span className="min-w-8 text-2xl font-black">{quantidade}</span>
+        <span className="min-w-8 text-2xl font-black">
+          {quantidade}
+        </span>
 
         <button
           onClick={() => alterarQuantidade(item.id, 1)}
