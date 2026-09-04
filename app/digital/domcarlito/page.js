@@ -55,7 +55,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-salada.webp",
     descricao:
       "Pão Brioche 60g, hambúrguer artesanal 130g, queijo, alface, tomate e cebola.",
-    preco: 23.9,
+    preco: 21.9,
   },
   {
     id: "bacon",
@@ -63,7 +63,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-bacon.webp",
     descricao:
       "Pão Brioche 60g, hambúrguer artesanal 130g, queijo, bacon crocante e cebola.",
-    preco: 24.9,
+    preco: 23.9,
   },
   {
     id: "pimenta",
@@ -71,7 +71,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-pimenta.webp",
     descricao:
       "Pão Brioche Pimenta Vermelha 60g, hambúrguer artesanal 130g, queijo, alface, tomate e cebola.",
-    preco: 24.9,
+    preco: 23.9,
   },
   {
     id: "bbq",
@@ -79,7 +79,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-bbq.webp",
     descricao:
       "Pão Brioche Pimenta Vermelha 60g, hambúrguer artesanal defumado 130g, queijo, cebola e Molho Artesanal Dom Carlito.",
-    preco: 25.9,
+    preco: 23.9,
   },
   {
     id: "duplo",
@@ -87,7 +87,7 @@ const produtos = [
     imagem: "/digital/domcarlito/domcarlito-duplo.webp",
     descricao:
       "Pão Prime GB 60g, dois hambúrgueres artesanais 130g, queijo duplo e cebola.",
-    preco: 32.9,
+    preco: 29.9,
   },
 ];
 
